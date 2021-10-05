@@ -18,7 +18,7 @@ event FundsTransfer:
   _to: address
   amount: uint256
 
-event FundsReceived:
+event FundsReceipt:
   _from: address
   amount: uint256
   interestAmount: uint256
@@ -111,7 +111,7 @@ def receiveFunds(_amount: uint256, _interestAmount: uint256) -> uint256:
   self.fundsInvested -= _amount
   self.totalRewards += _interestAmount
 
-  log FundsReceived(msg.sender, _amount, _interestAmount)
+  log FundsReceipt(msg.sender, _amount, _interestAmount)
 
   return self.fundsAvailable
 
@@ -119,4 +119,4 @@ def receiveFunds(_amount: uint256, _interestAmount: uint256) -> uint256:
 @external
 @payable
 def __default__():
-  send(msg.sender, msg.value)
+  raise "No function called!"

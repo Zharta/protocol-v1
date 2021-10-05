@@ -291,5 +291,5 @@ def cancelApprovedLoan() -> Loan:
 @external
 @payable
 def __default__():
-  send(msg.sender, msg.value)
+  raise "No function called!"
 
