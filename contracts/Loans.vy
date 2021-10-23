@@ -271,6 +271,7 @@ def settleDefaultedLoan(_borrower: address) -> Loan:
 @external
 def cancelApprovedLoan() -> Loan:
   assert self._hasApprovedLoan(msg.sender), "The sender does not have an approved loan!"
+  assert self._hasStartedLoan(msg.sender) == False, "The loan has already been started, please pay the loan."
 
   self.loans[msg.sender] = empty(Loan)
 
