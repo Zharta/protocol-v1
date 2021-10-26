@@ -8,7 +8,7 @@ from decimal import Decimal
 from Crypto.Hash import keccak
 
 
-TEST_COLLATERAL_ID = 0
+TEST_COLLATERAL_IDS = list(range(5)) + [0] * 5
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250 # 2.5% in parts per 10000
@@ -116,8 +116,8 @@ def test_new_loan_unauthorized(loans_contract, erc721_contract, borrower):
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            erc721_contract.address,
-            TEST_COLLATERAL_ID,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
             {'from': borrower}
         )
 
@@ -135,8 +135,8 @@ def test_newloan_sender_already_has_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
@@ -146,26 +146,26 @@ def test_newloan_sender_already_has_loan(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            erc721_contract.address,
-            TEST_COLLATERAL_ID,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
             {'from': contract_owner}
         )
 
 
-def test_newloan_collateral_nonexistent(
+def test_newloan_collateral_notwhitelisted(
     loans_contract,
     erc721_contract,
     contract_owner,
     borrower
 ):
-    with brownie.reverts("The collateral address is not whitelisted!"):
+    with brownie.reverts("The collaterals are not all whitelisted!"):
         loans_contract.newLoan(
             borrower,
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            erc721_contract.address,
-            TEST_COLLATERAL_ID,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
             {'from': contract_owner}
         )
 
@@ -185,8 +185,8 @@ def test_newloan_maturity_in_the_past(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
-            erc721_contract.address,
-            TEST_COLLATERAL_ID,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
             {'from': contract_owner}
         )
 
@@ -199,8 +199,8 @@ def test_newloan(loans_contract, erc721_contract, contract_owner, borrower):
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
@@ -211,8 +211,9 @@ def test_newloan(loans_contract, erc721_contract, contract_owner, borrower):
     assert loan_details["paidAmount"] == 0
     assert loan_details["paidAmountInterest"] == 0
     assert loan_details["maturity"] == MATURITY
-    assert loan_details["collateral"]["contract"] == erc721_contract.address
-    assert loan_details["collateral"]["id"] == TEST_COLLATERAL_ID
+    assert loan_details["collaterals"]["size"] == 5
+    assert loan_details["collaterals"]["contracts"] == [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5
+    assert loan_details["collaterals"]["ids"] == TEST_COLLATERAL_IDS
     assert loan_details["approved"] == True
     assert loan_details["issued"] == False
     assert loan_details["defaulted"] == False
@@ -236,8 +237,8 @@ def test_unauthorized_access_approved_loans(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
     with brownie.reverts("The sender does not have an approved loan!"):
@@ -283,18 +284,22 @@ def test_start_loan_collateral_not_approved(
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
     erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
 
     loans_contract.newLoan(
         borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
-    with brownie.reverts("The collateral is not approved to be transferred!"):
+    with brownie.reverts("The collaterals are not all approved to be transferred!"):
         loans_contract.startApprovedLoan({"from": borrower})
 
 
@@ -320,15 +325,19 @@ def test_start_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
     
     borrower_initial_balance = borrower.balance()
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx = loans_contract.startApprovedLoan({"from": borrower})
 
@@ -339,8 +348,9 @@ def test_start_loan(
     assert loan_details["paidAmount"] == 0
     assert loan_details["paidAmountInterest"] == 0
     assert loan_details["maturity"] == MATURITY
-    assert loan_details["collateral"]["contract"] == erc721_contract.address
-    assert loan_details["collateral"]["id"] == TEST_COLLATERAL_ID
+    assert loan_details["collaterals"]["size"] == 5
+    assert loan_details["collaterals"]["contracts"] == [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5
+    assert loan_details["collaterals"]["ids"] == TEST_COLLATERAL_IDS
     assert loan_details["approved"] == True
     assert loan_details["issued"] == True
     assert loan_details["defaulted"] == False
@@ -351,12 +361,13 @@ def test_start_loan(
     assert loans_contract.currentIssuedLoans() == 1
     assert loans_contract.totalIssuedLoans() == 1
 
-    assert len(tx.events) == 4
-    assert tx.events[3]["borrower"] == borrower
+    assert len(tx.events) == 12
+    assert tx.events[11]["borrower"] == borrower
 
     assert borrower.balance() == borrower_initial_balance + LOAN_AMOUNT
 
-    assert erc721_contract.ownerOf(0) == loans_contract.address
+    for collateral_id in TEST_COLLATERAL_IDS:
+        assert erc721_contract.ownerOf(collateral_id) == loans_contract.address
 
 
 def test_pay_loan_not_issued(loans_contract, borrower):
@@ -386,13 +397,17 @@ def test_pay_loan_no_value_sent(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     loans_contract.startApprovedLoan({"from": borrower})
 
@@ -421,13 +436,17 @@ def test_pay_loan_higher_value_than_needed(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     loans_contract.startApprovedLoan({"from": borrower})
 
@@ -458,13 +477,17 @@ def test_pay_loan_defaulted(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         int(dt.datetime.now().timestamp()) + 10,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     loans_contract.startApprovedLoan({"from": borrower})
 
@@ -497,13 +520,17 @@ def test_pay_loan_multiple(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     borrower_initial_balance = borrower.balance()
 
@@ -522,24 +549,29 @@ def test_pay_loan_multiple(
     assert loans_contract.currentIssuedLoans() == 1
     assert loans_contract.totalPaidLoans() == 0
 
-    assert erc721_contract.ownerOf(TEST_COLLATERAL_ID) == loans_contract.address
+    for collateral_id in TEST_COLLATERAL_IDS:
+        assert erc721_contract.ownerOf(collateral_id) == loans_contract.address
 
     amount_paid = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
     tx = loans_contract.payLoan({"from": borrower, "value": amount_paid})
 
     empty_loan = tx.return_value
-    print(empty_loan)
     assert empty_loan["amount"] == 0
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
     assert empty_loan["paidAmountInterest"] == 0
-    assert empty_loan["collateral"]["contract"] == "0x0000000000000000000000000000000000000000"
-    assert empty_loan["collateral"]["id"] == 0
+
+    assert empty_loan["collaterals"]["size"] == 0
+    for k in range(len(TEST_COLLATERAL_IDS)):
+        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
+        assert empty_loan["collaterals"]["ids"][k] == 0
+
     assert loans_contract.currentApprovedLoans() == 0
     assert loans_contract.currentIssuedLoans() == 0
     assert loans_contract.totalPaidLoans() == 1
 
-    assert erc721_contract.ownerOf(TEST_COLLATERAL_ID) == borrower
+    for collateral_id in TEST_COLLATERAL_IDS:
+        assert erc721_contract.ownerOf(collateral_id) == borrower
 
     assert borrower.balance() == borrower_amount_after_loan_started - amount_paid * 2
 
@@ -566,13 +598,17 @@ def test_pay_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     borrower_initial_balance = borrower.balance()
 
@@ -589,16 +625,21 @@ def test_pay_loan(
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
     assert empty_loan["paidAmountInterest"] == 0
-    assert empty_loan["collateral"]["contract"] == "0x0000000000000000000000000000000000000000"
-    assert empty_loan["collateral"]["id"] == 0
+
+    assert empty_loan["collaterals"]["size"] == 0
+    for k in range(len(TEST_COLLATERAL_IDS)):
+        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
+        assert empty_loan["collaterals"]["ids"][k] == 0
+
     assert loans_contract.currentApprovedLoans() == 0
     assert loans_contract.currentIssuedLoans() == 0
     assert loans_contract.totalPaidLoans() == 1
 
-    assert len(tx.events) == 4
-    assert tx.events[3]["borrower"] == borrower
+    assert len(tx.events) == 12
+    assert tx.events[11]["borrower"] == borrower
 
-    assert erc721_contract.ownerOf(TEST_COLLATERAL_ID) == borrower
+    for collateral_id in TEST_COLLATERAL_IDS:
+        assert erc721_contract.ownerOf(collateral_id) == borrower
 
     assert borrower.balance() == borrower_amount_after_loan_started - amount_paid
 
@@ -625,13 +666,17 @@ def test_set_default_loan_wrong_sender(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     loans_contract.startApprovedLoan({"from": borrower})
 
@@ -661,13 +706,17 @@ def test_set_default_loan_not_started(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     with brownie.reverts("The sender does not have an issued loan!"):
         loans_contract.settleDefaultedLoan(borrower, {"from": contract_owner})
@@ -695,13 +744,17 @@ def test_set_default_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         int(dt.datetime.now().timestamp() + 10),
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.approve(loans_contract.address, TEST_COLLATERAL_ID, {"from": borrower})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     loans_contract.startApprovedLoan({"from": borrower})
 
@@ -713,8 +766,11 @@ def test_set_default_loan(
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
     assert empty_loan["paidAmountInterest"] == 0
-    assert empty_loan["collateral"]["contract"] == "0x0000000000000000000000000000000000000000"
-    assert empty_loan["collateral"]["id"] == 0
+
+    assert empty_loan["collaterals"]["size"] == 0
+    for k in range(len(TEST_COLLATERAL_IDS)):
+        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
+        assert empty_loan["collaterals"]["ids"][k] == 0
 
     assert loans_contract.currentApprovedLoans() == 0
     assert loans_contract.totalApprovedLoans() == 1
@@ -722,7 +778,8 @@ def test_set_default_loan(
     assert loans_contract.totalIssuedLoans() == 1
     assert loans_contract.totalDefaultedLoans() == 1
     
-    assert erc721_contract.ownerOf(TEST_COLLATERAL_ID) == contract_owner
+    for collateral_id in TEST_COLLATERAL_IDS:
+        assert erc721_contract.ownerOf(collateral_id) == contract_owner
 
 
 def test_cancel_approved_loan_not_approved(
@@ -738,8 +795,8 @@ def test_cancel_approved_loan_not_approved(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
@@ -760,8 +817,8 @@ def test_cancel_approved_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        erc721_contract.address,
-        TEST_COLLATERAL_ID,
+        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+        TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
 
@@ -772,15 +829,14 @@ def test_cancel_approved_loan(
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
     assert empty_loan["paidAmountInterest"] == 0
-    assert empty_loan["collateral"]["contract"] == "0x0000000000000000000000000000000000000000"
-    assert empty_loan["collateral"]["id"] == 0
+
+    assert empty_loan["collaterals"]["size"] == 0
+    for k in range(len(TEST_COLLATERAL_IDS)):
+        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
+        assert empty_loan["collaterals"]["ids"][k] == 0
 
     assert loans_contract.currentApprovedLoans() == 0
     assert loans_contract.totalApprovedLoans() == 1
 
     assert len(tx.events) == 1
     assert tx.events[0]["borrower"] == borrower
-
-
-
-
