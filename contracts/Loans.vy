@@ -37,6 +37,7 @@ event LoanStarted:
 
 event LoanPaid:
   borrower: address
+  amount: uint256
 
 event LoanCanceled:
   borrower: address  
@@ -263,7 +264,7 @@ def payLoan() -> Loan:
 
   raw_call(self.invPoolAddress, _abi_encode(paidAmount, paidAmountInterest, method_id=method_id("receiveFunds(uint256,uint256)")), value=msg.value)
 
-  log LoanPaid(msg.sender)
+  log LoanPaid(msg.sender, msg.value)
 
   return self.loans[msg.sender]
 
