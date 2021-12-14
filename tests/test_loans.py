@@ -5,13 +5,11 @@ import time
 
 from web3 import Web3
 from decimal import Decimal
-from Crypto.Hash import keccak
-
 
 TEST_COLLATERAL_IDS = list(range(5)) + [0] * 5
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
-LOAN_INTEREST = 250 # 2.5% in parts per 10000
+LOAN_INTEREST = 250  # 2.5% in parts per 10000
 
 
 @pytest.fixture
@@ -45,7 +43,7 @@ def erc721_contract(ERC721PresetMinterPauserAutoId, contract_owner):
 
 
 @pytest.fixture
-def investmentpool_contract(InvestmentPool, loans_contract, contract_owner):
+def invpool_contract(InvestmentPool, loans_contract, contract_owner):
     yield InvestmentPool.deploy(loans_contract.address, {"from": contract_owner})
 
 
@@ -54,17 +52,17 @@ def test_initial_state(loans_contract, contract_owner):
     assert loans_contract.owner() == contract_owner
 
 
-def test_set_invpool_address_notowner(loans_contract, investmentpool_contract, borrower):
+def test_set_invpool_address_not_owner(loans_contract, invpool_contract, borrower):
     with brownie.reverts("Only the contract owner can set the investment pool address!"):
         loans_contract.setInvestmentPoolAddress(
-            investmentpool_contract.address,
+            invpool_contract.address,
             {"from": borrower}
         )
 
 
-def test_set_invpool_address(loans_contract, investmentpool_contract, contract_owner):
+def test_set_invpool_address(loans_contract, invpool_contract, contract_owner):
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -123,10 +121,10 @@ def test_new_loan_unauthorized(loans_contract, erc721_contract, borrower):
 
 
 def test_newloan_sender_already_has_loan(
-    loans_contract,
-    erc721_contract,
-    contract_owner,
-    borrower
+        loans_contract,
+        erc721_contract,
+        contract_owner,
+        borrower
 ):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
@@ -153,10 +151,10 @@ def test_newloan_sender_already_has_loan(
 
 
 def test_newloan_collateral_notwhitelisted(
-    loans_contract,
-    erc721_contract,
-    contract_owner,
-    borrower
+        loans_contract,
+        erc721_contract,
+        contract_owner,
+        borrower
 ):
     with brownie.reverts("The collaterals are not all whitelisted!"):
         loans_contract.newLoan(
@@ -171,10 +169,10 @@ def test_newloan_collateral_notwhitelisted(
 
 
 def test_newloan_maturity_in_the_past(
-    loans_contract,
-    erc721_contract,
-    contract_owner,
-    borrower
+        loans_contract,
+        erc721_contract,
+        contract_owner,
+        borrower
 ):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
@@ -212,7 +210,8 @@ def test_newloan(loans_contract, erc721_contract, contract_owner, borrower):
     assert loan_details["paidAmountInterest"] == 0
     assert loan_details["maturity"] == MATURITY
     assert loan_details["collaterals"]["size"] == 5
-    assert loan_details["collaterals"]["contracts"] == [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5
+    assert loan_details["collaterals"]["contracts"] == [erc721_contract.address] * 5 + [
+        "0x0000000000000000000000000000000000000000"] * 5
     assert loan_details["collaterals"]["ids"] == TEST_COLLATERAL_IDS
     assert loan_details["approved"] == True
     assert loan_details["issued"] == False
@@ -224,11 +223,11 @@ def test_newloan(loans_contract, erc721_contract, contract_owner, borrower):
 
 
 def test_unauthorized_access_approved_loans(
-    loans_contract,
-    erc721_contract,
-    contract_owner,
-    borrower,
-    investor
+        loans_contract,
+        erc721_contract,
+        contract_owner,
+        borrower,
+        investor
 ):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
@@ -246,17 +245,17 @@ def test_unauthorized_access_approved_loans(
 
 
 def test_start_loan_not_approved(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -267,17 +266,17 @@ def test_start_loan_not_approved(
 
 
 def test_start_loan_collateral_not_approved(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -304,17 +303,17 @@ def test_start_loan_collateral_not_approved(
 
 
 def test_start_loan(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    borrower,
-    investor
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        borrower,
+        investor
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -329,7 +328,7 @@ def test_start_loan(
         TEST_COLLATERAL_IDS,
         {'from': contract_owner}
     )
-    
+
     borrower_initial_balance = borrower.balance()
 
     erc721_contract.mint(borrower, {"from": contract_owner})
@@ -349,7 +348,8 @@ def test_start_loan(
     assert loan_details["paidAmountInterest"] == 0
     assert loan_details["maturity"] == MATURITY
     assert loan_details["collaterals"]["size"] == 5
-    assert loan_details["collaterals"]["contracts"] == [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5
+    assert loan_details["collaterals"]["contracts"] == [erc721_contract.address] * 5 + [
+        "0x0000000000000000000000000000000000000000"] * 5
     assert loan_details["collaterals"]["ids"] == TEST_COLLATERAL_IDS
     assert loan_details["approved"] == True
     assert loan_details["issued"] == True
@@ -376,17 +376,17 @@ def test_pay_loan_not_issued(loans_contract, borrower):
 
 
 def test_pay_loan_no_value_sent(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -414,18 +414,19 @@ def test_pay_loan_no_value_sent(
     with brownie.reverts("The value sent needs to be higher than 0!"):
         loans_contract.payLoan({"from": borrower})
 
+
 def test_pay_loan_higher_value_than_needed(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -456,17 +457,17 @@ def test_pay_loan_higher_value_than_needed(
 
 
 def test_pay_loan_defaulted(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -499,17 +500,17 @@ def test_pay_loan_defaulted(
 
 
 def test_pay_loan_multiple(
-   loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    borrower,
-    investor
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        borrower,
+        investor
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -544,7 +545,8 @@ def test_pay_loan_multiple(
 
     loan_details = loans_contract.loanDetails({"from": borrower})
     assert loan_details["paidAmount"] == int(Decimal(f"{LOAN_AMOUNT / 2.0}"))
-    assert loan_details["paidAmountInterest"] == int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(LOAN_INTEREST) / 10000}"))
+    assert loan_details["paidAmountInterest"] == int(
+        Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(LOAN_INTEREST) / 10000}"))
     assert loans_contract.currentApprovedLoans() == 1
     assert loans_contract.currentIssuedLoans() == 1
     assert loans_contract.totalPaidLoans() == 0
@@ -577,17 +579,17 @@ def test_pay_loan_multiple(
 
 
 def test_pay_loan(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    borrower,
-    investor
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        borrower,
+        investor
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -645,17 +647,17 @@ def test_pay_loan(
 
 
 def test_set_default_loan_wrong_sender(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -685,17 +687,17 @@ def test_set_default_loan_wrong_sender(
 
 
 def test_set_default_loan_not_started(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -723,17 +725,17 @@ def test_set_default_loan_not_started(
 
 
 def test_set_default_loan(
-    loans_contract,
-    erc721_contract,
-    investmentpool_contract,
-    contract_owner,
-    investor,
-    borrower
+        loans_contract,
+        erc721_contract,
+        invpool_contract,
+        contract_owner,
+        investor,
+        borrower
 ):
-    investmentpool_contract.invest({"from": investor, "value": "1 ether"})
+    invpool_contract.invest({"from": investor, "value": "1 ether"})
 
     loans_contract.setInvestmentPoolAddress(
-        investmentpool_contract.address,
+        invpool_contract.address,
         {"from": contract_owner}
     )
 
@@ -777,16 +779,16 @@ def test_set_default_loan(
     assert loans_contract.currentIssuedLoans() == 0
     assert loans_contract.totalIssuedLoans() == 1
     assert loans_contract.totalDefaultedLoans() == 1
-    
+
     for collateral_id in TEST_COLLATERAL_IDS:
         assert erc721_contract.ownerOf(collateral_id) == contract_owner
 
 
 def test_cancel_approved_loan_not_approved(
-    loans_contract,
-    erc721_contract,
-    contract_owner,
-    borrower
+        loans_contract,
+        erc721_contract,
+        contract_owner,
+        borrower
 ):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
@@ -805,10 +807,10 @@ def test_cancel_approved_loan_not_approved(
 
 
 def test_cancel_approved_loan(
-    loans_contract,
-    erc721_contract,
-    contract_owner,
-    borrower
+        loans_contract,
+        erc721_contract,
+        contract_owner,
+        borrower
 ):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
