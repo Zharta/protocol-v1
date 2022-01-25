@@ -193,6 +193,7 @@ def newLoan(
   assert block.timestamp <= _maturity, "Maturity can not be in the past"
   assert self.nextLoanId[_borrower] < self.maxAllowedLoans - 1, "Max number of loans already reached"
   assert self._areCollateralsWhitelisted(_collateralsAddresses), "The collaterals are not all whitelisted"
+  # TODO: CHECK IF COLLATERALS ARE OWNED BY THE _BORROWER
   assert self._areCollateralsNotUsed(_borrower, _collateralsAddresses, _collateralsIds), "One of the submitted collaterals is already being used"
 
   newLoan: Loan = Loan(
