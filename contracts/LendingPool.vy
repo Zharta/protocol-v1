@@ -1,7 +1,7 @@
 # @version ^0.3.0
 
 
-import interfaces.IInvestmentPool as InvPoolInterface
+import interfaces.ILendingPool as LendingPoolInterface
 
 interface ERC20Token:
   def allowance(_owner: address, _spender: address) -> uint256: view
@@ -9,7 +9,7 @@ interface ERC20Token:
   def transferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
 
 
-implements: InvPoolInterface
+implements: LendingPoolInterface
 
 
 struct InvestorFunds:
