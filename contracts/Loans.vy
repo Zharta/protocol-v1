@@ -2,7 +2,7 @@
 
 # Interfaces
 
-interface InvestmentPool:
+interface LendingPool:
   def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
   def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
   def fundsAvailable() -> uint256: nonpayable
@@ -73,8 +73,8 @@ collateralsSizeUsedByAddress: public(HashMap[address, uint256])
 
 whitelistedCollaterals: public(HashMap[address, address])
 
-invPool: InvestmentPool
-invPoolAddress: public(address)
+lendingPool: LendingPool
+lendingPoolAddress: public(address)
 
 currentApprovedLoans: public(uint256)
 totalApprovedLoans: public(uint256)
@@ -179,12 +179,12 @@ def removeCollateralFromWhitelist(_address: address) -> bool:
 
 
 @external
-def setInvestmentPoolAddress(_address: address) -> address:
+def setLendingPoolAddress(_address: address) -> address:
   assert msg.sender == self.owner, "Only the contract owner can set the investment pool address"
 
-  self.invPool = InvestmentPool(_address)
-  self.invPoolAddress = _address
-  return self.invPoolAddress
+  self.lendingPool = LendingPool(_address)
+  self.lendingPoolAddress = _address
+  return self.lendingPoolAddress
 
 
 @external
@@ -248,7 +248,7 @@ def start(_loanId: uint256) -> Loan:
   assert self._hasApprovedLoan(msg.sender, _loanId) == True, "The sender does not have an approved loan"
   assert not self._hasStartedLoan(msg.sender, _loanId) == True, "The sender already started the loan"
   assert self._areCollateralsApproved(msg.sender, _loanId) == True, "The collaterals are not all approved to be transferred"
-  assert self.invPool.fundsAvailable() >= self.loans[msg.sender][_loanId].amount, "Insufficient funds in the lending pool"
+  assert self.lendingPool.fundsAvailable() >= self.loans[msg.sender][_loanId].amount, "Insufficient funds in the lending pool"
 
   self.loans[msg.sender][_loanId].issued = True
   self.currentIssuedLoans += 1
@@ -271,7 +271,7 @@ def start(_loanId: uint256) -> Loan:
     else:
       break
   
-  self.invPool.sendFunds(msg.sender, self.loans[msg.sender][_loanId].amount)
+  self.lendingPool.sendFunds(msg.sender, self.loans[msg.sender][_loanId].amount)
 
   log LoanStarted(msg.sender, _loanId)
 
@@ -286,8 +286,8 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
 
   maxPayment: uint256 = self.loans[msg.sender][_loanId].amount * (10000 + self.loans[msg.sender][_loanId].interest) / 10000
   allowedPayment: uint256 = maxPayment - self.loans[msg.sender][_loanId].paidAmount
-  borrowerBalance: uint256 = ERC20Token(self.invPool.erc20TokenContract()).balanceOf(msg.sender)
-  lendingPoolAllowance: uint256 = ERC20Token(self.invPool.erc20TokenContract()).allowance(msg.sender, self.invPoolAddress)
+  borrowerBalance: uint256 = ERC20Token(self.lendingPool.erc20TokenContract()).balanceOf(msg.sender)
+  lendingPoolAllowance: uint256 = ERC20Token(self.lendingPool.erc20TokenContract()).allowance(msg.sender, self.lendingPoolAddress)
   assert _amountPaid <= allowedPayment, "The amount paid is higher than the amount left to be paid"
   assert borrowerBalance >= _amountPaid, "User has insufficient balance for the payment"
   assert lendingPoolAllowance >= _amountPaid, "User did not allow funds to be transferred"
@@ -313,7 +313,7 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
   else:
     self.loans[msg.sender][_loanId].paidAmount += paidAmount + paidAmountInterest
 
-  self.invPool.receiveFunds(msg.sender, paidAmount, paidAmountInterest)
+  self.lendingPool.receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
   log LoanPaid(msg.sender, _loanId, _amountPaid)
 

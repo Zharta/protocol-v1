@@ -49,8 +49,8 @@ def loans_contract(Loans, contract_owner):
 
 
 @pytest.fixture
-def invpool_contract(InvestmentPool, loans_contract, erc20_contract, contract_owner):
-    yield InvestmentPool.deploy(loans_contract.address, erc20_contract, {"from": contract_owner})
+def lending_pool_contract(LendingPool, loans_contract, erc20_contract, contract_owner):
+    yield LendingPool.deploy(loans_contract.address, erc20_contract, {"from": contract_owner})
 
 
 def test_initial_state(loans_contract, contract_owner):
@@ -59,17 +59,17 @@ def test_initial_state(loans_contract, contract_owner):
     assert loans_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
 
 
-def test_set_invpool_address_not_owner(loans_contract, invpool_contract, borrower):
+def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_contract, borrower):
     with brownie.reverts("Only the contract owner can set the investment pool address"):
-        loans_contract.setInvestmentPoolAddress(
-            invpool_contract.address,
+        loans_contract.setLendingPoolAddress(
+            lending_pool_contract.address,
             {"from": borrower}
         )
 
 
-def test_set_invpool_address(loans_contract, invpool_contract, contract_owner):
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+def test_set_lending_pool_address(loans_contract, lending_pool_contract, contract_owner):
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -230,7 +230,7 @@ def test_newloan(loans_contract, erc721_contract, contract_owner, borrower):
 
 def test_start_loan_not_approved(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -238,12 +238,12 @@ def test_start_loan_not_approved(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -255,7 +255,7 @@ def test_start_loan_not_approved(
 
 def test_start_loan_already_started(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -263,12 +263,12 @@ def test_start_loan_already_started(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -300,7 +300,7 @@ def test_start_loan_already_started(
 
 def test_start_loan_collateral_not_approved(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -308,12 +308,12 @@ def test_start_loan_collateral_not_approved(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -341,7 +341,7 @@ def test_start_loan_collateral_not_approved(
 
 def test_start_loan(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -349,12 +349,12 @@ def test_start_loan(
     investor
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -416,7 +416,7 @@ def test_pay_loan_not_issued(loans_contract, borrower):
 
 def test_pay_loan_no_value_sent(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -424,12 +424,12 @@ def test_pay_loan_no_value_sent(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -461,7 +461,7 @@ def test_pay_loan_no_value_sent(
 
 def test_pay_loan_higher_value_than_needed(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -469,12 +469,12 @@ def test_pay_loan_higher_value_than_needed(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -508,7 +508,7 @@ def test_pay_loan_higher_value_than_needed(
 
 def test_pay_loan_defaulted(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -516,12 +516,12 @@ def test_pay_loan_defaulted(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -556,7 +556,7 @@ def test_pay_loan_defaulted(
 
 def test_pay_loan_insufficient_balance(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -564,11 +564,11 @@ def test_pay_loan_insufficient_balance(
     investor
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
-    tx_invest = invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    tx_invest = lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -603,7 +603,7 @@ def test_pay_loan_insufficient_balance(
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
     
-    erc20_contract.approve(invpool_contract, amount_paid, {"from": borrower})
+    erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
     
     with brownie.reverts("User has insufficient balance for the payment"):
         tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
@@ -611,7 +611,7 @@ def test_pay_loan_insufficient_balance(
 
 def test_pay_loan_insufficient_allowance(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -619,11 +619,11 @@ def test_pay_loan_insufficient_allowance(
     investor
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
-    tx_invest = invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    tx_invest = lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -658,7 +658,7 @@ def test_pay_loan_insufficient_allowance(
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
     
-    erc20_contract.approve(invpool_contract, amount_paid / 2, {"from": borrower})
+    erc20_contract.approve(lending_pool_contract, amount_paid / 2, {"from": borrower})
     
     with brownie.reverts("User did not allow funds to be transferred"):
         tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
@@ -666,7 +666,7 @@ def test_pay_loan_insufficient_allowance(
 
 def test_pay_loan(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -674,11 +674,11 @@ def test_pay_loan(
     investor
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
-    tx_invest = invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    tx_invest = lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -713,7 +713,7 @@ def test_pay_loan(
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
     
-    erc20_contract.approve(invpool_contract, amount_paid, {"from": borrower})
+    erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
     tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     empty_loan = tx_pay_loan.return_value
@@ -741,7 +741,7 @@ def test_pay_loan(
 
 def test_pay_loan_multiple(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -749,12 +749,12 @@ def test_pay_loan_multiple(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -789,7 +789,7 @@ def test_pay_loan_multiple(
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
-    erc20_contract.approve(invpool_contract, amount_paid, {"from": borrower})
+    erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
     tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     loan_details = loans_contract.loans(borrower, loan_id)
@@ -801,7 +801,7 @@ def test_pay_loan_multiple(
     for collateral_id in TEST_COLLATERAL_IDS:
         assert erc721_contract.ownerOf(collateral_id) == loans_contract.address
     
-    erc20_contract.approve(invpool_contract, amount_paid, {"from": borrower})
+    erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
     tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     empty_loan = tx_pay_loan.return_value
@@ -826,7 +826,7 @@ def test_pay_loan_multiple(
 
 def test_set_default_loan_wrong_sender(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -834,12 +834,12 @@ def test_set_default_loan_wrong_sender(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -871,7 +871,7 @@ def test_set_default_loan_wrong_sender(
 
 def test_set_default_loan_not_started(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -879,12 +879,12 @@ def test_set_default_loan_not_started(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
@@ -914,7 +914,7 @@ def test_set_default_loan_not_started(
 
 def test_set_default_loan(
     loans_contract,
-    invpool_contract,
+    lending_pool_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -922,12 +922,12 @@ def test_set_default_loan(
     borrower
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(invpool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     
-    invpool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.setInvestmentPoolAddress(
-        invpool_contract.address,
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
         {"from": contract_owner}
     )
 
