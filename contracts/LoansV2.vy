@@ -4,7 +4,9 @@
 
 interface InvestmentPool:
   def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
-  def receivePayback(_amount: uint256, _interestAmount: uint256) -> uint256: payable
+  def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
+  def fundsAvailable() -> uint256: nonpayable
+  def erc20TokenContract() -> address: nonpayable
 
 
 interface CollateralContract:
@@ -13,6 +15,11 @@ interface CollateralContract:
   def isApprovedForAll(owner: address, operator: address) -> bool: view
   def safeTransferFrom(_from: address, _to: address, tokenId: uint256): nonpayable
   def transferFrom(_from: address, _to: address, tokenId: uint256): nonpayable
+
+
+interface ERC20Token:
+  def allowance(_owner: address, _spender: address) -> uint256: view
+  def balanceOf(_account: address) -> uint256: view
 
 
 # Events
@@ -237,10 +244,11 @@ def newLoan(
 
 
 @external
-def startApprovedLoan(_loanId: uint256) -> Loan:
+def start(_loanId: uint256) -> Loan:
   assert self._hasApprovedLoan(msg.sender, _loanId) == True, "The sender does not have an approved loan"
   assert not self._hasStartedLoan(msg.sender, _loanId) == True, "The sender already started the loan"
   assert self._areCollateralsApproved(msg.sender, _loanId) == True, "The collaterals are not all approved to be transferred"
+  assert self.invPool.fundsAvailable() >= self.loans[msg.sender][_loanId].amount, "Insufficient funds in the lending pool"
 
   self.loans[msg.sender][_loanId].issued = True
   self.currentIssuedLoans += 1
@@ -270,21 +278,24 @@ def startApprovedLoan(_loanId: uint256) -> Loan:
   return self.loans[msg.sender][_loanId]
 
 
-@payable
 @external
-def payLoan(_loanId: uint256) -> Loan:
+def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
   assert self._hasStartedLoan(msg.sender, _loanId), "The sender does not have an issued loan"
-  assert block.timestamp <= self.loans[msg.sender][_loanId].maturity, "The maturity of the loan has already been reached. The loan is defaulted"
-  assert msg.value > 0, "The value sent needs to be higher than 0"
+  assert block.timestamp <= self.loans[msg.sender][_loanId].maturity, "The maturity of the loan has already been reached and it defaulted"
+  assert _amountPaid > 0, "The amount paid needs to be higher than 0"
 
   maxPayment: uint256 = self.loans[msg.sender][_loanId].amount * (10000 + self.loans[msg.sender][_loanId].interest) / 10000
   allowedPayment: uint256 = maxPayment - self.loans[msg.sender][_loanId].paidAmount
-  assert msg.value <= allowedPayment, "The value sent is higher than the amount left to be paid"
+  borrowerBalance: uint256 = ERC20Token(self.invPool.erc20TokenContract()).balanceOf(msg.sender)
+  lendingPoolAllowance: uint256 = ERC20Token(self.invPool.erc20TokenContract()).allowance(msg.sender, self.invPoolAddress)
+  assert _amountPaid <= allowedPayment, "The amount paid is higher than the amount left to be paid"
+  assert borrowerBalance >= _amountPaid, "User has insufficient balance for the payment"
+  assert lendingPoolAllowance >= _amountPaid, "User did not allow funds to be transferred"
 
-  paidAmount: uint256 = msg.value * 10000 / (10000 + self.loans[msg.sender][_loanId].interest)
-  paidAmountInterest: uint256 = msg.value - paidAmount
+  paidAmount: uint256 = _amountPaid * 10000 / (10000 + self.loans[msg.sender][_loanId].interest)
+  paidAmountInterest: uint256 = _amountPaid - paidAmount
 
-  if msg.value == allowedPayment:
+  if _amountPaid == allowedPayment:
     for k in range(10):
       if self.loans[msg.sender][_loanId].collaterals.contracts[k] != empty(address):
         CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
@@ -302,15 +313,15 @@ def payLoan(_loanId: uint256) -> Loan:
   else:
     self.loans[msg.sender][_loanId].paidAmount += paidAmount + paidAmountInterest
 
-  raw_call(self.invPoolAddress, _abi_encode(paidAmount, paidAmountInterest, method_id=method_id("receiveFunds(uint256,uint256)")), value=msg.value)
+  self.invPool.receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
-  log LoanPaid(msg.sender, _loanId, msg.value)
+  log LoanPaid(msg.sender, _loanId, _amountPaid)
 
   return self.loans[msg.sender][_loanId]
 
 
 @external
-def settleDefaultedLoan(_borrower: address, _loanId: uint256) -> Loan:
+def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
   assert msg.sender == self.owner, "Only the contract owner can default loans"
   assert self._hasStartedLoan(_borrower, _loanId), "The sender does not have an issued loan"
   assert block.timestamp > self.loans[_borrower][_loanId].maturity, "The maturity of the loan has not been reached yet"
@@ -335,7 +346,7 @@ def settleDefaultedLoan(_borrower: address, _loanId: uint256) -> Loan:
 
 
 @external
-def cancelApprovedLoan(_loanId: uint256) -> Loan:
+def cancel(_loanId: uint256) -> Loan:
   assert self._hasApprovedLoan(msg.sender, _loanId), "The sender does not have an approved loan"
   assert not self._hasStartedLoan(msg.sender, _loanId), "The loan has already been started, please pay the loan"
 
