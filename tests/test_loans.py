@@ -508,6 +508,8 @@ def test_pay_loan_defaulted(
     loan = tx.return_value
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
+    erc20_contract.mint(borrower, amount_paid, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
 
     time.sleep(5)
     with brownie.reverts("The maturity of the loan has already been reached and it defaulted"):
@@ -830,7 +832,7 @@ def test_set_default_loan(
     tx_new_loan = loans_contract.start(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        int(dt.datetime.now().timestamp() + 5),
+        int(dt.datetime.now().timestamp() + 3),
         [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
         TEST_COLLATERAL_IDS,
         {'from': borrower}
