@@ -47,7 +47,6 @@ struct Collateral:
 
 struct Collaterals:
   size: uint256
-  indexes: uint256[10]
   contracts: address[10]
   ids: uint256[10]
 
@@ -70,9 +69,6 @@ bufferToCancelLoan: public(uint256)
 loans: public(HashMap[address, Loan[10]])
 loanIds: public(HashMap[address, bool[10]])
 nextLoanId: public(HashMap[address, uint256])
-
-collateralsUsedByAddress: public(HashMap[address, Collateral[100]])
-collateralsSizeUsedByAddress: public(HashMap[address, uint256])
 
 whitelistedCollaterals: public(HashMap[address, address])
 
@@ -164,35 +160,6 @@ def _areCollateralsApproved(_borrower: address, _collateralsAddresses: address[1
   return True
 
 
-@view
-@internal
-def _numberOfCollaterals(_collateralsAddresses: address[10]) -> uint256:
-  nCollaterals: uint256 = 0
-  for k in range(10):
-    if _collateralsAddresses[k] == empty(address):
-      break
-    nCollaterals += 1
-
-  return nCollaterals
-
-
-@view
-@internal
-def _checkNextCollateralIndexes(_borrower: address, _nIndexes: uint256) -> uint256[10]:
-  collaterals: Collateral[100] = self.collateralsUsedByAddress[_borrower]
-  curIndex: uint256 = 0
-  indexes: uint256[10] = empty(uint256[10])
-  for index in range(100):
-    if collaterals[index] == empty(Collateral):
-      indexes[curIndex] = index
-      curIndex += 1
-
-      if curIndex == _nIndexes:
-        break
-
-  return indexes
-
-
 @external
 def addCollateralToWhitelist(_address: address) -> bool:
   assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
@@ -254,9 +221,6 @@ def start(
     }
   )
 
-  nCollaterals: uint256 = self._numberOfCollaterals(_collateralAddresses)
-  indxs: uint256[10] = self._checkNextCollateralIndexes(msg.sender, nCollaterals)
-
   for k in range(10):
     if _collateralAddresses[k] == empty(address):
       break
@@ -264,7 +228,6 @@ def start(
     newLoan.collaterals.size += 1
     newLoan.collaterals.contracts[k] = _collateralAddresses[k]
     newLoan.collaterals.ids[k] = _collateralIds[k]
-    newLoan.collaterals.indexes[k] = indxs[k]
 
     newCollateral: Collateral = Collateral(
       {
@@ -272,9 +235,6 @@ def start(
         id: _collateralIds[k]
       }
     )
-
-    self.collateralsUsedByAddress[msg.sender][indxs[k]] = newCollateral
-    self.collateralsSizeUsedByAddress[msg.sender] += 1
 
     CollateralContract(_collateralAddresses[k]).transferFrom(
       msg.sender,
@@ -322,8 +282,6 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
           self.loans[msg.sender][_loanId].collaterals.ids[k]
         )
 
-        self.collateralsSizeUsedByAddress[msg.sender] -= 1
-        self.collateralsUsedByAddress[msg.sender][self.loans[msg.sender][_loanId].collaterals.indexes[k]] = empty(Collateral)
       else:
         break
 
@@ -356,8 +314,6 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
         self.loans[_borrower][_loanId].collaterals.ids[k]
       )
 
-      self.collateralsSizeUsedByAddress[_borrower] -= 1
-      self.collateralsUsedByAddress[_borrower][self.loans[msg.sender][_loanId].collaterals.indexes[k]] = empty(Collateral)
     else:
       break
 
@@ -382,9 +338,6 @@ def cancel(_loanId: uint256) -> Loan:
         msg.sender,
         self.loans[msg.sender][_loanId].collaterals.ids[k]
       )
-
-      self.collateralsSizeUsedByAddress[msg.sender] -= 1
-      self.collateralsUsedByAddress[msg.sender][self.loans[msg.sender][_loanId].collaterals.indexes[k]] = empty(Collateral)
 
   self.lendingPool.receiveFunds(msg.sender, self.loans[msg.sender][_loanId].amount, 0)
 
