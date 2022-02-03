@@ -112,7 +112,7 @@ def _areCollateralsWhitelisted(_collateralAddresses: address[10]) -> bool:
 @internal
 def _areCollateralsOwned(
   _borrower: address,
-  collateralAddresses: address[10],
+  _collateralAddresses: address[10],
   _collateralIds: uint256[10]
 ) -> bool:
   for i in range(10):
@@ -121,6 +121,8 @@ def _areCollateralsOwned(
 
     if CollateralContract(_collateralAddresses[i]).ownerOf(_collateralIds[i]) != _borrower:
       return False
+
+  return True
 
 
 @internal
@@ -158,7 +160,7 @@ def _hasStartedLoan(_borrower: address, _loanId: uint256) -> bool:
 
 
 @internal
-def _checkHasBufferPassed(_blockTimestamp: address, _loanMaturity: uint256) -> bool:
+def _checkHasBufferPassed(_blockTimestamp: uint256, _loanMaturity: uint256) -> bool:
   return _blockTimestamp - _loanMaturity < self.bufferToCancelLoan
 
 
@@ -170,13 +172,13 @@ def _isCollateralApproved(_borrower: address, _operator: address, _contractAddre
 
 @view
 @internal
-def _areCollateralsApproved(_borrower: address, _loanId: uint256) -> bool:
+def _areCollateralsApproved(_borrower: address, _collateralsAddresses: address[10]) -> bool:
   for k in range(10):
-    if self.loans[_borrower][_loanId].collaterals.contracts[k] != empty(address):
-      if not self._isCollateralApproved(_borrower, self, self.loans[_borrower][_loanId].collaterals.contracts[k]):
-        return False
-    else:
+    if _collateralsAddresses[k] == empty(address):
       break
+    
+    if not self._isCollateralApproved(_borrower, self, _collateralsAddresses[k]):
+      return False
 
   return True
 
@@ -257,8 +259,8 @@ def start(
   assert self._areCollateralsWhitelisted(_collateralAddresses), "Not all collaterals are whitelisted"
   assert self._areCollateralsOwned(msg.sender, _collateralAddresses, _collateralIds), "Not all collaterals are owner by the sender"
   assert self._areCollateralsNotUsed(msg.sender, _collateralAddresses, _collateralIds), "One of the submitted collaterals is already being used"
-  assert self._areCollateralsApproved(msg.sender, _loanId) == True, "Not all collaterals are approved to be transferred"
-  assert self.lendingPool.fundsAvailable() >= self.loans[msg.sender][_loanId].amount, "Insufficient funds in the lending pool"
+  assert self._areCollateralsApproved(msg.sender, _collateralAddresses) == True, "Not all collaterals are approved to be transferred"
+  assert self.lendingPool.fundsAvailable() >= _amount, "Insufficient funds in the lending pool"
 
   newLoan: Loan = Loan(
     {
@@ -293,10 +295,10 @@ def start(
     self.collateralsUsedByAddress[msg.sender][indxs[k]] = newCollateral
     self.collateralsSizeUsedByAddress[msg.sender] += 1
 
-    CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).transferFrom(
+    CollateralContract(_collateralAddresses[k]).transferFrom(
       msg.sender,
       self,
-      self.loans[msg.sender][_loanId].collaterals.ids[k]
+      _collateralIds[k]
     )
 
   self.loans[msg.sender][self.nextLoanId[msg.sender]] = newLoan
@@ -306,11 +308,11 @@ def start(
   self.currentIssuedLoans += 1
   self.totalIssuedLoans += 1
   
-  self.lendingPool.sendFunds(msg.sender, self.loans[msg.sender][_loanId].amount)
+  self.lendingPool.sendFunds(msg.sender, _amount)
 
-  log LoanStarted(msg.sender, _loanId)
+  log LoanStarted(msg.sender, newLoan.id)
 
-  return self.loans[msg.sender][_loanId]
+  return newLoan
 
 
 @external
@@ -392,14 +394,14 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
 @external
 def cancel(_loanId: uint256) -> Loan:
   assert not self._hasStartedLoan(msg.sender, _loanId), "The sender has not started a loan with the given ID"
-  assert self._checkHasBufferPassed(block.timestamp, self.loans[_borrower][_loanId].maturity), "The time buffer to cancel the loan has passed"
+  assert self._checkHasBufferPassed(block.timestamp, self.loans[msg.sender][_loanId].maturity), "The time buffer to cancel the loan has passed"
 
   for k in range(10):
     if self.loans[msg.sender][_loanId].collaterals.contracts[k] != empty(address):
-      CollateralContract(self.loans[_borrower][_loanId].collaterals.contracts[k]).safeTransferFrom(
+      CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
         self,
         msg.sender,
-        self.loans[_borrower][_loanId].collaterals.ids[k]
+        self.loans[msg.sender][_loanId].collaterals.ids[k]
       )
 
       self.collateralsSizeUsedByAddress[msg.sender] -= 1
