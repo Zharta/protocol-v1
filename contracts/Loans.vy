@@ -67,8 +67,12 @@ maxAllowedLoans: public(uint256)
 bufferToCancelLoan: public(uint256)
 
 loans: public(HashMap[address, Loan[10]])
-loanIds: public(HashMap[address, bool[10]])
+loanIdsUsed: public(HashMap[address, bool[10]])
 nextLoanId: public(HashMap[address, uint256])
+
+# concat(token_address, token_id) -> map(borrower_address, loan_id)
+collateralsInLoans: public(HashMap[Bytes[64], HashMap[address, uint256]])
+collateralsInLoansUsed: public(HashMap[Bytes[64], HashMap[address, HashMap[uint256, bool]]])
 
 whitelistedCollaterals: public(HashMap[address, address])
 
@@ -84,11 +88,18 @@ totalDefaultedLoans: public(uint256)
 
 totalCanceledLoans: public(uint256)
 
+
 @external
 def __init__(_maxAllowedLoans: uint256, _bufferToCancelLoan: uint256):
   self.owner = msg.sender
   self.maxAllowedLoans = _maxAllowedLoans
   self.bufferToCancelLoan = _bufferToCancelLoan
+
+
+@view
+@external
+def xpto() -> Bytes[64]:
+  return concat(convert(self.owner, bytes32), convert(self.bufferToCancelLoan, bytes32))
 
 
 @internal
@@ -122,7 +133,7 @@ def _areCollateralsOwned(
 @internal
 def _checkNextLoanId(_borrower: address) -> uint256:
   for index in range(10):
-    if not self.loanIds[_borrower][index]:
+    if not self.loanIdsUsed[_borrower][index]:
       return index
   return self.maxAllowedLoans
 
@@ -190,8 +201,8 @@ def setLendingPoolAddress(_address: address) -> address:
 
 @view
 @external
-def loanIdsFromAddress(_borrower: address) -> bool[10]:
-  return self.loanIds[_borrower]
+def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
+  return self.loanIdsUsed[_borrower]
 
 
 @external
@@ -236,6 +247,10 @@ def start(
       }
     )
 
+    key: Bytes[64] = concat(convert(_collateralAddresses[k], bytes32), convert(_collateralIds[k], bytes32))
+    self.collateralsInLoans[key][msg.sender] = newLoan.id
+    self.collateralsInLoansUsed[key][msg.sender][newLoan.id] = True
+
     CollateralContract(_collateralAddresses[k]).transferFrom(
       msg.sender,
       self,
@@ -243,7 +258,7 @@ def start(
     )
 
   self.loans[msg.sender][self.nextLoanId[msg.sender]] = newLoan
-  self.loanIds[msg.sender][self.nextLoanId[msg.sender]] = True
+  self.loanIdsUsed[msg.sender][self.nextLoanId[msg.sender]] = True
   self.nextLoanId[msg.sender] = self._checkNextLoanId(msg.sender)
 
   self.currentStartedLoans += 1
@@ -275,19 +290,31 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
 
   if _amountPaid == allowedPayment:
     for k in range(10):
-      if self.loans[msg.sender][_loanId].collaterals.contracts[k] != empty(address):
-        CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
-          self,
-          msg.sender,
-          self.loans[msg.sender][_loanId].collaterals.ids[k]
-        )
-
-      else:
+      if self.loans[msg.sender][_loanId].collaterals.contracts[k] == empty(address):
         break
+        
+      CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
+        self,
+        msg.sender,
+        self.loans[msg.sender][_loanId].collaterals.ids[k]
+      )
+
+      key: Bytes[64] = concat(
+        convert(
+          self.loans[msg.sender][_loanId].collaterals.contracts[k],
+          bytes32
+        ),
+        convert(
+          self.loans[msg.sender][_loanId].collaterals.ids[k],
+          bytes32
+        )
+      )
+      self.collateralsInLoansUsed[key][msg.sender][_loanId] = False
+
 
     self.loans[msg.sender][_loanId] = empty(Loan)
     self.nextLoanId[msg.sender] = _loanId
-    self.loanIds[msg.sender][_loanId] = False
+    self.loanIdsUsed[msg.sender][_loanId] = False
     self.currentStartedLoans -= 1
     self.totalPaidLoans += 1
   else:
@@ -307,19 +334,31 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
   assert block.timestamp > self.loans[_borrower][_loanId].maturity, "The maturity of the loan has not been reached yet"
 
   for k in range(10):
-    if self.loans[_borrower][_loanId].collaterals.contracts[k] != empty(address):
-      CollateralContract(self.loans[_borrower][_loanId].collaterals.contracts[k]).safeTransferFrom(
-        self,
-        self.owner,
-        self.loans[_borrower][_loanId].collaterals.ids[k]
-      )
-
-    else:
+    if self.loans[_borrower][_loanId].collaterals.contracts[k] == empty(address):
       break
+    
+    CollateralContract(self.loans[_borrower][_loanId].collaterals.contracts[k]).safeTransferFrom(
+      self,
+      self.owner,
+      self.loans[_borrower][_loanId].collaterals.ids[k]
+    )
+
+    key: Bytes[64] = concat(
+      convert(
+        self.loans[_borrower][_loanId].collaterals.contracts[k],
+        bytes32
+      ),
+      convert(
+        self.loans[_borrower][_loanId].collaterals.ids[k],
+        bytes32
+      )
+    )
+    self.collateralsInLoansUsed[key][_borrower][_loanId] = False
+
 
   self.loans[_borrower][_loanId] = empty(Loan)
   self.nextLoanId[_borrower] = _loanId
-  self.loanIds[_borrower][_loanId] = False
+  self.loanIdsUsed[_borrower][_loanId] = False
 
   self.currentStartedLoans -= 1
   self.totalDefaultedLoans += 1
@@ -332,18 +371,33 @@ def cancel(_loanId: uint256) -> Loan:
   assert self._checkHasBufferNotPassed(block.timestamp, self.loans[msg.sender][_loanId].startTime), "The sender has not started a loan with the given ID or the time buffer to cancel the loan has passed"
 
   for k in range(10):
-    if self.loans[msg.sender][_loanId].collaterals.contracts[k] != empty(address):
-      CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
-        self,
-        msg.sender,
-        self.loans[msg.sender][_loanId].collaterals.ids[k]
-      )
+    if self.loans[msg.sender][_loanId].collaterals.contracts[k] == empty(address):
+      break
+    
+    CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
+      self,
+      msg.sender,
+      self.loans[msg.sender][_loanId].collaterals.ids[k]
+    )
 
+    key: Bytes[64] = concat(
+      convert(
+        self.loans[msg.sender][_loanId].collaterals.contracts[k],
+        bytes32
+      ),
+      convert(
+        self.loans[msg.sender][_loanId].collaterals.ids[k],
+        bytes32
+      )
+    )
+    self.collateralsInLoansUsed[key][msg.sender][_loanId] = False
+
+  
   self.lendingPool.receiveFunds(msg.sender, self.loans[msg.sender][_loanId].amount, 0)
 
   self.loans[msg.sender][_loanId] = empty(Loan)
   self.nextLoanId[msg.sender] = _loanId
-  self.loanIds[msg.sender][_loanId] = False
+  self.loanIdsUsed[msg.sender][_loanId] = False
 
   self.totalCanceledLoans += 1
 

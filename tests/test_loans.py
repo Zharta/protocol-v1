@@ -500,7 +500,7 @@ def test_pay_loan_defaulted(
     tx = loans_contract.start(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        int(dt.datetime.now().timestamp()) + 5,
+        int(dt.datetime.now().timestamp()) + 3,
         [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
         TEST_COLLATERAL_IDS,
         {'from': borrower}
@@ -972,7 +972,3 @@ def test_cancel(
     assert len(tx_cancel_loan.events) == 14
     assert tx_cancel_loan.events[-1]["borrower"] == borrower
     assert tx_cancel_loan.events[-1]["loanId"] == loan_id
-
-
-# TODO: test nextLoanId management
-#   - create tests using different methods (start, pay, settleDefault, cancel)
