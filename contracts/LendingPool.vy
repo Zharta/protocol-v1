@@ -75,6 +75,18 @@ def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bo
   return _amount <= amountAllowed
 
 
+@internal
+def _distribute_rewards(_rewards: uint256):
+  totalTvl: uint256 = self.fundsAvailable + self.fundsInvested
+  rewardsFromUser: uint256 = 0
+
+  for depositor in self.depositors:
+    if self.funds[depositor].activeForRewards:
+      rewardsFromUser = _rewards * self.funds[depositor].currentAmountDeposited / totalTvl
+      self.funds[depositor].currentPendingRewards += rewardsFromUser
+      self.funds[depositor].totalRewardsAmount += rewardsFromUser
+
+
 # _amount should be passed in wei
 @payable
 @external
@@ -177,14 +189,7 @@ def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> 
   
   self.totalRewards += _rewardsAmount
 
-  totalTvl: uint256 = self.fundsAvailable + self.fundsInvested
-  rewardsFromUser: uint256 = 0
-
-  for depositor in self.depositors:
-    if self.funds[depositor].activeForRewards:
-      rewardsFromUser = _rewardsAmount * self.funds[depositor].currentAmountDeposited / totalTvl
-      self.funds[depositor].currentPendingRewards += rewardsFromUser
-      self.funds[depositor].totalRewardsAmount += rewardsFromUser
+  self._distribute_rewards(_rewardsAmount)
 
   self.fundsAvailable += _amount
   self.fundsInvested -= _amount
