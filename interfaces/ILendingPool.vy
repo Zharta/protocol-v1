@@ -1,34 +1,31 @@
 # Structs
 
 struct InvestorFunds:
-  currentAmountInvested: uint256
-  totalAmountInvested: uint256
+  currentAmountDeposited: uint256
+  totalAmountDeposited: uint256
   totalAmountWithdrawn: uint256
-
-struct InvestorFundsOutput:
-  currentAmountInvested: uint256
-  rewards: uint256
-  totalAmountInvested: uint256
-  totalAmountWithdrawn: uint256
+  currentPendingRewards: uint256
+  totalRewardsAmount: uint256
+  activeForRewards: bool
 
 # Events
 
-event Investment:
+event Deposit:
     _from: address
     amount: uint256
     erc20TokenContract: address
-
 event Withdrawal:
     _from: address
     amount: uint256
+    erc20TokenContract: address
+event Compound:
+    _from: address
     rewards: uint256
     erc20TokenContract: address
-
 event FundsTransfer:
     _to: address
     amount: uint256
     erc20TokenContract: address
-
 event FundsReceipt:
     _from: address
     amount: uint256
@@ -36,11 +33,6 @@ event FundsReceipt:
     erc20TokenContract: address
 
 # Functions
-
-@view
-@external
-def userFunds(_userAddr: address) -> InvestorFundsOutput:
-    pass
 
 @payable
 @external
@@ -52,10 +44,13 @@ def withdraw(_amount: uint256) -> InvestorFunds:
     pass
 
 @external
+def compoundRewards() -> InvestorFunds:
+    pass
+
+@external
 def sendFunds(_to: address, _amount: uint256) -> uint256:
     pass
 
-@payable
 @external
 def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256:
     pass
@@ -82,17 +77,22 @@ def erc20TokenContract() -> address:
 
 @view
 @external
+def funds(arg0: address) -> InvestorFunds:
+    pass
+
+@view
+@external
+def depositors(arg0: uint256) -> address:
+    pass
+
+@view
+@external
 def fundsAvailable() -> uint256:
     pass
 
 @view
 @external
 def fundsInvested() -> uint256:
-    pass
-
-@view
-@external
-def rewards() -> uint256:
     pass
 
 @view
