@@ -12,6 +12,8 @@ TEST_COLLATERAL_IDS = list(range(5)) + [0] * 5
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
+MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
+MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 
 
 @pytest.fixture
@@ -31,7 +33,7 @@ def investor(accounts):
 
 @pytest.fixture
 def erc20_contract(ERC20PresetMinterPauser, contract_owner):
-    yield ERC20PresetMinterPauser.deploy("USD Coin", "USDC", {'from': contract_owner})
+    yield ERC20PresetMinterPauser.deploy("Wrapped ETH", "WETH", {'from': contract_owner})
 
 
 @pytest.fixture
@@ -46,7 +48,7 @@ def erc721_contract(ERC721PresetMinterPauserAutoId, contract_owner):
 
 @pytest.fixture
 def loans_contract(Loans, contract_owner):
-    yield Loans.deploy(MAX_NUMBER_OF_LOANS, BUFFER_TO_CANCEL_LOAN, {'from': contract_owner})
+    yield Loans.deploy(MAX_NUMBER_OF_LOANS, BUFFER_TO_CANCEL_LOAN, MIN_LOAN_AMOUNT, MAX_LOAN_AMOUNT, {'from': contract_owner})
 
 
 @pytest.fixture
@@ -59,6 +61,8 @@ def test_initial_state(loans_contract, contract_owner):
     assert loans_contract.owner() == contract_owner
     assert loans_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
     assert loans_contract.bufferToCancelLoan() == BUFFER_TO_CANCEL_LOAN
+    assert loans_contract.minLoanAmount() == MIN_LOAN_AMOUNT
+    assert loans_contract.maxLoanAmount() == MAX_LOAN_AMOUNT
 
 
 def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_contract, borrower):
@@ -308,6 +312,85 @@ def test_start_unsufficient_funds_in_lp(
     with brownie.reverts("Insufficient funds in the lending pool"):
         tx = loans_contract.start(
             LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
+            {'from': borrower}
+        )
+
+
+def test_start_min_amount(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    with brownie.reverts("Loan amount is less than the min loan amount"):
+        tx = loans_contract.start(
+            Web3.toWei(0.01, "ether"),
+            LOAN_INTEREST,
+            MATURITY,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
+            {'from': borrower}
+        )
+
+
+def test_start_max_amount(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower
+):
+    erc20_contract.mint(investor, Web3.toWei(15, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(15, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(15, "ether"), {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    with brownie.reverts("Loan amount is more than the max loan amount"):
+        tx = loans_contract.start(
+            Web3.toWei(10, "ether"),
             LOAN_INTEREST,
             MATURITY,
             [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,

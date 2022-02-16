@@ -66,6 +66,9 @@ owner: public(address)
 maxAllowedLoans: public(uint256)
 bufferToCancelLoan: public(uint256)
 
+minLoanAmount: public(uint256)
+maxLoanAmount: public(uint256)
+
 loans: public(HashMap[address, Loan[10]])
 loanIdsUsed: public(HashMap[address, bool[10]])
 nextLoanId: public(HashMap[address, uint256])
@@ -83,23 +86,17 @@ currentStartedLoans: public(uint256)
 totalStartedLoans: public(uint256)
 
 totalPaidLoans: public(uint256)
-
 totalDefaultedLoans: public(uint256)
-
 totalCanceledLoans: public(uint256)
 
 
 @external
-def __init__(_maxAllowedLoans: uint256, _bufferToCancelLoan: uint256):
+def __init__(_maxAllowedLoans: uint256, _bufferToCancelLoan: uint256, _minLoanAmount: uint256, _maxLoanAmount: uint256):
   self.owner = msg.sender
   self.maxAllowedLoans = _maxAllowedLoans
   self.bufferToCancelLoan = _bufferToCancelLoan
-
-
-@view
-@external
-def xpto() -> Bytes[64]:
-  return concat(convert(self.owner, bytes32), convert(self.bufferToCancelLoan, bytes32))
+  self.minLoanAmount = _minLoanAmount
+  self.maxLoanAmount = _maxLoanAmount
 
 
 @internal
@@ -191,6 +188,26 @@ def removeCollateralFromWhitelist(_address: address) -> bool:
 
 
 @external
+def changeMinLoanAmount(_newMinLoanAmount: uint256) -> uint256:
+  assert msg.sender == self.owner, "Only the contract owner can change this setting"
+  assert _newMinLoanAmount <= self.maxLoanAmount, "The min loan amount can not be higher than the max loan amount"
+
+  self.minLoanAmount = _newMinLoanAmount
+
+  return self.minLoanAmount
+
+
+@external
+def changeMaxLoanAmount(_newMaxLoanAmount: uint256) -> uint256:
+  assert msg.sender == self.owner, "Only the contract owner can change this setting"
+  assert _newMaxLoanAmount >= self.minLoanAmount, "The max loan amount can not be lower than the min loan amount"
+
+  self.maxLoanAmount = _newMaxLoanAmount
+
+  return self.maxLoanAmount
+
+
+@external
 def setLendingPoolAddress(_address: address) -> address:
   assert msg.sender == self.owner, "Only the contract owner can set the investment pool address"
 
@@ -219,6 +236,8 @@ def start(
   assert self._areCollateralsOwned(msg.sender, _collateralAddresses, _collateralIds), "Not all collaterals are owned by the sender"
   assert self._areCollateralsApproved(msg.sender, _collateralAddresses) == True, "Not all collaterals are approved to be transferred"
   assert self.lendingPool.fundsAvailable() >= _amount, "Insufficient funds in the lending pool"
+  assert _amount >= self.minLoanAmount, "Loan amount is less than the min loan amount"
+  assert _amount <= self.maxLoanAmount, "Loan amount is more than the max loan amount"
 
   newLoan: Loan = Loan(
     {
