@@ -84,7 +84,6 @@ lendingPoolAddress: public(address)
 
 currentStartedLoans: public(uint256)
 totalStartedLoans: public(uint256)
-
 totalPaidLoans: public(uint256)
 totalDefaultedLoans: public(uint256)
 totalCanceledLoans: public(uint256)
@@ -418,6 +417,7 @@ def cancel(_loanId: uint256) -> Loan:
   self.nextLoanId[msg.sender] = _loanId
   self.loanIdsUsed[msg.sender][_loanId] = False
 
+  self.currentStartedLoans -= 1
   self.totalCanceledLoans += 1
 
   log LoanCanceled(msg.sender, _loanId)

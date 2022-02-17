@@ -14,6 +14,7 @@ LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
 MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
+MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
 @pytest.fixture
@@ -53,7 +54,7 @@ def loans_contract(Loans, contract_owner):
 
 @pytest.fixture
 def lending_pool_contract(LendingPool, loans_contract, erc20_contract, contract_owner):
-    yield LendingPool.deploy(loans_contract.address, erc20_contract, {"from": contract_owner})
+    yield LendingPool.deploy(loans_contract.address, erc20_contract, MAX_CAPITAL_EFFICIENCY, {"from": contract_owner})
 
 
 def test_initial_state(loans_contract, contract_owner):
@@ -149,10 +150,10 @@ def test_start_max_loans_reached(
     investor,
     borrower
 ):
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    erc20_contract.mint(investor, Web3.toWei(50, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(50, "ether"), {"from": investor})
     
-    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(50, "ether"), {"from": investor})
 
     loans_contract.setLendingPoolAddress(
         lending_pool_contract.address,
@@ -1050,6 +1051,7 @@ def test_cancel(
         assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
         assert empty_loan["collaterals"]["ids"][k] == 0
 
+    assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalCanceledLoans() == 1
 
     assert len(tx_cancel_loan.events) == 14
