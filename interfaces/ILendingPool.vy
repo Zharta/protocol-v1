@@ -34,7 +34,37 @@ event FundsReceipt:
 
 # Functions
 
-@payable
+@external
+def changeOwnership(_newOwner: address) -> address:
+    pass
+
+@external
+def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
+    pass
+
+@external
+def changePoolActive(_flag: bool) -> bool:
+    pass
+
+@external
+def deprecatePool() -> bool:
+    pass
+
+@view
+@external
+def hasFundsToInvest() -> bool:
+    pass
+
+@view
+@external
+def maxFundsInvestable() -> int256:
+    pass
+
+@view
+@external
+def lastSevenDaysApr() -> uint256:
+    pass
+
 @external
 def deposit(_amount: uint256) -> InvestorFunds:
     pass
@@ -77,6 +107,26 @@ def erc20TokenContract() -> address:
 
 @view
 @external
+def maxCapitalEfficienty() -> uint256:
+    pass
+
+@view
+@external
+def isPoolActive() -> bool:
+    pass
+
+@view
+@external
+def isPoolDeprecated() -> bool:
+    pass
+
+@view
+@external
+def isPoolInvesting() -> bool:
+    pass
+
+@view
+@external
 def funds(arg0: address) -> InvestorFunds:
     pass
 
@@ -103,4 +153,14 @@ def totalFundsInvested() -> uint256:
 @view
 @external
 def totalRewards() -> uint256:
+    pass
+
+@view
+@external
+def rewardsByDay(arg0: uint256) -> uint256:
+    pass
+
+@view
+@external
+def days(arg0: uint256) -> uint256:
     pass

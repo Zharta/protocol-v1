@@ -490,7 +490,7 @@ def test_rewards_computation_over_eight_days(lending_pool_contract, erc20_contra
             assert lending_pool_contract.days(day - 7) == init_of_day
             assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(0.02, "ether")
         if day == 7:
-            assert lending_pool_contract.currentApr() == 63000
+            assert lending_pool_contract.lastSevenDaysApr() == 63000
 
 
 
