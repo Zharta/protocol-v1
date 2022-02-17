@@ -1,8 +1,13 @@
+from brownie.network import chain
+from datetime import datetime as dt
 from decimal import Decimal
-import pytest
-import brownie
-
 from web3 import Web3
+
+import brownie
+import pytest
+
+
+MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
 @pytest.fixture
@@ -27,7 +32,7 @@ def erc20_contract(ERC20PresetMinterPauser, contract_owner):
 
 @pytest.fixture
 def lending_pool_contract(LendingPool, erc20_contract, contract_owner):
-    yield LendingPool.deploy(contract_owner, erc20_contract, {'from': contract_owner})
+    yield LendingPool.deploy(contract_owner, erc20_contract, MAX_CAPITAL_EFFICIENCY, {'from': contract_owner})
 
 
 def user_balance(token_contract, user):
@@ -140,7 +145,7 @@ def test_withdraw(lending_pool_contract, erc20_contract, investor, contract_owne
 
 
 def test_send_funds_wrong_sender(lending_pool_contract, investor, borrower):
-    with brownie.reverts("The sender's address is not the loans contract address"):
+    with brownie.reverts("Only the loans contract address can request to send funds"):
         lending_pool_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": investor})
 
 
@@ -159,10 +164,29 @@ def test_send_funds_wrong_amount(lending_pool_contract, erc20_contract, contract
     
     lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
     
+    print(lending_pool_contract.hasFundsToInvest())
+    print(lending_pool_contract.maxFundsInvestable())
+    print(lending_pool_contract.isPoolInvesting())
+    print(lending_pool_contract.isPoolActive())
+
     with brownie.reverts("No sufficient deposited funds to perform the transaction"):
         lending_pool_contract.sendFunds(
             borrower,
             Web3.toWei(2, "ether"),
+            {"from": contract_owner}
+        )
+
+
+def test_send_funds_insufficient_funds_to_lend(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    
+    with brownie.reverts("No sufficient deposited funds to perform the transaction"):
+        tx_send = lending_pool_contract.sendFunds(
+            borrower,
+            Web3.toWei(0.8, "ether"),
             {"from": contract_owner}
         )
 
@@ -349,3 +373,126 @@ def test_compound_rewards(lending_pool_contract, erc20_contract, contract_owner,
     assert tx_compound.events[-1]["_from"] == investor
     assert tx_compound.events[-1]["rewards"] == Web3.toWei(0.02, "ether")
     assert tx_compound.events[-1]["erc20TokenContract"] == erc20_contract
+
+
+def test_rewards_computation(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    tx_deposit = lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    
+    tx_send = lending_pool_contract.sendFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        {"from": contract_owner}
+    )
+
+    erc20_contract.mint(borrower, Web3.toWei(0.22, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(0.22, "ether"), {"from": borrower})
+
+    tx_receive = lending_pool_contract.receiveFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        Web3.toWei(0.02, "ether"),
+        {"from": contract_owner}
+    )
+
+    init_of_day = int(dt.today().timestamp()) - int(dt.today().timestamp()) % 86400
+    assert lending_pool_contract.days(0) == init_of_day
+    assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(0.02, "ether")
+
+
+def test_rewards_computation_over_two_days(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    tx_deposit = lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    
+    tx_send = lending_pool_contract.sendFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        {"from": contract_owner}
+    )
+
+    erc20_contract.mint(borrower, Web3.toWei(0.22, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(0.22, "ether"), {"from": borrower})
+
+    tx_receive = lending_pool_contract.receiveFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        Web3.toWei(0.02, "ether"),
+        {"from": contract_owner}
+    )
+
+    init_of_day_one = int(dt.today().timestamp()) - int(dt.today().timestamp()) % 86400
+    assert lending_pool_contract.days(0) == init_of_day_one
+    assert lending_pool_contract.rewardsByDay(init_of_day_one) == Web3.toWei(0.02, "ether")
+
+    # ADVANCE TIME 1 DAY
+    chain.mine(timedelta=86400)
+
+    tx_send = lending_pool_contract.sendFunds(
+        borrower,
+        Web3.toWei(0.3, "ether"),
+        {"from": contract_owner}
+    )
+
+    erc20_contract.mint(borrower, Web3.toWei(0.33, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(0.33, "ether"), {"from": borrower})
+
+    tx_receive = lending_pool_contract.receiveFunds(
+        borrower,
+        Web3.toWei(0.3, "ether"),
+        Web3.toWei(0.03, "ether"),
+        {"from": contract_owner}
+    )
+
+    init_of_day_two = init_of_day_one + 86400
+    
+    assert lending_pool_contract.days(0) == init_of_day_one
+    assert lending_pool_contract.days(1) == init_of_day_two
+    assert lending_pool_contract.rewardsByDay(init_of_day_one) == Web3.toWei(0.02, "ether")
+    assert lending_pool_contract.rewardsByDay(init_of_day_two) == Web3.toWei(0.03, "ether")
+
+
+def test_rewards_computation_over_eight_days(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    tx_deposit = lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    
+    chain.mine(timedelta=86400)
+
+    chain_time = chain.time()
+    initial_day_timestamp = chain_time - chain_time % 86400
+
+    for day in range(0, 8):
+        # ADVANCE TIME
+        if day > 0:
+            chain.mine(timedelta=86400)
+
+        tx_send = lending_pool_contract.sendFunds(
+            borrower,
+            Web3.toWei(0.2, "ether"),
+            {"from": contract_owner}
+        )
+
+        erc20_contract.mint(borrower, Web3.toWei(0.22, "ether"), {"from": contract_owner})
+        erc20_contract.approve(lending_pool_contract, Web3.toWei(0.22, "ether"), {"from": borrower})
+
+        tx_receive = lending_pool_contract.receiveFunds(
+            borrower,
+            Web3.toWei(0.2, "ether"),
+            Web3.toWei(0.02, "ether"),
+            {"from": contract_owner}
+        )
+
+        init_of_day = initial_day_timestamp + 86400 * day
+
+        if day >= 7:
+            assert lending_pool_contract.days(day - 7) == init_of_day
+            assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(0.02, "ether")
+        if day == 7:
+            assert lending_pool_contract.currentApr() == 63000
+
+
+
+
+
