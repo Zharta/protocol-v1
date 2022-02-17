@@ -5,7 +5,6 @@ import interfaces.ILendingPool as LendingPoolInterface
 
 interface ERC20Token:
   def allowance(_owner: address, _spender: address) -> uint256: view
-  def decimals() -> uint256: view
   def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
   def transferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
 
@@ -146,10 +145,13 @@ def _updateRewardsCounter(_rewards: uint256):
 
 @view
 @internal
-def _sumDailyRewards() -> uint256:
+def _sumDailyRewards(_nDays: uint256) -> uint256:
+  initDayTimestamp: uint256 = block.timestamp - block.timestamp % 86400
+
   sum: uint256 = 0
   for day in self.days:
-    sum += self.rewardsByDay[day]
+    if initDayTimestamp - day <= _nDays * 86400: # make sure only the seven days counted
+      sum += self.rewardsByDay[day]
   return sum
 
 
@@ -206,11 +208,11 @@ def maxFundsInvestable() -> int256:
 
 @view
 @external
-def lastSevenDaysApr() -> uint256:
-  # returns in parts per 10000, e.g. 2.5% is represented by 250
+def lastDaysApr(_nLastDays: uint256) -> uint256:
+  # returns in parts per 10**18, e.g. 2.5% is represented by 2.5 * 10**16
   if len(self.days) == 0:
     return 0
-  return self._sumDailyRewards() * 365 * 10000 / (len(self.days) * (self.fundsAvailable + self.fundsInvested)) - 10000
+  return self._sumDailyRewards(_nLastDays) * 365 * 10 ** 18 / (_nLastDays * (self.fundsAvailable + self.fundsInvested)) - 10**18
 
 
 @external

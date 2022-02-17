@@ -62,7 +62,7 @@ def maxFundsInvestable() -> int256:
 
 @view
 @external
-def lastSevenDaysApr() -> uint256:
+def lastDaysApr(_nLastDays: uint256) -> uint256:
     pass
 
 @external
