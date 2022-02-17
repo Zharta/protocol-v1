@@ -67,7 +67,7 @@ totalRewards: public(uint256)
 
 rewardsByDay: public(HashMap[uint256, uint256])
 days: public(DynArray[uint256, 8])
-nextDaysIndex: public(uint256)
+nextDaysIndex: uint256
 
 
 @external
@@ -211,41 +211,6 @@ def currentApr() -> uint256:
   if len(self.days) == 0:
     return 0
   return self._sumDailyRewards() * 365 * 10000 / (len(self.days) * (self.fundsAvailable + self.fundsInvested)) - 10000
-
-
-
-
-
-
-
-@view
-@external
-def allDays() -> DynArray[uint256, 8]:
-  return self.days
-
-@view
-@external
-def blockTimestamp() -> uint256:
-  return block.timestamp
-
-@view
-@external
-def initDay() -> uint256:
-  return block.timestamp - block.timestamp % 86400
-
-@view
-@external
-def sumDailyRewards() -> uint256:
-  return self._sumDailyRewards()
-
-@view
-@external
-def xpto() -> uint256:
-  return self.days[6] % 2
-
-
-
-
 
 
 @external
