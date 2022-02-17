@@ -1,7 +1,7 @@
-# @version ^0.3.1
+# @version ^0.3.2
 
 
-# import interfaces.ILendingPool as LendingPoolInterface
+import interfaces.ILendingPool as LendingPoolInterface
 
 interface ERC20Token:
   def allowance(_owner: address, _spender: address) -> uint256: view
@@ -10,7 +10,7 @@ interface ERC20Token:
   def transferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
 
 
-# implements: LendingPoolInterface
+implements: LendingPoolInterface
 
 
 struct InvestorFunds:
@@ -206,7 +206,7 @@ def maxFundsInvestable() -> int256:
 
 @view
 @external
-def currentApr() -> uint256:
+def lastSevenDaysApr() -> uint256:
   # returns in parts per 10000, e.g. 2.5% is represented by 250
   if len(self.days) == 0:
     return 0
