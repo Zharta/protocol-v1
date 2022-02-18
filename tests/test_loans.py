@@ -64,6 +64,8 @@ def test_initial_state(loans_contract, contract_owner):
     assert loans_contract.bufferToCancelLoan() == BUFFER_TO_CANCEL_LOAN
     assert loans_contract.minLoanAmount() == MIN_LOAN_AMOUNT
     assert loans_contract.maxLoanAmount() == MAX_LOAN_AMOUNT
+    assert loans_contract.isAcceptingLoans() == True
+    assert loans_contract.isDeprecated() == False
 
 
 def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_contract, borrower):
@@ -119,6 +121,115 @@ def test_remove_address_from_whitelist(loans_contract, erc721_contract, contract
     loans_contract.removeCollateralFromWhitelist(erc721_contract.address, {"from": contract_owner})
 
     assert loans_contract.whitelistedCollaterals(erc721_contract.address) != erc721_contract.address
+
+
+def test_change_min_loan_amount_wrong_sender(loans_contract, borrower):
+    with brownie.reverts("Only the contract owner can change the min loan amount"):
+        loans_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
+
+
+def test_change_min_loan_amount_wrong_amount(loans_contract, contract_owner):
+    with brownie.reverts("The min loan amount can not be higher than the max loan amount"):
+        loans_contract.changeMinLoanAmount(MAX_LOAN_AMOUNT * 2, {"from": contract_owner})
+
+
+def test_change_min_loan_amount(loans_contract, contract_owner):
+    tx = loans_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": contract_owner})
+
+    assert loans_contract.minLoanAmount() == MIN_LOAN_AMOUNT * 1.1
+    assert tx.return_value == loans_contract.minLoanAmount()
+
+
+def test_change_max_loan_amount_wrong_sender(loans_contract, borrower):
+    with brownie.reverts("Only the contract owner can change the max loan amount"):
+        loans_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
+
+
+def test_change_max_loan_amount_wrong_amount(loans_contract, contract_owner):
+    with brownie.reverts("The max loan amount can not be lower than the min loan amount"):
+        loans_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT / 2, {"from": contract_owner})
+
+
+def test_change_max_loan_amount(loans_contract, contract_owner):
+    tx = loans_contract.changeMaxLoanAmount(MAX_LOAN_AMOUNT * 1.1, {"from": contract_owner})
+
+    assert loans_contract.maxLoanAmount() == MAX_LOAN_AMOUNT * 1.1
+    assert tx.return_value == loans_contract.maxLoanAmount()
+
+
+def test_change_contract_status_wrong_sender(loans_contract, borrower):
+    with brownie.reverts("Only the contract owner can change the status of the contract"):
+        loans_contract.changeContractStatus(False, {"from": borrower})
+
+
+def test_change_contract_status_same_status(loans_contract, contract_owner):
+    with brownie.reverts("The new contract status should be different than the current status"):
+        loans_contract.changeContractStatus(True, {"from": contract_owner})
+
+
+def test_change_contract_status(loans_contract, contract_owner):
+    tx = loans_contract.changeContractStatus(False, {"from": contract_owner})
+
+    assert loans_contract.isAcceptingLoans() == False
+    assert tx.return_value == loans_contract.isAcceptingLoans()
+
+
+def test_deprecate_wrong_sender(loans_contract, borrower):
+    with brownie.reverts("Only the contract owner can deprecate the contract"):
+        loans_contract.deprecate({"from": borrower})
+
+
+def test_deprecate(loans_contract, contract_owner):
+    tx = loans_contract.deprecate({"from": contract_owner})
+
+    assert loans_contract.isDeprecated() == True
+    assert loans_contract.isAcceptingLoans() == False
+    assert tx.return_value == loans_contract.isDeprecated()
+
+
+def test_deprecate_already_deprecated(loans_contract, contract_owner):
+    loans_contract.deprecate({"from": contract_owner})
+
+    with brownie.reverts("The contract is already deprecated"):
+        loans_contract.deprecate({"from": contract_owner})
+
+
+def test_start_deprecated(
+    loans_contract,
+    erc721_contract,
+    contract_owner,
+    borrower
+):
+    loans_contract.deprecate({"from": contract_owner})
+
+    with brownie.reverts("The contract is deprecated, please pay any outstanding loans"):
+        tx_start_loan = loans_contract.start(
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
+            {'from': borrower}
+        )
+
+
+def test_start_not_accepting_loans(
+    loans_contract,
+    erc721_contract,
+    contract_owner,
+    borrower
+):
+    loans_contract.changeContractStatus(False, {"from": contract_owner})
+
+    with brownie.reverts("The contract is not accepting more loans right now, please pay any outstanding loans"):
+        tx_start_loan = loans_contract.start(
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
+            TEST_COLLATERAL_IDS,
+            {'from': borrower}
+        )
 
 
 def test_start_maturity_in_the_past(
