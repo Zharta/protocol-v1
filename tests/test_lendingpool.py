@@ -494,7 +494,7 @@ def test_rewards_computation_over_eight_days(lending_pool_contract, erc20_contra
             print(lending_pool_contract.days(day - 7))
             assert lending_pool_contract.days(day - 7) == init_of_day
             assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(0.02, "ether")
-            assert lending_pool_contract.lastDaysApr(7) / 10**18 == 0.02 * 7 * 365 / 7 - 1
+            assert lending_pool_contract.lastDaysApr(7) / 10**18 == 0.02 * 7 * 365 / 7
 
 
 

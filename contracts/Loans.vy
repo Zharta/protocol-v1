@@ -84,8 +84,12 @@ lendingPoolAddress: public(address)
 
 currentStartedLoans: public(uint256)
 totalStartedLoans: public(uint256)
+
 totalPaidLoans: public(uint256)
+
 totalDefaultedLoans: public(uint256)
+totalDefaultedLoansAmount: public(uint256)
+
 totalCanceledLoans: public(uint256)
 
 
