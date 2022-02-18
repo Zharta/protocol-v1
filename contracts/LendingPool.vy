@@ -212,7 +212,13 @@ def lastDaysApr(_nLastDays: uint256) -> uint256:
   # returns in parts per 10**18, e.g. 2.5% is represented by 2.5 * 10**16
   if len(self.days) == 0:
     return 0
-  return self._sumDailyRewards(_nLastDays) * 365 * 10 ** 18 / (_nLastDays * (self.fundsAvailable + self.fundsInvested)) - 10**18
+  return self._sumDailyRewards(_nLastDays) * 365 * 10 ** 18 / (_nLastDays * (self.fundsAvailable + self.fundsInvested))
+
+
+@view
+@external
+def depositorsArray() -> DynArray[address, 2**50]:
+  return self.depositors
 
 
 @external
