@@ -118,20 +118,19 @@ def _updateRewardsCounter(_rewards: uint256):
   initDayTimestamp: uint256 = block.timestamp - block.timestamp % 86400
 
   if len(self.days) == 7:
-    
+
     if self.rewardsByDay[initDayTimestamp] == 0: # no rewards for this day => new day in the array
-      
+
       if self.nextDaysIndex == 7:
         self.days[0] = initDayTimestamp
         self.nextDaysIndex = 1
-      
       else:
         self.days[self.nextDaysIndex] = initDayTimestamp
         self.nextDaysIndex += 1
     
     self.rewardsByDay[initDayTimestamp] += _rewards
-  
   else:
+
     self.rewardsByDay[initDayTimestamp] += _rewards
     
     if initDayTimestamp not in self.days:
@@ -212,7 +211,13 @@ def lastDaysApr(_nLastDays: uint256) -> uint256:
   # returns in parts per 10**18, e.g. 2.5% is represented by 2.5 * 10**16
   if len(self.days) == 0:
     return 0
-  return self._sumDailyRewards(_nLastDays) * 365 * 10 ** 18 / (_nLastDays * (self.fundsAvailable + self.fundsInvested)) - 10**18
+  return self._sumDailyRewards(_nLastDays) * 365 * 10 ** 18 / (_nLastDays * (self.fundsAvailable + self.fundsInvested))
+
+
+@view
+@external
+def depositorsArray() -> DynArray[address, 2**50]:
+  return self.depositors
 
 
 @external
