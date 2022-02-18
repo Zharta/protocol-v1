@@ -118,20 +118,19 @@ def _updateRewardsCounter(_rewards: uint256):
   initDayTimestamp: uint256 = block.timestamp - block.timestamp % 86400
 
   if len(self.days) == 7:
-    
+
     if self.rewardsByDay[initDayTimestamp] == 0: # no rewards for this day => new day in the array
-      
+
       if self.nextDaysIndex == 7:
         self.days[0] = initDayTimestamp
         self.nextDaysIndex = 1
-      
       else:
         self.days[self.nextDaysIndex] = initDayTimestamp
         self.nextDaysIndex += 1
     
     self.rewardsByDay[initDayTimestamp] += _rewards
-  
   else:
+
     self.rewardsByDay[initDayTimestamp] += _rewards
     
     if initDayTimestamp not in self.days:
