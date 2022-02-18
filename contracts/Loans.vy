@@ -69,6 +69,9 @@ bufferToCancelLoan: public(uint256)
 minLoanAmount: public(uint256)
 maxLoanAmount: public(uint256)
 
+isAcceptingLoans: public(bool)
+isDeprecated: public(bool)
+
 loans: public(HashMap[address, Loan[10]])
 loanIdsUsed: public(HashMap[address, bool[10]])
 nextLoanId: public(HashMap[address, uint256])
@@ -100,6 +103,8 @@ def __init__(_maxAllowedLoans: uint256, _bufferToCancelLoan: uint256, _minLoanAm
   self.bufferToCancelLoan = _bufferToCancelLoan
   self.minLoanAmount = _minLoanAmount
   self.maxLoanAmount = _maxLoanAmount
+  self.isAcceptingLoans = True
+  self.isDeprecated = False
 
 
 @internal
@@ -172,6 +177,15 @@ def _areCollateralsApproved(_borrower: address, _collateralsAddresses: address[1
 
 
 @external
+def changeOwnership(_newOwner: address) -> address:
+  assert msg.sender == self.owner, "Only the owner can change the contract ownership"
+
+  self.owner = _newOwner
+
+  return self.owner
+
+
+@external
 def addCollateralToWhitelist(_address: address) -> bool:
   assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
   assert _address.is_contract == True, "The _address sent does not have a contract deployed"
@@ -192,7 +206,7 @@ def removeCollateralFromWhitelist(_address: address) -> bool:
 
 @external
 def changeMinLoanAmount(_newMinLoanAmount: uint256) -> uint256:
-  assert msg.sender == self.owner, "Only the contract owner can change this setting"
+  assert msg.sender == self.owner, "Only the contract owner can change the min loan amount"
   assert _newMinLoanAmount <= self.maxLoanAmount, "The min loan amount can not be higher than the max loan amount"
 
   self.minLoanAmount = _newMinLoanAmount
@@ -202,7 +216,7 @@ def changeMinLoanAmount(_newMinLoanAmount: uint256) -> uint256:
 
 @external
 def changeMaxLoanAmount(_newMaxLoanAmount: uint256) -> uint256:
-  assert msg.sender == self.owner, "Only the contract owner can change this setting"
+  assert msg.sender == self.owner, "Only the contract owner can change the max loan amount"
   assert _newMaxLoanAmount >= self.minLoanAmount, "The max loan amount can not be lower than the min loan amount"
 
   self.maxLoanAmount = _newMaxLoanAmount
@@ -219,6 +233,27 @@ def setLendingPoolAddress(_address: address) -> address:
   return self.lendingPoolAddress
 
 
+@external
+def changeContractStatus(_flag: bool) -> bool:
+  assert msg.sender == self.owner, "Only the contract owner can change the status of the contract"
+  assert self.isAcceptingLoans != _flag, "The new contract status should be different than the current status"
+
+  self.isAcceptingLoans = _flag
+
+  return self.isAcceptingLoans
+
+
+@external
+def deprecate() -> bool:
+  assert msg.sender == self.owner, "Only the contract owner can deprecate the contract"
+  assert not self.isDeprecated, "The contract is already deprecated"
+  
+  self.isDeprecated = True
+  self.isAcceptingLoans = False
+
+  return self.isDeprecated
+
+
 @view
 @external
 def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
@@ -233,6 +268,8 @@ def start(
   _collateralAddresses: address[10],
   _collateralIds: uint256[10]
 ) -> Loan:
+  assert not self.isDeprecated, "The contract is deprecated, please pay any outstanding loans"
+  assert self.isAcceptingLoans, "The contract is not accepting more loans right now, please pay any outstanding loans"
   assert block.timestamp <= _maturity, "Maturity can not be in the past"
   assert self.nextLoanId[msg.sender] < self.maxAllowedLoans, "Max number of loans already reached"
   assert self._areCollateralsWhitelisted(_collateralAddresses), "Not all collaterals are whitelisted"
@@ -354,6 +391,8 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
   assert msg.sender == self.owner, "Only the contract owner can default loans"
   assert self._hasStartedLoan(_borrower, _loanId), "The _borrower has not started a loan with the given ID"
   assert block.timestamp > self.loans[_borrower][_loanId].maturity, "The maturity of the loan has not been reached yet"
+
+  self.totalDefaultedLoansAmount += self.loans[_borrower][_loanId].amount
 
   for k in range(10):
     if self.loans[_borrower][_loanId].collaterals.contracts[k] == empty(address):

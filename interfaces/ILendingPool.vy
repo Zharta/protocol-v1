@@ -43,11 +43,11 @@ def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
     pass
 
 @external
-def changePoolActive(_flag: bool) -> bool:
+def changePoolStatus(_flag: bool) -> bool:
     pass
 
 @external
-def deprecatePool() -> bool:
+def deprecate() -> bool:
     pass
 
 @view

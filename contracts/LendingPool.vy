@@ -173,20 +173,29 @@ def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
 
 
 @external
-def changePoolActive(_flag: bool) -> bool:
-  assert msg.sender == self.owner, "Only the owner can change the pool from active to inactive and vice-versa"
+def changePoolStatus(_flag: bool) -> bool:
+  assert msg.sender == self.owner, "Only the owner can change the pool status"
+  assert self.isPoolActive != _flag, "The new pool status should be different than the current status"
 
   self.isPoolActive = _flag
+  
+  if not _flag:
+    self.isPoolInvesting = False
+
+  if _flag and not self.isPoolInvesting and self._hasFundsToInvest():
+    self.isPoolInvesting = True
 
   return self.isPoolActive
 
 
 @external
-def deprecatePool() -> bool:
+def deprecate() -> bool:
   assert msg.sender == self.owner, "Only the owner can change the pool to deprecated"
   assert not self.isPoolDeprecated, "The pool is already deprecated"
 
   self.isPoolDeprecated = True
+  self.isPoolActive = False
+  self.isPoolInvesting = False
 
   return self.isPoolDeprecated
 
@@ -224,8 +233,8 @@ def depositorsArray() -> DynArray[address, 2**50]:
 def deposit(_amount: uint256) -> InvestorFunds:
   # _amount should be passed in wei
   
-  assert not self.isPoolDeprecated, "Pool is deprecated"
-  assert self.isPoolActive, "Pool is not active"
+  assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw any outstanding deposit"
+  assert self.isPoolActive, "Pool is not active right now"
   assert _amount > 0, "Amount deposited has to be higher than 0"
   assert self._fundsAreAllowed(msg.sender, self, _amount), "Insufficient funds allowed to be transfered"
 
@@ -287,7 +296,7 @@ def withdraw(_amount: uint256) -> InvestorFunds:
 
 @external
 def compoundRewards() -> InvestorFunds:
-  assert not self.isPoolDeprecated, "Pool is deprecated"
+  assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw your deposit"
   assert self.funds[msg.sender].currentAmountDeposited > 0, "The sender has no funds deposited"
   assert self.funds[msg.sender].currentPendingRewards > 0, "The sender has no pending rewards to compound"
 
@@ -312,10 +321,10 @@ def sendFunds(_to: address, _amount: uint256) -> uint256:
   # _amount should be passed in wei
 
   assert not self.isPoolDeprecated, "Pool is deprecated"
+  assert self.isPoolActive, "The pool is not active and is not investing more right now"
+  assert self.isPoolInvesting, "Max capital efficiency reached, the pool is not investing more right now"
   assert msg.sender == self.loansContract, "Only the loans contract address can request to send funds"
   assert _amount > 0, "The amount to send should be higher than 0"
-  assert self.isPoolActive, "The pool is not active"
-  assert self.isPoolInvesting, "Max capital efficiency reached"
   assert convert(_amount, int256) <= self._maxFundsInvestable(), "No sufficient deposited funds to perform the transaction"
 
   ERC20Token(self.erc20TokenContract).transfer(_to, _amount)
