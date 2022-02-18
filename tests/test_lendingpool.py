@@ -44,6 +44,59 @@ def test_initial_state(lending_pool_contract, erc20_contract, contract_owner):
     assert lending_pool_contract.owner() == contract_owner
     assert lending_pool_contract.loansContract() == contract_owner
     assert lending_pool_contract.erc20TokenContract() == erc20_contract
+    assert lending_pool_contract.maxCapitalEfficienty() == MAX_CAPITAL_EFFICIENCY
+    assert lending_pool_contract.isPoolActive() == True
+    assert lending_pool_contract.isPoolDeprecated() == False
+    assert lending_pool_contract.isPoolInvesting() == False
+
+
+def test_change_pool_status_wrong_sender(lending_pool_contract, borrower):
+    with brownie.reverts("Only the owner can change the pool status"):
+        lending_pool_contract.changePoolStatus(False, {"from": borrower})
+
+
+def test_change_pool_status_same_status(lending_pool_contract, contract_owner):
+    with brownie.reverts("The new pool status should be different than the current status"):
+        lending_pool_contract.changePoolStatus(True, {"from": contract_owner})
+
+
+def test_change_pool_status(lending_pool_contract, contract_owner):
+    tx = lending_pool_contract.changePoolStatus(False, {"from": contract_owner})
+
+    assert lending_pool_contract.isPoolActive() == False
+    assert lending_pool_contract.isPoolInvesting() == False
+    assert tx.return_value == lending_pool_contract.isPoolActive()
+
+
+def test_change_pool_status_again(lending_pool_contract, contract_owner):
+    lending_pool_contract.changePoolStatus(False, {"from": contract_owner})
+
+    tx = lending_pool_contract.changePoolStatus(True, {"from": contract_owner})
+
+    assert lending_pool_contract.isPoolActive() == True
+    assert lending_pool_contract.isPoolInvesting() == False
+    assert tx.return_value == lending_pool_contract.isPoolActive()
+
+
+def test_deprecate_wrong_sender(lending_pool_contract, borrower):
+    with brownie.reverts("Only the owner can change the pool to deprecated"):
+        lending_pool_contract.deprecate({"from": borrower})
+
+
+def test_deprecate(lending_pool_contract, contract_owner):
+    tx = lending_pool_contract.deprecate({"from": contract_owner})
+
+    assert lending_pool_contract.isPoolDeprecated() == True
+    assert lending_pool_contract.isPoolActive() == False
+    assert lending_pool_contract.isPoolInvesting() == False
+    assert tx.return_value == lending_pool_contract.isPoolDeprecated()
+
+
+def test_deprecate_already_deprecated(lending_pool_contract, contract_owner):
+    lending_pool_contract.deprecate({"from": contract_owner})
+
+    with brownie.reverts("The pool is already deprecated"):
+        lending_pool_contract.deprecate({"from": contract_owner})
 
 
 def test_deposit_zero_investment(lending_pool_contract, investor):
@@ -144,12 +197,22 @@ def test_withdraw(lending_pool_contract, erc20_contract, investor, contract_owne
     assert tx_deposit.events[-1]["erc20TokenContract"] == erc20_contract
 
 
-def test_send_funds_wrong_sender(lending_pool_contract, investor, borrower):
+def test_send_funds_wrong_sender(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
     with brownie.reverts("Only the loans contract address can request to send funds"):
         lending_pool_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": investor})
 
 
-def test_send_funds_zero_amount(lending_pool_contract, contract_owner, borrower):
+def test_send_funds_zero_amount(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
     with brownie.reverts("The amount to send should be higher than 0"):
         lending_pool_contract.sendFunds(
             borrower,
