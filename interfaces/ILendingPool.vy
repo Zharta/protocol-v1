@@ -65,6 +65,11 @@ def maxFundsInvestable() -> int256:
 def lastDaysApr(_nLastDays: uint256) -> uint256:
     pass
 
+@view
+@external
+def depositorsArray() -> DynArray[address, 1125899906842624]:
+    pass
+
 @external
 def deposit(_amount: uint256) -> InvestorFunds:
     pass
