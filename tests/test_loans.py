@@ -6,6 +6,7 @@ import time
 from web3 import Web3
 from decimal import Decimal
 
+
 MAX_NUMBER_OF_LOANS = 10
 BUFFER_TO_CANCEL_LOAN = 3 # 3 seconds for testing purposes
 TEST_COLLATERAL_IDS = list(range(5)) + [0] * 5
@@ -49,7 +50,13 @@ def erc721_contract(ERC721PresetMinterPauserAutoId, contract_owner):
 
 @pytest.fixture
 def loans_contract(Loans, contract_owner):
-    yield Loans.deploy(MAX_NUMBER_OF_LOANS, BUFFER_TO_CANCEL_LOAN, MIN_LOAN_AMOUNT, MAX_LOAN_AMOUNT, {'from': contract_owner})
+    yield Loans.deploy(
+        MAX_NUMBER_OF_LOANS,
+        BUFFER_TO_CANCEL_LOAN,
+        MIN_LOAN_AMOUNT,
+        MAX_LOAN_AMOUNT,
+        {'from': contract_owner}
+    )
 
 
 @pytest.fixture

@@ -7,6 +7,7 @@ import brownie
 import pytest
 
 
+PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
@@ -26,24 +27,38 @@ def investor(accounts):
 
 
 @pytest.fixture
+def protocol_wallet(accounts):
+    yield accounts[3]
+
+
+@pytest.fixture
 def erc20_contract(ERC20PresetMinterPauser, contract_owner):
     yield ERC20PresetMinterPauser.deploy("USD Coin", "USDC", {'from': contract_owner})
 
 
 @pytest.fixture
-def lending_pool_contract(LendingPool, erc20_contract, contract_owner):
-    yield LendingPool.deploy(contract_owner, erc20_contract, MAX_CAPITAL_EFFICIENCY, {'from': contract_owner})
+def lending_pool_contract(LendingPool, erc20_contract, contract_owner, protocol_wallet):
+    yield LendingPool.deploy(
+        contract_owner,
+        erc20_contract,
+        protocol_wallet,
+        PROTOCOL_FEES_SHARE,
+        MAX_CAPITAL_EFFICIENCY,
+        {'from': contract_owner}
+    )
 
 
 def user_balance(token_contract, user):
     return token_contract.balanceOf(user)
 
 
-def test_initial_state(lending_pool_contract, erc20_contract, contract_owner):
+def test_initial_state(lending_pool_contract, erc20_contract, contract_owner, protocol_wallet):
     # Check if the constructor of the contract is set up properly
     assert lending_pool_contract.owner() == contract_owner
     assert lending_pool_contract.loansContract() == contract_owner
     assert lending_pool_contract.erc20TokenContract() == erc20_contract
+    assert lending_pool_contract.protocolWallet() == protocol_wallet
+    assert lending_pool_contract.protocolFeesShare() == PROTOCOL_FEES_SHARE
     assert lending_pool_contract.maxCapitalEfficienty() == MAX_CAPITAL_EFFICIENCY
     assert lending_pool_contract.isPoolActive() == True
     assert lending_pool_contract.isPoolDeprecated() == False
@@ -329,19 +344,23 @@ def test_receive_funds(lending_pool_contract, erc20_contract, contract_owner, in
         {"from": contract_owner}
     )
 
+    expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
+    expectedPoolFees = Decimal(0.02) - expectedProtocolFees
+
     assert lending_pool_contract.fundsAvailable() == Web3.toWei(1, "ether")
     assert lending_pool_contract.fundsInvested() == 0
     assert lending_pool_contract.totalFundsInvested() == Web3.toWei(0.2, "ether")
     
-    assert lending_pool_contract.totalRewards() == Web3.toWei(0.02, "ether")
+    assert lending_pool_contract.totalRewards() == Web3.toWei(expectedPoolFees, "ether")
 
-    assert lending_pool_contract.funds(investor)["currentPendingRewards"] == Web3.toWei(0.02, "ether")
-    assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(0.02, "ether")
+    assert lending_pool_contract.funds(investor)["currentPendingRewards"] == Web3.toWei(expectedPoolFees, "ether")
+    assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
 
-    assert len(tx_receive.events) == 3
+    assert len(tx_receive.events) == 4
     assert tx_receive.events[-1]["_from"] == contract_owner
     assert tx_receive.events[-1]["amount"] == Web3.toWei(0.2, "ether")
-    assert tx_receive.events[-1]["interestAmount"] == Web3.toWei(0.02, "ether")
+    assert tx_receive.events[-1]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
+    assert tx_receive.events[-1]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
     assert tx_send.events[-1]["erc20TokenContract"] == erc20_contract
 
 
@@ -370,24 +389,28 @@ def test_receive_funds_multiple_lenders(lending_pool_contract, erc20_contract, c
         {"from": contract_owner}
     )
 
+    expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
+    expectedPoolFees = Decimal(0.02) - expectedProtocolFees
+
     assert lending_pool_contract.fundsAvailable() == Web3.toWei(4, "ether")
     assert lending_pool_contract.fundsInvested() == 0
     assert lending_pool_contract.totalFundsInvested() == Web3.toWei(0.2, "ether")
     
-    assert lending_pool_contract.totalRewards() == Web3.toWei(0.02, "ether")
+    assert lending_pool_contract.totalRewards() == Web3.toWei(expectedPoolFees, "ether")
 
-    expectedLenderOneRewards = Decimal(0.02) * Decimal(1) / Decimal(4)
-    expectedLenderTwoRewards = Decimal(0.02) * Decimal(3) / Decimal(4)
+    expectedLenderOneRewards = expectedPoolFees * Decimal(1) / Decimal(4)
+    expectedLenderTwoRewards = expectedPoolFees * Decimal(3) / Decimal(4)
 
     assert lending_pool_contract.funds(investor)["currentPendingRewards"] == Web3.toWei(expectedLenderOneRewards, "ether")
     assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedLenderOneRewards, "ether")
     assert lending_pool_contract.funds(contract_owner)["currentPendingRewards"] == Web3.toWei(expectedLenderTwoRewards, "ether")
     assert lending_pool_contract.funds(contract_owner)["totalRewardsAmount"] == Web3.toWei(expectedLenderTwoRewards, "ether")
 
-    assert len(tx_receive.events) == 3
+    assert len(tx_receive.events) == 4
     assert tx_receive.events[-1]["_from"] == contract_owner
     assert tx_receive.events[-1]["amount"] == Web3.toWei(0.2, "ether")
-    assert tx_receive.events[-1]["interestAmount"] == Web3.toWei(0.02, "ether")
+    assert tx_receive.events[-1]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
+    assert tx_receive.events[-1]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
     assert tx_send.events[-1]["erc20TokenContract"] == erc20_contract
 
 
@@ -426,15 +449,18 @@ def test_compound_rewards(lending_pool_contract, erc20_contract, contract_owner,
         {"from": contract_owner}
     )
 
+    expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
+    expectedPoolFees = Decimal(0.02) - expectedProtocolFees
+
     tx_compound = lending_pool_contract.compoundRewards({"from": investor})
 
-    assert lending_pool_contract.funds(investor)["currentAmountDeposited"] == Web3.toWei(1.02, "ether")
+    assert lending_pool_contract.funds(investor)["currentAmountDeposited"] == Web3.toWei(1 + expectedPoolFees, "ether")
     assert lending_pool_contract.funds(investor)["currentPendingRewards"] == 0
-    assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(0.02, "ether")
+    assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
     assert lending_pool_contract.funds(investor)["activeForRewards"] == True
 
     assert tx_compound.events[-1]["_from"] == investor
-    assert tx_compound.events[-1]["rewards"] == Web3.toWei(0.02, "ether")
+    assert tx_compound.events[-1]["rewards"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_compound.events[-1]["erc20TokenContract"] == erc20_contract
 
 
@@ -459,9 +485,11 @@ def test_rewards_computation(lending_pool_contract, erc20_contract, contract_own
         {"from": contract_owner}
     )
 
+    expectedPoolFees = Decimal(0.02) * Decimal(10000 - PROTOCOL_FEES_SHARE) / Decimal(10000)
+
     init_of_day = int(dt.today().timestamp()) - int(dt.today().timestamp()) % 86400
     assert lending_pool_contract.days(0) == init_of_day
-    assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(0.02, "ether")
+    assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(expectedPoolFees, "ether")
 
 
 def test_rewards_computation_over_two_days(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
@@ -485,9 +513,11 @@ def test_rewards_computation_over_two_days(lending_pool_contract, erc20_contract
         {"from": contract_owner}
     )
 
+    expectedPoolFeesDay1 = Decimal(0.02) * Decimal(10000 - PROTOCOL_FEES_SHARE) / Decimal(10000)
+
     init_of_day_one = int(dt.today().timestamp()) - int(dt.today().timestamp()) % 86400
     assert lending_pool_contract.days(0) == init_of_day_one
-    assert lending_pool_contract.rewardsByDay(init_of_day_one) == Web3.toWei(0.02, "ether")
+    assert lending_pool_contract.rewardsByDay(init_of_day_one) == Web3.toWei(expectedPoolFeesDay1, "ether")
 
     # ADVANCE TIME 1 DAY
     chain.mine(timedelta=86400)
@@ -508,15 +538,17 @@ def test_rewards_computation_over_two_days(lending_pool_contract, erc20_contract
         {"from": contract_owner}
     )
 
+    expectedPoolFeesDay2 = 0.03 * (10000 - PROTOCOL_FEES_SHARE) / 10000
+
     init_of_day_two = init_of_day_one + 86400
     
     assert lending_pool_contract.days(0) == init_of_day_one
     assert lending_pool_contract.days(1) == init_of_day_two
-    assert lending_pool_contract.rewardsByDay(init_of_day_one) == Web3.toWei(0.02, "ether")
-    assert lending_pool_contract.rewardsByDay(init_of_day_two) == Web3.toWei(0.03, "ether")
+    assert lending_pool_contract.rewardsByDay(init_of_day_one) == Web3.toWei(expectedPoolFeesDay1, "ether")
+    assert lending_pool_contract.rewardsByDay(init_of_day_two) == Web3.toWei(expectedPoolFeesDay2, "ether")
 
 
-def test_rewards_computation_over_eight_days(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+def test_rewards_computation_over_several_days(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     tx_deposit = lending_pool_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
@@ -547,18 +579,10 @@ def test_rewards_computation_over_eight_days(lending_pool_contract, erc20_contra
             {"from": contract_owner}
         )
 
-        if day < 7:
-            print(day)
-            print(lending_pool_contract.days(day))
+        expectedPoolFees = 0.02 * (10000 - PROTOCOL_FEES_SHARE) / 10000
 
         if day in [7, 8]:
             init_of_day = initial_day_timestamp + 86400 * day
-            print(day - 7)
-            print(lending_pool_contract.days(day - 7))
             assert lending_pool_contract.days(day - 7) == init_of_day
-            assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(0.02, "ether")
-            assert lending_pool_contract.lastDaysApr(7) / 10**18 == 0.02 * 7 * 365 / 7
-
-
-
-
+            assert lending_pool_contract.rewardsByDay(init_of_day) == Web3.toWei(expectedPoolFees, "ether")
+            assert lending_pool_contract.lastDaysApr(7) / 10**18 == expectedPoolFees * 7 * 365 / 7

@@ -29,7 +29,8 @@ event FundsTransfer:
 event FundsReceipt:
     _from: address
     amount: uint256
-    interestAmount: uint256
+    rewardsPool: uint256
+    rewardsProtocol: uint256
     erc20TokenContract: address
 
 # Functions
@@ -40,6 +41,14 @@ def changeOwnership(_newOwner: address) -> address:
 
 @external
 def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
+    pass
+
+@external
+def changeProtocolWallet(_newProtocolWallet: address) -> address:
+    pass
+
+@external
+def changeProtocolFeesShare(_newProtocolFeesShare: uint256) -> uint256:
     pass
 
 @external
@@ -108,6 +117,16 @@ def loansContract() -> address:
 @view
 @external
 def erc20TokenContract() -> address:
+    pass
+
+@view
+@external
+def protocolWallet() -> address:
+    pass
+
+@view
+@external
+def protocolFeesShare() -> uint256:
     pass
 
 @view

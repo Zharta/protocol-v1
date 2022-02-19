@@ -3,13 +3,13 @@
 
 import interfaces.ILendingPool as LendingPoolInterface
 
+implements: LendingPoolInterface
+
 interface ERC20Token:
   def allowance(_owner: address, _spender: address) -> uint256: view
   def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
   def transferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
-
-
-implements: LendingPoolInterface
+  def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
 
 
 struct InvestorFunds:
@@ -43,12 +43,16 @@ event FundsTransfer:
 event FundsReceipt:
   _from: address
   amount: uint256
-  interestAmount: uint256
+  rewardsPool: uint256
+  rewardsProtocol: uint256
   erc20TokenContract: address
 
 owner: public(address)
 loansContract: public(address)
 erc20TokenContract: public(address)
+
+protocolWallet: public(address)
+protocolFeesShare: public(uint256) # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
 
 maxCapitalEfficienty: public(uint256) # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
 isPoolActive: public(bool)
@@ -70,10 +74,18 @@ nextDaysIndex: uint256
 
 
 @external
-def __init__(_loansContract: address, _erc20TokenContract: address, _maxCapitalEfficienty: uint256):
+def __init__(
+  _loansContract: address,
+  _erc20TokenContract: address,
+  _protocolWallet: address,
+  _protocolFeesShare: uint256,
+  _maxCapitalEfficienty: uint256
+):
   self.owner = msg.sender
   self.loansContract = _loansContract
   self.erc20TokenContract = _erc20TokenContract
+  self.protocolWallet = _protocolWallet
+  self.protocolFeesShare = _protocolFeesShare
   self.maxCapitalEfficienty = _maxCapitalEfficienty
   self.isPoolActive = True
   self.isPoolDeprecated = False
@@ -170,6 +182,24 @@ def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
   self.maxCapitalEfficienty = _newMaxCapitalEfficiency
 
   return self.maxCapitalEfficienty
+
+
+@external
+def changeProtocolWallet(_newProtocolWallet: address) -> address:
+  assert msg.sender == self.owner, "Only the owner can change the protocol wallet address"
+
+  self.protocolWallet = _newProtocolWallet
+
+  return self.protocolWallet
+
+
+@external
+def changeProtocolFeesShare(_newProtocolFeesShare: uint256) -> uint256:
+  assert msg.sender == self.owner, "Only the owner can change the protocol fees share"
+
+  self.protocolFeesShare = _newProtocolFeesShare
+
+  return self.protocolFeesShare
 
 
 @external
@@ -351,20 +381,23 @@ def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> 
   assert _amount <= self.fundsInvested, "There are more funds being sent than expected by the deposited funds variable"
 
   ERC20Token(self.erc20TokenContract).transferFrom(_owner, self, _amount + _rewardsAmount)
-  
-  self.totalRewards += _rewardsAmount
 
-  self._distribute_rewards(_rewardsAmount)
+  rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+  rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-  self._updateRewardsCounter(_rewardsAmount)
+  ERC20Token(self.erc20TokenContract).transfer(self.protocolWallet, rewardsProtocol)
+
+  self._distribute_rewards(rewardsPool)
+  self._updateRewardsCounter(rewardsPool)
 
   self.fundsAvailable += _amount
   self.fundsInvested -= _amount
+  self.totalRewards += rewardsPool
 
   if not self.isPoolInvesting and self._hasFundsToInvest():
     self.isPoolInvesting = True
 
-  log FundsReceipt(msg.sender, _amount, _rewardsAmount, self.erc20TokenContract)
+  log FundsReceipt(msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
 
   return self.fundsAvailable
 
