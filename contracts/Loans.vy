@@ -2,6 +2,10 @@
 
 # Interfaces
 
+import interfaces.ILoans as LoansInterface
+
+implements: LoansInterface
+
 interface LendingPool:
   def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
   def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
@@ -23,22 +27,6 @@ interface ERC20Token:
   def balanceOf(_account: address) -> uint256: view
 
 
-# Events
-
-event LoanStarted:
-  borrower: address
-  loanId: uint256
-
-event LoanPaid:
-  borrower: address
-  loanId: uint256
-  amount: uint256
-
-event LoanCanceled:
-  borrower: address
-  loanId: uint256
-
-
 # Structs
 
 struct Collateral:
@@ -58,6 +46,22 @@ struct Loan:
   startTime: uint256
   collaterals: Collaterals
   paidAmount: uint256
+
+
+# Events
+
+event LoanStarted:
+  borrower: address
+  loanId: uint256
+
+event LoanPaid:
+  borrower: address
+  loanId: uint256
+  amount: uint256
+
+event LoanCanceled:
+  borrower: address
+  loanId: uint256
 
 
 # Global variables
@@ -97,7 +101,12 @@ totalCanceledLoans: public(uint256)
 
 
 @external
-def __init__(_maxAllowedLoans: uint256, _bufferToCancelLoan: uint256, _minLoanAmount: uint256, _maxLoanAmount: uint256):
+def __init__(
+  _maxAllowedLoans: uint256,
+  _bufferToCancelLoan: uint256,
+  _minLoanAmount: uint256,
+  _maxLoanAmount: uint256
+):
   self.owner = msg.sender
   self.maxAllowedLoans = _maxAllowedLoans
   self.bufferToCancelLoan = _bufferToCancelLoan
