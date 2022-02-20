@@ -80,9 +80,9 @@ loans: public(HashMap[address, Loan[10]])
 loanIdsUsed: public(HashMap[address, bool[10]])
 nextLoanId: public(HashMap[address, uint256])
 
-# concat(token_address, token_id) -> map(borrower_address, loan_id)
-collateralsInLoans: public(HashMap[Bytes[64], HashMap[address, uint256]])
-collateralsInLoansUsed: public(HashMap[Bytes[64], HashMap[address, HashMap[uint256, bool]]])
+# _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
+collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]])
+collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256, bool]]])
 
 whitelistedCollaterals: public(HashMap[address, address])
 
@@ -315,7 +315,7 @@ def start(
       }
     )
 
-    key: Bytes[64] = concat(convert(_collateralAddresses[k], bytes32), convert(_collateralIds[k], bytes32))
+    key: bytes32 = keccak256(_abi_encode(_collateralAddresses[k], convert(_collateralIds[k], bytes32)))
     self.collateralsInLoans[key][msg.sender] = newLoan.id
     self.collateralsInLoansUsed[key][msg.sender][newLoan.id] = True
 
@@ -367,14 +367,13 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
         self.loans[msg.sender][_loanId].collaterals.ids[k]
       )
 
-      key: Bytes[64] = concat(
-        convert(
+      key: bytes32 = keccak256(
+        _abi_encode(
           self.loans[msg.sender][_loanId].collaterals.contracts[k],
-          bytes32
-        ),
-        convert(
-          self.loans[msg.sender][_loanId].collaterals.ids[k],
-          bytes32
+          convert(
+            self.loans[msg.sender][_loanId].collaterals.ids[k],
+            bytes32
+          )
         )
       )
       self.collateralsInLoansUsed[key][msg.sender][_loanId] = False
@@ -413,14 +412,13 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
       self.loans[_borrower][_loanId].collaterals.ids[k]
     )
 
-    key: Bytes[64] = concat(
-      convert(
+    key: bytes32 = keccak256(
+      _abi_encode(
         self.loans[_borrower][_loanId].collaterals.contracts[k],
-        bytes32
-      ),
-      convert(
-        self.loans[_borrower][_loanId].collaterals.ids[k],
-        bytes32
+        convert(
+          self.loans[_borrower][_loanId].collaterals.ids[k],
+          bytes32
+        )
       )
     )
     self.collateralsInLoansUsed[key][_borrower][_loanId] = False
@@ -450,14 +448,13 @@ def cancel(_loanId: uint256) -> Loan:
       self.loans[msg.sender][_loanId].collaterals.ids[k]
     )
 
-    key: Bytes[64] = concat(
-      convert(
+    key: bytes32 = keccak256(
+      _abi_encode(
         self.loans[msg.sender][_loanId].collaterals.contracts[k],
-        bytes32
-      ),
-      convert(
-        self.loans[msg.sender][_loanId].collaterals.ids[k],
-        bytes32
+        convert(
+          self.loans[msg.sender][_loanId].collaterals.ids[k],
+          bytes32
+        )
       )
     )
     self.collateralsInLoansUsed[key][msg.sender][_loanId] = False

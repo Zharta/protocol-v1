@@ -1,7 +1,5 @@
 # Structs
 
-# Structs
-
 struct Collateral:
   contract: address
   id: uint256
@@ -145,12 +143,12 @@ def nextLoanId(arg0: address) -> uint256:
 
 @view
 @external
-def collateralsInLoans(arg0: Bytes[64], arg1: address) -> uint256:
+def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
     pass
 
 @view
 @external
-def collateralsInLoansUsed(arg0: Bytes[64], arg1: address, arg2: uint256) -> bool:
+def collateralsInLoansUsed(arg0: bytes32, arg1: address, arg2: uint256) -> bool:
     pass
 
 @view
