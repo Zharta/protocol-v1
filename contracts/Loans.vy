@@ -1,102 +1,172 @@
 # @version ^0.3.0
 
+# Interfaces
 
-# InvestmentPool external interface
-interface InvestmentPool:
+import interfaces.ILoans as LoansInterface
+
+implements: LoansInterface
+
+interface LendingPool:
   def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
-  def receivePayback(_amount: uint256, _interestAmount: uint256) -> uint256: payable
+  def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
+  def fundsAvailable() -> uint256: nonpayable
+  def erc20TokenContract() -> address: nonpayable
+
 
 interface CollateralContract:
   def supportsInterface(_interfaceID: bytes32) -> bool: view
+  def ownerOf(tokenId: uint256) -> address: view
   def getApproved(tokenId: uint256) -> address: view
   def isApprovedForAll(owner: address, operator: address) -> bool: view
   def safeTransferFrom(_from: address, _to: address, tokenId: uint256): nonpayable
   def transferFrom(_from: address, _to: address, tokenId: uint256): nonpayable
 
 
+interface ERC20Token:
+  def allowance(_owner: address, _spender: address) -> uint256: view
+  def balanceOf(_account: address) -> uint256: view
+
+
+# Structs
+
+struct Collateral:
+  contract: address
+  id: uint256
+
 struct Collaterals:
   size: uint256
   contracts: address[10]
   ids: uint256[10]
 
-
 struct Loan:
+  id: uint256
   amount: uint256
   interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
-  paidAmount: uint256
-  paidAmountInterest: uint256
   maturity: uint256
+  startTime: uint256
   collaterals: Collaterals
-  approved: bool
-  issued: bool
-  defaulted: bool
-  paid: bool
+  paidAmount: uint256
+
+
+# Events
 
 event LoanStarted:
   borrower: address
+  loanId: uint256
 
 event LoanPaid:
   borrower: address
+  loanId: uint256
   amount: uint256
 
 event LoanCanceled:
-  borrower: address  
+  borrower: address
+  loanId: uint256
+
+
+# Global variables
 
 owner: public(address)
+maxAllowedLoans: public(uint256)
+bufferToCancelLoan: public(uint256)
 
-invPool: public(InvestmentPool)
-invPoolAddress: public(address)
+minLoanAmount: public(uint256)
+maxLoanAmount: public(uint256)
 
-whitelistedCollaterals: HashMap[address, address]
+isAcceptingLoans: public(bool)
+isDeprecated: public(bool)
 
-loans: HashMap[address, Loan] # Only one loan per address/user
+loans: public(HashMap[address, Loan[10]])
+loanIdsUsed: public(HashMap[address, bool[10]])
+nextLoanId: public(HashMap[address, uint256])
 
-currentApprovedLoans: public(uint256)
-totalApprovedLoans: public(uint256)
+# _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
+collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]])
+collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256, bool]]])
+collateralKeys: DynArray[bytes32, 2**50]
+collateralsUsed: public(HashMap[bytes32, bool])
+collateralsData: public(HashMap[bytes32, Collateral])
 
-currentIssuedLoans: public(uint256)
-totalIssuedLoans: public(uint256)
+whitelistedCollaterals: public(HashMap[address, address])
+
+lendingPool: LendingPool
+lendingPoolAddress: public(address)
+
+currentStartedLoans: public(uint256)
+totalStartedLoans: public(uint256)
 
 totalPaidLoans: public(uint256)
 
 totalDefaultedLoans: public(uint256)
+totalDefaultedLoansAmount: public(uint256)
+
+totalCanceledLoans: public(uint256)
 
 
 @external
-def __init__():
+def __init__(
+  _maxAllowedLoans: uint256,
+  _bufferToCancelLoan: uint256,
+  _minLoanAmount: uint256,
+  _maxLoanAmount: uint256
+):
   self.owner = msg.sender
-
-
-@external
-def setInvestmentPoolAddress(_address: address) -> address:
-  assert msg.sender == self.owner, "Only the contract owner can set the investment pool address!"
-
-  self.invPool = InvestmentPool(_address)
-  self.invPoolAddress = _address
-  return self.invPoolAddress
-
-
-@view
-@internal
-def _hasApprovedLoan(_address: address) -> bool:
-  return self.loans[_address].approved == True
-
-
-@view
-@internal
-def _hasStartedLoan(_address: address) -> bool:
-  return self.loans[_address].issued == True
+  self.maxAllowedLoans = _maxAllowedLoans
+  self.bufferToCancelLoan = _bufferToCancelLoan
+  self.minLoanAmount = _minLoanAmount
+  self.maxLoanAmount = _maxLoanAmount
+  self.isAcceptingLoans = True
+  self.isDeprecated = False
 
 
 @internal
-def _areCollateralsWhitelisted(_addresses: address[10]) -> bool:
-  for _address in _addresses:
-    if _address != empty(address):
-      if self.whitelistedCollaterals[_address] == empty(address):
+def _areCollateralsWhitelisted(_collateralAddresses: address[10]) -> bool:
+  for addr in _collateralAddresses:
+    if addr != empty(address):
+      if self.whitelistedCollaterals[addr] == empty(address):
         return False
     else:
       break
   return True
+
+
+@internal
+def _areCollateralsOwned(
+  _borrower: address,
+  _collateralAddresses: address[10],
+  _collateralIds: uint256[10]
+) -> bool:
+  for i in range(10):
+    if _collateralAddresses[i] == empty(address):
+      break
+
+    if CollateralContract(_collateralAddresses[i]).ownerOf(_collateralIds[i]) != _borrower:
+      return False
+
+  return True
+
+
+@view
+@internal
+def _checkNextLoanId(_borrower: address) -> uint256:
+  for index in range(10):
+    if not self.loanIdsUsed[_borrower][index]:
+      return index
+  return self.maxAllowedLoans
+
+
+@view
+@internal
+def _hasStartedLoan(_borrower: address, _loanId: uint256) -> bool:
+  return self.loans[_borrower][_loanId].startTime != empty(uint256)
+
+
+@view
+@internal
+def _checkHasBufferNotPassed(_blockTimestamp: uint256, _loanStartTime: uint256) -> bool:
+  if _loanStartTime == 0:
+    return False
+  return _blockTimestamp - _loanStartTime < self.bufferToCancelLoan
 
 
 @view
@@ -107,27 +177,66 @@ def _isCollateralApproved(_borrower: address, _operator: address, _contractAddre
 
 @view
 @internal
-def _areCollateralsApproved(_borrower: address) -> bool:
+def _areCollateralsApproved(_borrower: address, _collateralsAddresses: address[10]) -> bool:
   for k in range(10):
-    if self.loans[_borrower].collaterals.contracts[k] != empty(address):
-      if not self._isCollateralApproved(_borrower, self, self.loans[_borrower].collaterals.contracts[k]):
-        return False
-    else:
+    if _collateralsAddresses[k] == empty(address):
       break
+    
+    if not self._isCollateralApproved(_borrower, self, _collateralsAddresses[k]):
+      return False
 
   return True
 
 
 @view
+@internal
+def _computeCollateralKey(_collateralAddress: address, _collateralId: uint256) -> bytes32:
+  return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
+
+
+@internal
+def _addCollateralToLoan(_borrower: address, _collateralAddress: address, _collateralId: uint256, _loanId: uint256):
+  key: bytes32 = self._computeCollateralKey(_collateralAddress, _collateralId)
+  self.collateralsInLoans[key][_borrower] = _loanId
+  self.collateralsInLoansUsed[key][_borrower][_loanId] = True
+
+
+@internal
+def _removeCollateralFromLoan(_borrower: address, _collateralAddress: address, _collateralId: uint256, _loanId: uint256):
+  key: bytes32 = self._computeCollateralKey(_collateralAddress, _collateralId)
+  self.collateralsInLoansUsed[key][_borrower][_loanId] = False
+
+
+@internal
+def _updateCollaterals(_collateralAddress: address, _collateralId: uint256, _toRemove: bool):
+  key: bytes32 = self._computeCollateralKey(_collateralAddress, _collateralId)
+
+  if key not in self.collateralKeys and not _toRemove:
+    self.collateralKeys.append(key)
+    self.collateralsUsed[key] = True
+    self.collateralsData[key] = Collateral(
+      {
+        contract: _collateralAddress,
+        id: _collateralId
+      }
+    )
+  elif key in self.collateralKeys:
+    self.collateralsUsed[key] = not _toRemove
+
+
 @external
-def isCollateralWhitelisted(_address: address) -> bool:
-  return self.whitelistedCollaterals[_address] != empty(address)
+def changeOwnership(_newOwner: address) -> address:
+  assert msg.sender == self.owner, "Only the owner can change the contract ownership"
+
+  self.owner = _newOwner
+
+  return self.owner
 
 
 @external
 def addCollateralToWhitelist(_address: address) -> bool:
-  assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist!"
-  assert _address.is_contract == True, "The _address sent does not have a contract deployed!"
+  assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
+  assert _address.is_contract == True, "The _address sent does not have a contract deployed"
 
   self.whitelistedCollaterals[_address] = _address
 
@@ -136,181 +245,289 @@ def addCollateralToWhitelist(_address: address) -> bool:
 
 @external
 def removeCollateralFromWhitelist(_address: address) -> bool:
-  assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist!"
+  assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
 
   self.whitelistedCollaterals[_address] = empty(address)
 
   return True
 
 
+@external
+def changeMinLoanAmount(_newMinLoanAmount: uint256) -> uint256:
+  assert msg.sender == self.owner, "Only the contract owner can change the min loan amount"
+  assert _newMinLoanAmount <= self.maxLoanAmount, "The min loan amount can not be higher than the max loan amount"
+
+  self.minLoanAmount = _newMinLoanAmount
+
+  return self.minLoanAmount
+
+
+@external
+def changeMaxLoanAmount(_newMaxLoanAmount: uint256) -> uint256:
+  assert msg.sender == self.owner, "Only the contract owner can change the max loan amount"
+  assert _newMaxLoanAmount >= self.minLoanAmount, "The max loan amount can not be lower than the min loan amount"
+
+  self.maxLoanAmount = _newMaxLoanAmount
+
+  return self.maxLoanAmount
+
+
+@external
+def setLendingPoolAddress(_address: address) -> address:
+  assert msg.sender == self.owner, "Only the contract owner can set the investment pool address"
+
+  self.lendingPool = LendingPool(_address)
+  self.lendingPoolAddress = _address
+  return self.lendingPoolAddress
+
+
+@external
+def changeContractStatus(_flag: bool) -> bool:
+  assert msg.sender == self.owner, "Only the contract owner can change the status of the contract"
+  assert self.isAcceptingLoans != _flag, "The new contract status should be different than the current status"
+
+  self.isAcceptingLoans = _flag
+
+  return self.isAcceptingLoans
+
+
+@external
+def deprecate() -> bool:
+  assert msg.sender == self.owner, "Only the contract owner can deprecate the contract"
+  assert not self.isDeprecated, "The contract is already deprecated"
+  
+  self.isDeprecated = True
+  self.isAcceptingLoans = False
+
+  return self.isDeprecated
+
+
 @view
 @external
-def loanDetails() -> Loan:
-  assert self._hasApprovedLoan(msg.sender), "The sender does not have an approved loan!"
-  
-  return self.loans[msg.sender]
+def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
+  return self.loanIdsUsed[_borrower]
+
+
+@view
+@external
+def collateralKeysArray() -> DynArray[bytes32, 2**50]:
+  return self.collateralKeys
 
 
 @external
-def newLoan(
-  _borrower: address,
+def start(
   _amount: uint256,
   _interest: uint256,
   _maturity: uint256,
-  _collateralsAddresses: address[10],
-  _collateralsIds: uint256[10]
-
+  _collateralAddresses: address[10],
+  _collateralIds: uint256[10]
 ) -> Loan:
-  assert msg.sender == self.owner, "Only the contract owner can create loans!"
-  assert self._hasApprovedLoan(_borrower) == False, "The sender already has an approved loan!"
-  assert self._areCollateralsWhitelisted(_collateralsAddresses), "The collaterals are not all whitelisted!"
-  assert block.timestamp <= _maturity, "Maturity can not be in the past!"
+  assert not self.isDeprecated, "The contract is deprecated, please pay any outstanding loans"
+  assert self.isAcceptingLoans, "The contract is not accepting more loans right now, please pay any outstanding loans"
+  assert block.timestamp <= _maturity, "Maturity can not be in the past"
+  assert self.nextLoanId[msg.sender] < self.maxAllowedLoans, "Max number of loans already reached"
+  assert self._areCollateralsWhitelisted(_collateralAddresses), "Not all collaterals are whitelisted"
+  assert self._areCollateralsOwned(msg.sender, _collateralAddresses, _collateralIds), "Not all collaterals are owned by the sender"
+  assert self._areCollateralsApproved(msg.sender, _collateralAddresses) == True, "Not all collaterals are approved to be transferred"
+  assert self.lendingPool.fundsAvailable() >= _amount, "Insufficient funds in the lending pool"
+  assert _amount >= self.minLoanAmount, "Loan amount is less than the min loan amount"
+  assert _amount <= self.maxLoanAmount, "Loan amount is more than the max loan amount"
 
-  loan: Loan = Loan(
+  newLoan: Loan = Loan(
     {
+      id: self.nextLoanId[msg.sender],
       amount: _amount,
       interest: _interest,
-      paidAmount: 0,
-      paidAmountInterest: 0,
       maturity: _maturity,
+      startTime: block.timestamp,
+      paidAmount: 0,
       collaterals: empty(Collaterals),
-      approved: True,
-      issued: False,
-      defaulted: False,
-      paid: False
     }
   )
-  
+
   for k in range(10):
-    if _collateralsAddresses[k] != empty(address):
-      loan.collaterals.size += 1
-      loan.collaterals.contracts[k] = _collateralsAddresses[k]
-      loan.collaterals.ids[k] = _collateralsIds[k]
-    else:
+    if _collateralAddresses[k] == empty(address):
       break
 
-  self.loans[_borrower] = loan
-  self.currentApprovedLoans += 1
-  self.totalApprovedLoans += 1
+    newLoan.collaterals.size += 1
+    newLoan.collaterals.contracts[k] = _collateralAddresses[k]
+    newLoan.collaterals.ids[k] = _collateralIds[k]
 
-  return self.loans[_borrower]
+    newCollateral: Collateral = Collateral(
+      {
+        contract: _collateralAddresses[k],
+        id: _collateralIds[k]
+      }
+    )
+
+    self._addCollateralToLoan(msg.sender, _collateralAddresses[k], _collateralIds[k], newLoan.id)
+
+    self._updateCollaterals(_collateralAddresses[k], _collateralIds[k], False)
+
+    CollateralContract(_collateralAddresses[k]).transferFrom(
+      msg.sender,
+      self,
+      _collateralIds[k]
+    )
+
+
+  self.loans[msg.sender][self.nextLoanId[msg.sender]] = newLoan
+  self.loanIdsUsed[msg.sender][self.nextLoanId[msg.sender]] = True
+  self.nextLoanId[msg.sender] = self._checkNextLoanId(msg.sender)
+
+  self.currentStartedLoans += 1
+  self.totalStartedLoans += 1
+  
+  self.lendingPool.sendFunds(msg.sender, _amount)
+
+  log LoanStarted(msg.sender, newLoan.id)
+
+  return newLoan
 
 
 @external
-def startApprovedLoan() -> Loan:
-  assert self._hasApprovedLoan(msg.sender) == True, "The sender does not have an approved loan!"
-  assert self._areCollateralsApproved(msg.sender) == True, "The collaterals are not all approved to be transferred!"
+def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
+  assert self._hasStartedLoan(msg.sender, _loanId), "The sender has not started a loan with the given ID"
+  assert block.timestamp <= self.loans[msg.sender][_loanId].maturity, "The maturity of the loan has already been reached and it defaulted"
+  assert _amountPaid > 0, "The amount paid needs to be higher than 0"
 
-  self.loans[msg.sender].issued = True
-  self.currentIssuedLoans += 1
-  self.totalIssuedLoans += 1
+  maxPayment: uint256 = self.loans[msg.sender][_loanId].amount * (10000 + self.loans[msg.sender][_loanId].interest) / 10000
+  allowedPayment: uint256 = maxPayment - self.loans[msg.sender][_loanId].paidAmount
+  borrowerBalance: uint256 = ERC20Token(self.lendingPool.erc20TokenContract()).balanceOf(msg.sender)
+  lendingPoolAllowance: uint256 = ERC20Token(self.lendingPool.erc20TokenContract()).allowance(msg.sender, self.lendingPoolAddress)
+  assert _amountPaid <= allowedPayment, "The amount paid is higher than the amount left to be paid"
+  assert borrowerBalance >= _amountPaid, "User has insufficient balance for the payment"
+  assert lendingPoolAllowance >= _amountPaid, "User did not allow funds to be transferred"
 
-  # TODO
-  # Use safeTransferFrom instead of the less secure transferFrom
-  # CollateralContract(self.loans[msg.sender].collateral.contract).safeTransferFrom(
-  #   msg.sender,
-  #   self,
-  #   self.loans[msg.sender].collateral.id
-  # )
-  for k in range(10):
-    if self.loans[msg.sender].collaterals.contracts[k] != empty(address):
-      CollateralContract(self.loans[msg.sender].collaterals.contracts[k]).transferFrom(
-        msg.sender,
-        self,
-        self.loans[msg.sender].collaterals.ids[k]
-      )
-    else:
-      break
-  
-  self.invPool.sendFunds(msg.sender, self.loans[msg.sender].amount)
+  paidAmount: uint256 = _amountPaid * 10000 / (10000 + self.loans[msg.sender][_loanId].interest)
+  paidAmountInterest: uint256 = _amountPaid - paidAmount
 
-  log LoanStarted(msg.sender)
-
-  return self.loans[msg.sender]
-
-
-@payable
-@external
-def payLoan() -> Loan:
-  assert self._hasStartedLoan(msg.sender), "The sender does not have an issued loan!"
-  assert block.timestamp <= self.loans[msg.sender].maturity, "The maturity of the loan has already been reached. The loan is defaulted!"
-  assert msg.value > 0, "The value sent needs to be higher than 0!"
-
-  maxPayment: uint256 = self.loans[msg.sender].amount * (10000 + self.loans[msg.sender].interest) / 10000
-  allowedPayment: uint256 = maxPayment - self.loans[msg.sender].paidAmount - self.loans[msg.sender].paidAmountInterest
-  assert msg.value <= allowedPayment, "The value sent is higher than the amount left to be paid!"
-
-  paidAmount: uint256 = msg.value * 10000 / (10000 + self.loans[msg.sender].interest)
-  paidAmountInterest: uint256 = msg.value - paidAmount
-
-  if msg.value == allowedPayment:
+  if _amountPaid == allowedPayment:
     for k in range(10):
-      if self.loans[msg.sender].collaterals.contracts[k] != empty(address):
-        CollateralContract(self.loans[msg.sender].collaterals.contracts[k]).safeTransferFrom(
-          self,
-          msg.sender,
-          self.loans[msg.sender].collaterals.ids[k]
-        )
-      else:
+      if self.loans[msg.sender][_loanId].collaterals.contracts[k] == empty(address):
         break
+        
+      CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
+        self,
+        msg.sender,
+        self.loans[msg.sender][_loanId].collaterals.ids[k]
+      )
 
-    self.loans[msg.sender] = empty(Loan)
-    self.currentApprovedLoans -= 1
-    self.currentIssuedLoans -= 1
+      self._removeCollateralFromLoan(
+        msg.sender,
+        self.loans[msg.sender][_loanId].collaterals.contracts[k],
+        self.loans[msg.sender][_loanId].collaterals.ids[k],
+        _loanId
+      )
+
+      self._updateCollaterals(
+        self.loans[msg.sender][_loanId].collaterals.contracts[k],
+        self.loans[msg.sender][_loanId].collaterals.ids[k],
+        True
+      )
+
+
+    self.loans[msg.sender][_loanId] = empty(Loan)
+    self.nextLoanId[msg.sender] = _loanId
+    self.loanIdsUsed[msg.sender][_loanId] = False
+    self.currentStartedLoans -= 1
     self.totalPaidLoans += 1
   else:
-    self.loans[msg.sender].paidAmount += paidAmount
-    self.loans[msg.sender].paidAmountInterest += paidAmountInterest
+    self.loans[msg.sender][_loanId].paidAmount += paidAmount + paidAmountInterest
 
-  raw_call(self.invPoolAddress, _abi_encode(paidAmount, paidAmountInterest, method_id=method_id("receiveFunds(uint256,uint256)")), value=msg.value)
+  self.lendingPool.receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
-  log LoanPaid(msg.sender, msg.value)
+  log LoanPaid(msg.sender, _loanId, _amountPaid)
 
-  return self.loans[msg.sender]
-
-
-@external
-def cancelApprovedLoan() -> Loan:
-  assert self._hasApprovedLoan(msg.sender), "The sender does not have an approved loan!"
-  assert self._hasStartedLoan(msg.sender) == False, "The loan has already been started, please pay the loan."
-
-  self.loans[msg.sender] = empty(Loan)
-
-  self.currentApprovedLoans -= 1
-
-  log LoanCanceled(msg.sender)
-
-  return self.loans[msg.sender]
+  return self.loans[msg.sender][_loanId]
 
 
 @external
-def settleDefaultedLoan(_borrower: address) -> Loan:
-  assert msg.sender == self.owner, "Only the contract owner can default loans!"
-  assert self._hasStartedLoan(_borrower), "The sender does not have an issued loan!"
-  assert block.timestamp > self.loans[_borrower].maturity, "The maturity of the loan has not been reached yet!"
+def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
+  assert msg.sender == self.owner, "Only the contract owner can default loans"
+  assert self._hasStartedLoan(_borrower, _loanId), "The _borrower has not started a loan with the given ID"
+  assert block.timestamp > self.loans[_borrower][_loanId].maturity, "The maturity of the loan has not been reached yet"
+
+  self.totalDefaultedLoansAmount += self.loans[_borrower][_loanId].amount
 
   for k in range(10):
-    if self.loans[_borrower].collaterals.contracts[k] != empty(address):
-      CollateralContract(self.loans[_borrower].collaterals.contracts[k]).safeTransferFrom(
-        self,
-        self.owner,
-        self.loans[_borrower].collaterals.ids[k]
-      )
-    else:
+    if self.loans[_borrower][_loanId].collaterals.contracts[k] == empty(address):
       break
+    
+    CollateralContract(self.loans[_borrower][_loanId].collaterals.contracts[k]).safeTransferFrom(
+      self,
+      self.owner,
+      self.loans[_borrower][_loanId].collaterals.ids[k]
+    )
 
-  self.loans[_borrower] = empty(Loan)
+    self._removeCollateralFromLoan(
+        _borrower,
+        self.loans[_borrower][_loanId].collaterals.contracts[k],
+        self.loans[_borrower][_loanId].collaterals.ids[k],
+        _loanId
+      )
 
-  self.currentApprovedLoans -= 1
-  self.currentIssuedLoans -= 1
+    self._updateCollaterals(
+      self.loans[_borrower][_loanId].collaterals.contracts[k],
+      self.loans[_borrower][_loanId].collaterals.ids[k],
+      True
+    )
+
+
+  self.loans[_borrower][_loanId] = empty(Loan)
+  self.nextLoanId[_borrower] = _loanId
+  self.loanIdsUsed[_borrower][_loanId] = False
+
+  self.currentStartedLoans -= 1
   self.totalDefaultedLoans += 1
 
-  return self.loans[_borrower]
+  return self.loans[_borrower][_loanId]
 
+
+@external
+def cancel(_loanId: uint256) -> Loan:
+  assert self._checkHasBufferNotPassed(block.timestamp, self.loans[msg.sender][_loanId].startTime), "The sender has not started a loan with the given ID or the time buffer to cancel the loan has passed"
+
+  for k in range(10):
+    if self.loans[msg.sender][_loanId].collaterals.contracts[k] == empty(address):
+      break
+    
+    CollateralContract(self.loans[msg.sender][_loanId].collaterals.contracts[k]).safeTransferFrom(
+      self,
+      msg.sender,
+      self.loans[msg.sender][_loanId].collaterals.ids[k]
+    )
+
+    self._removeCollateralFromLoan(
+        msg.sender,
+        self.loans[msg.sender][_loanId].collaterals.contracts[k],
+        self.loans[msg.sender][_loanId].collaterals.ids[k],
+        _loanId
+    )
+
+    self._updateCollaterals(
+      self.loans[msg.sender][_loanId].collaterals.contracts[k],
+      self.loans[msg.sender][_loanId].collaterals.ids[k],
+      True
+    )
+
+  
+  self.lendingPool.receiveFunds(msg.sender, self.loans[msg.sender][_loanId].amount, 0)
+
+  self.loans[msg.sender][_loanId] = empty(Loan)
+  self.nextLoanId[msg.sender] = _loanId
+  self.loanIdsUsed[msg.sender][_loanId] = False
+
+  self.currentStartedLoans -= 1
+  self.totalCanceledLoans += 1
+
+  log LoanCanceled(msg.sender, _loanId)
+
+  return self.loans[msg.sender][_loanId]
 
 
 @external
 @payable
 def __default__():
-  raise "No function called!"
-
+  if msg.value > 0:
+    send(msg.sender, msg.value)
