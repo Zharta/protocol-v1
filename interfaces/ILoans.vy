@@ -72,11 +72,16 @@ def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
 
 @view
 @external
+def borrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+    pass
+
+@view
+@external
 def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
     pass
 
 @external
-def start(_amount: uint256, _interest: uint256, _maturity: uint256, _collateralAddresses: address[10], _collateralIds: uint256[10]) -> Loan:
+def start(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> Loan:
     pass
 
 @external
@@ -129,21 +134,6 @@ def isAcceptingLoans() -> bool:
 @view
 @external
 def isDeprecated() -> bool:
-    pass
-
-@view
-@external
-def loans(arg0: address, arg1: uint256) -> Loan:
-    pass
-
-@view
-@external
-def loanIdsUsed(arg0: address, arg1: uint256) -> bool:
-    pass
-
-@view
-@external
-def nextLoanId(arg0: address) -> uint256:
     pass
 
 @view
