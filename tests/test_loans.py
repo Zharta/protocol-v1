@@ -8,8 +8,7 @@ from decimal import Decimal
 
 
 MAX_NUMBER_OF_LOANS = 10
-BUFFER_TO_CANCEL_LOAN = 3 # 3 seconds for testing purposes
-TEST_COLLATERAL_IDS = list(range(5)) + [0] * 5
+BUFFER_TO_CANCEL_LOAN = 10 # 3 seconds for testing purposes
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
@@ -69,6 +68,14 @@ def loans_contract(Loans, contract_owner):
 @pytest.fixture
 def lending_pool_contract(LendingPool, loans_contract, erc20_contract, contract_owner, protocol_wallet):
     yield LendingPool.deploy(loans_contract.address, erc20_contract, protocol_wallet, PROTOCOL_FEES_SHARE, MAX_CAPITAL_EFFICIENCY, {"from": contract_owner})
+
+
+@pytest.fixture
+def test_collaterals(erc721_contract):
+    result = []
+    for k in range(5):
+        result.append((erc721_contract.address, k))
+    yield result
 
 
 def test_initial_state(loans_contract, contract_owner):
@@ -212,7 +219,8 @@ def test_start_deprecated(
     loans_contract,
     erc721_contract,
     contract_owner,
-    borrower
+    borrower,
+    test_collaterals
 ):
     loans_contract.deprecate({"from": contract_owner})
 
@@ -221,8 +229,7 @@ def test_start_deprecated(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': borrower}
         )
 
@@ -231,7 +238,8 @@ def test_start_not_accepting_loans(
     loans_contract,
     erc721_contract,
     contract_owner,
-    borrower
+    borrower,
+    test_collaterals
 ):
     loans_contract.changeContractStatus(False, {"from": contract_owner})
 
@@ -240,8 +248,7 @@ def test_start_not_accepting_loans(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': borrower}
         )
 
@@ -250,7 +257,8 @@ def test_start_maturity_in_the_past(
     loans_contract,
     erc721_contract,
     contract_owner,
-    borrower
+    borrower,
+    test_collaterals
 ):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
@@ -260,8 +268,7 @@ def test_start_maturity_in_the_past(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': contract_owner}
         )
 
@@ -305,8 +312,7 @@ def test_start_max_loans_reached(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] + ["0x0000000000000000000000000000000000000000"] * 9,
-            [k] + ["0x0000000000000000000000000000000000000000"] * 9,
+            [(erc721_contract.address, k)],
             {'from': borrower}
         )
         time.sleep(0.2)
@@ -316,8 +322,7 @@ def test_start_max_loans_reached(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] + ["0x0000000000000000000000000000000000000000"] * 9,
-            [10] + ["0x0000000000000000000000000000000000000000"] * 9,
+            [(erc721_contract.address, 10)],
             {'from': borrower}
         )
 
@@ -326,15 +331,15 @@ def test_start_collateral_notwhitelisted(
     loans_contract,
     erc721_contract,
     contract_owner,
-    borrower
+    borrower,
+    test_collaterals
 ):
     with brownie.reverts("Not all collaterals are whitelisted"):
         loans_contract.start(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': contract_owner}
         )
 
@@ -346,7 +351,8 @@ def test_start_collaterals_not_owned(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -367,8 +373,7 @@ def test_start_collaterals_not_owned(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] + ["0x0000000000000000000000000000000000000000"] * 9,
-            [0] + ["0x0000000000000000000000000000000000000000"] * 9,
+            test_collaterals,
             {'from': borrower}
         )
 
@@ -380,7 +385,8 @@ def test_start_loan_collateral_not_approved(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -405,8 +411,7 @@ def test_start_loan_collateral_not_approved(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': borrower}
         )
 
@@ -418,7 +423,8 @@ def test_start_unsufficient_funds_in_lp(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     loans_contract.setLendingPoolAddress(
         lending_pool_contract.address,
@@ -440,8 +446,7 @@ def test_start_unsufficient_funds_in_lp(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': borrower}
         )
 
@@ -453,7 +458,8 @@ def test_start_min_amount(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -480,8 +486,7 @@ def test_start_min_amount(
             Web3.toWei(0.01, "ether"),
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': borrower}
         )
 
@@ -493,7 +498,8 @@ def test_start_max_amount(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(15, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(15, "ether"), {"from": investor})
@@ -519,8 +525,7 @@ def test_start_max_amount(
             Web3.toWei(10, "ether"),
             LOAN_INTEREST,
             MATURITY,
-            [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-            TEST_COLLATERAL_IDS,
+            test_collaterals,
             {'from': borrower}
         )
 
@@ -532,7 +537,8 @@ def test_start_loan(
     erc20_contract,
     contract_owner,
     borrower,
-    investor
+    investor,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -559,8 +565,7 @@ def test_start_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_details = tx_start_loan.return_value
@@ -570,10 +575,8 @@ def test_start_loan(
     assert loan_details["interest"] == LOAN_INTEREST
     assert loan_details["paidAmount"] == 0
     assert loan_details["maturity"] == MATURITY
-    assert loan_details["collaterals"]["size"] == 5
-    assert loan_details["collaterals"]["contracts"] == [erc721_contract.address] * 5 + [
-        "0x0000000000000000000000000000000000000000"] * 5
-    assert loan_details["collaterals"]["ids"] == TEST_COLLATERAL_IDS
+    assert len(loan_details["collaterals"]) == 5
+    assert loan_details["collaterals"] == test_collaterals
 
     assert loans_contract.currentStartedLoans() == 1
     assert loans_contract.totalStartedLoans() == 1
@@ -583,8 +586,8 @@ def test_start_loan(
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
-    for collateral_id in TEST_COLLATERAL_IDS:
-        assert erc721_contract.ownerOf(collateral_id) == loans_contract.address
+    for collateral in test_collaterals:
+        assert erc721_contract.ownerOf(collateral[1]) == loans_contract.address
 
 
 def test_pay_loan_not_issued(loans_contract, borrower):
@@ -599,7 +602,8 @@ def test_pay_loan_no_value_sent(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -624,8 +628,7 @@ def test_pay_loan_no_value_sent(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan = tx.return_value
@@ -641,7 +644,8 @@ def test_pay_loan_higher_value_than_needed(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -666,8 +670,7 @@ def test_pay_loan_higher_value_than_needed(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan = tx.return_value
@@ -685,7 +688,8 @@ def test_pay_loan_defaulted(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -710,8 +714,7 @@ def test_pay_loan_defaulted(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         int(dt.datetime.now().timestamp()) + 3,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan = tx.return_value
@@ -732,7 +735,8 @@ def test_pay_loan_insufficient_balance(
     erc20_contract,
     contract_owner,
     borrower,
-    investor
+    investor,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -762,8 +766,7 @@ def test_pay_loan_insufficient_balance(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_new_loan.return_value["id"]
@@ -785,7 +788,8 @@ def test_pay_loan_insufficient_allowance(
     erc20_contract,
     contract_owner,
     borrower,
-    investor
+    investor,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -815,8 +819,7 @@ def test_pay_loan_insufficient_allowance(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_new_loan.return_value["id"]
@@ -838,7 +841,8 @@ def test_pay_loan(
     erc20_contract,
     contract_owner,
     borrower,
-    investor
+    investor,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -868,8 +872,7 @@ def test_pay_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_new_loan.return_value["id"]
@@ -886,18 +889,17 @@ def test_pay_loan(
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
 
-    assert empty_loan["collaterals"]["size"] == 0
-    for k in range(len(TEST_COLLATERAL_IDS)):
-        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
-        assert empty_loan["collaterals"]["ids"][k] == 0
+    for collateral in empty_loan["collaterals"]:
+        assert collateral["contractAddress"] == "0x0000000000000000000000000000000000000000"
+        assert collateral["tokenId"] == 0
 
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalPaidLoans() == 1
 
     assert tx_pay_loan.events[-1]["borrower"] == borrower
 
-    for collateral_id in TEST_COLLATERAL_IDS:
-        assert erc721_contract.ownerOf(collateral_id) == borrower
+    for collateral in test_collaterals:
+        assert erc721_contract.ownerOf(collateral[1]) == borrower
 
     assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - amount_paid
 
@@ -909,7 +911,8 @@ def test_pay_loan_multiple(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -940,8 +943,7 @@ def test_pay_loan_multiple(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_new_loan.return_value["id"]
@@ -953,13 +955,13 @@ def test_pay_loan_multiple(
     erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
     tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
-    loan_details = loans_contract.loans(borrower, loan_id)
+    loan_details = loans_contract.borrowerLoan(borrower, loan_id)
     assert loan_details["paidAmount"] == amount_paid
     assert loans_contract.currentStartedLoans() == 1
     assert loans_contract.totalPaidLoans() == 0
 
-    for collateral_id in TEST_COLLATERAL_IDS:
-        assert erc721_contract.ownerOf(collateral_id) == loans_contract.address
+    for collateral in test_collaterals:
+        assert erc721_contract.ownerOf(collateral[1]) == loans_contract.address
     
     erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
     tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
@@ -969,16 +971,15 @@ def test_pay_loan_multiple(
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
 
-    assert empty_loan["collaterals"]["size"] == 0
-    for k in range(len(TEST_COLLATERAL_IDS)):
-        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
-        assert empty_loan["collaterals"]["ids"][k] == 0
+    for collateral in empty_loan["collaterals"]:
+        assert collateral["contractAddress"] == "0x0000000000000000000000000000000000000000"
+        assert collateral["tokenId"] == 0
 
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalPaidLoans() == 1
 
-    for collateral_id in TEST_COLLATERAL_IDS:
-        assert erc721_contract.ownerOf(collateral_id) == borrower
+    for collateral in test_collaterals:
+        assert erc721_contract.ownerOf(collateral[1]) == borrower
 
     assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - amount_paid * 2
 
@@ -1016,7 +1017,8 @@ def test_set_default_loan(
     erc20_contract,
     contract_owner,
     investor,
-    borrower
+    borrower,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -1041,8 +1043,7 @@ def test_set_default_loan(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         int(dt.datetime.now().timestamp() + 3),
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_new_loan.return_value["id"]
@@ -1055,17 +1056,16 @@ def test_set_default_loan(
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
 
-    assert empty_loan["collaterals"]["size"] == 0
-    for k in range(len(TEST_COLLATERAL_IDS)):
-        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
-        assert empty_loan["collaterals"]["ids"][k] == 0
+    for collateral in empty_loan["collaterals"]:
+        assert collateral["contractAddress"] == "0x0000000000000000000000000000000000000000"
+        assert collateral["tokenId"] == 0
 
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalStartedLoans() == 1
     assert loans_contract.totalDefaultedLoans() == 1
 
-    for collateral_id in TEST_COLLATERAL_IDS:
-        assert erc721_contract.ownerOf(collateral_id) == contract_owner
+    for collateral in test_collaterals:
+        assert erc721_contract.ownerOf(collateral[1]) == contract_owner
 
 
 def test_cancel_approved_loan_not_started(
@@ -1076,7 +1076,7 @@ def test_cancel_approved_loan_not_started(
     borrower,
     investor
 ):
-    with brownie.reverts("The sender has not started a loan with the given ID or the time buffer to cancel the loan has passed"):
+    with brownie.reverts("The sender has not started a loan with the given ID"):
         loans_contract.cancel(0, {"from": contract_owner})
 
 
@@ -1087,7 +1087,8 @@ def test_cancel_buffer_passed(
     erc721_contract,
     contract_owner,
     borrower,
-    investor
+    investor,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -1112,14 +1113,13 @@ def test_cancel_buffer_passed(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_new_loan.return_value["id"]
 
-    time.sleep(4)
-    with brownie.reverts("The sender has not started a loan with the given ID or the time buffer to cancel the loan has passed"):
+    time.sleep(15)
+    with brownie.reverts("The time buffer to cancel the loan has passed"):
         loans_contract.cancel(loan_id, {"from": borrower})
 
 
@@ -1130,7 +1130,8 @@ def test_cancel(
     erc721_contract,
     contract_owner,
     borrower,
-    investor
+    investor,
+    test_collaterals
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -1155,8 +1156,7 @@ def test_cancel(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
-        [erc721_contract.address] * 5 + ["0x0000000000000000000000000000000000000000"] * 5,
-        TEST_COLLATERAL_IDS,
+        test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_new_loan.return_value["id"]
@@ -1170,10 +1170,9 @@ def test_cancel(
     assert empty_loan["interest"] == 0
     assert empty_loan["paidAmount"] == 0
 
-    assert empty_loan["collaterals"]["size"] == 0
-    for k in range(len(TEST_COLLATERAL_IDS)):
-        assert empty_loan["collaterals"]["contracts"][k] == "0x0000000000000000000000000000000000000000"
-        assert empty_loan["collaterals"]["ids"][k] == 0
+    for collateral in empty_loan["collaterals"]:
+        assert collateral["contractAddress"] == "0x0000000000000000000000000000000000000000"
+        assert collateral["tokenId"] == 0
 
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalCanceledLoans() == 1
