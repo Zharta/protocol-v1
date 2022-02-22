@@ -535,14 +535,14 @@ def cancel(_loanId: uint256) -> Loan:
     )
 
 
+  self.lendingPool.receiveFunds(msg.sender, self.loans[msg.sender][_loanId].amount, 0)
+
   self.loans[msg.sender][_loanId] = empty(Loan)
   self.nextLoanId[msg.sender] = _loanId
   self.loanIdsUsed[msg.sender][_loanId] = False
 
   self.currentStartedLoans -= 1
   self.totalCanceledLoans += 1
-
-  self.lendingPool.receiveFunds(msg.sender, self.loans[msg.sender][_loanId].amount, 0)
 
   log LoanCanceled(msg.sender, _loanId)
 
