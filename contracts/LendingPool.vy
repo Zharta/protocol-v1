@@ -1,6 +1,5 @@
 # @version ^0.3.2
 
-
 import interfaces.ILendingPool as LendingPoolInterface
 
 implements: LendingPoolInterface
@@ -327,6 +326,7 @@ def withdraw(_amount: uint256) -> InvestorFunds:
 @external
 def compoundRewards() -> InvestorFunds:
   assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw your deposit"
+  assert self.isPoolActive, "Pool is inactive, please withdraw your deposit"
   assert self.funds[msg.sender].currentAmountDeposited > 0, "The sender has no funds deposited"
   assert self.funds[msg.sender].currentPendingRewards > 0, "The sender has no pending rewards to compound"
 
