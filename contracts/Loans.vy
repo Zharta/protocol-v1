@@ -83,6 +83,9 @@ nextLoanId: public(HashMap[address, uint256])
 # _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]])
 collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256, bool]]])
+collateralKeys: DynArray[bytes32, 2**50]
+collateralsUsed: public(HashMap[bytes32, bool])
+collateralsData: public(HashMap[bytes32, Collateral])
 
 whitelistedCollaterals: public(HashMap[address, address])
 
@@ -185,6 +188,42 @@ def _areCollateralsApproved(_borrower: address, _collateralsAddresses: address[1
   return True
 
 
+@view
+@internal
+def _computeCollateralKey(_collateralAddress: address, _collateralId: uint256) -> bytes32:
+  return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
+
+
+@internal
+def _addCollateralToLoan(_borrower: address, _collateralAddress: address, _collateralId: uint256, _loanId: uint256):
+  key: bytes32 = self._computeCollateralKey(_collateralAddress, _collateralId)
+  self.collateralsInLoans[key][_borrower] = _loanId
+  self.collateralsInLoansUsed[key][_borrower][_loanId] = True
+
+
+@internal
+def _removeCollateralFromLoan(_borrower: address, _collateralAddress: address, _collateralId: uint256, _loanId: uint256):
+  key: bytes32 = self._computeCollateralKey(_collateralAddress, _collateralId)
+  self.collateralsInLoansUsed[key][_borrower][_loanId] = False
+
+
+@internal
+def _updateCollaterals(_collateralAddress: address, _collateralId: uint256, _toRemove: bool):
+  key: bytes32 = self._computeCollateralKey(_collateralAddress, _collateralId)
+
+  if key not in self.collateralKeys and not _toRemove:
+    self.collateralKeys.append(key)
+    self.collateralsUsed[key] = True
+    self.collateralsData[key] = Collateral(
+      {
+        contract: _collateralAddress,
+        id: _collateralId
+      }
+    )
+  elif key in self.collateralKeys:
+    self.collateralsUsed[key] = not _toRemove
+
+
 @external
 def changeOwnership(_newOwner: address) -> address:
   assert msg.sender == self.owner, "Only the owner can change the contract ownership"
@@ -269,6 +308,12 @@ def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
   return self.loanIdsUsed[_borrower]
 
 
+@view
+@external
+def collateralKeysArray() -> DynArray[bytes32, 2**50]:
+  return self.collateralKeys
+
+
 @external
 def start(
   _amount: uint256,
@@ -315,15 +360,16 @@ def start(
       }
     )
 
-    key: bytes32 = keccak256(_abi_encode(_collateralAddresses[k], convert(_collateralIds[k], bytes32)))
-    self.collateralsInLoans[key][msg.sender] = newLoan.id
-    self.collateralsInLoansUsed[key][msg.sender][newLoan.id] = True
+    self._addCollateralToLoan(msg.sender, _collateralAddresses[k], _collateralIds[k], newLoan.id)
+
+    self._updateCollaterals(_collateralAddresses[k], _collateralIds[k], False)
 
     CollateralContract(_collateralAddresses[k]).transferFrom(
       msg.sender,
       self,
       _collateralIds[k]
     )
+
 
   self.loans[msg.sender][self.nextLoanId[msg.sender]] = newLoan
   self.loanIdsUsed[msg.sender][self.nextLoanId[msg.sender]] = True
@@ -367,16 +413,18 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
         self.loans[msg.sender][_loanId].collaterals.ids[k]
       )
 
-      key: bytes32 = keccak256(
-        _abi_encode(
-          self.loans[msg.sender][_loanId].collaterals.contracts[k],
-          convert(
-            self.loans[msg.sender][_loanId].collaterals.ids[k],
-            bytes32
-          )
-        )
+      self._removeCollateralFromLoan(
+        msg.sender,
+        self.loans[msg.sender][_loanId].collaterals.contracts[k],
+        self.loans[msg.sender][_loanId].collaterals.ids[k],
+        _loanId
       )
-      self.collateralsInLoansUsed[key][msg.sender][_loanId] = False
+
+      self._updateCollaterals(
+        self.loans[msg.sender][_loanId].collaterals.contracts[k],
+        self.loans[msg.sender][_loanId].collaterals.ids[k],
+        True
+      )
 
 
     self.loans[msg.sender][_loanId] = empty(Loan)
@@ -412,16 +460,18 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
       self.loans[_borrower][_loanId].collaterals.ids[k]
     )
 
-    key: bytes32 = keccak256(
-      _abi_encode(
+    self._removeCollateralFromLoan(
+        _borrower,
         self.loans[_borrower][_loanId].collaterals.contracts[k],
-        convert(
-          self.loans[_borrower][_loanId].collaterals.ids[k],
-          bytes32
-        )
+        self.loans[_borrower][_loanId].collaterals.ids[k],
+        _loanId
       )
+
+    self._updateCollaterals(
+      self.loans[_borrower][_loanId].collaterals.contracts[k],
+      self.loans[_borrower][_loanId].collaterals.ids[k],
+      True
     )
-    self.collateralsInLoansUsed[key][_borrower][_loanId] = False
 
 
   self.loans[_borrower][_loanId] = empty(Loan)
@@ -448,16 +498,18 @@ def cancel(_loanId: uint256) -> Loan:
       self.loans[msg.sender][_loanId].collaterals.ids[k]
     )
 
-    key: bytes32 = keccak256(
-      _abi_encode(
+    self._removeCollateralFromLoan(
+        msg.sender,
         self.loans[msg.sender][_loanId].collaterals.contracts[k],
-        convert(
-          self.loans[msg.sender][_loanId].collaterals.ids[k],
-          bytes32
-        )
-      )
+        self.loans[msg.sender][_loanId].collaterals.ids[k],
+        _loanId
     )
-    self.collateralsInLoansUsed[key][msg.sender][_loanId] = False
+
+    self._updateCollaterals(
+      self.loans[msg.sender][_loanId].collaterals.contracts[k],
+      self.loans[msg.sender][_loanId].collaterals.ids[k],
+      True
+    )
 
   
   self.lendingPool.receiveFunds(msg.sender, self.loans[msg.sender][_loanId].amount, 0)
@@ -477,4 +529,5 @@ def cancel(_loanId: uint256) -> Loan:
 @external
 @payable
 def __default__():
-  raise "No function called!"
+  if msg.value > 0:
+    send(msg.sender, msg.value)

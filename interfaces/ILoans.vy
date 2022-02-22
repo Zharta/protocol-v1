@@ -70,6 +70,11 @@ def deprecate() -> bool:
 def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
     pass
 
+@view
+@external
+def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
+    pass
+
 @external
 def start(_amount: uint256, _interest: uint256, _maturity: uint256, _collateralAddresses: address[10], _collateralIds: uint256[10]) -> Loan:
     pass
@@ -149,6 +154,16 @@ def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
 @view
 @external
 def collateralsInLoansUsed(arg0: bytes32, arg1: address, arg2: uint256) -> bool:
+    pass
+
+@view
+@external
+def collateralsUsed(arg0: bytes32) -> bool:
+    pass
+
+@view
+@external
+def collateralsData(arg0: bytes32) -> Collateral:
     pass
 
 @view
