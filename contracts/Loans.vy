@@ -92,6 +92,7 @@ whitelistedCollaterals: public(HashMap[address, address])
 lendingPool: LendingPool
 lendingPoolAddress: public(address)
 
+# Stats
 currentStartedLoans: public(uint256)
 totalStartedLoans: public(uint256)
 
@@ -101,6 +102,11 @@ totalDefaultedLoans: public(uint256)
 totalDefaultedLoansAmount: public(uint256)
 
 totalCanceledLoans: public(uint256)
+
+highestSingleCollateralLoan: public(Loan)
+highestCollateralBundleLoan: public(Loan)
+highestRepayment: public(Loan)
+highestDefaultedLoan: public(Loan)
 
 
 @external
@@ -333,6 +339,8 @@ def start(
   assert _amount >= self.minLoanAmount, "Loan amount is less than the min loan amount"
   assert _amount <= self.maxLoanAmount, "Loan amount is more than the max loan amount"
 
+  nCollaterals: uint256 = 0
+
   newLoan: Loan = Loan(
     {
       id: self.nextLoanId[msg.sender],
@@ -370,6 +378,7 @@ def start(
       _collateralIds[k]
     )
 
+    nCollaterals += 1
 
   self.loans[msg.sender][self.nextLoanId[msg.sender]] = newLoan
   self.loanIdsUsed[msg.sender][self.nextLoanId[msg.sender]] = True
@@ -377,6 +386,11 @@ def start(
 
   self.currentStartedLoans += 1
   self.totalStartedLoans += 1
+
+  if nCollaterals == 1 and self.highestSingleCollateralLoan.amount < newLoan.amount:
+    self.highestSingleCollateralLoan = newLoan
+  elif nCollaterals > 1 and self.highestCollateralBundleLoan.amount < newLoan.amount:
+    self.highestCollateralBundleLoan = newLoan
   
   self.lendingPool.sendFunds(msg.sender, _amount)
 
@@ -426,6 +440,8 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
         True
       )
 
+    if self.highestRepayment.amount < self.loans[msg.sender][_loanId].amount:
+      self.highestRepayment = self.loans[msg.sender][_loanId]
 
     self.loans[msg.sender][_loanId] = empty(Loan)
     self.nextLoanId[msg.sender] = _loanId
@@ -434,6 +450,10 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
     self.totalPaidLoans += 1
   else:
     self.loans[msg.sender][_loanId].paidAmount += paidAmount + paidAmountInterest
+
+    if self.highestRepayment.amount < self.loans[msg.sender][_loanId].amount:
+      self.highestRepayment = self.loans[msg.sender][_loanId]
+
 
   self.lendingPool.receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
@@ -474,6 +494,9 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
     )
 
 
+  if self.highestDefaultedLoan.amount < self.loans[_borrower][_loanId].amount:
+    self.highestDefaultedLoan = self.loans[_borrower][_loanId]
+
   self.loans[_borrower][_loanId] = empty(Loan)
   self.nextLoanId[_borrower] = _loanId
   self.loanIdsUsed[_borrower][_loanId] = False
@@ -511,7 +534,7 @@ def cancel(_loanId: uint256) -> Loan:
       True
     )
 
-  
+
   self.lendingPool.receiveFunds(msg.sender, self.loans[msg.sender][_loanId].amount, 0)
 
   self.loans[msg.sender][_loanId] = empty(Loan)

@@ -205,3 +205,23 @@ def totalDefaultedLoansAmount() -> uint256:
 @external
 def totalCanceledLoans() -> uint256:
     pass
+
+@view
+@external
+def highestSingleCollateralLoan() -> Loan:
+    pass
+
+@view
+@external
+def highestCollateralBundleLoan() -> Loan:
+    pass
+
+@view
+@external
+def highestRepayment() -> Loan:
+    pass
+
+@view
+@external
+def highestDefaultedLoan() -> Loan:
+    pass
