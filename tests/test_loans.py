@@ -15,6 +15,8 @@ LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
 MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
+
+PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
@@ -31,6 +33,11 @@ def borrower(accounts):
 @pytest.fixture
 def investor(accounts):
     yield accounts[2]
+
+
+@pytest.fixture
+def protocol_wallet(accounts):
+    yield accounts[3]
 
 
 @pytest.fixture
@@ -60,8 +67,8 @@ def loans_contract(Loans, contract_owner):
 
 
 @pytest.fixture
-def lending_pool_contract(LendingPool, loans_contract, erc20_contract, contract_owner):
-    yield LendingPool.deploy(loans_contract.address, erc20_contract, MAX_CAPITAL_EFFICIENCY, {"from": contract_owner})
+def lending_pool_contract(LendingPool, loans_contract, erc20_contract, contract_owner, protocol_wallet):
+    yield LendingPool.deploy(loans_contract.address, erc20_contract, protocol_wallet, PROTOCOL_FEES_SHARE, MAX_CAPITAL_EFFICIENCY, {"from": contract_owner})
 
 
 def test_initial_state(loans_contract, contract_owner):
@@ -887,7 +894,6 @@ def test_pay_loan(
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalPaidLoans() == 1
 
-    assert len(tx_pay_loan.events) == 14
     assert tx_pay_loan.events[-1]["borrower"] == borrower
 
     for collateral_id in TEST_COLLATERAL_IDS:
@@ -1172,6 +1178,5 @@ def test_cancel(
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalCanceledLoans() == 1
 
-    assert len(tx_cancel_loan.events) == 14
     assert tx_cancel_loan.events[-1]["borrower"] == borrower
     assert tx_cancel_loan.events[-1]["loanId"] == loan_id
