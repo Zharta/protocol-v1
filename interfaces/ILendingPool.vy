@@ -80,7 +80,11 @@ def depositorsArray() -> DynArray[address, 1125899906842624]:
     pass
 
 @external
-def deposit(_amount: uint256) -> InvestorFunds:
+def deposit(_amount: uint256, _autoCompoundRewards: bool) -> InvestorFunds:
+    pass
+
+@external
+def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
     pass
 
 @external
