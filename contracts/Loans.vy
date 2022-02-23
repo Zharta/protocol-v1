@@ -74,7 +74,7 @@ isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
 loans: HashMap[address, DynArray[Loan, 10]]
-nextLoanId: HashMap[address, uint256]
+nextLoanId: public(HashMap[address, uint256])
 loanIdsUsed: HashMap[address, bool[10]]
 
 # _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
@@ -128,17 +128,6 @@ def _borrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
   return self.loans[_borrower]
 
 
-@view
-@internal
-def _borrowerLoansLen(_borrower: address) -> uint256:
-  l: uint256 = 0
-  loans: DynArray[Loan, 10] = self._borrowerLoans(_borrower)
-  for loan in loans:
-    if loan.amount != 0:
-      l += 1
-  return l
-
-
 @internal
 def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 10]) -> bool:
   for collateral in _collaterals:
@@ -167,9 +156,9 @@ def _checkNextLoanId(_borrower: address) -> uint256:
 @view
 @internal
 def _hasStartedLoan(_borrower: address, _loanId: uint256) -> bool:
-  if self._borrowerLoansLen(_borrower) == 0 or self._borrowerLoansLen(_borrower) <= _loanId:
-    return False
-  return self._borrowerLoans(_borrower)[_loanId].startTime != empty(uint256)
+  if self.loanIdsUsed[_borrower][_loanId]:
+    return self._borrowerLoans(_borrower)[_loanId].startTime != empty(uint256)
+  return False
 
 
 @view
@@ -203,9 +192,9 @@ def _computeCollateralKey(_collateralAddress: address, _collateralId: uint256) -
 
 @internal
 def _addBorrowerLoan(_borrower: address, _loan: Loan):
-  if self._borrowerLoansLen(_borrower) == self.nextLoanId[_borrower]:
+  if len(self._borrowerLoans(_borrower)) == self.nextLoanId[_borrower]:
     self.loans[_borrower].append(_loan)
-  elif self._borrowerLoansLen(_borrower) >= self.nextLoanId[_borrower] + 1:
+  elif len(self._borrowerLoans(_borrower)) >= self.nextLoanId[_borrower] + 1:
     self.loans[_borrower][self.nextLoanId[_borrower]] = _loan
   self.loanIdsUsed[_borrower][self.nextLoanId[_borrower]] = True
   self.nextLoanId[_borrower] = self._checkNextLoanId(_borrower)
@@ -213,7 +202,7 @@ def _addBorrowerLoan(_borrower: address, _loan: Loan):
 
 @internal
 def _removeBorrowerLoan(_borrower: address, _loanId: uint256):
-  if self._borrowerLoansLen(_borrower) > _loanId:
+  if self.loanIdsUsed[_borrower][_loanId]:
     self.loans[_borrower][_loanId] = empty(Loan)
     self.nextLoanId[_borrower] = _loanId
     self.loanIdsUsed[_borrower][_loanId] = False
@@ -221,7 +210,7 @@ def _removeBorrowerLoan(_borrower: address, _loanId: uint256):
 
 @internal
 def _updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
-  if self._borrowerLoansLen(_borrower) >= _loanId:
+  if self.loanIdsUsed[_borrower][_loanId]:
     self.loans[_borrower][_loanId].paidAmount += _paidAmount
 
 
@@ -337,9 +326,11 @@ def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
 @view
 @external
 def borrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-  if self._borrowerLoansLen(_borrower) == 0 or self._borrowerLoansLen(_borrower) <= _loanId:
+  if _loanId >= self.maxAllowedLoans:
     return empty(Loan)
-  return self._borrowerLoans(_borrower)[_loanId]
+  elif _loanId < len(self._borrowerLoans(_borrower)) and self.loanIdsUsed[_borrower][_loanId]:
+    return self._borrowerLoans(_borrower)[_loanId]
+  return empty(Loan)
 
 
 @view
