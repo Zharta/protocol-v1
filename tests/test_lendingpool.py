@@ -65,6 +65,58 @@ def test_initial_state(lending_pool_contract, erc20_contract, contract_owner, pr
     assert lending_pool_contract.isPoolInvesting() == False
 
 
+def test_change_ownership_wrong_sender(lending_pool_contract, borrower):
+    with brownie.reverts("Only the owner can change the contract ownership"):
+        lending_pool_contract.changeOwnership(borrower, {"from": borrower})
+
+
+def test_change_ownership(lending_pool_contract, borrower, contract_owner):
+    lending_pool_contract.changeOwnership(borrower, {"from": contract_owner})
+    assert lending_pool_contract.owner() == borrower
+
+    lending_pool_contract.changeOwnership(contract_owner, {"from": borrower})
+    assert lending_pool_contract.owner() == contract_owner
+
+
+def test_change_max_capital_efficiency_wrong_sender(lending_pool_contract, borrower):
+    with brownie.reverts("Only the owner can change the max capital efficiency"):
+        lending_pool_contract.changeMaxCapitalEfficiency(MAX_CAPITAL_EFFICIENCY + 1000, {"from": borrower})
+
+
+def test_change_max_capital_efficiency(lending_pool_contract, contract_owner):
+    lending_pool_contract.changeMaxCapitalEfficiency(MAX_CAPITAL_EFFICIENCY + 1000, {"from": contract_owner})
+    assert lending_pool_contract.maxCapitalEfficienty() == MAX_CAPITAL_EFFICIENCY + 1000
+
+    lending_pool_contract.changeMaxCapitalEfficiency(MAX_CAPITAL_EFFICIENCY, {"from": contract_owner})
+    assert lending_pool_contract.maxCapitalEfficienty() == MAX_CAPITAL_EFFICIENCY
+
+
+def test_change_protocol_wallet_wrong_sender(lending_pool_contract, borrower):
+    with brownie.reverts("Only the owner can change the protocol wallet address"):
+        lending_pool_contract.changeProtocolWallet(borrower, {"from": borrower})
+
+
+def test_change_protocol_wallet(lending_pool_contract, contract_owner, protocol_wallet):
+    lending_pool_contract.changeProtocolWallet(contract_owner, {"from": contract_owner})
+    assert lending_pool_contract.protocolWallet() == contract_owner
+
+    lending_pool_contract.changeProtocolWallet(protocol_wallet, {"from": contract_owner})
+    assert lending_pool_contract.protocolWallet() == protocol_wallet
+
+
+def test_change_protocol_fees_share_wrong_sender(lending_pool_contract, borrower):
+    with brownie.reverts("Only the owner can change the protocol fees share"):
+        lending_pool_contract.changeProtocolFeesShare(PROTOCOL_FEES_SHARE + 1000, {"from": borrower})
+
+
+def test_change_protocol_fees_share(lending_pool_contract, contract_owner):
+    lending_pool_contract.changeProtocolFeesShare(PROTOCOL_FEES_SHARE + 1000, {"from": contract_owner})
+    assert lending_pool_contract.protocolFeesShare() == PROTOCOL_FEES_SHARE + 1000
+
+    lending_pool_contract.changeProtocolFeesShare(PROTOCOL_FEES_SHARE, {"from": contract_owner})
+    assert lending_pool_contract.protocolFeesShare() == PROTOCOL_FEES_SHARE
+
+
 def test_change_pool_status_wrong_sender(lending_pool_contract, borrower):
     with brownie.reverts("Only the owner can change the pool status"):
         lending_pool_contract.changePoolStatus(False, {"from": borrower})
