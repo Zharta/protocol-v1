@@ -27,6 +27,9 @@ event LoanPaid:
     borrower: address
     loanId: uint256
     amount: uint256
+event PendingLoanCanceled:
+    borrower: address
+    loanId: uint256
 event LoanCanceled:
     borrower: address
     loanId: uint256
@@ -67,6 +70,11 @@ def deprecate() -> bool:
 
 @view
 @external
+def createdLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
+    pass
+
+@view
+@external
 def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
     pass
 
@@ -77,11 +85,35 @@ def borrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
 
 @view
 @external
+def borrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
+    pass
+
+@view
+@external
+def pendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
+    pass
+
+@view
+@external
+def getCreatedLoanIdsUsed(_borrower: address) -> bool[10]:
+    pass
+
+@view
+@external
+def getLoanIdsUsed(_borrower: address) -> bool[10]:
+    pass
+
+@view
+@external
 def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
     pass
 
 @external
-def start(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> Loan:
+def reserve(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> Loan:
+    pass
+
+@external
+def start(_loanId: uint256) -> Loan:
     pass
 
 @external
@@ -93,7 +125,11 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @external
-def cancel(_loanId: uint256) -> Loan:
+def cancelPendingLoan(_loanId: uint256) -> Loan:
+    pass
+
+@external
+def cancelStartedLoan(_loanId: uint256) -> Loan:
     pass
 
 @payable
@@ -134,6 +170,16 @@ def isAcceptingLoans() -> bool:
 @view
 @external
 def isDeprecated() -> bool:
+    pass
+
+@view
+@external
+def nextCreatedLoanId(arg0: address) -> uint256:
+    pass
+
+@view
+@external
+def nextLoanId(arg0: address) -> uint256:
     pass
 
 @view
