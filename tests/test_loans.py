@@ -3,8 +3,10 @@ import datetime as dt
 import brownie
 import time
 
-from web3 import Web3
+from brownie.network import chain
 from decimal import Decimal
+from web3 import Web3
+
 
 
 MAX_NUMBER_OF_LOANS = 10
@@ -228,7 +230,22 @@ def test_deprecate_already_deprecated(loans_contract, contract_owner):
         loans_contract.deprecate({"from": contract_owner})
 
 
-def test_start_deprecated(
+
+
+
+def test_create_wrong_sender(loans_contract, borrower, test_collaterals):
+    with brownie.reverts("Only the contract owner can create loans"):
+        tx_start_loan = loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': borrower}
+        )
+
+
+def test_create_deprecated(
     loans_contract,
     erc721_contract,
     contract_owner,
@@ -237,17 +254,18 @@ def test_start_deprecated(
 ):
     loans_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("The contract is deprecated, please pay any outstanding loans"):
-        tx_start_loan = loans_contract.start(
+    with brownie.reverts("The contract is deprecated, no more loans can be created"):
+        tx_start_loan = loans_contract.reserve(
+            borrower,
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
-            {'from': borrower}
+            {'from': contract_owner}
         )
 
 
-def test_start_not_accepting_loans(
+def test_create_not_accepting_loans(
     loans_contract,
     erc721_contract,
     contract_owner,
@@ -256,17 +274,18 @@ def test_start_not_accepting_loans(
 ):
     loans_contract.changeContractStatus(False, {"from": contract_owner})
 
-    with brownie.reverts("The contract is not accepting more loans right now, please pay any outstanding loans"):
-        tx_start_loan = loans_contract.start(
+    with brownie.reverts("The contract is not accepting more loans right now"):
+        tx_start_loan = loans_contract.reserve(
+            borrower,
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
-            {'from': borrower}
+            {'from': contract_owner}
         )
 
 
-def test_start_maturity_in_the_past(
+def test_create_maturity_in_the_past(
     loans_contract,
     erc721_contract,
     contract_owner,
@@ -277,13 +296,403 @@ def test_start_maturity_in_the_past(
 
     maturity = int(dt.datetime.now().timestamp()) - 3600
     with brownie.reverts("Maturity can not be in the past"):
-        loans_contract.start(
+        loans_contract.reserve(
+            borrower,
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
             test_collaterals,
             {'from': contract_owner}
         )
+
+
+def test_create_max_loans_reached(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower
+):
+    erc20_contract.mint(investor, Web3.toWei(50, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(50, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(50, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    for k in range(MAX_NUMBER_OF_LOANS):
+        loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            [(erc721_contract.address, k)],
+            {'from': contract_owner}
+        )
+        time.sleep(0.2)
+
+    with brownie.reverts("Max number of created loans already reached"):
+        loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            [(erc721_contract.address, 10)],
+            {'from': contract_owner}
+        )
+
+
+def test_create_collateral_notwhitelisted(
+    loans_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    test_collaterals
+):
+    with brownie.reverts("Not all collaterals are whitelisted"):
+        loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': contract_owner}
+        )
+
+
+def test_create_collaterals_not_owned(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(investor, {"from": contract_owner})
+
+    with brownie.reverts("Not all collaterals are owned by the borrower"):
+        tx = loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': contract_owner}
+        )
+
+
+def test_create_loan_collateral_not_approved(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+
+    with brownie.reverts("Not all collaterals are approved to be transferred"):
+        tx = loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': contract_owner}
+        )
+
+
+def test_create_unsufficient_funds_in_lp(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    with brownie.reverts("Insufficient funds in the lending pool"):
+        tx = loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': contract_owner}
+        )
+
+
+def test_create_min_amount(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    with brownie.reverts("Loan amount is less than the min loan amount"):
+        tx = loans_contract.reserve(
+            borrower,
+            Web3.toWei(0.01, "ether"),
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': contract_owner}
+        )
+
+
+def test_create_max_amount(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    erc20_contract.mint(investor, Web3.toWei(15, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(15, "ether"), {"from": investor})
+    lending_pool_contract.deposit(Web3.toWei(15, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    with brownie.reverts("Loan amount is more than the max loan amount"):
+        tx = loans_contract.reserve(
+            borrower,
+            Web3.toWei(10, "ether"),
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': contract_owner}
+        )
+
+
+def test_create_loan(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    borrower_initial_balance = erc20_contract.balanceOf(borrower)
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_start_loan = loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {'from': contract_owner}
+    )
+    loan_details = tx_start_loan.return_value
+
+    assert loan_details["id"] == 0
+    assert loan_details["amount"] == LOAN_AMOUNT
+    assert loan_details["interest"] == LOAN_INTEREST
+    assert loan_details["paidAmount"] == 0
+    assert loan_details["maturity"] == MATURITY
+    assert len(loan_details["collaterals"]) == 5
+    assert loan_details["collaterals"] == test_collaterals
+    assert loan_details["started"] == False
+
+    assert loans_contract.nextCreatedLoanId(borrower) == 1
+
+
+def test_start_deprecated(
+    loans_contract,
+    contract_owner,
+    borrower
+):
+    loans_contract.deprecate({"from": contract_owner})
+
+    with brownie.reverts("The contract is deprecated, please pay any outstanding loans"):
+        tx_start_loan = loans_contract.start(0, {'from': borrower})
+
+
+def test_start_not_accepting_loans(
+    loans_contract,
+    contract_owner,
+    borrower
+):
+    loans_contract.changeContractStatus(False, {"from": contract_owner})
+
+    with brownie.reverts("The contract is not accepting more loans right now, please pay any outstanding loans"):
+        tx_start_loan = loans_contract.start(0, {'from': borrower})
+
+
+def test_start_maturity_in_the_past(
+    loans_contract,
+    lending_pool_contract,
+    erc20_contract,
+    erc721_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    borrower_initial_balance = erc20_contract.balanceOf(borrower)
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        int(dt.datetime.now().timestamp()) + 3,
+        test_collaterals,
+        {'from': contract_owner}
+    )
+
+    assert tx_create_loan.return_value["id"] == 0
+
+    time.sleep(5)
+    with brownie.reverts("Maturity can not be in the past"):
+        loans_contract.start(0, {'from': borrower})
+
+    assert loans_contract.nextLoanId(borrower) == 0
 
 
 def test_start_max_loans_reached(
@@ -321,40 +730,74 @@ def test_start_max_loans_reached(
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     for k in range(MAX_NUMBER_OF_LOANS):
-        loans_contract.start(
+        loans_contract.reserve(
+            borrower,
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
             [(erc721_contract.address, k)],
-            {'from': borrower}
+            {'from': contract_owner}
         )
+        loans_contract.start(0, {"from": borrower})
         time.sleep(0.2)
+        
 
+    loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract.address, 10)],
+        {'from': contract_owner}
+    )
     with brownie.reverts("Max number of loans already reached"):
-        loans_contract.start(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            [(erc721_contract.address, 10)],
-            {'from': borrower}
-        )
+        loans_contract.start(0, {'from': borrower})
 
 
 def test_start_collateral_notwhitelisted(
     loans_contract,
+    lending_pool_contract,
+    erc20_contract,
     erc721_contract,
     contract_owner,
+    investor,
     borrower,
     test_collaterals
 ):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    borrower_initial_balance = erc20_contract.balanceOf(borrower)
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        int(dt.datetime.now().timestamp()) + 3,
+        test_collaterals,
+        {'from': contract_owner}
+    )
+
+    loans_contract.removeCollateralFromWhitelist(erc721_contract.address, {"from": contract_owner})
+
     with brownie.reverts("Not all collaterals are whitelisted"):
-        loans_contract.start(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            {'from': contract_owner}
-        )
+        loans_contract.start(0, {'from': borrower})
 
 
 def test_start_collaterals_not_owned(
@@ -379,16 +822,24 @@ def test_start_collaterals_not_owned(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(investor, {"from": contract_owner})
+    borrower_initial_balance = erc20_contract.balanceOf(borrower)
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        int(dt.datetime.now().timestamp()) + 3,
+        [(erc721_contract.address, 0)],
+        {'from': contract_owner}
+    )
+
+    erc721_contract.transferFrom(borrower, investor, 0, {"from": borrower})
 
     with brownie.reverts("Not all collaterals are owned by the sender"):
-        tx = loans_contract.start(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            {'from': borrower}
-        )
+        tx = loans_contract.start(0, {'from': borrower})
 
 
 def test_start_loan_collateral_not_approved(
@@ -413,58 +864,27 @@ def test_start_loan_collateral_not_approved(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
+    borrower_initial_balance = erc20_contract.balanceOf(borrower)
+
     erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        int(dt.datetime.now().timestamp()) + 3,
+        [(erc721_contract.address, 0)],
+        {'from': contract_owner}
+    )
+
+    erc721_contract.setApprovalForAll(loans_contract.address, False, {"from": borrower})
 
     with brownie.reverts("Not all collaterals are approved to be transferred"):
-        tx = loans_contract.start(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            {'from': borrower}
-        )
+        tx = loans_contract.start(0, {'from': borrower})
 
 
 def test_start_unsufficient_funds_in_lp(
-    loans_contract,
-    lending_pool_contract,
-    erc721_contract,
-    erc20_contract,
-    contract_owner,
-    investor,
-    borrower,
-    test_collaterals
-):
-    loans_contract.setLendingPoolAddress(
-        lending_pool_contract.address,
-        {"from": contract_owner}
-    )
-
-    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
-
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-
-    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
-
-    with brownie.reverts("Insufficient funds in the lending pool"):
-        tx = loans_contract.start(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            {'from': borrower}
-        )
-
-
-def test_start_min_amount(
     loans_contract,
     lending_pool_contract,
     erc721_contract,
@@ -486,61 +906,28 @@ def test_start_min_amount(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    with brownie.reverts("Loan amount is less than the min loan amount"):
-        tx = loans_contract.start(
-            Web3.toWei(0.01, "ether"),
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            {'from': borrower}
-        )
-
-
-def test_start_max_amount(
-    loans_contract,
-    lending_pool_contract,
-    erc721_contract,
-    erc20_contract,
-    contract_owner,
-    investor,
-    borrower,
-    test_collaterals
-):
-    erc20_contract.mint(investor, Web3.toWei(15, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_contract, Web3.toWei(15, "ether"), {"from": investor})
-    lending_pool_contract.deposit(Web3.toWei(15, "ether"), False, {"from": investor})
-
-    loans_contract.setLendingPoolAddress(
-        lending_pool_contract.address,
-        {"from": contract_owner}
+    tx_create_loan = loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        int(dt.datetime.now().timestamp()) + 3,
+        test_collaterals,
+        {'from': contract_owner}
     )
 
-    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+    lending_pool_contract.withdraw(Web3.toWei(0.9, "ether"), {"from": investor})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-
-    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
-
-    with brownie.reverts("Loan amount is more than the max loan amount"):
-        tx = loans_contract.start(
-            Web3.toWei(10, "ether"),
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            {'from': borrower}
-        )
+    with brownie.reverts("Insufficient funds in the lending pool"):
+        tx = loans_contract.start(0, {'from': borrower})
 
 
 def test_start_loan(
@@ -574,13 +961,16 @@ def test_start_loan(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx_start_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_start_loan = loans_contract.start(0, {'from': borrower})
     loan_details = tx_start_loan.return_value
 
     assert loan_details["id"] == 0
@@ -590,11 +980,13 @@ def test_start_loan(
     assert loan_details["maturity"] == MATURITY
     assert len(loan_details["collaterals"]) == 5
     assert loan_details["collaterals"] == test_collaterals
+    assert loan_details["started"] == True
 
     assert loans_contract.currentStartedLoans() == 1
     assert loans_contract.totalStartedLoans() == 1
 
-    assert len(tx_start_loan.events) == 13
+    assert loans_contract.nextLoanId(borrower) == 1
+
     assert tx_start_loan.events[-1]["borrower"] == borrower
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
@@ -637,14 +1029,17 @@ def test_pay_loan_no_value_sent(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
-    loan = tx.return_value
+
+    tx_start_loan = loans_contract.start(0, {'from': borrower})
+    loan = tx_start_loan.return_value
 
     with brownie.reverts("The amount paid needs to be higher than 0"):
         loans_contract.pay(loan["id"], 0, {"from": borrower})
@@ -679,14 +1074,17 @@ def test_pay_loan_higher_value_than_needed(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
-    loan = tx.return_value
+
+    tx_start_loan = loans_contract.start(0, {'from': borrower})
+    loan = tx_start_loan.return_value
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}") + 10000)
     
@@ -723,14 +1121,17 @@ def test_pay_loan_defaulted(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         int(dt.datetime.now().timestamp()) + 3,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
-    loan = tx.return_value
+
+    tx_start_loan = loans_contract.start(0, {'from': borrower})
+    loan = tx_start_loan.return_value
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
     erc20_contract.mint(borrower, amount_paid, {"from": contract_owner})
@@ -775,13 +1176,16 @@ def test_pay_loan_insufficient_balance(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_new_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_new_loan = loans_contract.start(0, {'from': borrower})
     loan_id = tx_new_loan.return_value["id"]
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
@@ -828,13 +1232,16 @@ def test_pay_loan_insufficient_allowance(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_new_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_new_loan = loans_contract.start(0, {'from': borrower})
     loan_id = tx_new_loan.return_value["id"]
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
@@ -881,13 +1288,16 @@ def test_pay_loan(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_new_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_new_loan = loans_contract.start(0, {'from': borrower})
     loan_id = tx_new_loan.return_value["id"]
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
@@ -952,13 +1362,16 @@ def test_pay_loan_multiple(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_new_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_new_loan = loans_contract.start(0, {'from': borrower})
     loan_id = tx_new_loan.return_value["id"]
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
@@ -1052,13 +1465,16 @@ def test_set_default_loan(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx_new_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
         int(dt.datetime.now().timestamp()) + 3,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_new_loan = loans_contract.start(0, {'from': borrower})
     loan_id = tx_new_loan.return_value["id"]
 
     time.sleep(5)
@@ -1081,6 +1497,74 @@ def test_set_default_loan(
         assert erc721_contract.ownerOf(collateral[1]) == contract_owner
 
 
+def test_cancel_pendingloan_not_created(
+    loans_contract,
+    lending_pool_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    investor
+):
+    with brownie.reverts("The sender has not created a loan with the given ID"):
+        loans_contract.cancelPendingLoan(0, {"from": contract_owner})
+
+
+def test_cancel_pending(
+    loans_contract,
+    lending_pool_contract,
+    erc20_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    loans_contract.setLendingPoolAddress(
+        lending_pool_contract.address,
+        {"from": contract_owner}
+    )
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        int(dt.datetime.now().timestamp()) + 3,
+        test_collaterals,
+        {'from': contract_owner}
+    )
+
+    loan_id = tx_create_loan.return_value["id"]
+    tx_cancel_loan = loans_contract.cancelPendingLoan(loan_id, {"from": borrower})
+
+    empty_loan = tx_cancel_loan.return_value
+    assert empty_loan["amount"] == 0
+    assert empty_loan["interest"] == 0
+    assert empty_loan["paidAmount"] == 0
+
+    for collateral in empty_loan["collaterals"]:
+        assert collateral["contractAddress"] == "0x0000000000000000000000000000000000000000"
+        assert collateral["tokenId"] == 0
+
+    assert loans_contract.nextCreatedLoanId(borrower) == 0
+
+    assert tx_cancel_loan.events[-1]["borrower"] == borrower
+    assert tx_cancel_loan.events[-1]["loanId"] == loan_id
+
+
 def test_cancel_approved_loan_not_started(
     loans_contract,
     lending_pool_contract,
@@ -1090,7 +1574,7 @@ def test_cancel_approved_loan_not_started(
     investor
 ):
     with brownie.reverts("The sender has not started a loan with the given ID"):
-        loans_contract.cancel(0, {"from": contract_owner})
+        loans_contract.cancelStartedLoan(0, {"from": contract_owner})
 
 
 def test_cancel_buffer_passed(
@@ -1122,18 +1606,21 @@ def test_cancel_buffer_passed(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx_new_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        MATURITY,
+        int(dt.datetime.now().timestamp()) + 3,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_new_loan = loans_contract.start(0, {'from': borrower})
     loan_id = tx_new_loan.return_value["id"]
 
     time.sleep(5)
     with brownie.reverts("The time buffer to cancel the loan has passed"):
-        loans_contract.cancel(loan_id, {"from": borrower})
+        loans_contract.cancelStartedLoan(loan_id, {"from": borrower})
 
 
 def test_cancel(
@@ -1165,18 +1652,21 @@ def test_cancel(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx_new_loan = loans_contract.start(
+    tx_create_loan = loans_contract.reserve(
+        borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        MATURITY,
+        int(dt.datetime.now().timestamp()) + 3,
         test_collaterals,
-        {'from': borrower}
+        {'from': contract_owner}
     )
+
+    tx_new_loan = loans_contract.start(0, {'from': borrower})
     loan_id = tx_new_loan.return_value["id"]
 
     erc20_contract.mint(borrower, LOAN_AMOUNT, {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, LOAN_AMOUNT, {"from": borrower})
-    tx_cancel_loan = loans_contract.cancel(loan_id, {"from": borrower})
+    tx_cancel_loan = loans_contract.cancelStartedLoan(loan_id, {"from": borrower})
 
     empty_loan = tx_cancel_loan.return_value
     assert empty_loan["amount"] == 0
