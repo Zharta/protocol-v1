@@ -436,6 +436,7 @@ def reserve(
   assert self.isAcceptingLoans, "The contract is not accepting more loans right now"
   assert block.timestamp <= _maturity, "Maturity can not be in the past"
   assert self.nextCreatedLoanId[_borrower] < self.maxAllowedLoans, "Max number of created loans already reached"
+  assert self.nextLoanId[_borrower] < self.maxAllowedLoans, "Max number of started loans already reached"
   assert self._areCollateralsWhitelisted(_collaterals), "Not all collaterals are whitelisted"
   assert self._areCollateralsOwned(_borrower, _collaterals), "Not all collaterals are owned by the borrower"
   assert self._areCollateralsApproved(_borrower, _collaterals) == True, "Not all collaterals are approved to be transferred"

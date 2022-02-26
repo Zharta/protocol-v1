@@ -741,17 +741,15 @@ def test_start_max_loans_reached(
         loans_contract.start(0, {"from": borrower})
         time.sleep(0.2)
         
-
-    loans_contract.reserve(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        [(erc721_contract.address, 10)],
-        {'from': contract_owner}
-    )
-    with brownie.reverts("Max number of loans already reached"):
-        loans_contract.start(0, {'from': borrower})
+    with brownie.reverts("Max number of started loans already reached"):
+        loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            [(erc721_contract.address, 10)],
+            {'from': contract_owner}
+        )
 
 
 def test_start_collateral_notwhitelisted(
