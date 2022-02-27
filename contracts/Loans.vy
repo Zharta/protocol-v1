@@ -74,6 +74,7 @@ event LoanCanceled:
 
 owner: public(address)
 maxAllowedLoans: public(uint256)
+maxAllowedLoanDuration: public(uint256)
 bufferToCancelLoan: public(uint256)
 
 minLoanAmount: public(uint256)
@@ -122,12 +123,14 @@ highestDefaultedLoan: public(Loan)
 @external
 def __init__(
   _maxAllowedLoans: uint256,
+  _maxAllowedLoanDuration: uint256,
   _bufferToCancelLoan: uint256,
   _minLoanAmount: uint256,
   _maxLoanAmount: uint256
 ):
   self.owner = msg.sender
   self.maxAllowedLoans = _maxAllowedLoans
+  self.maxAllowedLoanDuration = _maxAllowedLoanDuration
   self.bufferToCancelLoan = _bufferToCancelLoan
   self.minLoanAmount = _minLoanAmount
   self.maxLoanAmount = _maxLoanAmount
@@ -297,6 +300,24 @@ def changeOwnership(_newOwner: address) -> address:
 
 
 @external
+def changeMaxAllowedLoans(_maxAllowedLoans: uint256) -> uint256:
+  assert msg.sender == self.owner, "Only the owner can change the max allowed loans per address"
+
+  self.maxAllowedLoans = _maxAllowedLoans
+
+  return self.maxAllowedLoans
+
+
+@external
+def changeMaxAllowedLoanDuration(_maxAllowedLoanDuration: uint256) -> uint256:
+  assert msg.sender == self.owner, "Only the owner can change the max allowed loan duration"
+
+  self.maxAllowedLoanDuration = _maxAllowedLoanDuration
+
+  return self.maxAllowedLoanDuration
+
+
+@external
 def addCollateralToWhitelist(_address: address) -> bool:
   assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
   assert _address.is_contract == True, "The _address sent does not have a contract deployed"
@@ -439,6 +460,7 @@ def reserve(
   assert not self.isDeprecated, "The contract is deprecated, no more loans can be created"
   assert self.isAcceptingLoans, "The contract is not accepting more loans right now"
   assert block.timestamp <= _maturity, "Maturity can not be in the past"
+  assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "Maturity can not exceed the max allowed"
   assert self.nextCreatedLoanId[_borrower] < self.maxAllowedLoans, "Max number of created loans already reached"
   assert self.nextLoanId[_borrower] < self.maxAllowedLoans, "Max number of started loans already reached"
   assert self._areCollateralsWhitelisted(_collaterals), "Not all collaterals are whitelisted"
@@ -488,6 +510,7 @@ def start(
   if block.timestamp > loan.maturity:
     self._removeCreatedLoan(msg.sender, _loanId)
     assert block.timestamp <= loan.maturity, "Maturity can not be in the past"
+
 
   loan.id = self.nextLoanId[msg.sender]
   loan.started = True

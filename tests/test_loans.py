@@ -10,6 +10,7 @@ from web3 import Web3
 
 
 MAX_NUMBER_OF_LOANS = 10
+MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 BUFFER_TO_CANCEL_LOAN = 3 # 3 seconds for testing purposes
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
@@ -60,6 +61,7 @@ def erc721_contract(ERC721PresetMinterPauserAutoId, contract_owner):
 def loans_contract(Loans, contract_owner):
     yield Loans.deploy(
         MAX_NUMBER_OF_LOANS,
+        MAX_LOAN_DURATION,
         BUFFER_TO_CANCEL_LOAN,
         MIN_LOAN_AMOUNT,
         MAX_LOAN_AMOUNT,
@@ -69,7 +71,14 @@ def loans_contract(Loans, contract_owner):
 
 @pytest.fixture
 def lending_pool_contract(LendingPool, loans_contract, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPool.deploy(loans_contract.address, erc20_contract, protocol_wallet, PROTOCOL_FEES_SHARE, MAX_CAPITAL_EFFICIENCY, {"from": contract_owner})
+    yield LendingPool.deploy(
+        loans_contract.address,
+        erc20_contract,
+        protocol_wallet,
+        PROTOCOL_FEES_SHARE,
+        MAX_CAPITAL_EFFICIENCY,
+        {"from": contract_owner}
+    )
 
 
 @pytest.fixture
@@ -102,6 +111,32 @@ def test_change_ownership(loans_contract, borrower, contract_owner):
 
     loans_contract.changeOwnership(contract_owner, {"from": borrower})
     assert loans_contract.owner() == contract_owner
+
+
+def test_change_max_allowed_loans_wrong_sender(loans_contract, borrower):
+    with brownie.reverts("Only the owner can change the max allowed loans per address"):
+        loans_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS - 1, {"from": borrower})
+
+
+def test_change_max_allowed_loans(loans_contract, contract_owner):
+    loans_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS - 1, {"from": contract_owner})
+    assert loans_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS - 1
+
+    loans_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS, {"from": contract_owner})
+    assert loans_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
+
+
+def test_change_max_allowed_loan_duration_wrong_sender(loans_contract, borrower):
+    with brownie.reverts("Only the owner can change the max allowed loan duration"):
+        loans_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION - 1, {"from": borrower})
+
+
+def test_change_max_allowed_loan_duration(loans_contract, contract_owner):
+    loans_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION - 1, {"from": contract_owner})
+    assert loans_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION - 1
+
+    loans_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION, {"from": contract_owner})
+    assert loans_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION
 
 
 def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_contract, borrower):
@@ -280,6 +315,27 @@ def test_create_not_accepting_loans(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
+            test_collaterals,
+            {'from': contract_owner}
+        )
+
+
+def test_create_maturity_too_long(
+    loans_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    test_collaterals
+):
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    maturity = int(dt.datetime.now().timestamp()) + MAX_LOAN_DURATION * 2
+    with brownie.reverts("Maturity can not exceed the max allowed"):
+        loans_contract.reserve(
+            borrower,
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            maturity,
             test_collaterals,
             {'from': contract_owner}
         )
