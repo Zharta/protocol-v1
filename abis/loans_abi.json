@@ -39,6 +39,23 @@
     "type": "event"
   },
   {
+    "name": "PendingLoanCanceled",
+    "inputs": [
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "name": "LoanCanceled",
     "inputs": [
       {
@@ -212,6 +229,23 @@
   {
     "stateMutability": "view",
     "type": "function",
+    "name": "createdLoanIdsUsedByAddress",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool[10]"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
     "name": "loanIdsUsedByAddress",
     "inputs": [
       {
@@ -272,8 +306,80 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "borrowerLoans",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "(uint256,uint256,uint256,uint256,uint256,(address,uint256)[],uint256,bool)[]"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "pendingBorrowerLoans",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "(uint256,uint256,uint256,uint256,uint256,(address,uint256)[],uint256,bool)[]"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getCreatedLoanIdsUsed",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool[10]"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanIdsUsed",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool[10]"
       }
     ]
   },
@@ -292,8 +398,12 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "start",
+    "name": "reserve",
     "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
       {
         "name": "_amount",
         "type": "uint256"
@@ -343,6 +453,61 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "start",
+    "inputs": [
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }
@@ -394,6 +559,10 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }
@@ -445,6 +614,10 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }
@@ -453,7 +626,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "cancel",
+    "name": "cancelPendingLoan",
     "inputs": [
       {
         "name": "_loanId",
@@ -492,6 +665,61 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "cancelStartedLoan",
+    "inputs": [
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }
@@ -582,6 +810,23 @@
       {
         "name": "",
         "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "nextCreatedLoanId",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
       }
     ]
   },
@@ -830,6 +1075,10 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }
@@ -872,6 +1121,10 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }
@@ -914,6 +1167,10 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }
@@ -956,6 +1213,10 @@
           {
             "name": "paidAmount",
             "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
           }
         ]
       }

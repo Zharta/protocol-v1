@@ -567,7 +567,7 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
 
   log LoanPaid(msg.sender, _loanId, _amountPaid)
 
-  return self.loans[msg.sender][_loanId]
+  return self._borrowerLoans(msg.sender)[_loanId]
 
 
 @external
@@ -603,7 +603,7 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
   self.currentStartedLoans -= 1
   self.totalDefaultedLoans += 1
 
-  return self.loans[_borrower][_loanId]
+  return self._borrowerLoans(_borrower)[_loanId]
 
 
 @external
@@ -649,7 +649,7 @@ def cancelStartedLoan(_loanId: uint256) -> Loan:
 
   log LoanCanceled(msg.sender, _loanId)
 
-  return self.loans[msg.sender][_loanId]
+  return self._borrowerLoans(msg.sender)[_loanId]
 
 
 @external
