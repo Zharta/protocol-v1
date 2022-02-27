@@ -602,7 +602,7 @@ def test_create_loan(
     erc721_contract.mint(borrower, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    tx_start_loan = loans_contract.reserve(
+    tx_create_loan = loans_contract.reserve(
         borrower,
         LOAN_AMOUNT,
         LOAN_INTEREST,
@@ -610,7 +610,7 @@ def test_create_loan(
         test_collaterals,
         {'from': contract_owner}
     )
-    loan_details = tx_start_loan.return_value
+    loan_details = tx_create_loan.return_value
 
     assert loan_details["id"] == 0
     assert loan_details["amount"] == LOAN_AMOUNT
@@ -622,6 +622,9 @@ def test_create_loan(
     assert loan_details["started"] == False
 
     assert loans_contract.nextCreatedLoanId(borrower) == 1
+
+    assert tx_create_loan.events[-1]["borrower"] == borrower
+    assert tx_create_loan.events[-1]["loanId"] == 0
 
 
 def test_start_deprecated(

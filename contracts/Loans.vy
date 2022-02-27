@@ -48,6 +48,10 @@ struct Loan:
 
 # Events
 
+event LoanCreated:
+  borrower: address
+  loanId: uint256
+
 event LoanStarted:
   borrower: address
   loanId: uint256
@@ -459,6 +463,8 @@ def reserve(
   )
 
   self._addCreatedLoan(_borrower, newLoan)
+
+  log LoanCreated(_borrower, newLoan.id)
 
   return self.createdLoans[_borrower][newLoan.id]
 
