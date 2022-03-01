@@ -488,7 +488,7 @@ def reserve(
 
   log LoanCreated(_borrower, newLoan.id)
 
-  return self.createdLoans[_borrower][newLoan.id]
+  return newLoan
 
 
 @external
@@ -541,7 +541,7 @@ def start(
 
   log LoanStarted(msg.sender, loan.id)
 
-  return self.loans[msg.sender][loan.id]
+  return loan
 
 
 @external
@@ -596,7 +596,7 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
 
   log LoanPaid(msg.sender, _loanId, _amountPaid)
 
-  return self.loans[msg.sender][_loanId]
+  return loan
 
 
 @external
@@ -632,7 +632,7 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
   self.currentStartedLoans -= 1
   self.totalDefaultedLoans += 1
 
-  return self.loans[_borrower][_loanId]
+  return loan
 
 
 @external
@@ -645,7 +645,7 @@ def cancelPendingLoan(_loanId: uint256) -> Loan:
 
   log PendingLoanCanceled(msg.sender, _loanId)
 
-  return self.createdLoans[msg.sender][_loanId]
+  return loan
 
 
 @external
@@ -678,7 +678,7 @@ def cancelStartedLoan(_loanId: uint256) -> Loan:
 
   log LoanCanceled(msg.sender, _loanId)
 
-  return self.loans[msg.sender][_loanId]
+  return loan
 
 
 @external
