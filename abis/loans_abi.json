@@ -407,6 +407,190 @@
   {
     "stateMutability": "view",
     "type": "function",
+    "name": "highestSingleCollateralLoan",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "highestCollateralBundleLoan",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "highestRepayment",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "highestDefaultedLoan",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
     "name": "getCreatedLoanIdsUsed",
     "inputs": [
       {
@@ -1102,190 +1286,6 @@
       {
         "name": "",
         "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "highestSingleCollateralLoan",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "name": "interest",
-            "type": "uint256"
-          },
-          {
-            "name": "maturity",
-            "type": "uint256"
-          },
-          {
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "name": "collaterals",
-            "type": "(address,uint256)[]"
-          },
-          {
-            "name": "paidAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "started",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "highestCollateralBundleLoan",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "name": "interest",
-            "type": "uint256"
-          },
-          {
-            "name": "maturity",
-            "type": "uint256"
-          },
-          {
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "name": "collaterals",
-            "type": "(address,uint256)[]"
-          },
-          {
-            "name": "paidAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "started",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "highestRepayment",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "name": "interest",
-            "type": "uint256"
-          },
-          {
-            "name": "maturity",
-            "type": "uint256"
-          },
-          {
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "name": "collaterals",
-            "type": "(address,uint256)[]"
-          },
-          {
-            "name": "paidAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "started",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "highestDefaultedLoan",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "name": "interest",
-            "type": "uint256"
-          },
-          {
-            "name": "maturity",
-            "type": "uint256"
-          },
-          {
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "name": "collaterals",
-            "type": "(address,uint256)[]"
-          },
-          {
-            "name": "paidAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "started",
-            "type": "bool"
-          }
-        ]
       }
     ]
   }
