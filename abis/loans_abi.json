@@ -1,5 +1,22 @@
 [
   {
+    "name": "LoanCreated",
+    "inputs": [
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "name": "LoanStarted",
     "inputs": [
       {
@@ -81,6 +98,10 @@
         "type": "uint256"
       },
       {
+        "name": "_maxAllowedLoanDuration",
+        "type": "uint256"
+      },
+      {
         "name": "_bufferToCancelLoan",
         "type": "uint256"
       },
@@ -109,6 +130,40 @@
       {
         "name": "",
         "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "changeMaxAllowedLoans",
+    "inputs": [
+      {
+        "name": "_maxAllowedLoans",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "changeMaxAllowedLoanDuration",
+    "inputs": [
+      {
+        "name": "_maxAllowedLoanDuration",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
       }
     ]
   },
@@ -745,6 +800,18 @@
     "stateMutability": "view",
     "type": "function",
     "name": "maxAllowedLoans",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "maxAllowedLoanDuration",
     "inputs": [],
     "outputs": [
       {
