@@ -20,6 +20,9 @@ struct Loan:
 
 # Events
 
+event LoanCreated:
+    borrower: address
+    loanId: uint256
 event LoanStarted:
     borrower: address
     loanId: uint256
@@ -38,6 +41,14 @@ event LoanCanceled:
 
 @external
 def changeOwnership(_newOwner: address) -> address:
+    pass
+
+@external
+def changeMaxAllowedLoans(_maxAllowedLoans: uint256) -> uint256:
+    pass
+
+@external
+def changeMaxAllowedLoanDuration(_maxAllowedLoanDuration: uint256) -> uint256:
     pass
 
 @external
@@ -95,6 +106,26 @@ def pendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
 
 @view
 @external
+def highestSingleCollateralLoan() -> Loan:
+    pass
+
+@view
+@external
+def highestCollateralBundleLoan() -> Loan:
+    pass
+
+@view
+@external
+def highestRepayment() -> Loan:
+    pass
+
+@view
+@external
+def highestDefaultedLoan() -> Loan:
+    pass
+
+@view
+@external
 def getCreatedLoanIdsUsed(_borrower: address) -> bool[10]:
     pass
 
@@ -145,6 +176,11 @@ def owner() -> address:
 @view
 @external
 def maxAllowedLoans() -> uint256:
+    pass
+
+@view
+@external
+def maxAllowedLoanDuration() -> uint256:
     pass
 
 @view
@@ -240,24 +276,4 @@ def totalDefaultedLoansAmount() -> uint256:
 @view
 @external
 def totalCanceledLoans() -> uint256:
-    pass
-
-@view
-@external
-def highestSingleCollateralLoan() -> Loan:
-    pass
-
-@view
-@external
-def highestCollateralBundleLoan() -> Loan:
-    pass
-
-@view
-@external
-def highestRepayment() -> Loan:
-    pass
-
-@view
-@external
-def highestDefaultedLoan() -> Loan:
     pass

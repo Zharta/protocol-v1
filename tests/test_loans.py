@@ -1605,6 +1605,7 @@ def test_cancel_pending(
     )
 
     loan_id = tx_create_loan.return_value["id"]
+
     tx_cancel_loan = loans_contract.cancelPendingLoan(loan_id, {"from": borrower})
 
     empty_loan = tx_cancel_loan.return_value
