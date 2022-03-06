@@ -23,7 +23,10 @@ struct Loan:
 event LoanCreated:
     borrower: address
     loanId: uint256
-event LoanStarted:
+event LoanValidated:
+    borrower: address
+    loanId: uint256
+event LoanInvalidated:
     borrower: address
     loanId: uint256
 event LoanPaid:
@@ -81,11 +84,6 @@ def deprecate() -> bool:
 
 @view
 @external
-def createdLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
-    pass
-
-@view
-@external
 def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
     pass
 
@@ -126,11 +124,6 @@ def highestDefaultedLoan() -> Loan:
 
 @view
 @external
-def getCreatedLoanIdsUsed(_borrower: address) -> bool[10]:
-    pass
-
-@view
-@external
 def getLoanIdsUsed(_borrower: address) -> bool[10]:
     pass
 
@@ -140,11 +133,15 @@ def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
     pass
 
 @external
-def reserve(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> Loan:
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> Loan:
     pass
 
 @external
-def start(_loanId: uint256) -> Loan:
+def validate(_borrower: address, _loanId: uint256) -> Loan:
+    pass
+
+@external
+def invalidate(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @external
@@ -206,11 +203,6 @@ def isAcceptingLoans() -> bool:
 @view
 @external
 def isDeprecated() -> bool:
-    pass
-
-@view
-@external
-def nextCreatedLoanId(arg0: address) -> uint256:
     pass
 
 @view
