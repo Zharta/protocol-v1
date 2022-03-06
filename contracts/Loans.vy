@@ -396,9 +396,7 @@ def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
 @view
 @external
 def borrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-  if _loanId >= self.maxAllowedLoans:
-    return empty(Loan)
-  elif _loanId < len(self.loans[_borrower]) and self.loanIdsUsed[_borrower][_loanId]:
+  if self._hasStartedLoan(_borrower, _loanId):
     return self.loans[_borrower][_loanId]
   return empty(Loan)
 
@@ -412,6 +410,14 @@ def borrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
     if loan.started:
       result.append(loan)
   return result
+
+
+@view
+@external
+def pendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+  if self._hasCreatedLoan(_borrower, _loanId):
+    return self.loans[_borrower][_loanId]
+  return empty(Loan)
 
 
 @view
