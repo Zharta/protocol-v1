@@ -176,7 +176,7 @@ def test_add_address_to_whitelist(loans_contract, erc721_contract, contract_owne
         {"from": contract_owner}
     )
 
-    assert loans_contract.whitelistedCollaterals(erc721_contract.address) == erc721_contract.address
+    assert loans_contract.whitelistedCollaterals(erc721_contract.address) == True
 
 
 def test_remove_address_from_whitelist_wrong_sender(loans_contract, erc721_contract, contract_owner, borrower):
@@ -188,10 +188,10 @@ def test_remove_address_from_whitelist_wrong_sender(loans_contract, erc721_contr
 
 def test_remove_address_from_whitelist(loans_contract, erc721_contract, contract_owner):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+    assert loans_contract.whitelistedCollaterals(erc721_contract.address) == True
 
     loans_contract.removeCollateralFromWhitelist(erc721_contract.address, {"from": contract_owner})
-
-    assert loans_contract.whitelistedCollaterals(erc721_contract.address) != erc721_contract.address
+    assert loans_contract.whitelistedCollaterals(erc721_contract.address) == False
 
 
 def test_change_min_loan_amount_wrong_sender(loans_contract, borrower):
