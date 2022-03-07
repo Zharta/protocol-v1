@@ -11,13 +11,18 @@
         "name": "loanId",
         "type": "uint256",
         "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
       }
     ],
     "anonymous": false,
     "type": "event"
   },
   {
-    "name": "LoanStarted",
+    "name": "LoanValidated",
     "inputs": [
       {
         "name": "borrower",
@@ -27,6 +32,33 @@
       {
         "name": "loanId",
         "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LoanInvalidated",
+    "inputs": [
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
         "indexed": false
       }
     ],
@@ -50,6 +82,38 @@
         "name": "amount",
         "type": "uint256",
         "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LoanDefaulted",
+    "inputs": [
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
       }
     ],
     "anonymous": false,
@@ -67,6 +131,11 @@
         "name": "loanId",
         "type": "uint256",
         "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
       }
     ],
     "anonymous": false,
@@ -83,6 +152,11 @@
       {
         "name": "loanId",
         "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
         "indexed": false
       }
     ],
@@ -284,23 +358,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "createdLoanIdsUsedByAddress",
-    "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool[10]"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "loanIdsUsedByAddress",
     "inputs": [
       {
@@ -384,6 +441,61 @@
       {
         "name": "",
         "type": "(uint256,uint256,uint256,uint256,uint256,(address,uint256)[],uint256,bool)[]"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "pendingBorrowerLoan",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
       }
     ]
   },
@@ -591,23 +703,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getCreatedLoanIdsUsed",
-    "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool[10]"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "getLoanIdsUsed",
     "inputs": [
       {
@@ -635,14 +730,22 @@
     ]
   },
   {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "erc20TokenSymbol",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string"
+      }
+    ]
+  },
+  {
     "stateMutability": "nonpayable",
     "type": "function",
     "name": "reserve",
     "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      },
       {
         "name": "_amount",
         "type": "uint256"
@@ -704,8 +807,67 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "start",
+    "name": "validate",
     "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "name": "interest",
+            "type": "uint256"
+          },
+          {
+            "name": "maturity",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "collaterals",
+            "type": "(address,uint256)[]"
+          },
+          {
+            "name": "paidAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "started",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "invalidate",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
       {
         "name": "_loanId",
         "type": "uint256"
@@ -1067,23 +1229,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "nextCreatedLoanId",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "nextLoanId",
     "inputs": [
       {
@@ -1201,7 +1346,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "address"
+        "type": "bool"
       }
     ]
   },
