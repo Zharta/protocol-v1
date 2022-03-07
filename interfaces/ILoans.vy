@@ -23,22 +23,33 @@ struct Loan:
 event LoanCreated:
     borrower: address
     loanId: uint256
+    erc20TokenContract: address
 event LoanValidated:
     borrower: address
     loanId: uint256
+    erc20TokenContract: address
 event LoanInvalidated:
     borrower: address
     loanId: uint256
+    erc20TokenContract: address
 event LoanPaid:
     borrower: address
     loanId: uint256
     amount: uint256
+    erc20TokenContract: address
+event LoanDefaulted:
+    borrower: address
+    loanId: uint256
+    amount: uint256
+    erc20TokenContract: address
 event PendingLoanCanceled:
     borrower: address
     loanId: uint256
+    erc20TokenContract: address
 event LoanCanceled:
     borrower: address
     loanId: uint256
+    erc20TokenContract: address
 
 # Functions
 
@@ -99,6 +110,11 @@ def borrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
 
 @view
 @external
+def pendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+    pass
+
+@view
+@external
 def pendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
     pass
 
@@ -130,6 +146,11 @@ def getLoanIdsUsed(_borrower: address) -> bool[10]:
 @view
 @external
 def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
+    pass
+
+@view
+@external
+def erc20TokenSymbol() -> String[10]:
     pass
 
 @external
@@ -232,7 +253,7 @@ def collateralsData(arg0: bytes32) -> Collateral:
 
 @view
 @external
-def whitelistedCollaterals(arg0: address) -> address:
+def whitelistedCollaterals(arg0: address) -> bool:
     pass
 
 @view

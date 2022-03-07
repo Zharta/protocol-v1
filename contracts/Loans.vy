@@ -10,8 +10,8 @@ implements: LoansInterface
 interface LendingPool:
   def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
   def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
-  def maxFundsInvestable() -> uint256: nonpayable
-  def erc20TokenContract() -> address: nonpayable
+  def maxFundsInvestable() -> uint256: view
+  def erc20TokenContract() -> address: view
 
 
 interface CollateralContract:
@@ -26,6 +26,7 @@ interface CollateralContract:
 interface ERC20Token:
   def allowance(_owner: address, _spender: address) -> uint256: view
   def balanceOf(_account: address) -> uint256: view
+  def symbol() -> String[10]: view
 
 
 # Structs
@@ -58,32 +59,45 @@ struct TopStats:
 event LoanCreated:
   borrower: address
   loanId: uint256
+  erc20TokenContract: address
 
 
 event LoanValidated:
   borrower: address
   loanId: uint256
+  erc20TokenContract: address
 
 
 event LoanInvalidated:
   borrower: address
   loanId: uint256
+  erc20TokenContract: address
 
 
 event LoanPaid:
   borrower: address
   loanId: uint256
   amount: uint256
+  erc20TokenContract: address
+
+
+event LoanDefaulted:
+  borrower: address
+  loanId: uint256
+  amount: uint256
+  erc20TokenContract: address
 
 
 event PendingLoanCanceled:
   borrower: address
   loanId: uint256
+  erc20TokenContract: address
 
 
 event LoanCanceled:
   borrower: address
   loanId: uint256
+  erc20TokenContract: address
 
 
 # Global variables
@@ -113,7 +127,7 @@ collateralsUsed: public(HashMap[bytes32, bool])
 collateralsData: public(HashMap[bytes32, Collateral])
 
 
-whitelistedCollaterals: public(HashMap[address, address])
+whitelistedCollaterals: public(HashMap[address, bool])
 
 
 lendingPool: LendingPool
@@ -151,7 +165,7 @@ def __init__(
 @internal
 def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 10]) -> bool:
   for collateral in _collaterals:
-    if self.whitelistedCollaterals[collateral.contractAddress] == empty(address):
+    if not self.whitelistedCollaterals[collateral.contractAddress]:
       return False
   return True
 
@@ -323,7 +337,7 @@ def addCollateralToWhitelist(_address: address) -> bool:
   assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
   assert _address.is_contract == True, "The _address sent does not have a contract deployed"
 
-  self.whitelistedCollaterals[_address] = _address
+  self.whitelistedCollaterals[_address] = True
 
   return True
 
@@ -332,7 +346,7 @@ def addCollateralToWhitelist(_address: address) -> bool:
 def removeCollateralFromWhitelist(_address: address) -> bool:
   assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
 
-  self.whitelistedCollaterals[_address] = empty(address)
+  self.whitelistedCollaterals[_address] = False
 
   return True
 
@@ -467,6 +481,12 @@ def collateralKeysArray() -> DynArray[bytes32, 2**50]:
   return self.collateralKeys
 
 
+@view
+@external
+def erc20TokenSymbol() -> String[10]:
+  return ERC20Token(self.lendingPool.erc20TokenContract()).symbol()
+
+
 @external
 def reserve(
   _amount: uint256,
@@ -513,7 +533,7 @@ def reserve(
 
   self._addLoan(msg.sender, newLoan)
 
-  log LoanCreated(msg.sender, newLoan.id)
+  log LoanCreated(msg.sender, newLoan.id, self.lendingPool.erc20TokenContract())
 
   return newLoan
 
@@ -542,7 +562,7 @@ def validate(_borrower: address, _loanId: uint256) -> Loan:
   
   self.lendingPool.sendFunds(_borrower, self.loans[_borrower][_loanId].amount)
 
-  log LoanValidated(_borrower, _loanId)
+  log LoanValidated(_borrower, _loanId, self.lendingPool.erc20TokenContract())
 
   return self.loans[_borrower][_loanId]
 
@@ -569,7 +589,7 @@ def invalidate(_borrower: address, _loanId: uint256) -> Loan:
 
   self._removeLoan(_borrower, _loanId)
 
-  log LoanInvalidated(_borrower, _loanId)
+  log LoanInvalidated(_borrower, _loanId, self.lendingPool.erc20TokenContract())
 
   return self.loans[_borrower][_loanId]
 
@@ -619,7 +639,7 @@ def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
 
   self.lendingPool.receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
-  log LoanPaid(msg.sender, _loanId, _amountPaid)
+  log LoanPaid(msg.sender, _loanId, _amountPaid, self.lendingPool.erc20TokenContract())
 
   return self.loans[msg.sender][_loanId]
 
@@ -647,10 +667,14 @@ def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
 
   self._updateHighestDefaultedLoan(self.loans[_borrower][_loanId])
 
+  amount: uint256 = self.loans[_borrower][_loanId].amount
+
   self._removeLoan(_borrower, _loanId)
 
   self.currentStartedLoans -= 1
   self.totalDefaultedLoans += 1
+
+  log LoanDefaulted(_borrower, _loanId, amount, self.lendingPool.erc20TokenContract())
 
   return self.loans[_borrower][_loanId]
 
@@ -661,7 +685,7 @@ def cancelPendingLoan(_loanId: uint256) -> Loan:
 
   self._removeLoan(msg.sender, _loanId) 
 
-  log PendingLoanCanceled(msg.sender, _loanId)
+  log PendingLoanCanceled(msg.sender, _loanId, self.lendingPool.erc20TokenContract())
 
   return self.loans[msg.sender][_loanId]
 
@@ -691,7 +715,7 @@ def cancelStartedLoan(_loanId: uint256) -> Loan:
   self.currentStartedLoans -= 1
   self.totalCanceledLoans += 1
 
-  log LoanCanceled(msg.sender, _loanId)
+  log LoanCanceled(msg.sender, _loanId, self.lendingPool.erc20TokenContract())
 
   return self.loans[msg.sender][_loanId]
 
