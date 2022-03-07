@@ -421,7 +421,7 @@ def borrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
   result: DynArray[Loan, 10] = []
   _loans: DynArray[Loan, 10] = self.loans[_borrower]
   for loan in _loans:
-    if loan.started:
+    if loan.started and loan.amount > 0:
       result.append(loan)
   return result
 
@@ -440,7 +440,7 @@ def pendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
   result: DynArray[Loan, 10] = []
   _loans: DynArray[Loan, 10] = self.loans[_borrower]
   for loan in _loans:
-    if not loan.started:
+    if not loan.started and loan.amount > 0:
       result.append(loan)
   return result
 
