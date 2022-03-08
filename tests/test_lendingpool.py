@@ -44,6 +44,7 @@ def lending_pool_contract(LendingPool, erc20_contract, contract_owner, protocol_
         protocol_wallet,
         PROTOCOL_FEES_SHARE,
         MAX_CAPITAL_EFFICIENCY,
+        False,
         {'from': contract_owner}
     )
 
@@ -60,9 +61,10 @@ def test_initial_state(lending_pool_contract, erc20_contract, contract_owner, pr
     assert lending_pool_contract.protocolWallet() == protocol_wallet
     assert lending_pool_contract.protocolFeesShare() == PROTOCOL_FEES_SHARE
     assert lending_pool_contract.maxCapitalEfficienty() == MAX_CAPITAL_EFFICIENCY
-    assert lending_pool_contract.isPoolActive() == True
-    assert lending_pool_contract.isPoolDeprecated() == False
-    assert lending_pool_contract.isPoolInvesting() == False
+    assert lending_pool_contract.isPoolActive()
+    assert not lending_pool_contract.isPoolDeprecated()
+    assert not lending_pool_contract.isPoolInvesting()
+    assert not lending_pool_contract.whitelistEnabled()
 
 
 def test_change_ownership_wrong_sender(lending_pool_contract, borrower):
@@ -166,22 +168,137 @@ def test_deprecate_already_deprecated(lending_pool_contract, contract_owner):
         lending_pool_contract.deprecate({"from": contract_owner})
 
 
+def test_change_whitelist_status_wrong_sender(lending_pool_contract, investor):
+    with brownie.reverts("Only the owner can change the whitelist status"):
+        lending_pool_contract.changeWhitelistStatus(True, {"from": investor})
+
+
+def test_change_whitelist_status_same_status(lending_pool_contract, contract_owner):
+    with brownie.reverts("The new whitelist status should be different than the current status"):
+        lending_pool_contract.changeWhitelistStatus(False, {"from": contract_owner})
+
+
+def test_change_whitelist_status(lending_pool_contract, contract_owner):
+    lending_pool_contract.changeWhitelistStatus(True, {"from": contract_owner})
+    assert lending_pool_contract.whitelistEnabled()
+
+    lending_pool_contract.changeWhitelistStatus(False, {"from": contract_owner})
+    assert not lending_pool_contract.whitelistEnabled()
+
+
+def test_add_whitelisted_address_wrong_sender(lending_pool_contract, investor):
+    with brownie.reverts("Only the owner can add addresses to the whitelist"):
+        lending_pool_contract.addWhitelistedAddress(investor, {"from": investor})
+
+
+def test_add_whitelisted_address_whitelist_disabled(lending_pool_contract, contract_owner, investor):
+    with brownie.reverts("The whitelist is disabled"):
+        lending_pool_contract.addWhitelistedAddress(investor, {"from": contract_owner})
+
+
+def test_add_whitelisted_address(lending_pool_contract, contract_owner, investor):
+    lending_pool_contract.changeWhitelistStatus(True, {"from": contract_owner})
+    assert lending_pool_contract.whitelistEnabled()
+
+    lending_pool_contract.addWhitelistedAddress(investor, {"from": contract_owner})
+    assert lending_pool_contract.whitelistedAddresses(investor)
+
+
+def test_add_whitelisted_address_already_whitelisted(lending_pool_contract, contract_owner, investor):
+    lending_pool_contract.changeWhitelistStatus(True, {"from": contract_owner})
+    assert lending_pool_contract.whitelistEnabled()
+
+    lending_pool_contract.addWhitelistedAddress(investor, {"from": contract_owner})
+    assert lending_pool_contract.whitelistedAddresses(investor)
+
+    with brownie.reverts("The address is already whitelisted"):
+        lending_pool_contract.addWhitelistedAddress(investor, {"from": contract_owner})
+
+
+def test_remove_whitelisted_address_wrong_sender(lending_pool_contract, investor):
+    with brownie.reverts("Only the owner can remove addresses from the whitelist"):
+        lending_pool_contract.removeWhitelistedAddress(investor, {"from": investor})
+
+
+def test_remove_whitelisted_address_whitelist_disabled(lending_pool_contract, contract_owner, investor):
+    with brownie.reverts("The whitelist is disabled"):
+        lending_pool_contract.removeWhitelistedAddress(investor, {"from": contract_owner})
+
+
+def test_remove_whitelisted_address_not_whitelisted(lending_pool_contract, contract_owner, investor):
+    lending_pool_contract.changeWhitelistStatus(True, {"from": contract_owner})
+    assert lending_pool_contract.whitelistEnabled()
+
+    with brownie.reverts("The address is not whitelisted"):
+        lending_pool_contract.removeWhitelistedAddress(investor, {"from": contract_owner})
+
+
+def test_remove_whitelisted_address(lending_pool_contract, contract_owner, investor):
+    lending_pool_contract.changeWhitelistStatus(True, {"from": contract_owner})
+    assert lending_pool_contract.whitelistEnabled()
+
+    lending_pool_contract.addWhitelistedAddress(investor, {"from": contract_owner})
+    assert lending_pool_contract.whitelistedAddresses(investor)
+
+    lending_pool_contract.removeWhitelistedAddress(investor, {"from": contract_owner})
+    assert not lending_pool_contract.whitelistedAddresses(investor)  
+
+
 def test_deposit_zero_investment(lending_pool_contract, investor):
     with brownie.reverts("Amount deposited has to be higher than 0"):
         lending_pool_contract.deposit(0, False, {"from": investor})
 
 
-def test_amount_not_allowed(lending_pool_contract, erc20_contract, investor):
+def test_deposit_amount_not_allowed(lending_pool_contract, erc20_contract, investor):
     with brownie.reverts("Insufficient funds allowed to be transfered"):
         lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
 
 
-def test_insufficient_amount_allowed(lending_pool_contract, erc20_contract, investor, contract_owner):
+def test_deposit_insufficient_amount_allowed(lending_pool_contract, erc20_contract, investor, contract_owner):
     erc20_contract.mint(investor, Web3.toWei(0.5, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(0.5, "ether"), {"from": investor})
     
     with brownie.reverts("Insufficient funds allowed to be transfered"):
         lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+
+def test_deposit_not_whitelisted(lending_pool_contract, erc20_contract, investor, contract_owner):
+    lending_pool_contract.changeWhitelistStatus(True, {"from": contract_owner})
+    assert lending_pool_contract.whitelistEnabled()
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    with brownie.reverts("The whitelist is enabled and the sender is not whitelisted"):
+        lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+
+def test_deposit_whitelisted(lending_pool_contract, erc20_contract, investor, contract_owner):
+    lending_pool_contract.changeWhitelistStatus(True, {"from": contract_owner})
+    assert lending_pool_contract.whitelistEnabled()
+
+    lending_pool_contract.addWhitelistedAddress(investor, {"from": contract_owner})
+    assert lending_pool_contract.whitelistedAddresses(investor)
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    tx_deposit = lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
+
+    funds_from_address = tx_deposit.return_value
+
+    assert funds_from_address["currentAmountDeposited"] == Web3.toWei(1, "ether")
+    assert funds_from_address["totalAmountDeposited"] == Web3.toWei(1, "ether")
+    assert funds_from_address["totalAmountWithdrawn"] == 0
+    assert funds_from_address["currentPendingRewards"] == 0
+    assert funds_from_address["totalRewardsAmount"] == 0
+    assert funds_from_address["activeForRewards"] == True
+    assert funds_from_address["autoCompoundRewards"] == False
+    assert lending_pool_contract.fundsAvailable() == Web3.toWei(1, "ether")
+
+    assert tx_deposit.events[-1]["_from"] == investor
+    assert tx_deposit.events[-1]["amount"] == Web3.toWei(1, "ether")
+    assert tx_deposit.events[-1]["erc20TokenContract"] == erc20_contract
 
 
 def test_deposit(lending_pool_contract, erc20_contract, investor, contract_owner):

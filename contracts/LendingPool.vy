@@ -70,6 +70,9 @@ isPoolActive: public(bool)
 isPoolDeprecated: public(bool)
 isPoolInvesting: public(bool)
 
+whitelistEnabled: public(bool)
+whitelistedAddresses: public(HashMap[address, bool])
+
 funds: public(HashMap[address, InvestorFunds])
 depositors: public(DynArray[address, 2**50])
 
@@ -90,7 +93,8 @@ def __init__(
   _erc20TokenContract: address,
   _protocolWallet: address,
   _protocolFeesShare: uint256,
-  _maxCapitalEfficienty: uint256
+  _maxCapitalEfficienty: uint256,
+  _whitelistEnabled: bool
 ):
   self.owner = msg.sender
   self.loansContract = _loansContract
@@ -101,6 +105,7 @@ def __init__(
   self.isPoolActive = True
   self.isPoolDeprecated = False
   self.isPoolInvesting = False
+  self.whitelistEnabled = _whitelistEnabled
 
 
 @view
@@ -246,6 +251,34 @@ def deprecate() -> bool:
   return self.isPoolDeprecated
 
 
+@external
+def changeWhitelistStatus(_flag: bool) -> bool:
+  assert msg.sender == self.owner, "Only the owner can change the whitelist status"
+  assert self.whitelistEnabled != _flag, "The new whitelist status should be different than the current status"
+
+  self.whitelistEnabled = _flag
+
+  return _flag
+
+
+@external
+def addWhitelistedAddress(_address: address):
+  assert msg.sender == self.owner, "Only the owner can add addresses to the whitelist"
+  assert self.whitelistEnabled, "The whitelist is disabled"
+  assert not self.whitelistedAddresses[_address], "The address is already whitelisted"
+
+  self.whitelistedAddresses[_address] = True
+
+
+@external
+def removeWhitelistedAddress(_address: address):
+  assert msg.sender == self.owner, "Only the owner can remove addresses from the whitelist"
+  assert self.whitelistEnabled, "The whitelist is disabled"
+  assert self.whitelistedAddresses[_address], "The address is not whitelisted"
+
+  self.whitelistedAddresses[_address] = False
+
+
 @view
 @external
 def hasFundsToInvest() -> bool:
@@ -283,6 +316,9 @@ def deposit(_amount: uint256, _autoCompoundRewards: bool) -> InvestorFunds:
   assert self.isPoolActive, "Pool is not active right now"
   assert _amount > 0, "Amount deposited has to be higher than 0"
   assert self._fundsAreAllowed(msg.sender, self, _amount), "Insufficient funds allowed to be transfered"
+
+  if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
+    raise "The whitelist is enabled and the sender is not whitelisted"
 
   if self.funds[msg.sender].totalAmountDeposited > 0:
     self.funds[msg.sender].totalAmountDeposited += _amount
