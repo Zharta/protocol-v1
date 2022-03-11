@@ -82,6 +82,10 @@ def changeMaxLoanAmount(_newMaxLoanAmount: uint256) -> uint256:
     pass
 
 @external
+def setLoansCoreAddress(_address: address) -> address:
+    pass
+
+@external
 def setLendingPoolAddress(_address: address) -> address:
     pass
 
@@ -95,57 +99,7 @@ def deprecate() -> bool:
 
 @view
 @external
-def loanIdsUsedByAddress(_borrower: address) -> bool[10]:
-    pass
-
-@view
-@external
-def borrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-    pass
-
-@view
-@external
-def borrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    pass
-
-@view
-@external
-def pendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-    pass
-
-@view
-@external
-def pendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    pass
-
-@view
-@external
-def highestSingleCollateralLoan() -> Loan:
-    pass
-
-@view
-@external
-def highestCollateralBundleLoan() -> Loan:
-    pass
-
-@view
-@external
-def highestRepayment() -> Loan:
-    pass
-
-@view
-@external
-def highestDefaultedLoan() -> Loan:
-    pass
-
-@view
-@external
-def getLoanIdsUsed(_borrower: address) -> bool[10]:
-    pass
-
-@view
-@external
-def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
+def getWhitelistedCollateralsAddresses() -> DynArray[address, 1125899906842624]:
     pass
 
 @view
@@ -153,32 +107,57 @@ def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
 def erc20TokenSymbol() -> String[10]:
     pass
 
+@view
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> Loan:
+def getLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
+    pass
+
+@view
+@external
+def getPendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
+    pass
+
+@view
+@external
+def getPendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+    pass
+
+@view
+@external
+def getBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
+    pass
+
+@view
+@external
+def getBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @external
-def validate(_borrower: address, _loanId: uint256) -> Loan:
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> uint256:
     pass
 
 @external
-def invalidate(_borrower: address, _loanId: uint256) -> Loan:
+def validate(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def pay(_loanId: uint256, _amountPaid: uint256) -> Loan:
+def invalidate(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def settleDefault(_borrower: address, _loanId: uint256) -> Loan:
+def pay(_loanId: uint256, _amountPaid: uint256):
     pass
 
 @external
-def cancelPendingLoan(_loanId: uint256) -> Loan:
+def settleDefault(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def cancelStartedLoan(_loanId: uint256) -> Loan:
+def cancelPendingLoan(_loanId: uint256):
+    pass
+
+@external
+def cancelStartedLoan(_loanId: uint256):
     pass
 
 @payable
@@ -228,32 +207,17 @@ def isDeprecated() -> bool:
 
 @view
 @external
-def nextLoanId(arg0: address) -> uint256:
-    pass
-
-@view
-@external
-def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
-    pass
-
-@view
-@external
-def collateralsInLoansUsed(arg0: bytes32, arg1: address, arg2: uint256) -> bool:
-    pass
-
-@view
-@external
-def collateralsUsed(arg0: bytes32) -> bool:
-    pass
-
-@view
-@external
-def collateralsData(arg0: bytes32) -> Collateral:
+def whitelistedCollateralsAddresses(arg0: uint256) -> address:
     pass
 
 @view
 @external
 def whitelistedCollaterals(arg0: address) -> bool:
+    pass
+
+@view
+@external
+def loansCoreAddress() -> address:
     pass
 
 @view

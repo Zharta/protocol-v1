@@ -3,10 +3,6 @@
 
 # Interfaces
 
-import interfaces.ILendingPool as LendingPoolInterface
-
-implements: LendingPoolInterface
-
 interface ERC20Token:
   def allowance(_owner: address, _spender: address) -> uint256: view
   def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable

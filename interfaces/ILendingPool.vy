@@ -7,6 +7,7 @@ struct InvestorFunds:
   currentPendingRewards: uint256
   totalRewardsAmount: uint256
   activeForRewards: bool
+  autoCompoundRewards: bool
 
 # Events
 
@@ -57,6 +58,18 @@ def changePoolStatus(_flag: bool) -> bool:
 
 @external
 def deprecate() -> bool:
+    pass
+
+@external
+def changeWhitelistStatus(_flag: bool) -> bool:
+    pass
+
+@external
+def addWhitelistedAddress(_address: address):
+    pass
+
+@external
+def removeWhitelistedAddress(_address: address):
     pass
 
 @view
@@ -151,6 +164,16 @@ def isPoolDeprecated() -> bool:
 @view
 @external
 def isPoolInvesting() -> bool:
+    pass
+
+@view
+@external
+def whitelistEnabled() -> bool:
+    pass
+
+@view
+@external
+def whitelistedAddresses(arg0: address) -> bool:
     pass
 
 @view
