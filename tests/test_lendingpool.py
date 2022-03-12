@@ -296,7 +296,7 @@ def test_deposit_whitelisted(lending_pool_contract, erc20_contract, investor, co
     assert funds_from_address["autoCompoundRewards"] == False
     assert lending_pool_contract.fundsAvailable() == Web3.toWei(1, "ether")
 
-    assert tx_deposit.events[-1]["_from"] == investor
+    assert tx_deposit.events[-1]["wallet"] == investor
     assert tx_deposit.events[-1]["amount"] == Web3.toWei(1, "ether")
     assert tx_deposit.events[-1]["erc20TokenContract"] == erc20_contract
 
@@ -318,7 +318,7 @@ def test_deposit(lending_pool_contract, erc20_contract, investor, contract_owner
     assert funds_from_address["autoCompoundRewards"] == False
     assert lending_pool_contract.fundsAvailable() == Web3.toWei(1, "ether")
 
-    assert tx_deposit.events[-1]["_from"] == investor
+    assert tx_deposit.events[-1]["wallet"] == investor
     assert tx_deposit.events[-1]["amount"] == Web3.toWei(1, "ether")
     assert tx_deposit.events[-1]["erc20TokenContract"] == erc20_contract
 
@@ -375,7 +375,7 @@ def test_withdraw(lending_pool_contract, erc20_contract, investor, contract_owne
     assert funds_from_address["currentPendingRewards"] == 0
     assert funds_from_address["activeForRewards"] == False
 
-    assert tx_withdraw.events[-1]["_from"] == investor
+    assert tx_withdraw.events[-1]["wallet"] == investor
     assert tx_withdraw.events[-1]["amount"] == Web3.toWei(1, "ether")
     assert tx_deposit.events[-1]["erc20TokenContract"] == erc20_contract
 
@@ -455,7 +455,7 @@ def test_send_funds(lending_pool_contract, erc20_contract, contract_owner, inves
     assert lending_pool_contract.fundsAvailable() == Web3.toWei(0.8, "ether")
     assert lending_pool_contract.fundsInvested() == Web3.toWei(0.2, "ether")
 
-    assert tx_send.events[-1]["_to"] == borrower
+    assert tx_send.events[-1]["wallet"] == borrower
     assert tx_send.events[-1]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_send.events[-1]["erc20TokenContract"] == erc20_contract
 
@@ -523,7 +523,7 @@ def test_receive_funds(lending_pool_contract, erc20_contract, contract_owner, in
     assert lending_pool_contract.funds(investor)["currentPendingRewards"] == Web3.toWei(expectedPoolFees, "ether")
     assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
 
-    assert tx_receive.events[-1]["_from"] == contract_owner
+    assert tx_receive.events[-1]["wallet"] == contract_owner
     assert tx_receive.events[-1]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events[-1]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events[-1]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
@@ -572,7 +572,7 @@ def test_receive_funds_multiple_lenders(lending_pool_contract, erc20_contract, c
     assert lending_pool_contract.funds(contract_owner)["currentPendingRewards"] == Web3.toWei(expectedLenderTwoRewards, "ether")
     assert lending_pool_contract.funds(contract_owner)["totalRewardsAmount"] == Web3.toWei(expectedLenderTwoRewards, "ether")
 
-    assert tx_receive.events[-1]["_from"] == contract_owner
+    assert tx_receive.events[-1]["wallet"] == contract_owner
     assert tx_receive.events[-1]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events[-1]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events[-1]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
@@ -624,7 +624,7 @@ def test_compound_rewards(lending_pool_contract, erc20_contract, contract_owner,
     assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
     assert lending_pool_contract.funds(investor)["activeForRewards"] == True
 
-    assert tx_compound.events[-1]["_from"] == investor
+    assert tx_compound.events[-1]["wallet"] == investor
     assert tx_compound.events[-1]["rewards"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_compound.events[-1]["erc20TokenContract"] == erc20_contract
 

@@ -701,7 +701,7 @@ def test_create_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == loans_contract.address
 
-    assert tx_create_loan.events[-1]["borrower"] == borrower
+    assert tx_create_loan.events[-1]["wallet"] == borrower
     assert tx_create_loan.events[-1]["loanId"] == 0
 
     assert len(loans_contract.getBorrowerLoans(borrower)) == 0
@@ -998,7 +998,7 @@ def test_validate_loan(
 
     assert loans_core_contract.nextLoanId(borrower) == 1
 
-    assert tx_start_loan.events[-1]["borrower"] == borrower
+    assert tx_start_loan.events[-1]["wallet"] == borrower
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
@@ -1084,7 +1084,7 @@ def test_invalidate_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == loans_contract.address
 
-    assert tx_create_loan.events[-1]["borrower"] == borrower
+    assert tx_create_loan.events[-1]["wallet"] == borrower
     assert tx_create_loan.events[-1]["loanId"] == 0
 
     tx_invalidate_loan = loans_contract.invalidate(borrower, 0, {'from': contract_owner})
@@ -1095,7 +1095,7 @@ def test_invalidate_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert tx_invalidate_loan.events[-1]["borrower"] == borrower
+    assert tx_invalidate_loan.events[-1]["wallet"] == borrower
     assert tx_invalidate_loan.events[-1]["loanId"] == 0
 
 
@@ -1434,7 +1434,11 @@ def test_pay_loan(
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalPaidLoans() == 1
 
-    assert tx_pay_loan.events[-1]["borrower"] == borrower
+    assert tx_pay_loan.events["LoanPaid"]["wallet"] == borrower
+    assert tx_pay_loan.events["LoanPaid"]["loanId"] == loan_id
+    assert tx_pay_loan.events["LoanPayment"]["wallet"] == borrower
+    assert tx_pay_loan.events["LoanPayment"]["loanId"] == loan_id
+    assert tx_pay_loan.events["LoanPayment"]["amount"] == amount_paid
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
@@ -1495,7 +1499,7 @@ def test_pay_loan_multiple(
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
     erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
-    tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+    tx_pay_loan1 = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     loan_details = loans_contract.getBorrowerLoan(borrower, loan_id)
     assert loan_details["paidAmount"] == amount_paid
@@ -1505,8 +1509,12 @@ def test_pay_loan_multiple(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == loans_contract.address
     
+    assert tx_pay_loan1.events["LoanPayment"]["wallet"] == borrower
+    assert tx_pay_loan1.events["LoanPayment"]["loanId"] == loan_id
+    assert tx_pay_loan1.events["LoanPayment"]["amount"] == amount_paid
+
     erc20_contract.approve(lending_pool_contract, amount_paid, {"from": borrower})
-    tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+    tx_pay_loan2 = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     empty_loan = loans_contract.getBorrowerLoan(borrower, loan_id)
     assert empty_loan["amount"] == 0
@@ -1524,6 +1532,12 @@ def test_pay_loan_multiple(
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
     assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - amount_paid * 2
+
+    assert tx_pay_loan2.events["LoanPaid"]["wallet"] == borrower
+    assert tx_pay_loan2.events["LoanPaid"]["loanId"] == loan_id
+    assert tx_pay_loan2.events["LoanPayment"]["wallet"] == borrower
+    assert tx_pay_loan2.events["LoanPayment"]["loanId"] == loan_id
+    assert tx_pay_loan2.events["LoanPayment"]["amount"] == amount_paid
 
 
 def test_set_default_loan_wrong_sender(
@@ -1685,7 +1699,7 @@ def test_cancel_pending(
 
     assert loans_core_contract.nextLoanId(borrower) == 0
 
-    assert tx_cancel_loan.events[-1]["borrower"] == borrower
+    assert tx_cancel_loan.events[-1]["wallet"] == borrower
     assert tx_cancel_loan.events[-1]["loanId"] == loan_id
 
 
@@ -1809,5 +1823,5 @@ def test_cancel(
     assert loans_contract.currentStartedLoans() == 0
     assert loans_contract.totalCanceledLoans() == 1
 
-    assert tx_cancel_loan.events[-1]["borrower"] == borrower
+    assert tx_cancel_loan.events[-1]["wallet"] == borrower
     assert tx_cancel_loan.events[-1]["loanId"] == loan_id
