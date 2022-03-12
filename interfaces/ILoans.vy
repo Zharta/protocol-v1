@@ -1,53 +1,57 @@
 # Structs
 
 struct Collateral:
-  contract: address
-  id: uint256
+    contract: address
+    id: uint256
 
 struct Collaterals:
-  size: uint256
-  contracts: address[10]
-  ids: uint256[10]
+    size: uint256
+    contracts: address[10]
+    ids: uint256[10]
 
 struct Loan:
-  id: uint256
-  amount: uint256
-  interest: uint256
-  maturity: uint256
-  startTime: uint256
-  collaterals: Collaterals
-  paidAmount: uint256
+    id: uint256
+    amount: uint256
+    interest: uint256
+    maturity: uint256
+    startTime: uint256
+    collaterals: Collaterals
+    paidAmount: uint256
 
 # Events
 
 event LoanCreated:
-    borrower: address
+    wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanValidated:
-    borrower: address
+    wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanInvalidated:
-    borrower: address
+    wallet: address
     loanId: uint256
     erc20TokenContract: address
-event LoanPaid:
-    borrower: address
+event LoanPayment:
+    wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
+event LoanPaid:
+    wallet: address
+    loanId: uint256
+    erc20TokenContract: address
 event LoanDefaulted:
-    borrower: address
+    wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
 event PendingLoanCanceled:
-    borrower: address
+    wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanCanceled:
-    borrower: address
+    wallet: address
     loanId: uint256
     erc20TokenContract: address
 

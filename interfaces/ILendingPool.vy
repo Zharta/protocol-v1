@@ -1,34 +1,40 @@
 # Structs
 
 struct InvestorFunds:
-  currentAmountDeposited: uint256
-  totalAmountDeposited: uint256
-  totalAmountWithdrawn: uint256
-  currentPendingRewards: uint256
-  totalRewardsAmount: uint256
-  activeForRewards: bool
-  autoCompoundRewards: bool
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    currentPendingRewards: uint256
+    totalRewardsAmount: uint256
+    activeForRewards: bool
+    autoCompoundRewards: bool
+
+# Events
 
 # Events
 
 event Deposit:
-    _from: address
+    wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event Withdrawal:
-    _from: address
+    wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event Compound:
-    _from: address
+    wallet: address
     rewards: uint256
     erc20TokenContract: address
+
 event FundsTransfer:
-    _to: address
+    wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event FundsReceipt:
-    _from: address
+    wallet: address
     amount: uint256
     rewardsPool: uint256
     rewardsProtocol: uint256
