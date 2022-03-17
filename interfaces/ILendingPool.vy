@@ -1,33 +1,40 @@
 # Structs
 
 struct InvestorFunds:
-  currentAmountDeposited: uint256
-  totalAmountDeposited: uint256
-  totalAmountWithdrawn: uint256
-  currentPendingRewards: uint256
-  totalRewardsAmount: uint256
-  activeForRewards: bool
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    currentPendingRewards: uint256
+    totalRewardsAmount: uint256
+    activeForRewards: bool
+    autoCompoundRewards: bool
+
+# Events
 
 # Events
 
 event Deposit:
-    _from: address
+    wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event Withdrawal:
-    _from: address
+    wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event Compound:
-    _from: address
+    wallet: address
     rewards: uint256
     erc20TokenContract: address
+
 event FundsTransfer:
-    _to: address
+    wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event FundsReceipt:
-    _from: address
+    wallet: address
     amount: uint256
     rewardsPool: uint256
     rewardsProtocol: uint256
@@ -59,6 +66,18 @@ def changePoolStatus(_flag: bool) -> bool:
 def deprecate() -> bool:
     pass
 
+@external
+def changeWhitelistStatus(_flag: bool) -> bool:
+    pass
+
+@external
+def addWhitelistedAddress(_address: address):
+    pass
+
+@external
+def removeWhitelistedAddress(_address: address):
+    pass
+
 @view
 @external
 def hasFundsToInvest() -> bool:
@@ -80,7 +99,11 @@ def depositorsArray() -> DynArray[address, 1125899906842624]:
     pass
 
 @external
-def deposit(_amount: uint256) -> InvestorFunds:
+def deposit(_amount: uint256, _autoCompoundRewards: bool) -> InvestorFunds:
+    pass
+
+@external
+def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
     pass
 
 @external
@@ -147,6 +170,16 @@ def isPoolDeprecated() -> bool:
 @view
 @external
 def isPoolInvesting() -> bool:
+    pass
+
+@view
+@external
+def whitelistEnabled() -> bool:
+    pass
+
+@view
+@external
+def whitelistedAddresses(arg0: address) -> bool:
     pass
 
 @view

@@ -1,8 +1,7 @@
 # @version ^0.3.2
 
-import interfaces.ILendingPool as LendingPoolInterface
 
-implements: LendingPoolInterface
+# Interfaces
 
 interface ERC20Token:
   def allowance(_owner: address, _spender: address) -> uint256: view
@@ -11,6 +10,8 @@ interface ERC20Token:
   def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
 
 
+# Structs
+
 struct InvestorFunds:
   currentAmountDeposited: uint256
   totalAmountDeposited: uint256
@@ -18,33 +19,40 @@ struct InvestorFunds:
   currentPendingRewards: uint256
   totalRewardsAmount: uint256
   activeForRewards: bool
+  autoCompoundRewards: bool
+
+
+# Events
 
 event Deposit:
-  _from: address
+  wallet: address
   amount: uint256
   erc20TokenContract: address
 
 event Withdrawal:
-  _from: address
+  wallet: address
   amount: uint256
   erc20TokenContract: address
 
 event Compound:
-  _from: address
+  wallet: address
   rewards: uint256
   erc20TokenContract: address
 
 event FundsTransfer:
-  _to: address
+  wallet: address
   amount: uint256
   erc20TokenContract: address
 
 event FundsReceipt:
-  _from: address
+  wallet: address
   amount: uint256
   rewardsPool: uint256
   rewardsProtocol: uint256
   erc20TokenContract: address
+
+
+# Global variables
 
 owner: public(address)
 loansContract: public(address)
@@ -57,6 +65,9 @@ maxCapitalEfficienty: public(uint256) # parts per 10000, e.g. 2.5% is represente
 isPoolActive: public(bool)
 isPoolDeprecated: public(bool)
 isPoolInvesting: public(bool)
+
+whitelistEnabled: public(bool)
+whitelistedAddresses: public(HashMap[address, bool])
 
 funds: public(HashMap[address, InvestorFunds])
 depositors: public(DynArray[address, 2**50])
@@ -78,7 +89,8 @@ def __init__(
   _erc20TokenContract: address,
   _protocolWallet: address,
   _protocolFeesShare: uint256,
-  _maxCapitalEfficienty: uint256
+  _maxCapitalEfficienty: uint256,
+  _whitelistEnabled: bool
 ):
   self.owner = msg.sender
   self.loansContract = _loansContract
@@ -89,6 +101,7 @@ def __init__(
   self.isPoolActive = True
   self.isPoolDeprecated = False
   self.isPoolInvesting = False
+  self.whitelistEnabled = _whitelistEnabled
 
 
 @view
@@ -120,7 +133,12 @@ def _distribute_rewards(_rewards: uint256):
   for depositor in self.depositors:
     if self.funds[depositor].activeForRewards:
       rewardsFromUser = _rewards * self.funds[depositor].currentAmountDeposited / totalTvl
-      self.funds[depositor].currentPendingRewards += rewardsFromUser
+
+      if self.funds[depositor].autoCompoundRewards:
+        self.funds[depositor].currentAmountDeposited += rewardsFromUser
+      else:
+        self.funds[depositor].currentPendingRewards += rewardsFromUser
+      
       self.funds[depositor].totalRewardsAmount += rewardsFromUser
 
 
@@ -229,6 +247,34 @@ def deprecate() -> bool:
   return self.isPoolDeprecated
 
 
+@external
+def changeWhitelistStatus(_flag: bool) -> bool:
+  assert msg.sender == self.owner, "Only the owner can change the whitelist status"
+  assert self.whitelistEnabled != _flag, "The new whitelist status should be different than the current status"
+
+  self.whitelistEnabled = _flag
+
+  return _flag
+
+
+@external
+def addWhitelistedAddress(_address: address):
+  assert msg.sender == self.owner, "Only the owner can add addresses to the whitelist"
+  assert self.whitelistEnabled, "The whitelist is disabled"
+  assert not self.whitelistedAddresses[_address], "The address is already whitelisted"
+
+  self.whitelistedAddresses[_address] = True
+
+
+@external
+def removeWhitelistedAddress(_address: address):
+  assert msg.sender == self.owner, "Only the owner can remove addresses from the whitelist"
+  assert self.whitelistEnabled, "The whitelist is disabled"
+  assert self.whitelistedAddresses[_address], "The address is not whitelisted"
+
+  self.whitelistedAddresses[_address] = False
+
+
 @view
 @external
 def hasFundsToInvest() -> bool:
@@ -259,7 +305,7 @@ def depositorsArray() -> DynArray[address, 2**50]:
 
 
 @external
-def deposit(_amount: uint256) -> InvestorFunds:
+def deposit(_amount: uint256, _autoCompoundRewards: bool) -> InvestorFunds:
   # _amount should be passed in wei
   
   assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw any outstanding deposit"
@@ -267,7 +313,8 @@ def deposit(_amount: uint256) -> InvestorFunds:
   assert _amount > 0, "Amount deposited has to be higher than 0"
   assert self._fundsAreAllowed(msg.sender, self, _amount), "Insufficient funds allowed to be transfered"
 
-  ERC20Token(self.erc20TokenContract).transferFrom(msg.sender, self, _amount)
+  if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
+    raise "The whitelist is enabled and the sender is not whitelisted"
 
   if self.funds[msg.sender].totalAmountDeposited > 0:
     self.funds[msg.sender].totalAmountDeposited += _amount
@@ -280,7 +327,8 @@ def deposit(_amount: uint256) -> InvestorFunds:
         totalAmountWithdrawn: 0,
         currentPendingRewards: 0,
         totalRewardsAmount: 0,
-        activeForRewards: True
+        activeForRewards: True,
+        autoCompoundRewards: _autoCompoundRewards
       }
     )
     self.depositors.append(msg.sender)
@@ -290,7 +338,20 @@ def deposit(_amount: uint256) -> InvestorFunds:
   if not self.isPoolInvesting and self._hasFundsToInvest():
     self.isPoolInvesting = True
 
+  ERC20Token(self.erc20TokenContract).transferFrom(msg.sender, self, _amount)
+
   log Deposit(msg.sender, _amount, self.erc20TokenContract)
+
+  return self.funds[msg.sender]
+
+
+@external
+def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
+  assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw any outstanding deposit"
+  assert self.funds[msg.sender].activeForRewards, "The sender is not participating in the pool"
+  assert _flag != self.funds[msg.sender].autoCompoundRewards, "The value passed should be different than the current setting"
+
+  self.funds[msg.sender].autoCompoundRewards = _flag
 
   return self.funds[msg.sender]
 
@@ -303,13 +364,12 @@ def withdraw(_amount: uint256) -> InvestorFunds:
   assert self.funds[msg.sender].currentAmountDeposited >= _amount, "The sender has less funds deposited than the amount requested"
   assert self.fundsAvailable >= _amount, "Not enough funds in the pool to be withdrawn"
 
-  ERC20Token(self.erc20TokenContract).transfer(msg.sender, _amount)
-
   self.funds[msg.sender].currentAmountDeposited -= _amount
   self.funds[msg.sender].totalAmountWithdrawn += _amount
   
+  amountToWithdraw: uint256 = _amount
   if self.funds[msg.sender].currentAmountDeposited == 0:
-    ERC20Token(self.erc20TokenContract).transfer(msg.sender, self.funds[msg.sender].currentPendingRewards)
+    amountToWithdraw += self.funds[msg.sender].currentPendingRewards
     self.funds[msg.sender].currentPendingRewards = 0
     self.funds[msg.sender].activeForRewards = False
   
@@ -318,7 +378,9 @@ def withdraw(_amount: uint256) -> InvestorFunds:
   if self.isPoolInvesting and not self._hasFundsToInvest():
     self.isPoolInvesting = False
 
-  log Withdrawal(msg.sender, _amount, self.erc20TokenContract)
+  ERC20Token(self.erc20TokenContract).transfer(msg.sender, amountToWithdraw)
+
+  log Withdrawal(msg.sender, amountToWithdraw, self.erc20TokenContract)
 
   return self.funds[msg.sender]
 
@@ -380,12 +442,8 @@ def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> 
   assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
   assert _amount <= self.fundsInvested, "There are more funds being sent than expected by the deposited funds variable"
 
-  ERC20Token(self.erc20TokenContract).transferFrom(_owner, self, _amount + _rewardsAmount)
-
   rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
   rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
-
-  ERC20Token(self.erc20TokenContract).transfer(self.protocolWallet, rewardsProtocol)
 
   self._distribute_rewards(rewardsPool)
   self._updateRewardsCounter(rewardsPool)
@@ -396,6 +454,9 @@ def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> 
 
   if not self.isPoolInvesting and self._hasFundsToInvest():
     self.isPoolInvesting = True
+
+  ERC20Token(self.erc20TokenContract).transferFrom(_owner, self, _amount + _rewardsAmount)
+  ERC20Token(self.erc20TokenContract).transfer(self.protocolWallet, rewardsProtocol)
 
   log FundsReceipt(msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
 
