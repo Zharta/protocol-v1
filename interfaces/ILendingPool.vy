@@ -25,7 +25,7 @@ event Withdrawal:
 
 event Compound:
     wallet: address
-    rewards: uint256
+    amount: uint256
     erc20TokenContract: address
 
 event FundsTransfer:

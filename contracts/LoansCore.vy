@@ -382,7 +382,7 @@ def addLoan(
             amount: _amount,
             interest: _interest,
             maturity: _maturity,
-            startTime: block.timestamp,
+            startTime: 0,
             paidAmount: 0,
             started: False,
             collaterals: _collaterals
@@ -408,6 +408,7 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
     assert self._isLoanCreated(_borrower, _loanId), "No loan created for borrower with passed id"
     assert not self._isLoanStarted(_borrower, _loanId), "Loan already started"
 
+    self.loans[_borrower][_loanId].startTime = block.timestamp
     self.loans[_borrower][_loanId].started = True
 
 
