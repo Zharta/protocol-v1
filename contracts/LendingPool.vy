@@ -126,20 +126,23 @@ def _maxFundsInvestable() -> int256:
 
 
 @internal
-def _distribute_rewards(_rewards: uint256):
+def _distribute_rewards(_rewards: uint256) -> uint256:
   totalTvl: uint256 = self.fundsAvailable + self.fundsInvested
-  rewardsFromUser: uint256 = 0
+  rewardsCompounded: uint256 = 0
 
   for depositor in self.depositors:
     if self.funds[depositor].activeForRewards:
-      rewardsFromUser = _rewards * self.funds[depositor].currentAmountDeposited / totalTvl
+      rewardsFromUser: uint256 = _rewards * self.funds[depositor].currentAmountDeposited / totalTvl
 
       if self.funds[depositor].autoCompoundRewards:
         self.funds[depositor].currentAmountDeposited += rewardsFromUser
+        rewardsCompounded += rewardsFromUser
       else:
         self.funds[depositor].currentPendingRewards += rewardsFromUser
       
       self.funds[depositor].totalRewardsAmount += rewardsFromUser
+
+  return rewardsCompounded
 
 
 @internal
@@ -445,10 +448,10 @@ def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> 
   rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
   rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-  self._distribute_rewards(rewardsPool)
+  rewardsCompounded: uint256 = self._distribute_rewards(rewardsPool)
   self._updateRewardsCounter(rewardsPool)
 
-  self.fundsAvailable += _amount
+  self.fundsAvailable += _amount + rewardsCompounded
   self.fundsInvested -= _amount
   self.totalRewards += rewardsPool
 

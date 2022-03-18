@@ -624,9 +624,9 @@ def test_compound_rewards(lending_pool_contract, erc20_contract, contract_owner,
     assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
     assert lending_pool_contract.funds(investor)["activeForRewards"] == True
 
-    assert tx_compound.events[-1]["wallet"] == investor
-    assert tx_compound.events[-1]["rewards"] == Web3.toWei(expectedPoolFees, "ether")
-    assert tx_compound.events[-1]["erc20TokenContract"] == erc20_contract
+    assert tx_compound.events["Compound"]["wallet"] == investor
+    assert tx_compound.events["Compound"]["amount"] == Web3.toWei(expectedPoolFees, "ether")
+    assert tx_compound.events["Compound"]["erc20TokenContract"] == erc20_contract
 
 
 def test_rewards_computation(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
@@ -804,6 +804,8 @@ def test_autocompounding(lending_pool_contract, erc20_contract, contract_owner, 
     assert lending_pool_contract.funds(investor)["currentPendingRewards"] == 0
     assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
 
+    assert lending_pool_contract.fundsAvailable() == Web3.toWei(1 + expectedPoolFees, "ether")
+
 
 def test_autocompounding_multiple_lenders(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
@@ -841,3 +843,5 @@ def test_autocompounding_multiple_lenders(lending_pool_contract, erc20_contract,
     assert lending_pool_contract.funds(contract_owner)["currentAmountDeposited"] == Web3.toWei(3, "ether")
     assert lending_pool_contract.funds(contract_owner)["currentPendingRewards"] == Web3.toWei(expectedLenderTwoRewards, "ether")
     assert lending_pool_contract.funds(contract_owner)["totalRewardsAmount"] == Web3.toWei(expectedLenderTwoRewards, "ether")
+
+    assert lending_pool_contract.fundsAvailable() == Web3.toWei(4 + expectedLenderOneRewards, "ether")
