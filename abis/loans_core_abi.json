@@ -93,23 +93,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getLoanIdsUsedByAddress",
-    "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool[10]"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "getLoanAmount",
     "inputs": [
       {
@@ -257,7 +240,91 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getPendingBorrowerLoan",
+    "name": "getLoanInvalidated",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanPaid",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanDefaulted",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanCanceled",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getPendingLoan",
     "inputs": [
       {
         "name": "_borrower",
@@ -304,6 +371,22 @@
           {
             "name": "started",
             "type": "bool"
+          },
+          {
+            "name": "invalidated",
+            "type": "bool"
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          },
+          {
+            "name": "defaulted",
+            "type": "bool"
+          },
+          {
+            "name": "canceled",
+            "type": "bool"
           }
         ]
       }
@@ -312,24 +395,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getPendingBorrowerLoans",
-    "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "(uint256,uint256,uint256,uint256,uint256,(address,uint256)[],uint256,bool)[]"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "getBorrowerLoan",
+    "name": "getLoan",
     "inputs": [
       {
         "name": "_borrower",
@@ -376,25 +442,24 @@
           {
             "name": "started",
             "type": "bool"
+          },
+          {
+            "name": "invalidated",
+            "type": "bool"
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          },
+          {
+            "name": "defaulted",
+            "type": "bool"
+          },
+          {
+            "name": "canceled",
+            "type": "bool"
           }
         ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "getBorrowerLoans",
-    "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "(uint256,uint256,uint256,uint256,uint256,(address,uint256)[],uint256,bool)[]"
       }
     ]
   },
@@ -438,6 +503,22 @@
           },
           {
             "name": "started",
+            "type": "bool"
+          },
+          {
+            "name": "invalidated",
+            "type": "bool"
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          },
+          {
+            "name": "defaulted",
+            "type": "bool"
+          },
+          {
+            "name": "canceled",
             "type": "bool"
           }
         ]
@@ -485,6 +566,22 @@
           {
             "name": "started",
             "type": "bool"
+          },
+          {
+            "name": "invalidated",
+            "type": "bool"
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          },
+          {
+            "name": "defaulted",
+            "type": "bool"
+          },
+          {
+            "name": "canceled",
+            "type": "bool"
           }
         ]
       }
@@ -531,6 +628,22 @@
           {
             "name": "started",
             "type": "bool"
+          },
+          {
+            "name": "invalidated",
+            "type": "bool"
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          },
+          {
+            "name": "defaulted",
+            "type": "bool"
+          },
+          {
+            "name": "canceled",
+            "type": "bool"
           }
         ]
       }
@@ -576,6 +689,22 @@
           },
           {
             "name": "started",
+            "type": "bool"
+          },
+          {
+            "name": "invalidated",
+            "type": "bool"
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          },
+          {
+            "name": "defaulted",
+            "type": "bool"
+          },
+          {
+            "name": "canceled",
             "type": "bool"
           }
         ]
@@ -733,7 +862,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "removeLoan",
+    "name": "updateLoanStarted",
     "inputs": [
       {
         "name": "_borrower",
@@ -749,7 +878,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "updateLoanStarted",
+    "name": "updateInvalidLoan",
     "inputs": [
       {
         "name": "_borrower",
@@ -777,6 +906,54 @@
       },
       {
         "name": "_paidAmount",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "updatePaidLoan",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "updateDefaultedLoan",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "updateCanceledLoan",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
         "type": "uint256"
       }
     ],
@@ -871,23 +1048,6 @@
       {
         "name": "",
         "type": "address"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "nextLoanId",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
       }
     ]
   },
