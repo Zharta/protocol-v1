@@ -113,27 +113,12 @@ def erc20TokenSymbol() -> String[10]:
 
 @view
 @external
-def getLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
+def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @view
 @external
-def getPendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    pass
-
-@view
-@external
-def getPendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-    pass
-
-@view
-@external
-def getBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    pass
-
-@view
-@external
-def getBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @external
@@ -160,10 +145,6 @@ def settleDefault(_borrower: address, _loanId: uint256):
 def cancelPendingLoan(_loanId: uint256):
     pass
 
-@external
-def cancelStartedLoan(_loanId: uint256):
-    pass
-
 @payable
 @external
 def __default__():
@@ -182,11 +163,6 @@ def maxAllowedLoans() -> uint256:
 @view
 @external
 def maxAllowedLoanDuration() -> uint256:
-    pass
-
-@view
-@external
-def bufferToCancelLoan() -> uint256:
     pass
 
 @view
@@ -227,34 +203,4 @@ def loansCoreAddress() -> address:
 @view
 @external
 def lendingPoolAddress() -> address:
-    pass
-
-@view
-@external
-def currentStartedLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalStartedLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalPaidLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalDefaultedLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalDefaultedLoansAmount() -> uint256:
-    pass
-
-@view
-@external
-def totalCanceledLoans() -> uint256:
     pass

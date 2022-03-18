@@ -11,28 +11,22 @@ struct InvestorFunds:
 
 # Events
 
-# Events
-
 event Deposit:
     wallet: address
     amount: uint256
     erc20TokenContract: address
-
 event Withdrawal:
     wallet: address
     amount: uint256
     erc20TokenContract: address
-
 event Compound:
     wallet: address
     amount: uint256
     erc20TokenContract: address
-
 event FundsTransfer:
     wallet: address
     amount: uint256
     erc20TokenContract: address
-
 event FundsReceipt:
     wallet: address
     amount: uint256
