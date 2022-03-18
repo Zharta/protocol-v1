@@ -3,7 +3,7 @@
     "name": "Deposit",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
@@ -25,7 +25,7 @@
     "name": "Withdrawal",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
@@ -47,12 +47,12 @@
     "name": "Compound",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
       {
-        "name": "rewards",
+        "name": "amount",
         "type": "uint256",
         "indexed": false
       },
@@ -69,7 +69,7 @@
     "name": "FundsTransfer",
     "inputs": [
       {
-        "name": "_to",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
@@ -91,7 +91,7 @@
     "name": "FundsReceipt",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
