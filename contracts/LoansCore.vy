@@ -69,6 +69,14 @@ def _isLoanStarted(_borrower: address, _loanId: uint256) -> bool:
 
 @view
 @internal
+def _isLoanInvalidated(_borrower: address, _loanId: uint256) -> bool:
+    if _loanId < len(self.loans[_borrower]):
+        return self.loans[_borrower][_loanId].invalidated
+    return False
+
+
+@view
+@internal
 def _computeCollateralKey(_collateralAddress: address, _collateralId: uint256) -> bytes32:
   return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
 
@@ -250,7 +258,7 @@ def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
 @view
 @external
 def getLoan(_borrower: address, _loanId: uint256) -> Loan:
-  if self._isLoanStarted(_borrower, _loanId):
+  if self._isLoanStarted(_borrower, _loanId) or self._isLoanInvalidated(_borrower, _loanId):
     return self.loans[_borrower][_loanId]
   return empty(Loan)
 

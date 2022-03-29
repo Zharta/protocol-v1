@@ -78,10 +78,6 @@ totalFundsInvested: public(uint256)
 
 totalRewards: public(uint256)
 
-rewardsByDay: public(HashMap[uint256, uint256])
-days: public(DynArray[uint256, 8])
-nextDaysIndex: uint256
-
 
 @external
 def __init__(
@@ -143,47 +139,6 @@ def _distribute_rewards(_rewards: uint256) -> uint256:
       self.funds[depositor].totalRewardsAmount += rewardsFromUser
 
   return rewardsCompounded
-
-
-@internal
-def _updateRewardsCounter(_rewards: uint256):
-  initDayTimestamp: uint256 = block.timestamp - block.timestamp % 86400
-
-  if len(self.days) == 7:
-
-    if self.rewardsByDay[initDayTimestamp] == 0: # no rewards for this day => new day in the array
-
-      if self.nextDaysIndex == 7:
-        self.days[0] = initDayTimestamp
-        self.nextDaysIndex = 1
-      else:
-        self.days[self.nextDaysIndex] = initDayTimestamp
-        self.nextDaysIndex += 1
-    
-    self.rewardsByDay[initDayTimestamp] += _rewards
-  else:
-
-    self.rewardsByDay[initDayTimestamp] += _rewards
-    
-    if initDayTimestamp not in self.days:
-      self.days.append(initDayTimestamp)
-      
-      if self.days[len(self.days) - 1] % 2 != 0:
-        self.days[len(self.days) - 1] -= self.days[len(self.days) - 1] % 2
-    
-    self.nextDaysIndex += 1
-
-
-@view
-@internal
-def _sumDailyRewards(_nDays: uint256) -> uint256:
-  initDayTimestamp: uint256 = block.timestamp - block.timestamp % 86400
-
-  sum: uint256 = 0
-  for day in self.days:
-    if initDayTimestamp - day <= _nDays * 86400: # make sure only the seven days counted
-      sum += self.rewardsByDay[day]
-  return sum
 
 
 @external
@@ -290,15 +245,6 @@ def hasFundsToInvest() -> bool:
 @external
 def maxFundsInvestable() -> int256:
   return convert(self.fundsAvailable, int256) - (convert(self.fundsAvailable, int256) + convert(self.fundsInvested, int256)) * (10000 - convert(self.maxCapitalEfficienty, int256)) / 10000
-
-
-@view
-@external
-def lastDaysApr(_nLastDays: uint256) -> uint256:
-  # returns in parts per 10**18, e.g. 2.5% is represented by 2.5 * 10**16
-  if len(self.days) == 0:
-    return 0
-  return self._sumDailyRewards(_nLastDays) * 365 * 10 ** 18 / (_nLastDays * (self.fundsAvailable + self.fundsInvested))
 
 
 @view
@@ -449,7 +395,6 @@ def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> 
   rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
   rewardsCompounded: uint256 = self._distribute_rewards(rewardsPool)
-  self._updateRewardsCounter(rewardsPool)
 
   self.fundsAvailable += _amount + rewardsCompounded
   self.fundsInvested -= _amount

@@ -84,11 +84,6 @@ def maxFundsInvestable() -> int256:
 
 @view
 @external
-def lastDaysApr(_nLastDays: uint256) -> uint256:
-    pass
-
-@view
-@external
 def depositorsArray() -> DynArray[address, 1125899906842624]:
     pass
 
@@ -204,14 +199,4 @@ def totalFundsInvested() -> uint256:
 @view
 @external
 def totalRewards() -> uint256:
-    pass
-
-@view
-@external
-def rewardsByDay(arg0: uint256) -> uint256:
-    pass
-
-@view
-@external
-def days(arg0: uint256) -> uint256:
     pass
