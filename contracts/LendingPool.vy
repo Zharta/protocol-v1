@@ -133,6 +133,8 @@ def _distribute_rewards(_rewards: uint256) -> uint256:
       if self.funds[depositor].autoCompoundRewards:
         self.funds[depositor].currentAmountDeposited += rewardsFromUser
         rewardsCompounded += rewardsFromUser
+
+        log Compound(depositor, rewardsFromUser, self.erc20TokenContract)
       else:
         self.funds[depositor].currentPendingRewards += rewardsFromUser
       
@@ -233,6 +235,17 @@ def removeWhitelistedAddress(_address: address):
   self.whitelistedAddresses[_address] = False
 
 
+@external
+def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
+  assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw any outstanding deposit"
+  assert self.funds[msg.sender].activeForRewards, "The sender is not participating in the pool"
+  assert _flag != self.funds[msg.sender].autoCompoundRewards, "The value passed should be different than the current setting"
+
+  self.funds[msg.sender].autoCompoundRewards = _flag
+
+  return self.funds[msg.sender]
+
+
 @view
 @external
 def hasFundsToInvest() -> bool:
@@ -290,17 +303,6 @@ def deposit(_amount: uint256, _autoCompoundRewards: bool) -> InvestorFunds:
   ERC20Token(self.erc20TokenContract).transferFrom(msg.sender, self, _amount)
 
   log Deposit(msg.sender, _amount, self.erc20TokenContract)
-
-  return self.funds[msg.sender]
-
-
-@external
-def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
-  assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw any outstanding deposit"
-  assert self.funds[msg.sender].activeForRewards, "The sender is not participating in the pool"
-  assert _flag != self.funds[msg.sender].autoCompoundRewards, "The value passed should be different than the current setting"
-
-  self.funds[msg.sender].autoCompoundRewards = _flag
 
   return self.funds[msg.sender]
 

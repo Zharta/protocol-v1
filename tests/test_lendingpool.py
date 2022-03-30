@@ -494,7 +494,7 @@ def test_receive_funds(lending_pool_contract, erc20_contract, contract_owner, in
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
     tx_deposit = lending_pool_contract.deposit(Web3.toWei(1, "ether"), False, {"from": investor})
-    
+
     tx_send = lending_pool_contract.sendFunds(
         borrower,
         Web3.toWei(0.2, "ether"),
@@ -517,17 +517,17 @@ def test_receive_funds(lending_pool_contract, erc20_contract, contract_owner, in
     assert lending_pool_contract.fundsAvailable() == Web3.toWei(1, "ether")
     assert lending_pool_contract.fundsInvested() == 0
     assert lending_pool_contract.totalFundsInvested() == Web3.toWei(0.2, "ether")
-    
+
     assert lending_pool_contract.totalRewards() == Web3.toWei(expectedPoolFees, "ether")
 
     assert lending_pool_contract.funds(investor)["currentPendingRewards"] == Web3.toWei(expectedPoolFees, "ether")
     assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
 
-    assert tx_receive.events[-1]["wallet"] == contract_owner
-    assert tx_receive.events[-1]["amount"] == Web3.toWei(0.2, "ether")
-    assert tx_receive.events[-1]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
-    assert tx_receive.events[-1]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
-    assert tx_send.events[-1]["erc20TokenContract"] == erc20_contract
+    assert tx_receive.events["FundsReceipt"]["wallet"] == contract_owner
+    assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
+    assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
 
 
 def test_receive_funds_multiple_lenders(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
@@ -577,6 +577,51 @@ def test_receive_funds_multiple_lenders(lending_pool_contract, erc20_contract, c
     assert tx_receive.events[-1]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events[-1]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
     assert tx_send.events[-1]["erc20TokenContract"] == erc20_contract
+
+
+def test_receive_funds_auto_compound(lending_pool_contract, erc20_contract, contract_owner, investor, borrower):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(1, "ether"), {"from": investor})
+    tx_deposit = lending_pool_contract.deposit(Web3.toWei(1, "ether"), True, {"from": investor})
+
+    tx_send = lending_pool_contract.sendFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        {"from": contract_owner}
+    )
+
+    erc20_contract.mint(borrower, Web3.toWei(0.22, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_contract, Web3.toWei(0.22, "ether"), {"from": borrower})
+
+    tx_receive = lending_pool_contract.receiveFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        Web3.toWei(0.02, "ether"),
+        {"from": contract_owner}
+    )
+
+    expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
+    expectedPoolFees = Decimal(0.02) - expectedProtocolFees
+
+    assert lending_pool_contract.fundsAvailable() == Web3.toWei(1 + expectedPoolFees, "ether")
+    assert lending_pool_contract.fundsInvested() == 0
+    assert lending_pool_contract.totalFundsInvested() == Web3.toWei(0.2, "ether")
+
+    assert lending_pool_contract.totalRewards() == Web3.toWei(expectedPoolFees, "ether")
+
+    assert lending_pool_contract.funds(investor)["currentAmountDeposited"] == Web3.toWei(1 + expectedPoolFees, "ether")
+    assert lending_pool_contract.funds(investor)["currentPendingRewards"] == 0
+    assert lending_pool_contract.funds(investor)["totalRewardsAmount"] == Web3.toWei(expectedPoolFees, "ether")
+
+    assert tx_receive.events["FundsReceipt"]["wallet"] == contract_owner
+    assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
+    assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
+
+    assert tx_receive.events["Compound"]["wallet"] == investor
+    assert tx_receive.events["Compound"]["amount"] == Web3.toWei(expectedPoolFees, "ether")
+    assert tx_receive.events["Compound"]["erc20TokenContract"] == erc20_contract
 
 
 def test_compound_rewards_no_deposits(lending_pool_contract, investor):
