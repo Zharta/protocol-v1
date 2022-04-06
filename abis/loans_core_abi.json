@@ -6,10 +6,6 @@
       {
         "name": "_loansPeripheral",
         "type": "address"
-      },
-      {
-        "name": "_maxAllowedLoans",
-        "type": "uint256"
       }
     ],
     "outputs": []
@@ -1048,18 +1044,6 @@
       {
         "name": "",
         "type": "address"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "maxAllowedLoans",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
       }
     ]
   },

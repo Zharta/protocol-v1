@@ -72,6 +72,10 @@ def addWhitelistedAddress(_address: address):
 def removeWhitelistedAddress(_address: address):
     pass
 
+@external
+def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
+    pass
+
 @view
 @external
 def hasFundsToInvest() -> bool:
@@ -89,10 +93,6 @@ def depositorsArray() -> DynArray[address, 1125899906842624]:
 
 @external
 def deposit(_amount: uint256, _autoCompoundRewards: bool) -> InvestorFunds:
-    pass
-
-@external
-def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
     pass
 
 @external

@@ -99,6 +99,8 @@ maxAllowedLoanDuration: public(uint256)
 minLoanAmount: public(uint256)
 maxLoanAmount: public(uint256)
 
+ongoingLoans: public(HashMap[address, uint256])
+
 isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
@@ -307,6 +309,7 @@ def reserve(
     assert self._areCollateralsOwned(msg.sender, _collaterals), "Not all collaterals are owned by the borrower"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "Not all collaterals are approved to be transferred"
     assert self.lendingPool.maxFundsInvestable() >= convert(_amount, int256), "Insufficient funds in the lending pool"
+    assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "Max number of loans for borrower already reached"
     assert _amount >= self.minLoanAmount, "Loan amount is less than the min loan amount"
     assert _amount <= self.maxLoanAmount, "Loan amount is more than the max loan amount"
 
@@ -324,6 +327,8 @@ def reserve(
         self.loansCore.addCollateralToLoan(msg.sender, collateral, newLoanId)
         
         self.loansCore.updateCollaterals(collateral, False)
+
+    self.ongoingLoans[msg.sender] += 1
 
     log LoanCreated(msg.sender, newLoanId, self.lendingPool.erc20TokenContract())
 
@@ -367,6 +372,8 @@ def invalidate(_borrower: address, _loanId: uint256):
     
     self.loansCore.updateInvalidLoan(_borrower, _loanId)
 
+    self.ongoingLoans[_borrower] -= 1
+
     log LoanInvalidated(_borrower, _loanId, self.lendingPool.erc20TokenContract())
 
 
@@ -397,6 +404,8 @@ def pay(_loanId: uint256, _amountPaid: uint256):
             self.loansCore.updateCollaterals(collateral, True)
 
         self.loansCore.updatePaidLoan(msg.sender, _loanId)
+
+        self.ongoingLoans[msg.sender] -= 1
         
         log LoanPaid(msg.sender, _loanId, self.lendingPool.erc20TokenContract())
 
@@ -427,6 +436,8 @@ def settleDefault(_borrower: address, _loanId: uint256):
 
     self.loansCore.updateHighestDefaultedLoan(_borrower, _loanId)
 
+    self.ongoingLoans[_borrower] -= 1
+
     log LoanDefaulted(
         _borrower,
         _loanId,
@@ -447,7 +458,9 @@ def cancelPendingLoan(_loanId: uint256):
 
         self.loansCore.updateCollaterals(collateral, True)
 
-    self.loansCore.updateCanceledLoan(msg.sender, _loanId) 
+    self.loansCore.updateCanceledLoan(msg.sender, _loanId)
+
+    self.ongoingLoans[msg.sender] -= 1
 
     log PendingLoanCanceled(msg.sender, _loanId, self.lendingPool.erc20TokenContract())
 

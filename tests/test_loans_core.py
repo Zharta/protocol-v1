@@ -8,7 +8,6 @@ from decimal import Decimal
 from web3 import Web3
 
 
-MAX_NUMBER_OF_LOANS = 10
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
@@ -60,14 +59,13 @@ def test_collaterals(erc721_contract):
 
 @pytest.fixture
 def loans_core_contract(LoansCore, loans_contract, contract_owner):
-    yield LoansCore.deploy(loans_contract.address, MAX_NUMBER_OF_LOANS, {"from": contract_owner})
+    yield LoansCore.deploy(loans_contract.address, {"from": contract_owner})
 
 
 def test_initial_state(loans_core_contract, loans_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
     assert loans_core_contract.owner() == contract_owner
     assert loans_core_contract.loansPeripheral() == loans_contract
-    assert loans_core_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
 
 
 def test_change_ownership_wrong_sender(loans_core_contract, borrower):
@@ -138,31 +136,6 @@ def test_add_loan(loans_core_contract, loans_contract, borrower, test_collateral
     assert not loans_core_contract.getLoanStarted(borrower, loan_id)
     assert len(loans_core_contract.getLoanCollaterals(borrower, loan_id)) == len(test_collaterals)
     assert loans_core_contract.getLoanCollaterals(borrower, loan_id) == test_collaterals
-
-
-def test_add_loan_max_loans_reached(loans_core_contract, loans_contract, erc721_contract, borrower):
-    for k in range(MAX_NUMBER_OF_LOANS):
-        loans_core_contract.addLoan(
-            borrower,
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            [(erc721_contract, k)],
-            {"from": loans_contract}
-        )
-        print(loans_core_contract.getPendingLoan(borrower, k))
-        time.sleep(0.2)
-
-    with brownie.reverts("Max number of loans for borrower already reached"):
-        loans_core_contract.addLoan(
-            borrower,
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            [(erc721_contract, MAX_NUMBER_OF_LOANS)],
-            {"from": loans_contract}
-        )
-        print(loans_core_contract.getPendingLoan(borrower, 10))
 
 
 def test_update_invalid_loan_wrong_sender(loans_core_contract, contract_owner, borrower):

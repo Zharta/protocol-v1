@@ -289,6 +289,53 @@
     "outputs": []
   },
   {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "changeAutoCompoundRewardsSetting",
+    "inputs": [
+      {
+        "name": "_flag",
+        "type": "bool"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currentAmountDeposited",
+            "type": "uint256"
+          },
+          {
+            "name": "totalAmountDeposited",
+            "type": "uint256"
+          },
+          {
+            "name": "totalAmountWithdrawn",
+            "type": "uint256"
+          },
+          {
+            "name": "currentPendingRewards",
+            "type": "uint256"
+          },
+          {
+            "name": "totalRewardsAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "activeForRewards",
+            "type": "bool"
+          },
+          {
+            "name": "autoCompoundRewards",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "stateMutability": "view",
     "type": "function",
     "name": "hasFundsToInvest",
@@ -335,53 +382,6 @@
       },
       {
         "name": "_autoCompoundRewards",
-        "type": "bool"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "currentAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountWithdrawn",
-            "type": "uint256"
-          },
-          {
-            "name": "currentPendingRewards",
-            "type": "uint256"
-          },
-          {
-            "name": "totalRewardsAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "activeForRewards",
-            "type": "bool"
-          },
-          {
-            "name": "autoCompoundRewards",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "changeAutoCompoundRewardsSetting",
-    "inputs": [
-      {
-        "name": "_flag",
         "type": "bool"
       }
     ],
