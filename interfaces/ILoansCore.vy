@@ -4,7 +4,6 @@ struct Collateral:
     contractAddress: address
     tokenId: uint256
 
-
 struct Loan:
     id: uint256
     amount: uint256
@@ -203,11 +202,6 @@ def owner() -> address:
 @view
 @external
 def loansPeripheral() -> address:
-    pass
-
-@view
-@external
-def maxAllowedLoans() -> uint256:
     pass
 
 @view
