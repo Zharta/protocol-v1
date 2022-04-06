@@ -37,8 +37,6 @@ loansPeripheral: public(address)
 
 loans: HashMap[address, DynArray[Loan, 2**50]]
 
-maxAllowedLoans: public(uint256)
-
 # key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
 collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256, bool]]]) # given a collateral, a borrower and a loan id, is the collateral still used in that loan id
@@ -121,10 +119,9 @@ def _addLoan(_borrower: address, _loan: Loan) -> bool:
 ##### EXTERNAL METHODS #####
 
 @external
-def __init__(_loansPeripheral: address, _maxAllowedLoans: uint256):
+def __init__(_loansPeripheral: address):
     self.owner = msg.sender
     self.loansPeripheral = _loansPeripheral
-    self.maxAllowedLoans = _maxAllowedLoans
 
 
 @external
@@ -331,7 +328,6 @@ def addLoan(
     _collaterals: DynArray[Collateral, 10]
 ) -> uint256:
     assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can add loans"
-    assert len(self.loans[_borrower]) < self.maxAllowedLoans, "Max number of loans for borrower already reached"
 
     newLoan: Loan = Loan(
         {
