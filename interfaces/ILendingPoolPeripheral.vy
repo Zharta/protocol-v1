@@ -4,10 +4,8 @@ struct InvestorFunds:
     currentAmountDeposited: uint256
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
-    currentPendingRewards: uint256
-    totalRewardsAmount: uint256
+    sharesBasisPoints: uint256
     activeForRewards: bool
-    autoCompoundRewards: bool
 
 # Events
 
@@ -36,6 +34,16 @@ event FundsReceipt:
 
 # Functions
 
+@view
+@external
+def poolHasFundsToInvest() -> bool:
+    pass
+
+@view
+@external
+def maxFundsInvestable() -> int256:
+    pass
+
 @external
 def changeOwnership(_newOwner: address) -> address:
     pass
@@ -57,6 +65,10 @@ def changePoolStatus(_flag: bool) -> bool:
     pass
 
 @external
+def setLendingPoolCoreAddress(_address: address) -> address:
+    pass
+
+@external
 def deprecate() -> bool:
     pass
 
@@ -73,42 +85,19 @@ def removeWhitelistedAddress(_address: address):
     pass
 
 @external
-def changeAutoCompoundRewardsSetting(_flag: bool) -> InvestorFunds:
-    pass
-
-@view
-@external
-def hasFundsToInvest() -> bool:
-    pass
-
-@view
-@external
-def maxFundsInvestable() -> int256:
-    pass
-
-@view
-@external
-def depositorsArray() -> DynArray[address, 1125899906842624]:
+def deposit(_amount: uint256) -> bool:
     pass
 
 @external
-def deposit(_amount: uint256, _autoCompoundRewards: bool) -> InvestorFunds:
+def withdraw(_amount: uint256) -> bool:
     pass
 
 @external
-def withdraw(_amount: uint256) -> InvestorFunds:
+def sendFunds(_to: address, _amount: uint256) -> bool:
     pass
 
 @external
-def compoundRewards() -> InvestorFunds:
-    pass
-
-@external
-def sendFunds(_to: address, _amount: uint256) -> uint256:
-    pass
-
-@external
-def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
     pass
 
 @payable
@@ -124,6 +113,11 @@ def owner() -> address:
 @view
 @external
 def loansContract() -> address:
+    pass
+
+@view
+@external
+def lendingPoolCoreContract() -> address:
     pass
 
 @view
@@ -169,34 +163,4 @@ def whitelistEnabled() -> bool:
 @view
 @external
 def whitelistedAddresses(arg0: address) -> bool:
-    pass
-
-@view
-@external
-def funds(arg0: address) -> InvestorFunds:
-    pass
-
-@view
-@external
-def depositors(arg0: uint256) -> address:
-    pass
-
-@view
-@external
-def fundsAvailable() -> uint256:
-    pass
-
-@view
-@external
-def fundsInvested() -> uint256:
-    pass
-
-@view
-@external
-def totalFundsInvested() -> uint256:
-    pass
-
-@view
-@external
-def totalRewards() -> uint256:
     pass

@@ -1,3 +1,13 @@
+# Structs
+
+struct InvestorFunds:
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    sharesBasisPoints: uint256
+    activeForRewards: bool
+
+
 # Events
 
 event Compound:

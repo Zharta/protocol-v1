@@ -1,22 +1,22 @@
 # Structs
 
 struct Collateral:
-    contract: address
-    id: uint256
-
-struct Collaterals:
-    size: uint256
-    contracts: address[10]
-    ids: uint256[10]
+    contractAddress: address
+    tokenId: uint256
 
 struct Loan:
     id: uint256
     amount: uint256
-    interest: uint256
+    interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: Collaterals
+    collaterals: DynArray[Collateral, 10]
     paidAmount: uint256
+    started: bool
+    invalidated: bool
+    paid: bool
+    defaulted: bool
+    canceled: bool
 
 # Events
 
