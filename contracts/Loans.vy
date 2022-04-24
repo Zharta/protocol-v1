@@ -5,7 +5,7 @@
 
 from interfaces import ILoansCore
 
-interface ILendingPool:
+interface ILendingPoolPeripheral:
     def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
     def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
     def maxFundsInvestable() -> int256: view
@@ -110,7 +110,7 @@ whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral addr
 loansCore: ILoansCore
 loansCoreAddress: public(address)
 
-lendingPool: ILendingPool
+lendingPool: ILendingPoolPeripheral
 lendingPoolAddress: public(address)
 
 
@@ -244,7 +244,7 @@ def setLoansCoreAddress(_address: address) -> address:
 def setLendingPoolAddress(_address: address) -> address:
     assert msg.sender == self.owner, "Only the contract owner can set the investment pool address"
 
-    self.lendingPool = ILendingPool(_address)
+    self.lendingPool = ILendingPoolPeripheral(_address)
     self.lendingPoolAddress = _address
     return self.lendingPoolAddress
 

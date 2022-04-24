@@ -4,6 +4,7 @@ struct Collateral:
     contractAddress: address
     tokenId: uint256
 
+
 struct Loan:
     id: uint256
     amount: uint256
@@ -17,6 +18,13 @@ struct Loan:
     paid: bool
     defaulted: bool
     canceled: bool
+
+
+struct TopStats:
+    highestSingleCollateralLoan: Loan
+    highestCollateralBundleLoan: Loan
+    highestRepayment: Loan
+    highestDefaultedLoan: Loan
 
 # Functions
 
