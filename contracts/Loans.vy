@@ -5,7 +5,7 @@
 
 from interfaces import ILoansCore
 
-interface ILendingPool:
+interface ILendingPoolPeripheral:
     def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
     def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
     def maxFundsInvestable() -> int256: view
@@ -40,6 +40,10 @@ struct Loan:
     collaterals: DynArray[Collateral, 10]
     paidAmount: uint256
     started: bool
+    invalidated: bool
+    paid: bool
+    defaulted: bool
+    canceled: bool
 
 
 # Events
@@ -92,9 +96,10 @@ event LoanCanceled:
 owner: public(address)
 maxAllowedLoans: public(uint256)
 maxAllowedLoanDuration: public(uint256)
-bufferToCancelLoan: public(uint256)
 minLoanAmount: public(uint256)
 maxLoanAmount: public(uint256)
+
+ongoingLoans: public(HashMap[address, uint256])
 
 isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
@@ -105,29 +110,20 @@ whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral addr
 loansCore: ILoansCore
 loansCoreAddress: public(address)
 
-lendingPool: ILendingPool
+lendingPool: ILendingPoolPeripheral
 lendingPoolAddress: public(address)
-
-currentStartedLoans: public(uint256)
-totalStartedLoans: public(uint256)
-totalPaidLoans: public(uint256)
-totalDefaultedLoans: public(uint256)
-totalDefaultedLoansAmount: public(uint256)
-totalCanceledLoans: public(uint256)
 
 
 @external
 def __init__(
     _maxAllowedLoans: uint256,
     _maxAllowedLoanDuration: uint256,
-    _bufferToCancelLoan: uint256,
     _minLoanAmount: uint256,
     _maxLoanAmount: uint256
 ):
     self.owner = msg.sender
     self.maxAllowedLoans = _maxAllowedLoans
     self.maxAllowedLoanDuration = _maxAllowedLoanDuration
-    self.bufferToCancelLoan = _bufferToCancelLoan
     self.minLoanAmount = _minLoanAmount
     self.maxLoanAmount = _maxLoanAmount
     self.isAcceptingLoans = True
@@ -148,14 +144,6 @@ def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 
         if ICollateral(collateral.contractAddress).ownerOf(collateral.tokenId) != _borrower:
             return False
     return True
-
-
-@view
-@internal
-def _hasBufferPassed(_blockTimestamp: uint256, _loanStartTime: uint256) -> bool:
-    if _loanStartTime == 0:
-        return True
-    return _blockTimestamp - _loanStartTime > self.bufferToCancelLoan
 
 
 @view
@@ -256,7 +244,7 @@ def setLoansCoreAddress(_address: address) -> address:
 def setLendingPoolAddress(_address: address) -> address:
     assert msg.sender == self.owner, "Only the contract owner can set the investment pool address"
 
-    self.lendingPool = ILendingPool(_address)
+    self.lendingPool = ILendingPoolPeripheral(_address)
     self.lendingPoolAddress = _address
     return self.lendingPoolAddress
 
@@ -296,32 +284,14 @@ def erc20TokenSymbol() -> String[10]:
 
 @view
 @external
-def getLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
-    return self.loansCore.getLoanIdsUsedByAddress(_borrower)
+def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
+    return self.loansCore.getPendingLoan(_borrower, _loanId)
 
 
 @view
 @external
-def getPendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    return self.loansCore.getPendingBorrowerLoans(_borrower)
-
-
-@view
-@external
-def getPendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-    return self.loansCore.getPendingBorrowerLoan(_borrower, _loanId)
-
-
-@view
-@external
-def getBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    return self.loansCore.getBorrowerLoans(_borrower)
-
-
-@view
-@external
-def getBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-    return self.loansCore.getBorrowerLoan(_borrower, _loanId)
+def getLoan(_borrower: address, _loanId: uint256) -> Loan:
+    return self.loansCore.getLoan(_borrower, _loanId)
 
 
 @external
@@ -335,11 +305,11 @@ def reserve(
     assert self.isAcceptingLoans, "The contract is not accepting more loans right now"
     assert block.timestamp <= _maturity, "Maturity can not be in the past"
     assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "Maturity can not exceed the max allowed"
-    assert self.loansCore.nextLoanId(msg.sender) < self.maxAllowedLoans, "Max number of started loans already reached"
     assert self._areCollateralsWhitelisted(_collaterals), "Not all collaterals are whitelisted"
     assert self._areCollateralsOwned(msg.sender, _collaterals), "Not all collaterals are owned by the borrower"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "Not all collaterals are approved to be transferred"
     assert self.lendingPool.maxFundsInvestable() >= convert(_amount, int256), "Insufficient funds in the lending pool"
+    assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "Max number of loans for borrower already reached"
     assert _amount >= self.minLoanAmount, "Loan amount is less than the min loan amount"
     assert _amount <= self.maxLoanAmount, "Loan amount is more than the max loan amount"
 
@@ -355,7 +325,10 @@ def reserve(
         ICollateral(collateral.contractAddress).transferFrom(msg.sender, self, collateral.tokenId)
 
         self.loansCore.addCollateralToLoan(msg.sender, collateral, newLoanId)
+        
         self.loansCore.updateCollaterals(collateral, False)
+
+    self.ongoingLoans[msg.sender] += 1
 
     log LoanCreated(msg.sender, newLoanId, self.lendingPool.erc20TokenContract())
 
@@ -374,11 +347,10 @@ def validate(_borrower: address, _loanId: uint256):
     assert self.lendingPool.maxFundsInvestable() >= convert(self.loansCore.getLoanAmount(_borrower, _loanId), int256), "Insufficient funds in the lending pool"
 
     self.loansCore.updateLoanStarted(_borrower, _loanId)
-    self.loansCore.updateHighestSingleCollateralLoan(_borrower, _loanId)
-    self.loansCore.updateHighestCollateralBundleLoan(_borrower, _loanId)
     
-    self.currentStartedLoans += 1
-    self.totalStartedLoans += 1
+    self.loansCore.updateHighestSingleCollateralLoan(_borrower, _loanId)
+
+    self.loansCore.updateHighestCollateralBundleLoan(_borrower, _loanId)
 
     self.lendingPool.sendFunds(_borrower, self.loansCore.getLoanAmount(_borrower, _loanId))
 
@@ -395,9 +367,12 @@ def invalidate(_borrower: address, _loanId: uint256):
         ICollateral(collateral.contractAddress).safeTransferFrom(self, _borrower, collateral.tokenId)
 
         self.loansCore.removeCollateralFromLoan(_borrower, collateral, _loanId)
+
         self.loansCore.updateCollaterals(collateral, True)
     
-    self.loansCore.removeLoan(_borrower, _loanId)
+    self.loansCore.updateInvalidLoan(_borrower, _loanId)
+
+    self.ongoingLoans[_borrower] -= 1
 
     log LoanInvalidated(_borrower, _loanId, self.lendingPool.erc20TokenContract())
 
@@ -425,17 +400,18 @@ def pay(_loanId: uint256, _amountPaid: uint256):
             ICollateral(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
 
             self.loansCore.removeCollateralFromLoan(msg.sender, collateral, _loanId)
+
             self.loansCore.updateCollaterals(collateral, True)
 
-        self.loansCore.updateHighestRepayment(msg.sender, _loanId)
-        self.loansCore.removeLoan(msg.sender, _loanId)
+        self.loansCore.updatePaidLoan(msg.sender, _loanId)
+
+        self.ongoingLoans[msg.sender] -= 1
         
-        self.currentStartedLoans -= 1
-        self.totalPaidLoans += 1
         log LoanPaid(msg.sender, _loanId, self.lendingPool.erc20TokenContract())
-    else:
-        self.loansCore.updateLoanPaidAmount(msg.sender, _loanId, paidAmount + paidAmountInterest)
-        self.loansCore.updateHighestRepayment(msg.sender, _loanId)
+
+    self.loansCore.updateLoanPaidAmount(msg.sender, _loanId, paidAmount + paidAmountInterest)
+    
+    self.loansCore.updateHighestRepayment(msg.sender, _loanId)
 
     self.lendingPool.receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
@@ -448,24 +424,26 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert self.loansCore.isLoanStarted(_borrower, _loanId), "The _borrower has not started a loan with the given ID"
     assert block.timestamp > self.loansCore.getLoanMaturity(_borrower, _loanId), "The maturity of the loan has not been reached yet"
 
-    self.totalDefaultedLoansAmount += self.loansCore.getLoanAmount(_borrower, _loanId)
-
     collaterals: DynArray[Collateral, 10] = self.loansCore.getLoanCollaterals(_borrower, _loanId)
     for collateral in collaterals:
         ICollateral(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId)
 
         self.loansCore.removeCollateralFromLoan(_borrower, collateral, _loanId)
+
         self.loansCore.updateCollaterals(collateral, True)
 
-    amount: uint256 = self.loansCore.getLoanAmount(_borrower, _loanId)
+    self.loansCore.updateDefaultedLoan(_borrower, _loanId)
+
     self.loansCore.updateHighestDefaultedLoan(_borrower, _loanId)
-    self.loansCore.removeLoan(_borrower, _loanId)
 
-    self.currentStartedLoans -= 1
-    self.totalDefaultedLoans += 1
-    self.totalDefaultedLoansAmount += amount
+    self.ongoingLoans[_borrower] -= 1
 
-    log LoanDefaulted(_borrower, _loanId, amount, self.lendingPool.erc20TokenContract())
+    log LoanDefaulted(
+        _borrower,
+        _loanId,
+        self.loansCore.getLoanAmount(_borrower, _loanId),
+        self.lendingPool.erc20TokenContract()
+    )
 
 
 @external
@@ -477,33 +455,14 @@ def cancelPendingLoan(_loanId: uint256):
         ICollateral(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
 
         self.loansCore.removeCollateralFromLoan(msg.sender, collateral, _loanId)
+
         self.loansCore.updateCollaterals(collateral, True)
 
-    self.loansCore.removeLoan(msg.sender, _loanId) 
+    self.loansCore.updateCanceledLoan(msg.sender, _loanId)
+
+    self.ongoingLoans[msg.sender] -= 1
 
     log PendingLoanCanceled(msg.sender, _loanId, self.lendingPool.erc20TokenContract())
-
-
-@external
-def cancelStartedLoan(_loanId: uint256):
-    assert self.loansCore.isLoanStarted(msg.sender, _loanId), "The sender has not started a loan with the given ID"
-    assert not self._hasBufferPassed(block.timestamp, self.loansCore.getLoanStartTime(msg.sender, _loanId)), "The time buffer to cancel the loan has passed"
-
-    collaterals: DynArray[Collateral, 10] = self.loansCore.getLoanCollaterals(msg.sender, _loanId)
-    for collateral in collaterals:
-        ICollateral(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
-
-        self.loansCore.removeCollateralFromLoan(msg.sender, collateral, _loanId)
-        self.loansCore.updateCollaterals(collateral, True)
-
-    self.lendingPool.receiveFunds(msg.sender, self.loansCore.getLoanAmount(msg.sender, _loanId), 0)
-
-    self.loansCore.removeLoan(msg.sender, _loanId)
-
-    self.currentStartedLoans -= 1
-    self.totalCanceledLoans += 1
-
-    log LoanCanceled(msg.sender, _loanId, self.lendingPool.erc20TokenContract())
 
 
 @external

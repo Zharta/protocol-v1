@@ -14,6 +14,17 @@ struct Loan:
     collaterals: DynArray[Collateral, 10]
     paidAmount: uint256
     started: bool
+    invalidated: bool
+    paid: bool
+    defaulted: bool
+    canceled: bool
+
+
+struct TopStats:
+    highestSingleCollateralLoan: Loan
+    highestCollateralBundleLoan: Loan
+    highestRepayment: Loan
+    highestDefaultedLoan: Loan
 
 # Functions
 
@@ -33,11 +44,6 @@ def isLoanCreated(_borrower: address, _loanId: uint256) -> bool:
 @view
 @external
 def isLoanStarted(_borrower: address, _loanId: uint256) -> bool:
-    pass
-
-@view
-@external
-def getLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
     pass
 
 @view
@@ -77,22 +83,32 @@ def getLoanStarted(_borrower: address, _loanId: uint256) -> bool:
 
 @view
 @external
-def getPendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+def getLoanInvalidated(_borrower: address, _loanId: uint256) -> bool:
     pass
 
 @view
 @external
-def getPendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
+def getLoanPaid(_borrower: address, _loanId: uint256) -> bool:
     pass
 
 @view
 @external
-def getBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+def getLoanDefaulted(_borrower: address, _loanId: uint256) -> bool:
     pass
 
 @view
 @external
-def getBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
+def getLoanCanceled(_borrower: address, _loanId: uint256) -> bool:
+    pass
+
+@view
+@external
+def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
+    pass
+
+@view
+@external
+def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @view
@@ -142,15 +158,27 @@ def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity:
     pass
 
 @external
-def removeLoan(_borrower: address, _loanId: uint256):
-    pass
-
-@external
 def updateLoanStarted(_borrower: address, _loanId: uint256):
     pass
 
 @external
+def updateInvalidLoan(_borrower: address, _loanId: uint256):
+    pass
+
+@external
 def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
+    pass
+
+@external
+def updatePaidLoan(_borrower: address, _loanId: uint256):
+    pass
+
+@external
+def updateDefaultedLoan(_borrower: address, _loanId: uint256):
+    pass
+
+@external
+def updateCanceledLoan(_borrower: address, _loanId: uint256):
     pass
 
 @external
@@ -182,16 +210,6 @@ def owner() -> address:
 @view
 @external
 def loansPeripheral() -> address:
-    pass
-
-@view
-@external
-def nextLoanId(arg0: address) -> uint256:
-    pass
-
-@view
-@external
-def maxAllowedLoans() -> uint256:
     pass
 
 @view

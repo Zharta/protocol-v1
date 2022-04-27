@@ -17,6 +17,10 @@ struct Loan:
     collaterals: DynArray[Collateral, 10]
     paidAmount: uint256
     started: bool
+    invalidated: bool
+    paid: bool
+    defaulted: bool
+    canceled: bool
 
 
 struct TopStats:
@@ -31,11 +35,7 @@ struct TopStats:
 owner: public(address)
 loansPeripheral: public(address)
 
-loans: HashMap[address, DynArray[Loan, 10]]
-loanIdsUsed: HashMap[address, bool[10]]
-nextLoanId: public(HashMap[address, uint256])
-
-maxAllowedLoans: public(uint256)
+loans: HashMap[address, DynArray[Loan, 2**50]]
 
 # key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
@@ -53,33 +53,23 @@ topStats: TopStats
 
 @view
 @internal
-def _checkNextLoanId(_borrower: address) -> uint256:
-    for index in range(10):
-        if not self.loanIdsUsed[_borrower][index]:
-            return index
-    return 2*50 # arbitrarly large number
-
-
-# @view
-# @internal
-# def _loanWithIdExists(_borrower: address, _loanId: uint256) -> bool:
-#     return self.loanIdsUsed[_borrower][_loanId]
-
-
-@view
-@internal
 def _isLoanCreated(_borrower: address, _loanId: uint256) -> bool:
-    return self.loanIdsUsed[_borrower][_loanId]
-    # if self.loanIdsUsed[_borrower][_loanId]:
-    #     return not self.loans[_borrower][_loanId].started
-    # return False
+    return _loanId < len(self.loans[_borrower])
 
 
 @view
 @internal
 def _isLoanStarted(_borrower: address, _loanId: uint256) -> bool:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].started
+    return False
+
+
+@view
+@internal
+def _isLoanInvalidated(_borrower: address, _loanId: uint256) -> bool:
+    if _loanId < len(self.loans[_borrower]):
+        return self.loans[_borrower][_loanId].invalidated
     return False
 
 
@@ -118,60 +108,20 @@ def _updateCollaterals(_collateral: Collateral, _toRemove: bool):
 
 
 @internal
-def _addLoan(_borrower: address, _loan: Loan):
-    if len(self.loans[_borrower]) == self.nextLoanId[_borrower]:
+def _addLoan(_borrower: address, _loan: Loan) -> bool:
+    if _loan.id == len(self.loans[_borrower]):
         self.loans[_borrower].append(_loan)
-    elif len(self.loans[_borrower]) >= self.nextLoanId[_borrower] + 1:
-        self.loans[_borrower][self.nextLoanId[_borrower]] = _loan
-    self.loanIdsUsed[_borrower][self.nextLoanId[_borrower]] = True
-    self.nextLoanId[_borrower] = self._checkNextLoanId(_borrower)
-
-
-@internal
-def _removeLoan(_borrower: address, _loanId: uint256):
-    if self.loanIdsUsed[_borrower][_loanId]:
-        self.loans[_borrower][_loanId] = empty(Loan)
-        self.nextLoanId[_borrower] = _loanId
-        self.loanIdsUsed[_borrower][_loanId] = False
-
-
-@internal
-def _updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
-    if self.loanIdsUsed[_borrower][_loanId]:
-        self.loans[_borrower][_loanId].paidAmount += _paidAmount
-
-
-@internal
-def _updateHighestSingleCollateralLoan(_borrower: address, _loanId: uint256):
-    if len(self.loans[_borrower][_loanId].collaterals) == 1 and self.topStats.highestSingleCollateralLoan.amount < self.loans[_borrower][_loanId].amount:
-        self.topStats.highestSingleCollateralLoan = self.loans[_borrower][_loanId]
-  
-
-@internal
-def _updateHighestCollateralBundleLoan(_borrower: address, _loanId: uint256):
-    if len(self.loans[_borrower][_loanId].collaterals) > 1 and self.topStats.highestCollateralBundleLoan.amount < self.loans[_borrower][_loanId].amount:
-        self.topStats.highestCollateralBundleLoan = self.loans[_borrower][_loanId]
-
-
-@internal
-def _updateHighestRepayment(_borrower: address, _loanId: uint256):
-    if self.topStats.highestRepayment.amount < self.loans[_borrower][_loanId].amount:
-        self.topStats.highestRepayment = self.loans[_borrower][_loanId]
-
-
-@internal
-def _updateHighestDefaultedLoan(_borrower: address, _loanId: uint256):
-    if self.topStats.highestDefaultedLoan.amount < self.loans[_borrower][_loanId].amount:
-        self.topStats.highestDefaultedLoan = self.loans[_borrower][_loanId]
+        return True
+    else:
+        return False
 
 
 ##### EXTERNAL METHODS #####
 
 @external
-def __init__(_loansPeripheral: address, _maxAllowedLoans: uint256):
+def __init__(_loansPeripheral: address):
     self.owner = msg.sender
     self.loansPeripheral = _loansPeripheral
-    self.maxAllowedLoans = _maxAllowedLoans
 
 
 @external
@@ -208,14 +158,8 @@ def isLoanStarted(_borrower: address, _loanId: uint256) -> bool:
 
 @view
 @external
-def getLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
-  return self.loanIdsUsed[_borrower]
-
-
-@view
-@external
 def getLoanAmount(_borrower: address, _loanId: uint256) -> uint256:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].amount
     return 0
 
@@ -223,7 +167,7 @@ def getLoanAmount(_borrower: address, _loanId: uint256) -> uint256:
 @view
 @external
 def getLoanMaturity(_borrower: address, _loanId: uint256) -> uint256:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].maturity
     return 0
 
@@ -231,7 +175,7 @@ def getLoanMaturity(_borrower: address, _loanId: uint256) -> uint256:
 @view
 @external
 def getLoanInterest(_borrower: address, _loanId: uint256) -> uint256:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].interest
     return 0
 
@@ -239,7 +183,7 @@ def getLoanInterest(_borrower: address, _loanId: uint256) -> uint256:
 @view
 @external
 def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 10]:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].collaterals
     return empty(DynArray[Collateral, 10])
 
@@ -247,7 +191,7 @@ def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collate
 @view
 @external
 def getLoanStartTime(_borrower: address, _loanId: uint256) -> uint256:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].startTime
     return 0
 
@@ -255,7 +199,7 @@ def getLoanStartTime(_borrower: address, _loanId: uint256) -> uint256:
 @view
 @external
 def getLoanPaidAmount(_borrower: address, _loanId: uint256) -> uint256:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].paidAmount
     return 0
 
@@ -263,14 +207,46 @@ def getLoanPaidAmount(_borrower: address, _loanId: uint256) -> uint256:
 @view
 @external
 def getLoanStarted(_borrower: address, _loanId: uint256) -> bool:
-    if self.loanIdsUsed[_borrower][_loanId]:
+    if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].started
     return False
 
 
 @view
 @external
-def getPendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+def getLoanInvalidated(_borrower: address, _loanId: uint256) -> bool:
+    if _loanId < len(self.loans[_borrower]):
+        return self.loans[_borrower][_loanId].invalidated
+    return False
+
+
+@view
+@external
+def getLoanPaid(_borrower: address, _loanId: uint256) -> bool:
+    if _loanId < len(self.loans[_borrower]):
+        return self.loans[_borrower][_loanId].paid
+    return False
+
+
+@view
+@external
+def getLoanDefaulted(_borrower: address, _loanId: uint256) -> bool:
+    if _loanId < len(self.loans[_borrower]):
+        return self.loans[_borrower][_loanId].defaulted
+    return False
+
+
+@view
+@external
+def getLoanCanceled(_borrower: address, _loanId: uint256) -> bool:
+    if _loanId < len(self.loans[_borrower]):
+        return self.loans[_borrower][_loanId].canceled
+    return False
+
+
+@view
+@external
+def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
   if self._isLoanCreated(_borrower, _loanId):
     return self.loans[_borrower][_loanId]
   return empty(Loan)
@@ -278,32 +254,10 @@ def getPendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
 
 @view
 @external
-def getPendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-  result: DynArray[Loan, 10] = []
-  _loans: DynArray[Loan, 10] = self.loans[_borrower]
-  for loan in _loans:
-    if not loan.started and loan.amount > 0:
-      result.append(loan)
-  return result
-
-
-@view
-@external
-def getBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-  if self._isLoanStarted(_borrower, _loanId):
+def getLoan(_borrower: address, _loanId: uint256) -> Loan:
+  if self._isLoanStarted(_borrower, _loanId) or self._isLoanInvalidated(_borrower, _loanId):
     return self.loans[_borrower][_loanId]
   return empty(Loan)
-
-
-@view
-@external
-def getBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-  result: DynArray[Loan, 10] = []
-  _loans: DynArray[Loan, 10] = self.loans[_borrower]
-  for loan in _loans:
-    if loan.started and loan.amount > 0:
-      result.append(loan)
-  return result
 
 
 @view
@@ -374,32 +328,29 @@ def addLoan(
     _collaterals: DynArray[Collateral, 10]
 ) -> uint256:
     assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can add loans"
-    assert self.nextLoanId[_borrower] < self.maxAllowedLoans, "Max number of loans for borrower already reached"
 
     newLoan: Loan = Loan(
         {
-            id: self.nextLoanId[_borrower],
+            id: len(self.loans[_borrower]),
             amount: _amount,
             interest: _interest,
             maturity: _maturity,
-            startTime: block.timestamp,
+            startTime: 0,
             paidAmount: 0,
             started: False,
+            invalidated: False,
+            paid: False,
+            defaulted: False,
+            canceled: False,
             collaterals: _collaterals
         }
     )
 
-    self._addLoan(_borrower, newLoan)
+    result: bool = self._addLoan(_borrower, newLoan)
+    if not result:
+        raise "Adding loan for borrower failed"
 
     return newLoan.id
-
-
-@external
-def removeLoan(_borrower: address, _loanId: uint256):
-    assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can remove loans"
-    assert self._isLoanCreated(_borrower, _loanId), "No loan created for borrower with passed id"
-
-    self._removeLoan(_borrower, _loanId)
 
 
 @external
@@ -408,7 +359,16 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
     assert self._isLoanCreated(_borrower, _loanId), "No loan created for borrower with passed id"
     assert not self._isLoanStarted(_borrower, _loanId), "Loan already started"
 
+    self.loans[_borrower][_loanId].startTime = block.timestamp
     self.loans[_borrower][_loanId].started = True
+
+
+@external
+def updateInvalidLoan(_borrower: address, _loanId: uint256):
+    assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can remove loans"
+    assert self._isLoanCreated(_borrower, _loanId), "No loan created for borrower with passed id"
+
+    self.loans[_borrower][_loanId].invalidated = True
 
 
 @external
@@ -420,35 +380,63 @@ def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint
     allowedPayment: uint256 = maxPayment - self.loans[_borrower][_loanId].paidAmount
     assert _paidAmount <= allowedPayment, "The amount paid is higher than the amount left to be paid"
   
-    self._updateLoanPaidAmount(_borrower, _loanId, _paidAmount)
+    self.loans[_borrower][_loanId].paidAmount += _paidAmount
+
+
+@external
+def updatePaidLoan(_borrower: address, _loanId: uint256):
+    assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can remove loans"
+    assert self._isLoanCreated(_borrower, _loanId), "No loan created for borrower with passed id"
+
+    self.loans[_borrower][_loanId].paid = True
+
+
+@external
+def updateDefaultedLoan(_borrower: address, _loanId: uint256):
+    assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can remove loans"
+    assert self._isLoanCreated(_borrower, _loanId), "No loan created for borrower with passed id"
+
+    self.loans[_borrower][_loanId].defaulted = True
+
+
+@external
+def updateCanceledLoan(_borrower: address, _loanId: uint256):
+    assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can remove loans"
+    assert self._isLoanCreated(_borrower, _loanId), "No loan created for borrower with passed id"
+
+    self.loans[_borrower][_loanId].canceled = True
 
 
 @external
 def updateHighestSingleCollateralLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can update stats"
   
-    self._updateHighestSingleCollateralLoan(_borrower, _loanId)
+    if len(self.loans[_borrower][_loanId].collaterals) == 1 and self.topStats.highestSingleCollateralLoan.amount < self.loans[_borrower][_loanId].amount:
+        self.topStats.highestSingleCollateralLoan = self.loans[_borrower][_loanId]
   
 
 @external
 def updateHighestCollateralBundleLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can update stats"
 
-    self._updateHighestCollateralBundleLoan(_borrower, _loanId)
+    if len(self.loans[_borrower][_loanId].collaterals) > 1 and self.topStats.highestCollateralBundleLoan.amount < self.loans[_borrower][_loanId].amount:
+        self.topStats.highestCollateralBundleLoan = self.loans[_borrower][_loanId]
 
 
 @external
 def updateHighestRepayment(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can update stats"
 
-    self._updateHighestRepayment(_borrower, _loanId)
+    if self.topStats.highestRepayment.amount < self.loans[_borrower][_loanId].amount:
+        self.topStats.highestRepayment = self.loans[_borrower][_loanId]
 
 
 @external
 def updateHighestDefaultedLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "Only defined loans peripheral can update stats"
 
-    self._updateHighestDefaultedLoan(_borrower, _loanId)
+    if self.topStats.highestDefaultedLoan.amount < self.loans[_borrower][_loanId].amount:
+        self.topStats.highestDefaultedLoan = self.loans[_borrower][_loanId]
 
 
 @external

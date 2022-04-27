@@ -3,7 +3,7 @@
     "name": "Deposit",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
@@ -25,7 +25,7 @@
     "name": "Withdrawal",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
@@ -47,12 +47,12 @@
     "name": "Compound",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
       {
-        "name": "rewards",
+        "name": "amount",
         "type": "uint256",
         "indexed": false
       },
@@ -69,7 +69,7 @@
     "name": "FundsTransfer",
     "inputs": [
       {
-        "name": "_to",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
@@ -91,7 +91,7 @@
     "name": "FundsReceipt",
     "inputs": [
       {
-        "name": "_from",
+        "name": "wallet",
         "type": "address",
         "indexed": false
       },
@@ -118,6 +118,30 @@
     ],
     "anonymous": false,
     "type": "event"
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "poolHasFundsToInvest",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "maxFundsInvestable",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "int256"
+      }
+    ]
   },
   {
     "stateMutability": "nonpayable",
@@ -238,6 +262,23 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
+    "name": "setLendingPoolCoreAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
     "name": "deprecate",
     "inputs": [],
     "outputs": [
@@ -289,59 +330,6 @@
     "outputs": []
   },
   {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "hasFundsToInvest",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "maxFundsInvestable",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "int256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "lastDaysApr",
-    "inputs": [
-      {
-        "name": "_nLastDays",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "depositorsArray",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]"
-      }
-    ]
-  },
-  {
     "stateMutability": "nonpayable",
     "type": "function",
     "name": "deposit",
@@ -349,93 +337,12 @@
       {
         "name": "_amount",
         "type": "uint256"
-      },
-      {
-        "name": "_autoCompoundRewards",
-        "type": "bool"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "currentAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountWithdrawn",
-            "type": "uint256"
-          },
-          {
-            "name": "currentPendingRewards",
-            "type": "uint256"
-          },
-          {
-            "name": "totalRewardsAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "activeForRewards",
-            "type": "bool"
-          },
-          {
-            "name": "autoCompoundRewards",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "changeAutoCompoundRewardsSetting",
-    "inputs": [
-      {
-        "name": "_flag",
         "type": "bool"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "currentAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountWithdrawn",
-            "type": "uint256"
-          },
-          {
-            "name": "currentPendingRewards",
-            "type": "uint256"
-          },
-          {
-            "name": "totalRewardsAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "activeForRewards",
-            "type": "bool"
-          },
-          {
-            "name": "autoCompoundRewards",
-            "type": "bool"
-          }
-        ]
       }
     ]
   },
@@ -452,79 +359,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "currentAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountWithdrawn",
-            "type": "uint256"
-          },
-          {
-            "name": "currentPendingRewards",
-            "type": "uint256"
-          },
-          {
-            "name": "totalRewardsAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "activeForRewards",
-            "type": "bool"
-          },
-          {
-            "name": "autoCompoundRewards",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "compoundRewards",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "currentAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountWithdrawn",
-            "type": "uint256"
-          },
-          {
-            "name": "currentPendingRewards",
-            "type": "uint256"
-          },
-          {
-            "name": "totalRewardsAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "activeForRewards",
-            "type": "bool"
-          },
-          {
-            "name": "autoCompoundRewards",
-            "type": "bool"
-          }
-        ]
+        "type": "bool"
       }
     ]
   },
@@ -545,7 +380,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }
     ]
   },
@@ -555,7 +390,7 @@
     "name": "receiveFunds",
     "inputs": [
       {
-        "name": "_owner",
+        "name": "_borrower",
         "type": "address"
       },
       {
@@ -570,7 +405,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }
     ]
   },
@@ -594,6 +429,18 @@
     "stateMutability": "view",
     "type": "function",
     "name": "loansContract",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "lendingPoolCoreContract",
     "inputs": [],
     "outputs": [
       {
@@ -712,152 +559,6 @@
       {
         "name": "",
         "type": "bool"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "funds",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "currentAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountDeposited",
-            "type": "uint256"
-          },
-          {
-            "name": "totalAmountWithdrawn",
-            "type": "uint256"
-          },
-          {
-            "name": "currentPendingRewards",
-            "type": "uint256"
-          },
-          {
-            "name": "totalRewardsAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "activeForRewards",
-            "type": "bool"
-          },
-          {
-            "name": "autoCompoundRewards",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "depositors",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "fundsAvailable",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "fundsInvested",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "totalFundsInvested",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "totalRewards",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "rewardsByDay",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "days",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
       }
     ]
   }

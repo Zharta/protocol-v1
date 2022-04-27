@@ -1,22 +1,22 @@
 # Structs
 
 struct Collateral:
-    contract: address
-    id: uint256
-
-struct Collaterals:
-    size: uint256
-    contracts: address[10]
-    ids: uint256[10]
+    contractAddress: address
+    tokenId: uint256
 
 struct Loan:
     id: uint256
     amount: uint256
-    interest: uint256
+    interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: Collaterals
+    collaterals: DynArray[Collateral, 10]
     paidAmount: uint256
+    started: bool
+    invalidated: bool
+    paid: bool
+    defaulted: bool
+    canceled: bool
 
 # Events
 
@@ -113,27 +113,12 @@ def erc20TokenSymbol() -> String[10]:
 
 @view
 @external
-def getLoanIdsUsedByAddress(_borrower: address) -> bool[10]:
+def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @view
 @external
-def getPendingBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    pass
-
-@view
-@external
-def getPendingBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
-    pass
-
-@view
-@external
-def getBorrowerLoans(_borrower: address) -> DynArray[Loan, 10]:
-    pass
-
-@view
-@external
-def getBorrowerLoan(_borrower: address, _loanId: uint256) -> Loan:
+def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @external
@@ -160,10 +145,6 @@ def settleDefault(_borrower: address, _loanId: uint256):
 def cancelPendingLoan(_loanId: uint256):
     pass
 
-@external
-def cancelStartedLoan(_loanId: uint256):
-    pass
-
 @payable
 @external
 def __default__():
@@ -186,17 +167,17 @@ def maxAllowedLoanDuration() -> uint256:
 
 @view
 @external
-def bufferToCancelLoan() -> uint256:
-    pass
-
-@view
-@external
 def minLoanAmount() -> uint256:
     pass
 
 @view
 @external
 def maxLoanAmount() -> uint256:
+    pass
+
+@view
+@external
+def ongoingLoans(arg0: address) -> uint256:
     pass
 
 @view
@@ -227,34 +208,4 @@ def loansCoreAddress() -> address:
 @view
 @external
 def lendingPoolAddress() -> address:
-    pass
-
-@view
-@external
-def currentStartedLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalStartedLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalPaidLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalDefaultedLoans() -> uint256:
-    pass
-
-@view
-@external
-def totalDefaultedLoansAmount() -> uint256:
-    pass
-
-@view
-@external
-def totalCanceledLoans() -> uint256:
     pass

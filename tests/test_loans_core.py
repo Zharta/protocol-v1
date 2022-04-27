@@ -8,7 +8,6 @@ from decimal import Decimal
 from web3 import Web3
 
 
-MAX_NUMBER_OF_LOANS = 10
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
@@ -60,14 +59,13 @@ def test_collaterals(erc721_contract):
 
 @pytest.fixture
 def loans_core_contract(LoansCore, loans_contract, contract_owner):
-    yield LoansCore.deploy(loans_contract.address, MAX_NUMBER_OF_LOANS, {"from": contract_owner})
+    yield LoansCore.deploy(loans_contract.address, {"from": contract_owner})
 
 
 def test_initial_state(loans_core_contract, loans_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
     assert loans_core_contract.owner() == contract_owner
     assert loans_core_contract.loansPeripheral() == loans_contract
-    assert loans_core_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
 
 
 def test_change_ownership_wrong_sender(loans_core_contract, borrower):
@@ -130,10 +128,6 @@ def test_add_loan(loans_core_contract, loans_contract, borrower, test_collateral
 
     loan_id = tx_add_loan.return_value
     assert loan_id == 0
-    assert loans_core_contract.nextLoanId(borrower) == 1
-    
-    assert len(loans_core_contract.getPendingBorrowerLoans(borrower)) == 1
-    assert len(loans_core_contract.getBorrowerLoans(borrower)) == 0
 
     assert loans_core_contract.getLoanAmount(borrower, loan_id) == LOAN_AMOUNT
     assert loans_core_contract.getLoanInterest(borrower, loan_id) == LOAN_INTEREST
@@ -143,44 +137,18 @@ def test_add_loan(loans_core_contract, loans_contract, borrower, test_collateral
     assert len(loans_core_contract.getLoanCollaterals(borrower, loan_id)) == len(test_collaterals)
     assert loans_core_contract.getLoanCollaterals(borrower, loan_id) == test_collaterals
 
-    assert loans_core_contract.getLoanIdsUsedByAddress(borrower)[0]
-    assert not any(loans_core_contract.getLoanIdsUsedByAddress(borrower)[1:])
 
-
-def test_add_loan_max_loans_reached(loans_core_contract, loans_contract, erc721_contract, borrower):
-    for k in range(MAX_NUMBER_OF_LOANS):
-        loans_core_contract.addLoan(
-            borrower,
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            [(erc721_contract, k)],
-            {"from": loans_contract}
-        )
-        time.sleep(0.2)
-
-    with brownie.reverts("Max number of loans for borrower already reached"):
-        loans_core_contract.addLoan(
-            borrower,
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            [(erc721_contract, 10)],
-            {"from": loans_contract}
-        )
-
-
-def test_remove_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+def test_update_invalid_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
     with brownie.reverts("Only defined loans peripheral can remove loans"):
-        loans_core_contract.removeLoan(borrower, 0, {"from": contract_owner})
+        loans_core_contract.updateInvalidLoan(borrower, 0, {"from": contract_owner})
 
 
-def test_remove_loan_no_loan(loans_core_contract, loans_contract, borrower):
+def test_update_invalid_loan_no_loan(loans_core_contract, loans_contract, borrower):
     with brownie.reverts("No loan created for borrower with passed id"):
-        loans_core_contract.removeLoan(borrower, 0, {"from": loans_contract})
+        loans_core_contract.updateInvalidLoan(borrower, 0, {"from": loans_contract})
 
 
-def test_remove_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+def test_update_invalid_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -189,16 +157,93 @@ def test_remove_loan(loans_core_contract, loans_contract, borrower, test_collate
         test_collaterals,
         {"from": loans_contract}
     )
-
     loan_id = tx_add_loan.return_value
 
-    loans_core_contract.removeLoan(borrower, loan_id, {"from": loans_contract})
+    loans_core_contract.updateInvalidLoan(borrower, loan_id, {"from": loans_contract})
+    assert loans_core_contract.getLoanInvalidated(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["invalidated"]
+    assert loans_core_contract.getLoanInvalidated(borrower, loan_id)
 
-    assert loans_core_contract.nextLoanId(borrower) == 0
-    assert len(loans_core_contract.getPendingBorrowerLoans(borrower)) == 0
-    assert len(loans_core_contract.getBorrowerLoans(borrower)) == 0
 
-    assert not any(loans_core_contract.getLoanIdsUsedByAddress(borrower))
+def test_update_paid_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+    with brownie.reverts("Only defined loans peripheral can remove loans"):
+        loans_core_contract.updatePaidLoan(borrower, 0, {"from": contract_owner})
+
+
+def test_update_paid_loan_no_loan(loans_core_contract, loans_contract, borrower):
+    with brownie.reverts("No loan created for borrower with passed id"):
+        loans_core_contract.updatePaidLoan(borrower, 0, {"from": loans_contract})
+
+
+def test_update_paid_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {"from": loans_contract}
+    )
+    loan_id = tx_add_loan.return_value
+
+    loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_contract})
+
+    loans_core_contract.updatePaidLoan(borrower, loan_id, {"from": loans_contract})
+    assert loans_core_contract.getLoanPaid(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["paid"]
+    assert loans_core_contract.getLoanPaid(borrower, loan_id)
+
+
+def test_update_defaulted_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+    with brownie.reverts("Only defined loans peripheral can remove loans"):
+        loans_core_contract.updateDefaultedLoan(borrower, 0, {"from": contract_owner})
+
+
+def test_update_defaulted_loan_no_loan(loans_core_contract, loans_contract, borrower):
+    with brownie.reverts("No loan created for borrower with passed id"):
+        loans_core_contract.updateDefaultedLoan(borrower, 0, {"from": loans_contract})
+
+
+def test_update_defaulted_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {"from": loans_contract}
+    )
+    loan_id = tx_add_loan.return_value
+
+    loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_contract})
+
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_contract})
+    assert loans_core_contract.getLoanDefaulted(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["defaulted"]
+    assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
+
+
+def test_update_canceled_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+    with brownie.reverts("Only defined loans peripheral can remove loans"):
+        loans_core_contract.updateCanceledLoan(borrower, 0, {"from": contract_owner})
+
+
+def test_update_canceled_loan_no_loan(loans_core_contract, loans_contract, borrower):
+    with brownie.reverts("No loan created for borrower with passed id"):
+        loans_core_contract.updateCanceledLoan(borrower, 0, {"from": loans_contract})
+
+
+def test_update_canceled_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {"from": loans_contract}
+    )
+    loan_id = tx_add_loan.return_value
+
+    loans_core_contract.updateCanceledLoan(borrower, loan_id, {"from": loans_contract})
+    assert loans_core_contract.getLoanCanceled(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["canceled"]
+    assert loans_core_contract.getLoanCanceled(borrower, loan_id)
 
 
 def test_update_loan_started_wrong_sender(
@@ -252,9 +297,6 @@ def test_update_loan_started(
 
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_contract})
 
-    assert len(loans_core_contract.getPendingBorrowerLoans(borrower)) == 0
-    assert len(loans_core_contract.getBorrowerLoans(borrower)) == 1
-
     assert loans_core_contract.getLoanAmount(borrower, loan_id) == LOAN_AMOUNT
     assert loans_core_contract.getLoanInterest(borrower, loan_id) == LOAN_INTEREST
     assert loans_core_contract.getLoanMaturity(borrower, loan_id) == MATURITY
@@ -262,9 +304,6 @@ def test_update_loan_started(
     assert loans_core_contract.getLoanStarted(borrower, loan_id)
     assert len(loans_core_contract.getLoanCollaterals(borrower, loan_id)) == len(test_collaterals)
     assert loans_core_contract.getLoanCollaterals(borrower, loan_id) == test_collaterals
-
-    assert loans_core_contract.getLoanIdsUsedByAddress(borrower)[0]
-    assert not any(loans_core_contract.getLoanIdsUsedByAddress(borrower)[1:])
 
 
 def test_update_loan_started_already_started(
@@ -392,7 +431,6 @@ def test_update_paid_amount(
 
     loans_core_contract.updateLoanPaidAmount(borrower, loan_id, LOAN_AMOUNT, {"from": loans_contract})
 
-    assert len(loans_core_contract.getBorrowerLoans(borrower)) == 1
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == LOAN_AMOUNT
 
 
@@ -418,10 +456,8 @@ def test_update_paid_amount_multiple(
 
     loans_core_contract.updateLoanPaidAmount(borrower, loan_id, LOAN_AMOUNT / 2.0, {"from": loans_contract})
 
-    assert len(loans_core_contract.getBorrowerLoans(borrower)) == 1
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == LOAN_AMOUNT / 2.0
 
     loans_core_contract.updateLoanPaidAmount(borrower, loan_id, LOAN_AMOUNT / 2.0, {"from": loans_contract})
 
-    assert len(loans_core_contract.getBorrowerLoans(borrower)) == 1
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == LOAN_AMOUNT
