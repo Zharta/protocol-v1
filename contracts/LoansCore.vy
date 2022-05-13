@@ -336,13 +336,13 @@ def addLoan(
             interest: _interest,
             maturity: _maturity,
             startTime: 0,
+            collaterals: _collaterals,
             paidAmount: 0,
             started: False,
             invalidated: False,
             paid: False,
             defaulted: False,
             canceled: False,
-            collaterals: _collaterals
         }
     )
 
