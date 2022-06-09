@@ -1044,6 +1044,9 @@ def test_validate_loan(
 
     assert loans_core_contract.getHighestCollateralBundleLoan() == loan_details
 
+    assert tx_start_loan.events["LoanValidated"]["wallet"] == borrower
+    assert tx_start_loan.events["LoanValidated"]["loanId"] == 0
+
 
 def test_invalidate_wrong_sender(
     loans_contract,
