@@ -83,7 +83,7 @@ def test_change_ownership(lending_pool_core_contract, borrower, contract_owner):
 
 
 def test_deposit_wrong_sender(lending_pool_core_contract, investor, borrower):
-    with brownie.reverts("Only defined lending pool peripheral or the lender can deposit"):
+    with brownie.reverts("Only defined lending pool peripheral can deposit"):
         lending_pool_core_contract.deposit(investor, 0, {"from": borrower})
 
 
@@ -110,9 +110,9 @@ def test_deposit(lending_pool_core_contract, lending_pool_peripheral_contract, i
     assert lending_pool_core_contract.totalSharesBasisPoints() == Web3.toWei(1, "ether")
 
 
-def test_deposit_twice(lending_pool_core_contract, investor):
-    tx_deposit = lending_pool_core_contract.deposit(investor, Web3.toWei(1, "ether"), {"from": investor})
-    tx_deposit_twice = lending_pool_core_contract.deposit(investor, Web3.toWei(0.5, "ether"), {"from": investor})
+def test_deposit_twice(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
+    tx_deposit = lending_pool_core_contract.deposit(investor, Web3.toWei(1, "ether"), {"from": lending_pool_peripheral_contract})
+    tx_deposit_twice = lending_pool_core_contract.deposit(investor, Web3.toWei(0.5, "ether"), {"from": lending_pool_peripheral_contract})
 
     investor_funds = lending_pool_core_contract.funds(investor)
     assert investor_funds["currentAmountDeposited"] == Web3.toWei(1.5, "ether")
@@ -127,7 +127,7 @@ def test_deposit_twice(lending_pool_core_contract, investor):
 
 
 def test_withdraw_wrong_sender(lending_pool_core_contract, lending_pool_peripheral_contract, investor, borrower):
-    with brownie.reverts("Only defined lending pool peripheral or the lender can withdraw"):
+    with brownie.reverts("Only defined lending pool peripheral can withdraw"):
         lending_pool_core_contract.withdraw(investor, 100, {"from": borrower})
 
 
