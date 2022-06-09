@@ -237,7 +237,6 @@ def removeWhitelistedAddress(_address: address):
 
 
 @external
-# def deposit(_amount: uint256, _autoCompoundRewards: bool) -> bool:
 def deposit(_amount: uint256) -> bool:
     # _amount should be passed in wei
 
