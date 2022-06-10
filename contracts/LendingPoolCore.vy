@@ -164,6 +164,8 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can withdraw"
+    assert _amount > 0, "Amount withdrawn has to be higher than 0"
+    assert _lender != ZERO_ADDRESS, "The lender can not be the empty address"
     assert self._computeWithdrawableAmount(_lender) >= _amount, "The lender has less funds deposited than the amount requested"
     assert self.fundsAvailable >= _amount, "Not enough funds in the pool to be withdrawn"
 

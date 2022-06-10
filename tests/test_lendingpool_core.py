@@ -158,6 +158,16 @@ def test_withdraw_wrong_sender(lending_pool_core_contract, lending_pool_peripher
         lending_pool_core_contract.withdraw(investor, 100, {"from": borrower})
 
 
+def test_withdraw_zero_amount(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
+    with brownie.reverts("Amount withdrawn has to be higher than 0"):
+        lending_pool_core_contract.withdraw(investor, 0, {"from": lending_pool_peripheral_contract})
+
+
+def test_withdraw_lender_zeroaddress(lending_pool_core_contract, lending_pool_peripheral_contract):
+    with brownie.reverts("The lender can not be the empty address"):
+        lending_pool_core_contract.withdraw(brownie.ZERO_ADDRESS, 100, {"from": lending_pool_peripheral_contract})
+
+
 def test_withdraw_noinvestment(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
     with brownie.reverts("The lender has less funds deposited than the amount requested"):
         lending_pool_core_contract.withdraw(investor, Web3.toWei(1, "ether"), {"from": lending_pool_peripheral_contract})
