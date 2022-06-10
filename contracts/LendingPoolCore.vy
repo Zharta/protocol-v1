@@ -7,7 +7,7 @@ interface IERC20Token:
     def balanceOf(_owner: address) -> uint256: view
     def allowance(_owner: address, _spender: address) -> uint256: view
     def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
-    def transferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
+    def transferFrom(_sender: address, _recipient: address, _amount: uint256) -> bool: nonpayable
     def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
 
 
@@ -146,6 +146,17 @@ def deposit(_lender: address, _amount: uint256) -> bool:
     self.totalSharesBasisPoints += sharesAmount
 
     return True
+
+
+@external
+def transferDeposit(_lender: address, _amount: uint256) -> bool:
+    # _amount should be passed in wei
+
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can request a deposit transfer"
+    assert _lender != ZERO_ADDRESS, "The lender can not be the empty address"
+    assert _amount > 0, "Amount deposited has to be higher than 0"
+
+    return IERC20Token(self.erc20TokenContract).transferFrom(_lender, self, _amount)
 
 
 @external

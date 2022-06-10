@@ -243,24 +243,19 @@ def deposit(_amount: uint256) -> bool:
     assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw any outstanding deposit"
     assert self.isPoolActive, "Pool is not active right now"
     assert _amount > 0, "Amount deposited has to be higher than 0"
-    assert self._fundsAreAllowed(msg.sender, self, _amount), "Insufficient funds allowed to be transfered"
+    assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "Insufficient funds allowed to be transfered"
 
     if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
         raise "The whitelist is enabled and the sender is not whitelisted"
 
-  
-    # if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, _autoCompoundRewards):
     if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount):
         raise "Error creating deposit"
 
     if not self.isPoolInvesting and self._poolHasFundsToInvest():
         self.isPoolInvesting = True
 
-    if not IERC20Token(self.erc20TokenContract).transferFrom(msg.sender, self, _amount):
-        raise "Error transferring deposit amount"
-    
-    if not IERC20Token(self.erc20TokenContract).transfer(self.lendingPoolCoreContract, _amount):
-        raise "Error transferring deposit amount to LPCore"
+    if not ILendingPoolCore(self.lendingPoolCoreContract).transferDeposit(msg.sender, _amount):
+        raise "Error transferring deposit"
 
     log Deposit(msg.sender, _amount, self.erc20TokenContract)
 
