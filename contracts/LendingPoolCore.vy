@@ -155,6 +155,7 @@ def transferDeposit(_lender: address, _amount: uint256) -> bool:
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can request a deposit transfer"
     assert _lender != ZERO_ADDRESS, "The lender can not be the empty address"
     assert _amount > 0, "Amount deposited has to be higher than 0"
+    assert self._fundsAreAllowed(_lender, self, _amount), "Insufficient funds allowed to be transfered"
 
     return IERC20Token(self.erc20TokenContract).transferFrom(_lender, self, _amount)
 
@@ -214,10 +215,37 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
 
 
 @external
-def receiveFunds(_amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can receive funds"
+    assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
+    assert self._fundsAreAllowed(_borrower, self, _amount), "Insufficient funds allowed to be transfered"
+
+    if not IERC20Token(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount):
+        return False
+
+    return True
+
+
+@external
+def transferProtocolFees(_protocolWallet: address, _amount: uint256) -> bool:
+    # _amount should be passed in wei
+
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can ask for protocol fees"
+    assert _amount > 0, "The requested value should be higher than 0"
+
+    if not IERC20Token(self.erc20TokenContract).transfer(_protocolWallet, _amount):
+        return False
+
+    return True
+
+
+@external
+def updateLiquidity(_amount: uint256, _rewardsAmount: uint256) -> bool:
+    # _amount and _rewardsAmount should be passed in wei
+
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can update liquidity data"
     assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
     assert _amount <= self.fundsInvested, "There are more funds being received than expected by the deposited funds variable"
 

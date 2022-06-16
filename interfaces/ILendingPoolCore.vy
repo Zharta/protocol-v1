@@ -47,7 +47,15 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     pass
 
 @external
-def receiveFunds(_amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
+    pass
+
+@external
+def transferProtocolFees(_protocolWallet: address, _amount: uint256) -> bool:
+    pass
+
+@external
+def updateLiquidity(_amount: uint256, _rewardsAmount: uint256) -> bool:
     pass
 
 @payable
@@ -114,5 +122,3 @@ def totalRewards() -> uint256:
 @external
 def totalSharesBasisPoints() -> uint256:
     pass
-
-
