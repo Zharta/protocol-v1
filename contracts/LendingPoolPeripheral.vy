@@ -306,23 +306,23 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.loansContract, "The sender address is not the loans contract address"
-    assert self._fundsAreAllowed(_borrower, self, _amount + _rewardsAmount), "Insufficient funds allowed to be transfered"
+    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "Insufficient funds allowed to be transfered"
     assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
     
     rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-    if not IERC20Token(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount):
-        raise "Error transferring funds from borrower"
+    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, _rewardsAmount):
+        raise "Error receiving funds in LPCore"
     
-    if not IERC20Token(self.erc20TokenContract).transfer(self.protocolWallet, rewardsProtocol):
+    if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(self.protocolWallet, rewardsProtocol):
         raise "Error transferring funds to protocol wallet"
+
+    if not ILendingPoolCore(self.lendingPoolCoreContract).updateLiquidity(_amount, rewardsPool):
+        raise "Error updating liquidity data"
 
     if not self.isPoolInvesting and self._poolHasFundsToInvest():
         self.isPoolInvesting = True
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_amount, rewardsPool):
-        raise "Error receiving funds in LPCore"
 
     log FundsReceipt(msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
 
