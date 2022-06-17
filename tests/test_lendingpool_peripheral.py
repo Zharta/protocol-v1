@@ -387,7 +387,7 @@ def test_withdraw_zero_amount(lending_pool_peripheral_contract, investor):
 def test_withdraw_noinvestment(lending_pool_peripheral_contract, lending_pool_core_contract, investor, contract_owner):
     lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
     
-    with brownie.reverts("The lender has less funds deposited than the amount requested"):
+    with brownie.reverts("The sender has insufficient liquidity for withdrawal"):
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
 
 
@@ -398,7 +398,7 @@ def test_withdraw_insufficient_investment(lending_pool_peripheral_contract, lend
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
     
-    with brownie.reverts("The lender has less funds deposited than the amount requested"):
+    with brownie.reverts("The sender has insufficient liquidity for withdrawal"):
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1.5, "ether"), {"from": investor})
 
 
