@@ -119,9 +119,8 @@ def _addLoan(_borrower: address, _loan: Loan) -> bool:
 ##### EXTERNAL METHODS #####
 
 @external
-def __init__(_loansPeripheral: address):
+def __init__():
     self.owner = msg.sender
-    self.loansPeripheral = _loansPeripheral
 
 
 @external
@@ -135,11 +134,12 @@ def changeOwnership(_newOwner: address) -> address:
 
 
 @external
-def changeLoansPeripheral(_newLoansPeripheral: address) -> address:
+def setLoansPeripheral(_address: address) -> address:
     assert msg.sender == self.owner, "Only the owner can change the contract ownership"
-    assert _newLoansPeripheral != self.loansPeripheral, "The new loans peripheral address should be different than the current one"
+    assert _address != ZERO_ADDRESS, "The address is the zero address"
+    assert _address != self.loansPeripheral, "The new loans peripheral address should be different than the current one"
 
-    self.loansPeripheral = _newLoansPeripheral
+    self.loansPeripheral = _address
 
     return self.loansPeripheral
 
