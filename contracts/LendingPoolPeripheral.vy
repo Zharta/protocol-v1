@@ -117,15 +117,18 @@ def maxFundsInvestable() -> int256:
 
 @external
 def __init__(
-    _loansContract: address,
     _erc20TokenContract: address,
     _protocolWallet: address,
     _protocolFeesShare: uint256,
     _maxCapitalEfficienty: uint256,
     _whitelistEnabled: bool
 ):
+    assert _erc20TokenContract != ZERO_ADDRESS, "The ERC20 contract address is the zero address"
+    assert _protocolWallet != ZERO_ADDRESS, "The protocol wallet address is the zero address"
+    assert _protocolFeesShare <= 10000, "The protocol fees share can not exceed 10000 bps"
+    assert _maxCapitalEfficienty <= 10000, "The capital efficiency can not exceed 10000 bps"
+
     self.owner = msg.sender
-    self.loansContract = _loansContract
     self.erc20TokenContract = _erc20TokenContract
     self.protocolWallet = _protocolWallet
     self.protocolFeesShare = _protocolFeesShare
@@ -137,38 +140,42 @@ def __init__(
 
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def changeOwnership(_address: address) -> address:
     assert msg.sender == self.owner, "Only the owner can change the contract ownership"
+    assert _address != ZERO_ADDRESS, "The address is the zero address"
+    assert _address != self.owner, "The new owner address should be different than the current one"
 
-    self.owner = _newOwner
-
+    self.owner = _address
     return self.owner
 
 
 @external
-def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
+def changeMaxCapitalEfficiency(_value: uint256) -> uint256:
     assert msg.sender == self.owner, "Only the owner can change the max capital efficiency"
+    assert _value <= 10000, "The capital efficiency can not exceed 10000 bps"
+    assert _value != self.maxCapitalEfficienty, "The new capital efficiency should be different than the current one"
 
-    self.maxCapitalEfficienty = _newMaxCapitalEfficiency
-
+    self.maxCapitalEfficienty = _value
     return self.maxCapitalEfficienty
 
 
 @external
-def changeProtocolWallet(_newProtocolWallet: address) -> address:
+def changeProtocolWallet(_address: address) -> address:
     assert msg.sender == self.owner, "Only the owner can change the protocol wallet address"
+    assert _address != ZERO_ADDRESS, "The address is the zero address"
+    assert _address != self.protocolWallet, "The new protocol wallet should be different than the current one"
 
-    self.protocolWallet = _newProtocolWallet
-
+    self.protocolWallet = _address
     return self.protocolWallet
 
 
 @external
-def changeProtocolFeesShare(_newProtocolFeesShare: uint256) -> uint256:
+def changeProtocolFeesShare(_value: uint256) -> uint256:
     assert msg.sender == self.owner, "Only the owner can change the protocol fees share"
+    assert _value <= 10000, "The protocol fees share can not exceed 10000 bps"
+    assert _value != self.protocolFeesShare, "The new protocol fees share should be different than the current one"
 
-    self.protocolFeesShare = _newProtocolFeesShare
-
+    self.protocolFeesShare = _value
     return self.protocolFeesShare
 
 
@@ -191,9 +198,21 @@ def changePoolStatus(_flag: bool) -> bool:
 @external
 def setLendingPoolCoreAddress(_address: address) -> address:
     assert msg.sender == self.owner, "Only the contract owner can set the lending pool core address"
+    assert _address != ZERO_ADDRESS, "The address is the zero address"
+    assert _address != self.lendingPoolCoreContract, "The new LendingPoolCore address should be different than the current one"
 
     self.lendingPoolCoreContract = _address
     return self.lendingPoolCoreContract
+
+
+@external
+def setLoansPeripheralAddress(_address: address) -> address:
+    assert msg.sender == self.owner, "Only the contract owner can set the loans address"
+    assert _address != ZERO_ADDRESS, "The address is the zero address"
+    assert _address != self.loansContract, "The new Loans address should be different than the current one"
+
+    self.loansContract = _address
+    return self.loansContract
 
 
 @external
@@ -214,7 +233,6 @@ def changeWhitelistStatus(_flag: bool) -> bool:
     assert self.whitelistEnabled != _flag, "The new whitelist status should be different than the current status"
 
     self.whitelistEnabled = _flag
-
     return _flag
 
 
@@ -267,6 +285,8 @@ def withdraw(_amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert _amount > 0, "Amount withdrawn has to be higher than 0"
+    assert ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender) >= _amount, "The sender has insufficient liquidity for withdrawal"
+    assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "The pool has insufficient liquidity for withdrawal"
 
     if self.isPoolInvesting and not self._poolHasFundsToInvest():
         self.isPoolInvesting = False
@@ -287,6 +307,7 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     assert self.isPoolActive, "The pool is not active and is not investing more right now"
     assert self.isPoolInvesting, "Max capital efficiency reached, the pool is not investing more right now"
     assert msg.sender == self.loansContract, "Only the loans contract address can request to send funds"
+    assert _to != ZERO_ADDRESS, "The address to transfer funds to is the zero address"
     assert _amount > 0, "The amount to send should be higher than 0"
     assert convert(_amount, int256) <= self._maxFundsInvestable(), "No sufficient deposited funds to perform the transaction"
 
@@ -306,6 +327,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.loansContract, "The sender address is not the loans contract address"
+    assert _borrower != ZERO_ADDRESS, "The borrower address is the zero address"
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "Insufficient funds allowed to be transfered"
     assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
     
