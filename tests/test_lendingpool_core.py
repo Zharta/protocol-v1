@@ -40,7 +40,6 @@ def erc20_contract(ERC20PresetMinterPauser, contract_owner):
 @pytest.fixture
 def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, contract_owner, protocol_wallet):
     yield LendingPoolPeripheral.deploy(
-        contract_owner,
         erc20_contract,
         protocol_wallet,
         PROTOCOL_FEES_SHARE,
