@@ -22,7 +22,7 @@ interface IERC721:
 interface IERC20:
     def allowance(_owner: address, _spender: address) -> uint256: view
     def balanceOf(_account: address) -> uint256: view
-    def symbol() -> String[10]: view
+    def symbol() -> String[100]: view
 
 
 # Structs
@@ -37,7 +37,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 10]
+    collaterals: DynArray[Collateral, 100]
     paidAmount: uint256
     started: bool
     invalidated: bool
@@ -142,7 +142,7 @@ def __init__(
 
 
 @internal
-def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 10]) -> bool:
+def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
         if not self.whitelistedCollaterals[collateral.contractAddress]:
             return False
@@ -150,7 +150,7 @@ def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 10]) -> bool:
 
 
 @internal
-def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 10]) -> bool:
+def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
         if IERC721(collateral.contractAddress).ownerOf(collateral.tokenId) != _borrower:
             return False
@@ -165,7 +165,7 @@ def _isCollateralApproved(_borrower: address, _operator: address, _contractAddre
 
 @view
 @internal
-def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collateral, 10]) -> bool:
+def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
         if not self._isCollateralApproved(_borrower, self, collateral.contractAddress):
             return False
@@ -310,7 +310,7 @@ def getWhitelistedCollateralsAddresses() -> DynArray[address, 2**50]:
 
 @view
 @external
-def erc20TokenSymbol() -> String[10]:
+def erc20TokenSymbol() -> String[100]:
     return IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).symbol()
 
 
@@ -331,7 +331,7 @@ def reserve(
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
-    _collaterals: DynArray[Collateral, 10]
+    _collaterals: DynArray[Collateral, 100]
 ) -> uint256:
     assert not self.isDeprecated, "The contract is deprecated, no more loans can be created"
     assert self.isAcceptingLoans, "The contract is not accepting more loans right now"
@@ -398,7 +398,7 @@ def invalidate(_borrower: address, _loanId: uint256):
     assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The loan was already validated"
     assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "The loan was already invalidated"
 
-    collaterals: DynArray[Collateral, 10] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
     for collateral in collaterals:
         IERC721(collateral.contractAddress).safeTransferFrom(self, _borrower, collateral.tokenId)
 
@@ -431,7 +431,7 @@ def pay(_loanId: uint256, _amountPaid: uint256):
     paidAmountInterest: uint256 = _amountPaid - paidAmount
 
     if _amountPaid == allowedPayment:
-        collaterals: DynArray[Collateral, 10] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
+        collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
         for collateral in collaterals:
             IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
 
@@ -460,7 +460,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The _borrower has not started a loan with the given ID"
     assert block.timestamp > ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "The maturity of the loan has not been reached yet"
 
-    collaterals: DynArray[Collateral, 10] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
     for collateral in collaterals:
         IERC721(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId)
 
@@ -488,7 +488,7 @@ def cancelPendingLoan(_loanId: uint256):
     assert not ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "The loan was already started"
     assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(msg.sender, _loanId), "The loan was already invalidated"
 
-    collaterals: DynArray[Collateral, 10] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
     for collateral in collaterals:
         IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
 
