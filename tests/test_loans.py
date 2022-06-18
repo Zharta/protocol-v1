@@ -8,7 +8,6 @@ from decimal import Decimal
 from web3 import Web3
 
 
-
 MAX_NUMBER_OF_LOANS = 10
 MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
@@ -42,13 +41,13 @@ def protocol_wallet(accounts):
 
 
 @pytest.fixture
-def erc20_contract(ERC20PresetMinterPauser, contract_owner):
-    yield ERC20PresetMinterPauser.deploy("Wrapped ETH", "WETH", {'from': contract_owner})
+def erc20_contract(ERC20, contract_owner):
+    yield ERC20.deploy("Wrapped ETH", "WETH", 18, 0, {'from': contract_owner})
 
 
 @pytest.fixture
-def erc721_contract(ERC721PresetMinterPauserAutoId, contract_owner):
-    yield ERC721PresetMinterPauserAutoId.deploy(
+def erc721_contract(ERC721, contract_owner):
+    yield ERC721.deploy(
         "VeeFriends",
         "VEE",
         "tokenURI",
