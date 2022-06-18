@@ -828,10 +828,103 @@ def test_validate_loan_not_created(
     contract_owner,
     borrower
 ):
-    
-    
     with brownie.reverts("This loan has not been created for the borrower"):
         loans_contract.validate(borrower, 0, {'from': contract_owner})
+
+
+def test_validate_loan_already_validated(
+    loans_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    erc20_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals
+):
+    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {'from': borrower}
+    )
+    loan_id = tx_create_loan.return_value
+
+    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    
+    print(loans_contract.getLoan(borrower, loan_id))
+    print(loans_core_contract.getLoanStarted(borrower, loan_id))
+
+    with brownie.reverts("The loan was already validated"):
+        loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+
+
+def test_validate_loan_already_invalidated(
+    loans_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    erc20_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals
+):
+    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
+    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
+
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {'from': borrower}
+    )
+    loan_id = tx_create_loan.return_value
+
+    loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
+
+    with brownie.reverts("The loan was already invalidated"):
+        loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
 
 def test_validate_maturity_in_the_past(
