@@ -10,7 +10,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 10]
+    collaterals: DynArray[Collateral, 100]
     paidAmount: uint256
     started: bool
     invalidated: bool
@@ -108,7 +108,7 @@ def getWhitelistedCollateralsAddresses() -> DynArray[address, 1125899906842624]:
 
 @view
 @external
-def erc20TokenSymbol() -> String[10]:
+def erc20TokenSymbol() -> String[100]:
     pass
 
 @view
@@ -122,7 +122,7 @@ def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> uint256:
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
     pass
 
 @external
