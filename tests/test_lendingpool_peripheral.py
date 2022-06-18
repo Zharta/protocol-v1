@@ -378,6 +378,11 @@ def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contr
     assert tx_deposit_twice.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
+def test_withdraw_zero_amount(lending_pool_peripheral_contract, investor):
+    with brownie.reverts("Amount withdrawn has to be higher than 0"):
+        lending_pool_peripheral_contract.withdraw(0, {"from": investor})
+
+
 def test_withdraw_noinvestment(lending_pool_peripheral_contract, lending_pool_core_contract, investor, contract_owner):
     lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
     

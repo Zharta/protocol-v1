@@ -266,6 +266,8 @@ def deposit(_amount: uint256) -> bool:
 def withdraw(_amount: uint256) -> bool:
     # _amount should be passed in wei
 
+    assert _amount > 0, "Amount withdrawn has to be higher than 0"
+
     if self.isPoolInvesting and not self._poolHasFundsToInvest():
         self.isPoolInvesting = False
 
