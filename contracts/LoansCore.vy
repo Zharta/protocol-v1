@@ -247,7 +247,7 @@ def getLoanCanceled(_borrower: address, _loanId: uint256) -> bool:
 @view
 @external
 def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
-  if self._isLoanCreated(_borrower, _loanId):
+  if self._isLoanCreated(_borrower, _loanId) and not self._isLoanStarted(_borrower, _loanId) and not self._isLoanInvalidated(_borrower, _loanId):
     return self.loans[_borrower][_loanId]
   return empty(Loan)
 

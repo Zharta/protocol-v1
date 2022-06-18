@@ -145,6 +145,18 @@ def test_add_loan(loans_core_contract, loans_contract, borrower, contract_owner,
     assert len(loans_core_contract.getLoanCollaterals(borrower, loan_id)) == len(test_collaterals)
     assert loans_core_contract.getLoanCollaterals(borrower, loan_id) == test_collaterals
 
+    assert loans_core_contract.getLoanAmount(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["amount"]
+    assert loans_core_contract.getLoanInterest(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["interest"]
+    assert loans_core_contract.getLoanMaturity(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["maturity"]
+    assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["paidAmount"]
+    assert loans_core_contract.getLoanStarted(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["started"]
+    assert loans_core_contract.getLoanInvalidated(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["invalidated"]
+    assert loans_core_contract.getLoanPaid(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["paid"]
+    assert loans_core_contract.getLoanDefaulted(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["defaulted"]
+    assert loans_core_contract.getLoanCanceled(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["canceled"]
+    assert len(loans_core_contract.getPendingLoan(borrower, loan_id)["collaterals"]) == len(test_collaterals)
+    assert loans_core_contract.getPendingLoan(borrower, loan_id)["collaterals"] == test_collaterals
+
 
 def test_update_invalid_loan_wrong_sender(loans_core_contract, loans_contract, contract_owner, borrower):
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -174,7 +186,7 @@ def test_update_invalid_loan(loans_core_contract, loans_contract, borrower, cont
     loan_id = tx_add_loan.return_value
 
     loans_core_contract.updateInvalidLoan(borrower, loan_id, {"from": loans_contract})
-    assert loans_core_contract.getLoanInvalidated(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["invalidated"]
+    assert loans_core_contract.getLoanInvalidated(borrower, loan_id) == loans_core_contract.getLoan(borrower, loan_id)["invalidated"]
     assert loans_core_contract.getLoanInvalidated(borrower, loan_id)
 
 
@@ -208,7 +220,7 @@ def test_update_paid_loan(loans_core_contract, loans_contract, borrower, contrac
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_contract})
 
     loans_core_contract.updatePaidLoan(borrower, loan_id, {"from": loans_contract})
-    assert loans_core_contract.getLoanPaid(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["paid"]
+    assert loans_core_contract.getLoanPaid(borrower, loan_id) == loans_core_contract.getLoan(borrower, loan_id)["paid"]
     assert loans_core_contract.getLoanPaid(borrower, loan_id)
 
 
@@ -242,7 +254,7 @@ def test_update_defaulted_loan(loans_core_contract, loans_contract, borrower, co
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_contract})
 
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_contract})
-    assert loans_core_contract.getLoanDefaulted(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["defaulted"]
+    assert loans_core_contract.getLoanDefaulted(borrower, loan_id) == loans_core_contract.getLoan(borrower, loan_id)["defaulted"]
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
 
 
