@@ -59,13 +59,12 @@ def test_collaterals(erc721_contract):
 
 @pytest.fixture
 def loans_core_contract(LoansCore, loans_contract, contract_owner):
-    yield LoansCore.deploy(loans_contract.address, {"from": contract_owner})
+    yield LoansCore.deploy({"from": contract_owner})
 
 
 def test_initial_state(loans_core_contract, loans_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
     assert loans_core_contract.owner() == contract_owner
-    assert loans_core_contract.loansPeripheral() == loans_contract
 
 
 def test_change_ownership_wrong_sender(loans_core_contract, borrower):
@@ -86,21 +85,28 @@ def test_change_ownership(loans_core_contract, borrower, contract_owner):
     assert loans_core_contract.owner() == contract_owner
 
 
-def test_change_loans_peripheral_wrong_sender(loans_core_contract, loans_contract, borrower):
+def test_set_loans_peripheral_wrong_sender(loans_core_contract, loans_contract, borrower):
     with brownie.reverts("Only the owner can change the contract ownership"):
-        loans_core_contract.changeLoansPeripheral(loans_contract, {"from": borrower})
+        loans_core_contract.setLoansPeripheral(loans_contract, {"from": borrower})
 
 
-def test_change_loans_peripheral_same_address(loans_core_contract, loans_contract, contract_owner):
+def test_set_loans_peripheral_zero_address(loans_core_contract, contract_owner):
+    with brownie.reverts("The address is the zero address"):
+        loans_core_contract.setLoansPeripheral(brownie.ZERO_ADDRESS, {"from": contract_owner})
+
+
+def test_set_loans_peripheral_same_address(loans_core_contract, loans_contract, contract_owner):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    
     with brownie.reverts("The new loans peripheral address should be different than the current one"):
-        loans_core_contract.changeLoansPeripheral(loans_contract, {"from": contract_owner})
+        loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
 
-def test_change_loans_peripheral(loans_core_contract, loans_contract, contract_owner):
-    loans_core_contract.changeLoansPeripheral(contract_owner, {"from": contract_owner})
+def test_set_loans_peripheral(loans_core_contract, loans_contract, contract_owner):
+    loans_core_contract.setLoansPeripheral(contract_owner, {"from": contract_owner})
     assert loans_core_contract.loansPeripheral() == contract_owner
 
-    loans_core_contract.changeLoansPeripheral(loans_contract, {"from": contract_owner})
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
     assert loans_core_contract.loansPeripheral() == loans_contract
 
 
@@ -116,7 +122,9 @@ def test_add_loan_wrong_sender(loans_core_contract, contract_owner, borrower, te
         )
 
 
-def test_add_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+def test_add_loan(loans_core_contract, loans_contract, borrower, contract_owner, test_collaterals):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -138,17 +146,23 @@ def test_add_loan(loans_core_contract, loans_contract, borrower, test_collateral
     assert loans_core_contract.getLoanCollaterals(borrower, loan_id) == test_collaterals
 
 
-def test_update_invalid_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+def test_update_invalid_loan_wrong_sender(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("Only defined loans peripheral can remove loans"):
         loans_core_contract.updateInvalidLoan(borrower, 0, {"from": contract_owner})
 
 
-def test_update_invalid_loan_no_loan(loans_core_contract, loans_contract, borrower):
+def test_update_invalid_loan_no_loan(loans_core_contract, loans_contract, borrower, contract_owner):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("No loan created for borrower with passed id"):
         loans_core_contract.updateInvalidLoan(borrower, 0, {"from": loans_contract})
 
 
-def test_update_invalid_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+def test_update_invalid_loan(loans_core_contract, loans_contract, borrower, contract_owner, test_collaterals):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -164,17 +178,23 @@ def test_update_invalid_loan(loans_core_contract, loans_contract, borrower, test
     assert loans_core_contract.getLoanInvalidated(borrower, loan_id)
 
 
-def test_update_paid_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+def test_update_paid_loan_wrong_sender(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("Only defined loans peripheral can remove loans"):
         loans_core_contract.updatePaidLoan(borrower, 0, {"from": contract_owner})
 
 
-def test_update_paid_loan_no_loan(loans_core_contract, loans_contract, borrower):
+def test_update_paid_loan_no_loan(loans_core_contract, loans_contract, borrower, contract_owner):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    
     with brownie.reverts("No loan created for borrower with passed id"):
         loans_core_contract.updatePaidLoan(borrower, 0, {"from": loans_contract})
 
 
-def test_update_paid_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+def test_update_paid_loan(loans_core_contract, loans_contract, borrower, contract_owner, test_collaterals):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -192,17 +212,23 @@ def test_update_paid_loan(loans_core_contract, loans_contract, borrower, test_co
     assert loans_core_contract.getLoanPaid(borrower, loan_id)
 
 
-def test_update_defaulted_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+def test_update_defaulted_loan_wrong_sender(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    
     with brownie.reverts("Only defined loans peripheral can remove loans"):
         loans_core_contract.updateDefaultedLoan(borrower, 0, {"from": contract_owner})
 
 
-def test_update_defaulted_loan_no_loan(loans_core_contract, loans_contract, borrower):
+def test_update_defaulted_loan_no_loan(loans_core_contract, loans_contract, borrower, contract_owner):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("No loan created for borrower with passed id"):
         loans_core_contract.updateDefaultedLoan(borrower, 0, {"from": loans_contract})
 
 
-def test_update_defaulted_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+def test_update_defaulted_loan(loans_core_contract, loans_contract, borrower, contract_owner, test_collaterals):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -220,17 +246,23 @@ def test_update_defaulted_loan(loans_core_contract, loans_contract, borrower, te
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
 
 
-def test_update_canceled_loan_wrong_sender(loans_core_contract, contract_owner, borrower):
+def test_update_canceled_loan_wrong_sender(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("Only defined loans peripheral can remove loans"):
         loans_core_contract.updateCanceledLoan(borrower, 0, {"from": contract_owner})
 
 
-def test_update_canceled_loan_no_loan(loans_core_contract, loans_contract, borrower):
+def test_update_canceled_loan_no_loan(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("No loan created for borrower with passed id"):
         loans_core_contract.updateCanceledLoan(borrower, 0, {"from": loans_contract})
 
 
-def test_update_canceled_loan(loans_core_contract, loans_contract, borrower, test_collaterals):
+def test_update_canceled_loan(loans_core_contract, loans_contract, borrower, contract_owner, test_collaterals):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -253,6 +285,8 @@ def test_update_loan_started_wrong_sender(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -271,8 +305,11 @@ def test_update_loan_started_wrong_sender(
 def test_update_loan_started_no_loan(
     loans_core_contract,
     loans_contract,
-    borrower
+    borrower,
+    contract_owner
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("No loan created for borrower with passed id"):
         loans_core_contract.updateLoanStarted(borrower, 0, {"from": loans_contract})
 
@@ -284,6 +321,8 @@ def test_update_loan_started(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -313,6 +352,8 @@ def test_update_loan_started_already_started(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -337,6 +378,8 @@ def test_update_paid_amount_wrong_sender(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -357,8 +400,11 @@ def test_update_paid_amount_wrong_sender(
 def test_update_paid_amount_no_loan(
     loans_core_contract,
     loans_contract,
-    borrower
+    borrower,
+    contract_owner
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     with brownie.reverts("No loan created for borrower with passed id"):
         loans_core_contract.updateLoanPaidAmount(borrower, 0, LOAN_AMOUNT, {"from": loans_contract})
 
@@ -370,6 +416,8 @@ def test_update_paid_amount_no_loan(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -392,6 +440,8 @@ def test_update_paid_amount_more_than_needed(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -416,6 +466,8 @@ def test_update_paid_amount(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -441,6 +493,8 @@ def test_update_paid_amount_multiple(
     borrower,
     test_collaterals
 ):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,

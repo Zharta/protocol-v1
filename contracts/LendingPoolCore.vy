@@ -94,17 +94,21 @@ def __init__(
     _lendingPoolPeripheral: address,
     _erc20TokenContract: address
 ):
+    assert _lendingPoolPeripheral != ZERO_ADDRESS, "The LendingPoolPeripheral address is the zero address"
+    assert _erc20TokenContract != ZERO_ADDRESS, "The ERC20 token address is the zero address"
+
     self.owner = msg.sender
     self.lendingPoolPeripheral = _lendingPoolPeripheral
     self.erc20TokenContract = _erc20TokenContract
 
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def changeOwnership(_address: address) -> address:
     assert msg.sender == self.owner, "Only the owner can change the contract ownership"
+    assert _address != ZERO_ADDRESS, "The address is the zero address"
+    assert _address != self.owner, "The new owner address should be different than the current one"
 
-    self.owner = _newOwner
-
+    self.owner = _address
     return self.owner
 
 
@@ -113,6 +117,7 @@ def deposit(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can deposit"
+    assert _lender != ZERO_ADDRESS, "The lender address is the zero address"
     assert _amount > 0, "Amount deposited has to be higher than 0"
 
     sharesAmount: uint256 = self._computeShares(_amount)
@@ -155,6 +160,7 @@ def transferDeposit(_lender: address, _amount: uint256) -> bool:
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can request a deposit transfer"
     assert _lender != ZERO_ADDRESS, "The lender can not be the empty address"
     assert _amount > 0, "Amount deposited has to be higher than 0"
+    assert self._fundsAreAllowed(_lender, self, _amount), "Insufficient funds allowed to be transfered"
 
     return IERC20Token(self.erc20TokenContract).transferFrom(_lender, self, _amount)
 
@@ -200,6 +206,7 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
   # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can send funds"
+    assert _to != ZERO_ADDRESS, "The address to send funds to is the zero address"
     assert _amount > 0, "The amount to send should be higher than 0"
     assert IERC20Token(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
@@ -214,10 +221,39 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
 
 
 @external
-def receiveFunds(_amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can receive funds"
+    assert _borrower != ZERO_ADDRESS, "The borrower address is the zero address"
+    assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
+    assert self._fundsAreAllowed(_borrower, self, _amount), "Insufficient funds allowed to be transfered"
+
+    if not IERC20Token(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount):
+        return False
+
+    return True
+
+
+@external
+def transferProtocolFees(_protocolWallet: address, _amount: uint256) -> bool:
+    # _amount should be passed in wei
+
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can ask for protocol fees"
+    assert _protocolWallet != ZERO_ADDRESS, "The protocol wallet address is the zero address"
+    assert _amount > 0, "The requested value should be higher than 0"
+
+    if not IERC20Token(self.erc20TokenContract).transfer(_protocolWallet, _amount):
+        return False
+
+    return True
+
+
+@external
+def updateLiquidity(_amount: uint256, _rewardsAmount: uint256) -> bool:
+    # _amount and _rewardsAmount should be passed in wei
+
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can update liquidity data"
     assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
     assert _amount <= self.fundsInvested, "There are more funds being received than expected by the deposited funds variable"
 

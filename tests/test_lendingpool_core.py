@@ -1,3 +1,4 @@
+from multiprocessing import pool
 from brownie.network import chain
 from datetime import datetime as dt
 from decimal import Decimal
@@ -39,7 +40,6 @@ def erc20_contract(ERC20PresetMinterPauser, contract_owner):
 @pytest.fixture
 def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, contract_owner, protocol_wallet):
     yield LendingPoolPeripheral.deploy(
-        contract_owner,
         erc20_contract,
         protocol_wallet,
         PROTOCOL_FEES_SHARE,
@@ -324,72 +324,176 @@ def test_send_funds(
 def test_receive_funds_wrong_sender(lending_pool_core_contract, borrower):
     with brownie.reverts("Only defined lending pool peripheral can receive funds"):
         lending_pool_core_contract.receiveFunds(
+            borrower,
             Web3.toWei(0.2, "ether"),
             Web3.toWei(0.05, "ether"),
             {"from": borrower}
         )
 
 
-def test_receive_funds_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract):
+def test_receive_funds_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract, borrower):
     with brownie.reverts("The sent value should be higher than 0"):
         lending_pool_core_contract.receiveFunds(
+            borrower,
+            Web3.toWei(0, "ether"),
+            Web3.toWei(0, "ether"),
+            {"from": lending_pool_peripheral_contract}
+        )
+
+def test_transfer_protocol_fees_wrong_sender(lending_pool_core_contract, contract_owner, borrower):
+    with brownie.reverts("Only defined lending pool peripheral can ask for protocol fees"):
+        lending_pool_core_contract.transferProtocolFees(
+            contract_owner,
+            Web3.toWei(0.2, "ether"),
+            {"from": borrower}
+        )
+
+
+def test_transfer_protocol_fees_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract, contract_owner):
+    with brownie.reverts("The requested value should be higher than 0"):
+        lending_pool_core_contract.transferProtocolFees(
+            contract_owner,
+            Web3.toWei(0, "ether"),
+            {"from": lending_pool_peripheral_contract}
+        )
+
+
+def test_transfer_protocol_fees(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, contract_owner):  
+    erc20_contract.mint(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": contract_owner})
+
+    assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(1, "ether")
+
+    lending_pool_core_contract.transferProtocolFees(
+        contract_owner,
+        Web3.toWei(1, "ether"),
+        {"from": lending_pool_peripheral_contract}
+    )
+
+    assert user_balance(erc20_contract, lending_pool_core_contract) == 0
+    assert user_balance(erc20_contract, contract_owner) == Web3.toWei(1, "ether")
+
+
+def test_receive_funds(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, borrower, contract_owner):
+    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+
+    erc20_contract.mint(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": borrower})
+
+    lending_amount = Web3.toWei(0.2, "ether")
+    rewards_amount = Web3.toWei(0.02, "ether")
+    pool_rewards_amount = rewards_amount * (10000 - lending_pool_peripheral_contract.protocolFeesShare()) / 10000
+
+    initial_balance = user_balance(erc20_contract, lending_pool_core_contract)
+
+    lending_pool_core_contract.receiveFunds(
+        borrower,
+        lending_amount,
+        pool_rewards_amount,
+        {"from": lending_pool_peripheral_contract}
+    )
+
+    assert user_balance(erc20_contract, lending_pool_core_contract) == initial_balance + lending_amount + pool_rewards_amount
+
+
+def test_update_liquidity_wrong_sender(lending_pool_core_contract, borrower):
+    with brownie.reverts("Only defined lending pool peripheral can update liquidity data"):
+        lending_pool_core_contract.updateLiquidity(
+            Web3.toWei(0.2, "ether"),
+            Web3.toWei(0.05, "ether"),
+            {"from": borrower}
+        )
+
+
+def test_update_liquidity_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract):
+    with brownie.reverts("The sent value should be higher than 0"):
+        lending_pool_core_contract.updateLiquidity(
             Web3.toWei(0, "ether"),
             Web3.toWei(0, "ether"),
             {"from": lending_pool_peripheral_contract}
         )
 
 
-def test_receive_funds(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, borrower, contract_owner):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
-
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
-
-    tx_send = lending_pool_core_contract.sendFunds(
-        borrower,
-        Web3.toWei(0.2, "ether"),
-        {"from": lending_pool_peripheral_contract}
-    )
-
-    tx_receive = lending_pool_core_contract.receiveFunds(
-        Web3.toWei(0.2, "ether"),
-        Web3.toWei(0.02, "ether"),
-        {"from": lending_pool_peripheral_contract}
-    )
-
-    assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1.02, "ether")
-    assert lending_pool_core_contract.fundsInvested() == 0
-
-    assert lending_pool_core_contract.totalRewards() == Web3.toWei(0.02, "ether")
-    assert lending_pool_core_contract.totalSharesBasisPoints() == Web3.toWei(1, "ether")
-
-    assert lending_pool_core_contract.funds(contract_owner)["sharesBasisPoints"] == 0
-    assert lending_pool_core_contract.computeWithdrawableAmount(investor) == Web3.toWei(1.02, "ether")
-
-
-def test_receive_funds_multiple_lenders(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
+def test_update_liquidity_too_much_funds(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, borrower, contract_owner):
     lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    erc20_contract.mint(contract_owner, Web3.toWei(3, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(3, "ether"), {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(Web3.toWei(3, "ether"), {"from": contract_owner})
+    lending_pool_core_contract.sendFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        {"from": lending_pool_peripheral_contract}
+    )
 
-    deposits_amount = Web3.toWei(4, "ether")
+    with brownie.reverts("There are more funds being received than expected by the deposited funds variable"):
+        lending_pool_core_contract.updateLiquidity(
+            Web3.toWei(0.3, "ether"),
+            0,
+            {"from": lending_pool_peripheral_contract}
+        )
+
+
+def test_update_liquidity(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, borrower, contract_owner):
+    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+
+    deposit_amount = Web3.toWei(1, "ether")
+
+    erc20_contract.mint(investor, deposit_amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
+    lending_pool_peripheral_contract.deposit(deposit_amount, {"from": investor})
+
+    lending_pool_core_contract.sendFunds(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        {"from": lending_pool_peripheral_contract}
+    )
+
+    lending_amount = Web3.toWei(0.2, "ether")
+    rewards_amount = Web3.toWei(0.02, "ether")
+    pool_rewards_amount = rewards_amount * (10000 - lending_pool_peripheral_contract.protocolFeesShare()) / 10000
+
+    lending_pool_core_contract.updateLiquidity(
+        lending_amount,
+        pool_rewards_amount,
+        {"from": lending_pool_peripheral_contract}
+    )
+
+    assert lending_pool_core_contract.fundsAvailable() == deposit_amount + pool_rewards_amount
+    assert lending_pool_core_contract.fundsInvested() == 0
+
+    assert lending_pool_core_contract.totalRewards() == pool_rewards_amount
+    assert lending_pool_core_contract.totalSharesBasisPoints() == deposit_amount
+
+    assert lending_pool_core_contract.funds(contract_owner)["sharesBasisPoints"] == 0
+    assert lending_pool_core_contract.computeWithdrawableAmount(investor) == deposit_amount + pool_rewards_amount
+
+
+def test_update_liquidity_multiple_lenders(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
+    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+
+    lender_one_deposit_amount = Web3.toWei(1, "ether")
+    lender_two_deposit_amount = Web3.toWei(3, "ether")
+
+    erc20_contract.mint(investor, lender_one_deposit_amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, lender_one_deposit_amount, {"from": investor})
+    lending_pool_peripheral_contract.deposit(lender_one_deposit_amount, {"from": investor})
+
+    erc20_contract.mint(contract_owner, lender_two_deposit_amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, lender_two_deposit_amount, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit(lender_two_deposit_amount, {"from": contract_owner})
+
+    deposits_amount = lender_one_deposit_amount + lender_two_deposit_amount
     investment_amount = Web3.toWei(0.2, "ether")
     rewards_amount = Web3.toWei(0.02, "ether")
 
-    tx_send = lending_pool_core_contract.sendFunds(
+    lending_pool_core_contract.sendFunds(
         borrower,
         investment_amount,
         {"from": lending_pool_peripheral_contract}
     )
 
-    tx_receive = lending_pool_core_contract.receiveFunds(
+    lending_pool_core_contract.updateLiquidity(
         investment_amount,
         rewards_amount,
         {"from": lending_pool_peripheral_contract}
