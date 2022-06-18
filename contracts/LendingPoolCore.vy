@@ -7,7 +7,7 @@ interface IERC20Token:
     def balanceOf(_owner: address) -> uint256: view
     def allowance(_owner: address, _spender: address) -> uint256: view
     def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
-    def transferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
+    def transferFrom(_sender: address, _recipient: address, _amount: uint256) -> bool: nonpayable
     def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
 
 
@@ -112,7 +112,7 @@ def changeOwnership(_newOwner: address) -> address:
 def deposit(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
-    assert msg.sender == self.lendingPoolPeripheral or msg.sender == _lender, "Only defined lending pool peripheral or the lender can deposit"
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can deposit"
     assert _amount > 0, "Amount deposited has to be higher than 0"
 
     sharesAmount: uint256 = self._computeShares(_amount)
@@ -149,10 +149,21 @@ def deposit(_lender: address, _amount: uint256) -> bool:
 
 
 @external
+def transferDeposit(_lender: address, _amount: uint256) -> bool:
+    # _amount should be passed in wei
+
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can request a deposit transfer"
+    assert _lender != ZERO_ADDRESS, "The lender can not be the empty address"
+    assert _amount > 0, "Amount deposited has to be higher than 0"
+
+    return IERC20Token(self.erc20TokenContract).transferFrom(_lender, self, _amount)
+
+
+@external
 def withdraw(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
-    assert msg.sender == self.lendingPoolPeripheral or msg.sender == _lender, "Only defined lending pool peripheral or the lender can withdraw"
+    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can withdraw"
     assert self._computeWithdrawableAmount(_lender) >= _amount, "The lender has less funds deposited than the amount requested"
     assert self.fundsAvailable >= _amount, "Not enough funds in the pool to be withdrawn"
 

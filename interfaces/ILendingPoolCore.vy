@@ -7,7 +7,6 @@ struct InvestorFunds:
     sharesBasisPoints: uint256
     activeForRewards: bool
 
-
 # Events
 
 event Compound:
@@ -22,6 +21,11 @@ event Compound:
 def lendersArray() -> DynArray[address, 1125899906842624]:
     pass
 
+@view
+@external
+def computeWithdrawableAmount(_lender: address) -> uint256:
+    pass
+
 @external
 def changeOwnership(_newOwner: address) -> address:
     pass
@@ -31,7 +35,7 @@ def deposit(_lender: address, _amount: uint256) -> bool:
     pass
 
 @external
-def withdrawUnpaidRewards() -> bool:
+def transferDeposit(_lender: address, _amount: uint256) -> bool:
     pass
 
 @external
@@ -110,3 +114,5 @@ def totalRewards() -> uint256:
 @external
 def totalSharesBasisPoints() -> uint256:
     pass
+
+
