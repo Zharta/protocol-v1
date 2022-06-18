@@ -449,6 +449,8 @@ def settleDefault(_borrower: address, _loanId: uint256):
 @external
 def cancelPendingLoan(_loanId: uint256):
     assert self.loansCore.isLoanCreated(msg.sender, _loanId), "The sender has not created a loan with the given ID"
+    assert not self.loansCore.isLoanStarted(msg.sender, _loanId), "The loan was already started"
+    assert not self.loansCore.getLoanInvalidated(msg.sender, _loanId), "The loan was already invalidated"
 
     collaterals: DynArray[Collateral, 10] = self.loansCore.getLoanCollaterals(msg.sender, _loanId)
     for collateral in collaterals:
