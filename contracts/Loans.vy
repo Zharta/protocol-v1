@@ -393,6 +393,9 @@ def validate(_borrower: address, _loanId: uint256):
 def invalidate(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "Only the contract owner can invalidate loans"
     assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "This loan has not been created for the borrower"
+    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "The loan was already validated"
+    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "The loan was already invalidated"
+    assert not ILoansCore(self.loansCoreAddress).getLoanPaid(_borrower, _loanId), "The loan was already paid and closed"
 
     collaterals: DynArray[Collateral, 10] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
     for collateral in collaterals:
