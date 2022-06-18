@@ -345,6 +345,8 @@ def reserve(
     assert _amount >= self.minLoanAmount, "Loan amount is less than the min loan amount"
     assert _amount <= self.maxLoanAmount, "Loan amount is more than the max loan amount"
 
+    self.ongoingLoans[msg.sender] += 1
+
     newLoanId: uint256 = ILoansCore(self.loansCoreAddress).addLoan(
         msg.sender,
         _amount,
@@ -354,13 +356,10 @@ def reserve(
     )
 
     for collateral in _collaterals:
-        IERC721(collateral.contractAddress).transferFrom(msg.sender, self, collateral.tokenId)
-
         ILoansCore(self.loansCoreAddress).addCollateralToLoan(msg.sender, collateral, newLoanId)
-        
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, False)
 
-    self.ongoingLoans[msg.sender] += 1
+        IERC721(collateral.contractAddress).transferFrom(msg.sender, self, collateral.tokenId)
 
     log LoanCreated(msg.sender, newLoanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
@@ -381,9 +380,7 @@ def validate(_borrower: address, _loanId: uint256):
     assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= convert(ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId), int256), "Insufficient funds in the lending pool"
 
     ILoansCore(self.loansCoreAddress).updateLoanStarted(_borrower, _loanId)
-    
     ILoansCore(self.loansCoreAddress).updateHighestSingleCollateralLoan(_borrower, _loanId)
-
     ILoansCore(self.loansCoreAddress).updateHighestCollateralBundleLoan(_borrower, _loanId)
 
     ILendingPoolPeripheral(self.lendingPoolAddress).sendFunds(_borrower, ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId))
@@ -398,17 +395,16 @@ def invalidate(_borrower: address, _loanId: uint256):
     assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The loan was already validated"
     assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "The loan was already invalidated"
 
-    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
-    for collateral in collaterals:
-        IERC721(collateral.contractAddress).safeTransferFrom(self, _borrower, collateral.tokenId)
-
-        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
-
-        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+    self.ongoingLoans[_borrower] -= 1
     
     ILoansCore(self.loansCoreAddress).updateInvalidLoan(_borrower, _loanId)
 
-    self.ongoingLoans[_borrower] -= 1
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
+    for collateral in collaterals:
+        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
+        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+
+        IERC721(collateral.contractAddress).safeTransferFrom(self, _borrower, collateral.tokenId)
 
     log LoanInvalidated(_borrower, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
@@ -431,25 +427,24 @@ def pay(_loanId: uint256, _amountPaid: uint256):
     paidAmountInterest: uint256 = _amountPaid - paidAmount
 
     if _amountPaid == allowedPayment:
-        collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
-        for collateral in collaterals:
-            IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
-
-            ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
-
-            ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
-
-        ILoansCore(self.loansCoreAddress).updatePaidLoan(msg.sender, _loanId)
-
         self.ongoingLoans[msg.sender] -= 1
         
-        log LoanPaid(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+        ILoansCore(self.loansCoreAddress).updatePaidLoan(msg.sender, _loanId)
 
     ILoansCore(self.loansCoreAddress).updateLoanPaidAmount(msg.sender, _loanId, paidAmount + paidAmountInterest)
-    
     ILoansCore(self.loansCoreAddress).updateHighestRepayment(msg.sender, _loanId)
 
     ILendingPoolPeripheral(self.lendingPoolAddress).receiveFunds(msg.sender, paidAmount, paidAmountInterest)
+
+    if _amountPaid == allowedPayment:
+        collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
+        for collateral in collaterals:
+            ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
+            ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+            
+            IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
+
+        log LoanPaid(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
     log LoanPayment(msg.sender, _loanId, _amountPaid, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
@@ -460,19 +455,17 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The _borrower has not started a loan with the given ID"
     assert block.timestamp > ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "The maturity of the loan has not been reached yet"
 
-    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
-    for collateral in collaterals:
-        IERC721(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId)
-
-        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
-
-        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+    self.ongoingLoans[_borrower] -= 1
 
     ILoansCore(self.loansCoreAddress).updateDefaultedLoan(_borrower, _loanId)
-
     ILoansCore(self.loansCoreAddress).updateHighestDefaultedLoan(_borrower, _loanId)
 
-    self.ongoingLoans[_borrower] -= 1
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
+    for collateral in collaterals:
+        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
+        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+
+        IERC721(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId)
 
     log LoanDefaulted(
         _borrower,
@@ -488,17 +481,16 @@ def cancelPendingLoan(_loanId: uint256):
     assert not ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "The loan was already started"
     assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(msg.sender, _loanId), "The loan was already invalidated"
 
-    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
-    for collateral in collaterals:
-        IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
-
-        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
-
-        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+    self.ongoingLoans[msg.sender] -= 1
 
     ILoansCore(self.loansCoreAddress).updateCanceledLoan(msg.sender, _loanId)
 
-    self.ongoingLoans[msg.sender] -= 1
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
+    for collateral in collaterals:
+        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
+        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+
+        IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)    
 
     log PendingLoanCanceled(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
