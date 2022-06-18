@@ -193,7 +193,7 @@ def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collate
 def getLoanStartTime(_borrower: address, _loanId: uint256) -> uint256:
     if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].startTime
-    return 0
+    return MAX_UINT256
 
 
 @view
