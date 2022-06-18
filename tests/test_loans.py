@@ -1354,7 +1354,7 @@ def test_invalidate_loan(
     assert tx_create_loan.events[-1]["loanId"] == 0
 
     tx_invalidate_loan = loans_contract.invalidate(borrower, 0, {'from': contract_owner})
-    assert loans_contract.getPendingLoan(borrower, loan_id)["invalidated"]
+    assert loans_contract.getLoan(borrower, loan_id)["invalidated"]
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
