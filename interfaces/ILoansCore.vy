@@ -33,7 +33,7 @@ def changeOwnership(_newOwner: address) -> address:
     pass
 
 @external
-def changeLoansPeripheral(_newLoansPeripheral: address) -> address:
+def setLoansPeripheral(_address: address) -> address:
     pass
 
 @view
@@ -236,3 +236,5 @@ def collateralsData(arg0: bytes32) -> Collateral:
 @external
 def collateralsIdsByAddress(arg0: address, arg1: uint256) -> uint256:
     pass
+
+

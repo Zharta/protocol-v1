@@ -373,6 +373,8 @@ def validate(_borrower: address, _loanId: uint256):
     assert not self.isDeprecated, "The contract is deprecated, please pay any outstanding loans"
     assert self.isAcceptingLoans, "The contract is not accepting more loans right now, please pay any outstanding loans"
     assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "This loan has not been created for the borrower"
+    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The loan was already validated"
+    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "The loan was already invalidated"
     assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "Maturity can not be in the past"
     assert self._areCollateralsWhitelisted(ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "Not all collaterals are whitelisted"
     assert self._areCollateralsOwned(self, ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "Not all collaterals are owned by the protocol"
@@ -393,6 +395,8 @@ def validate(_borrower: address, _loanId: uint256):
 def invalidate(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "Only the contract owner can invalidate loans"
     assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "This loan has not been created for the borrower"
+    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The loan was already validated"
+    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "The loan was already invalidated"
 
     collaterals: DynArray[Collateral, 10] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
     for collateral in collaterals:
