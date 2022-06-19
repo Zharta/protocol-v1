@@ -110,12 +110,12 @@ def __init__(
     _lendingPoolAddress: address,
     _lendingPoolCoreAddress: address
 ):
-    assert _maxAllowedLoans > 0, "Max allowed loans needs to be higher than 0"
-    assert _maxAllowedLoanDuration > 0, "Max duration needs to be higher than 0"
-    assert _maxLoanAmount >= _minLoanAmount, "Max loan amount needs to be higher min loan amount"
-    assert _loansCoreAddress != ZERO_ADDRESS, "The LoansCore address is the zero address"
-    assert _lendingPoolAddress != ZERO_ADDRESS, "The LendingPoolPeripheral address is the zero address"
-    assert _lendingPoolCoreAddress != ZERO_ADDRESS, "The LendingPoolCore address is the zero address"
+    assert _maxAllowedLoans > 0, "value for max loans is 0"
+    assert _maxAllowedLoanDuration > 0, "valor for max duration is 0"
+    assert _maxLoanAmount >= _minLoanAmount, "max amount is < than min amount"
+    assert _loansCoreAddress != ZERO_ADDRESS, "address is the zero address"
+    assert _lendingPoolAddress != ZERO_ADDRESS, "address is the zero address"
+    assert _lendingPoolCoreAddress != ZERO_ADDRESS, "address is the zero address"
 
     self.owner = msg.sender
     self.maxAllowedLoans = _maxAllowedLoans
@@ -161,66 +161,68 @@ def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collatera
 
 
 @external
-def changeOwnership(_newOwner: address) -> address:
-    assert msg.sender == self.owner, "Only the owner can change the contract ownership"
-    assert _newOwner != self.owner, "New owner should be different than the current owner"
+def changeOwnership(_address: address) -> address:
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != self.owner, "new owner addr is the same"
 
-    self.owner = _newOwner
+    self.owner = _address
 
     return self.owner
 
 
 @external
-def changeMaxAllowedLoans(_maxAllowedLoans: uint256) -> uint256:
-    assert msg.sender == self.owner, "Only the owner can change the max allowed loans per address"
-    assert _maxAllowedLoans > 0, "Max allowed loans should be higher than 0"
-    assert _maxAllowedLoans != self.maxAllowedLoans, "New value for max allowed loans should be different than the current value"
+def changeMaxAllowedLoans(_value: uint256) -> uint256:
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value > 0, "value for max loans is 0"
+    assert _value != self.maxAllowedLoans, "new max loans value is the same"
 
-    self.maxAllowedLoans = _maxAllowedLoans
+    self.maxAllowedLoans = _value
 
     return self.maxAllowedLoans
 
 
 @external
-def changeMaxAllowedLoanDuration(_maxAllowedLoanDuration: uint256) -> uint256:
-    assert msg.sender == self.owner, "Only the owner can change the max allowed loan duration"
-    assert _maxAllowedLoanDuration > 0, "Max duration needs to be higher than 0"
-    assert _maxAllowedLoanDuration != self.maxAllowedLoanDuration, "New value for max duration should be different than the current one"
+def changeMaxAllowedLoanDuration(_value: uint256) -> uint256:
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value > 0, "value for max duration is 0"
+    assert _value != self.maxAllowedLoanDuration, "new max duration value is the same"
 
-    self.maxAllowedLoanDuration = _maxAllowedLoanDuration
+    self.maxAllowedLoanDuration = _value
 
     return self.maxAllowedLoanDuration
 
 
 @external
-def changeMinLoanAmount(_newMinLoanAmount: uint256) -> uint256:
-    assert msg.sender == self.owner, "Only the contract owner can change the min loan amount"
-    assert _newMinLoanAmount != self.minLoanAmount, "New value for min loan amount should be different than the current one"
-    assert _newMinLoanAmount <= self.maxLoanAmount, "The min loan amount can not be higher than the max loan amount"
+def changeMinLoanAmount(_value: uint256) -> uint256:
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value != self.minLoanAmount, "new min loan amount is the same"
+    assert _value <= self.maxLoanAmount, "min amount is > than max amount"
+    
 
-    self.minLoanAmount = _newMinLoanAmount
+    self.minLoanAmount = _value
 
     return self.minLoanAmount
 
 
 @external
-def changeMaxLoanAmount(_newMaxLoanAmount: uint256) -> uint256:
-    assert msg.sender == self.owner, "Only the contract owner can change the max loan amount"
-    assert _newMaxLoanAmount != self.maxLoanAmount, "New value for max loan amount should be different than the current one"
-    assert _newMaxLoanAmount >= self.minLoanAmount, "The max loan amount can not be lower than the min loan amount"
+def changeMaxLoanAmount(_value: uint256) -> uint256:
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value != self.maxLoanAmount, "new max loan amount is the same"
+    assert _value >= self.minLoanAmount, "max amount is < than min amount"
 
-    self.maxLoanAmount = _newMaxLoanAmount
+    self.maxLoanAmount = _value
 
     return self.maxLoanAmount
 
 
 @external
 def addCollateralToWhitelist(_address: address) -> bool:
-    assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
-    assert _address != ZERO_ADDRESS, "The address is the zero address"
-    assert _address.is_contract == True, "The address sent does not have a deployed contract"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract == True, "_address is not a contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
-    assert IERC165(_address).supportsInterface(0x80ac58cd), "The address is not of a ERC721 contract"
+    assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
 
     self.whitelistedCollaterals[_address] = True
     if _address not in self.whitelistedCollateralsAddresses:
@@ -231,8 +233,8 @@ def addCollateralToWhitelist(_address: address) -> bool:
 
 @external
 def removeCollateralFromWhitelist(_address: address) -> bool:
-    assert msg.sender == self.owner, "Only the contract owner can add collateral addresses to the whitelist"
-    assert _address in self.whitelistedCollateralsAddresses, "The collateral is not whitelisted"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address in self.whitelistedCollateralsAddresses, "collateral is not whitelisted"
 
     self.whitelistedCollaterals[_address] = False
 
@@ -241,9 +243,9 @@ def removeCollateralFromWhitelist(_address: address) -> bool:
 
 @external
 def setLoansCoreAddress(_address: address) -> address:
-    assert msg.sender == self.owner, "Only the contract owner can set the LoansCore address"
-    assert _address != ZERO_ADDRESS, "The address is the zero address"
-    assert self.loansCoreAddress != _address, "The new LoansCore address should be different than the current one"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.loansCoreAddress != _address, "new LoansCore addr is the same"
 
     self.loansCoreAddress = _address
     return self.loansCoreAddress
@@ -251,9 +253,9 @@ def setLoansCoreAddress(_address: address) -> address:
 
 @external
 def setLendingPoolPeripheralAddress(_address: address) -> address:
-    assert msg.sender == self.owner, "Only the contract owner can set the investment pool address"
-    assert _address != ZERO_ADDRESS, "The address is the zero address"
-    assert self.lendingPoolAddress != _address, "The new LendingPoolPeripheral address should be different than the current one"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.lendingPoolAddress != _address, "new LPPeriph addr is the same"
 
     self.lendingPoolAddress = _address
     return self.lendingPoolAddress
@@ -261,9 +263,9 @@ def setLendingPoolPeripheralAddress(_address: address) -> address:
 
 @external
 def setLendingPoolCoreAddress(_address: address) -> address:
-    assert msg.sender == self.owner, "Only the contract owner can set the investment pool core address"
-    assert _address != ZERO_ADDRESS, "The address is the zero address"
-    assert self.lendingPoolCoreAddress != _address, "The new LendingPoolCore address should be different than the current one"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.lendingPoolCoreAddress != _address, "new LPCore addr is the same"
 
     self.lendingPoolCoreAddress = _address
     return self.lendingPoolCoreAddress
@@ -271,8 +273,8 @@ def setLendingPoolCoreAddress(_address: address) -> address:
 
 @external
 def changeContractStatus(_flag: bool) -> bool:
-    assert msg.sender == self.owner, "Only the contract owner can change the status of the contract"
-    assert self.isAcceptingLoans != _flag, "The new contract status should be different than the current status"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert self.isAcceptingLoans != _flag, "new contract status is the same"
 
     self.isAcceptingLoans = _flag
 
@@ -281,8 +283,8 @@ def changeContractStatus(_flag: bool) -> bool:
 
 @external
 def deprecate() -> bool:
-    assert msg.sender == self.owner, "Only the contract owner can deprecate the contract"
-    assert not self.isDeprecated, "The contract is already deprecated"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert not self.isDeprecated, "contract is already deprecated"
 
     self.isDeprecated = True
     self.isAcceptingLoans = False
@@ -321,17 +323,17 @@ def reserve(
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100]
 ) -> uint256:
-    assert not self.isDeprecated, "The contract is deprecated, no more loans can be created"
-    assert self.isAcceptingLoans, "The contract is not accepting more loans right now"
-    assert block.timestamp <= _maturity, "Maturity can not be in the past"
-    assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "Maturity can not exceed the max allowed"
-    assert self._areCollateralsWhitelisted(_collaterals), "Not all collaterals are whitelisted"
-    assert self._areCollateralsOwned(msg.sender, _collaterals), "Not all collaterals are owned by the borrower"
-    assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "Not all collaterals are approved to be transferred"
-    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= convert(_amount, int256), "Insufficient funds in the lending pool"
-    assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "Max number of loans for borrower already reached"
-    assert _amount >= self.minLoanAmount, "Loan amount is less than the min loan amount"
-    assert _amount <= self.maxLoanAmount, "Loan amount is more than the max loan amount"
+    assert not self.isDeprecated, "contract is deprecated"
+    assert self.isAcceptingLoans, "contract is not accepting loans"
+    assert block.timestamp <= _maturity, "maturity is in the past"
+    assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "maturity exceeds the max allowed"
+    assert self._areCollateralsWhitelisted(_collaterals), "not all NFTs are accepted"
+    assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
+    assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
+    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= convert(_amount, int256), "insufficient liquidity"
+    assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "max loans already reached"
+    assert _amount >= self.minLoanAmount, "loan amount < than the min value"
+    assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
 
     self.ongoingLoans[msg.sender] += 1
 
@@ -356,16 +358,16 @@ def reserve(
 
 @external
 def validate(_borrower: address, _loanId: uint256):
-    assert msg.sender == self.owner, "Only the contract owner can validate loans"
-    assert not self.isDeprecated, "The contract is deprecated, please pay any outstanding loans"
-    assert self.isAcceptingLoans, "The contract is not accepting more loans right now, please pay any outstanding loans"
-    assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "This loan has not been created for the borrower"
-    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The loan was already validated"
-    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "The loan was already invalidated"
-    assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "Maturity can not be in the past"
-    assert self._areCollateralsWhitelisted(ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "Not all collaterals are whitelisted"
-    assert self._areCollateralsOwned(self, ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "Not all collaterals are owned by the protocol"
-    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= convert(ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId), int256), "Insufficient funds in the lending pool"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert not self.isDeprecated, "contract is deprecated"
+    assert self.isAcceptingLoans, "contract is not accepting loans"
+    assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "loan not found"
+    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan already validated"
+    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
+    assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "maturity is in the past"
+    assert self._areCollateralsWhitelisted(ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "not all NFTs are accepted"
+    assert self._areCollateralsOwned(self, ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "_borrower does not own all NFTs"
+    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= convert(ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId), int256), "insufficient liquidity"
 
     ILoansCore(self.loansCoreAddress).updateLoanStarted(_borrower, _loanId)
     ILoansCore(self.loansCoreAddress).updateHighestSingleCollateralLoan(_borrower, _loanId)
@@ -378,10 +380,10 @@ def validate(_borrower: address, _loanId: uint256):
 
 @external
 def invalidate(_borrower: address, _loanId: uint256):
-    assert msg.sender == self.owner, "Only the contract owner can invalidate loans"
-    assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "This loan has not been created for the borrower"
-    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The loan was already validated"
-    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "The loan was already invalidated"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "loan not found"
+    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan already validated"
+    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
 
     self.ongoingLoans[_borrower] -= 1
     
@@ -398,23 +400,21 @@ def invalidate(_borrower: address, _loanId: uint256):
 
 
 @external
-def pay(_loanId: uint256, _amountPaid: uint256):
-    assert ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "The sender has not started a loan with the given ID"
-    assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(msg.sender, _loanId), "The maturity of the loan has already been reached and it defaulted"
-    assert _amountPaid > 0, "The amount paid needs to be higher than 0"
+def pay(_loanId: uint256, _amount: uint256):
+    assert ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "loan not found"
+    assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).balanceOf(msg.sender) >=_amount, "insufficient balance"
+    assert IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).allowance(msg.sender, self.lendingPoolCoreAddress) >= _amount, "insufficient allowance"
 
     maxPayment: uint256 = ILoansCore(self.loansCoreAddress).getLoanAmount(msg.sender, _loanId) * (10000 + ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId)) / 10000
     allowedPayment: uint256 = maxPayment - ILoansCore(self.loansCoreAddress).getLoanPaidAmount(msg.sender, _loanId)
-    borrowerBalance: uint256 = IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).balanceOf(msg.sender)
-    lendingPoolAllowance: uint256 = IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).allowance(msg.sender, self.lendingPoolCoreAddress)
-    assert _amountPaid <= allowedPayment, "The amount paid is higher than the amount left to be paid"
-    assert borrowerBalance >= _amountPaid, "User has insufficient balance for the payment"
-    assert lendingPoolAllowance >= _amountPaid, "User did not allow funds to be transferred"
+    assert _amount <= allowedPayment, "_amount is more than needed"
 
-    paidAmount: uint256 = _amountPaid * 10000 / (10000 + ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId))
-    paidAmountInterest: uint256 = _amountPaid - paidAmount
+    paidAmount: uint256 = _amount * 10000 / (10000 + ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId))
+    paidAmountInterest: uint256 = _amount - paidAmount
 
-    if _amountPaid == allowedPayment:
+    if _amount == allowedPayment:
         self.ongoingLoans[msg.sender] -= 1
         
         ILoansCore(self.loansCoreAddress).updatePaidLoan(msg.sender, _loanId)
@@ -424,7 +424,7 @@ def pay(_loanId: uint256, _amountPaid: uint256):
 
     ILendingPoolPeripheral(self.lendingPoolAddress).receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
-    if _amountPaid == allowedPayment:
+    if _amount == allowedPayment:
         collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
         for collateral in collaterals:
             ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
@@ -434,14 +434,14 @@ def pay(_loanId: uint256, _amountPaid: uint256):
 
         log LoanPaid(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
-    log LoanPayment(msg.sender, _loanId, _amountPaid, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+    log LoanPayment(msg.sender, _loanId, _amount, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
 
 @external
 def settleDefault(_borrower: address, _loanId: uint256):
-    assert msg.sender == self.owner, "Only the contract owner can default loans"
-    assert ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "The _borrower has not started a loan with the given ID"
-    assert block.timestamp > ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "The maturity of the loan has not been reached yet"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan not found"
+    assert block.timestamp > ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
 
     self.ongoingLoans[_borrower] -= 1
 
@@ -465,9 +465,9 @@ def settleDefault(_borrower: address, _loanId: uint256):
 
 @external
 def cancelPendingLoan(_loanId: uint256):
-    assert ILoansCore(self.loansCoreAddress).isLoanCreated(msg.sender, _loanId), "The sender has not created a loan with the given ID"
-    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "The loan was already started"
-    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(msg.sender, _loanId), "The loan was already invalidated"
+    assert ILoansCore(self.loansCoreAddress).isLoanCreated(msg.sender, _loanId), "loan not found"
+    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "loan already validated"
+    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(msg.sender, _loanId), "loan already invalidated"
 
     self.ongoingLoans[msg.sender] -= 1
 

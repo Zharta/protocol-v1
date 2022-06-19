@@ -109,7 +109,7 @@ def test_initial_state(loans_contract, contract_owner):
 
 
 def test_change_ownership_wrong_sender(loans_contract, borrower):
-    with brownie.reverts("Only the owner can change the contract ownership"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.changeOwnership(borrower, {"from": borrower})
 
 
@@ -122,7 +122,7 @@ def test_change_ownership(loans_contract, borrower, contract_owner):
 
 
 def test_change_max_allowed_loans_wrong_sender(loans_contract, borrower):
-    with brownie.reverts("Only the owner can change the max allowed loans per address"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS - 1, {"from": borrower})
 
 
@@ -135,7 +135,7 @@ def test_change_max_allowed_loans(loans_contract, contract_owner):
 
 
 def test_change_max_allowed_loan_duration_wrong_sender(loans_contract, borrower):
-    with brownie.reverts("Only the owner can change the max allowed loan duration"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION - 1, {"from": borrower})
 
 
@@ -148,7 +148,7 @@ def test_change_max_allowed_loan_duration(loans_contract, contract_owner):
 
 
 def test_set_loans_core_address_not_owner(loans_contract, loans_core_contract, borrower):
-    with brownie.reverts("Only the contract owner can set the LoansCore address"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.setLoansCoreAddress(
             loans_core_contract,
             {"from": borrower}
@@ -156,7 +156,7 @@ def test_set_loans_core_address_not_owner(loans_contract, loans_core_contract, b
 
 
 def test_set_loans_core_address_zero_address(loans_contract, contract_owner):
-    with brownie.reverts("The address is the zero address"):
+    with brownie.reverts("_address is the zero address"):
         loans_contract.setLoansCoreAddress(
             brownie.ZERO_ADDRESS,
             {"from": contract_owner}
@@ -180,7 +180,7 @@ def test_set_loans_core_address(loans_contract, loans_core_contract, contract_ow
 
 
 def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("Only the contract owner can set the investment pool address"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.setLendingPoolPeripheralAddress(
             lending_pool_peripheral_contract,
             {"from": borrower}
@@ -188,7 +188,7 @@ def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_periphe
 
 
 def test_set_lending_pool_address_zero_address(loans_contract, contract_owner):
-    with brownie.reverts("The address is the zero address"):
+    with brownie.reverts("_address is the zero address"):
         loans_contract.setLendingPoolPeripheralAddress(
             brownie.ZERO_ADDRESS,
             {"from": contract_owner}
@@ -212,7 +212,7 @@ def test_set_lending_pool_address(loans_contract, lending_pool_peripheral_contra
 
 
 def test_set_lending_pool_address_core_not_owner(loans_contract, lending_pool_core_contract, borrower):
-    with brownie.reverts("Only the contract owner can set the investment pool core address"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.setLendingPoolCoreAddress(
             lending_pool_core_contract,
             {"from": borrower}
@@ -220,7 +220,7 @@ def test_set_lending_pool_address_core_not_owner(loans_contract, lending_pool_co
 
 
 def test_set_lending_pool_address_core_zero_address(loans_contract, contract_owner):
-    with brownie.reverts("The address is the zero address"):
+    with brownie.reverts("_address is the zero address"):
         loans_contract.setLendingPoolCoreAddress(
             brownie.ZERO_ADDRESS,
             {"from": contract_owner}
@@ -244,7 +244,7 @@ def test_set_lending_pool_core_address(loans_contract, lending_pool_core_contrac
 
 
 def test_add_address_to_whitelist_wrong_sender(loans_contract, erc721_contract, borrower):
-    with brownie.reverts("Only the contract owner can add collateral addresses to the whitelist"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.addCollateralToWhitelist(
             erc721_contract,
             {"from": borrower}
@@ -252,7 +252,7 @@ def test_add_address_to_whitelist_wrong_sender(loans_contract, erc721_contract, 
 
 
 def test_add_address_to_whitelist_zero_address(loans_contract, contract_owner):
-    with brownie.reverts("The address is the zero address"):
+    with brownie.reverts("_address is the zero address"):
         loans_contract.addCollateralToWhitelist(
             brownie.ZERO_ADDRESS,
             {"from": contract_owner}
@@ -260,7 +260,7 @@ def test_add_address_to_whitelist_zero_address(loans_contract, contract_owner):
 
 
 def test_add_address_to_whitelist_not_contract_address(loans_contract, contract_owner):
-    with brownie.reverts("The address sent does not have a deployed contract"):
+    with brownie.reverts("_address is not a contract"):
         loans_contract.addCollateralToWhitelist(
             "0xa3aee8bce55beea1951ef834b99f3ac60d1abeeb",
             {"from": contract_owner}
@@ -287,12 +287,12 @@ def test_add_address_to_whitelist(loans_contract, erc721_contract, contract_owne
 def test_remove_address_from_whitelist_wrong_sender(loans_contract, erc721_contract, contract_owner, borrower):
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    with brownie.reverts("Only the contract owner can add collateral addresses to the whitelist"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.removeCollateralFromWhitelist(erc721_contract.address, {"from": borrower})
 
 
 def test_remove_address_from_whitelist_not_whitelisted(loans_contract, erc721_contract, contract_owner):
-    with brownie.reverts("The collateral is not whitelisted"):
+    with brownie.reverts("collateral is not whitelisted"):
         loans_contract.removeCollateralFromWhitelist(erc721_contract.address, {"from": contract_owner})
 
 
@@ -305,12 +305,12 @@ def test_remove_address_from_whitelist(loans_contract, erc721_contract, contract
 
 
 def test_change_min_loan_amount_wrong_sender(loans_contract, borrower):
-    with brownie.reverts("Only the contract owner can change the min loan amount"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
 
 
 def test_change_min_loan_amount_wrong_amount(loans_contract, contract_owner):
-    with brownie.reverts("The min loan amount can not be higher than the max loan amount"):
+    with brownie.reverts("min amount is > than max amount"):
         loans_contract.changeMinLoanAmount(MAX_LOAN_AMOUNT * 2, {"from": contract_owner})
 
 
@@ -322,12 +322,12 @@ def test_change_min_loan_amount(loans_contract, contract_owner):
 
 
 def test_change_max_loan_amount_wrong_sender(loans_contract, borrower):
-    with brownie.reverts("Only the contract owner can change the max loan amount"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
 
 
 def test_change_max_loan_amount_wrong_amount(loans_contract, contract_owner):
-    with brownie.reverts("The max loan amount can not be lower than the min loan amount"):
+    with brownie.reverts("max amount is < than min amount"):
         loans_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT / 2, {"from": contract_owner})
 
 
@@ -339,12 +339,12 @@ def test_change_max_loan_amount(loans_contract, contract_owner):
 
 
 def test_change_contract_status_wrong_sender(loans_contract, borrower):
-    with brownie.reverts("Only the contract owner can change the status of the contract"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.changeContractStatus(False, {"from": borrower})
 
 
 def test_change_contract_status_same_status(loans_contract, contract_owner):
-    with brownie.reverts("The new contract status should be different than the current status"):
+    with brownie.reverts("new contract status is the same"):
         loans_contract.changeContractStatus(True, {"from": contract_owner})
 
 
@@ -356,7 +356,7 @@ def test_change_contract_status(loans_contract, contract_owner):
 
 
 def test_deprecate_wrong_sender(loans_contract, borrower):
-    with brownie.reverts("Only the contract owner can deprecate the contract"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.deprecate({"from": borrower})
 
 
@@ -371,7 +371,7 @@ def test_deprecate(loans_contract, contract_owner):
 def test_deprecate_already_deprecated(loans_contract, contract_owner):
     loans_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("The contract is already deprecated"):
+    with brownie.reverts("contract is already deprecated"):
         loans_contract.deprecate({"from": contract_owner})
 
 
@@ -383,7 +383,7 @@ def test_create_deprecated(
 ):
     loans_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("The contract is deprecated, no more loans can be created"):
+    with brownie.reverts("contract is deprecated"):
         tx_start_loan = loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -401,7 +401,7 @@ def test_create_not_accepting_loans(
 ):
     loans_contract.changeContractStatus(False, {"from": contract_owner})
 
-    with brownie.reverts("The contract is not accepting more loans right now"):
+    with brownie.reverts("contract is not accepting loans"):
         tx_start_loan = loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -421,7 +421,7 @@ def test_create_maturity_too_long(
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
     maturity = int(dt.datetime.now().timestamp()) + MAX_LOAN_DURATION * 2
-    with brownie.reverts("Maturity can not exceed the max allowed"):
+    with brownie.reverts("maturity exceeds the max allowed"):
         loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -441,7 +441,7 @@ def test_create_maturity_in_the_past(
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
     maturity = int(dt.datetime.now().timestamp()) - 3600
-    with brownie.reverts("Maturity can not be in the past"):
+    with brownie.reverts("maturity is in the past"):
         loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -489,7 +489,7 @@ def test_create_max_loans_reached(
         assert loans_contract.ongoingLoans(borrower) == k + 1
         time.sleep(0.2)
 
-    with brownie.reverts("Max number of loans for borrower already reached"):
+    with brownie.reverts("max loans already reached"):
         loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -509,7 +509,7 @@ def test_create_collateral_notwhitelisted(
 ):
     
     
-    with brownie.reverts("Not all collaterals are whitelisted"):
+    with brownie.reverts("not all NFTs are accepted"):
         loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -545,7 +545,7 @@ def test_create_collaterals_not_owned(
 
     erc721_contract.mint(investor, 0, {"from": contract_owner})
 
-    with brownie.reverts("Not all collaterals are owned by the borrower"):
+    with brownie.reverts("msg.sender does not own all NFTs"):
         tx = loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -582,7 +582,7 @@ def test_create_loan_collateral_not_approved(
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
-    with brownie.reverts("Not all collaterals are approved to be transferred"):
+    with brownie.reverts("not all NFTs are approved"):
         tx = loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -614,7 +614,7 @@ def test_create_loan_unsufficient_funds_in_lp(
 
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    with brownie.reverts("Insufficient funds in the lending pool"):
+    with brownie.reverts("insufficient liquidity"):
         tx = loans_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -653,7 +653,7 @@ def test_create_loan_min_amount(
 
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    with brownie.reverts("Loan amount is less than the min loan amount"):
+    with brownie.reverts("loan amount < than the min value"):
         tx = loans_contract.reserve(
             Web3.toWei(0.01, "ether"),
             LOAN_INTEREST,
@@ -691,7 +691,7 @@ def test_create_loan_max_amount(
 
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
-    with brownie.reverts("Loan amount is more than the max loan amount"):
+    with brownie.reverts("loan amount > than the max value"):
         tx = loans_contract.reserve(
             Web3.toWei(10, "ether"),
             LOAN_INTEREST,
@@ -767,7 +767,7 @@ def test_validate_wrong_sender(
     loans_contract,
     borrower
 ):
-    with brownie.reverts("Only the contract owner can validate loans"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.validate(borrower, 0, {'from': borrower})
 
 
@@ -778,7 +778,7 @@ def test_validate_deprecated(
 ):
     loans_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("The contract is deprecated, please pay any outstanding loans"):
+    with brownie.reverts("contract is deprecated"):
         loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
@@ -789,7 +789,7 @@ def test_validate_not_accepting_loans(
 ):
     loans_contract.changeContractStatus(False, {"from": contract_owner})
 
-    with brownie.reverts("The contract is not accepting more loans right now, please pay any outstanding loans"):
+    with brownie.reverts("contract is not accepting loans"):
         tx_start_loan = loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
@@ -798,7 +798,7 @@ def test_validate_loan_not_created(
     contract_owner,
     borrower
 ):
-    with brownie.reverts("This loan has not been created for the borrower"):
+    with brownie.reverts("loan not found"):
         loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
@@ -844,7 +844,7 @@ def test_validate_loan_already_validated(
     print(loans_contract.getLoan(borrower, loan_id))
     print(loans_core_contract.getLoanStarted(borrower, loan_id))
 
-    with brownie.reverts("The loan was already validated"):
+    with brownie.reverts("loan already validated"):
         loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
 
@@ -887,7 +887,7 @@ def test_validate_loan_already_invalidated(
 
     loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
-    with brownie.reverts("The loan was already invalidated"):
+    with brownie.reverts("loan already invalidated"):
         loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
 
@@ -932,7 +932,7 @@ def test_validate_maturity_in_the_past(
     assert tx_create_loan.return_value == 0
 
     time.sleep(5)
-    with brownie.reverts("Maturity can not be in the past"):
+    with brownie.reverts("maturity is in the past"):
         loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
@@ -976,7 +976,7 @@ def test_validate_collateral_notwhitelisted(
 
     loans_contract.removeCollateralFromWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    with brownie.reverts("Not all collaterals are whitelisted"):
+    with brownie.reverts("not all NFTs are accepted"):
         loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
@@ -1018,7 +1018,7 @@ def test_validate_collaterals_not_owned(
 
     erc721_contract.transferFrom(loans_contract, borrower, 0, {"from": loans_contract})
 
-    with brownie.reverts("Not all collaterals are owned by the protocol"):
+    with brownie.reverts("_borrower does not own all NFTs"):
         tx = loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
@@ -1062,7 +1062,7 @@ def test_validate_unsufficient_funds_in_lp(
 
     lending_pool_peripheral_contract.withdraw(Web3.toWei(0.9, "ether"), {"from": investor})
 
-    with brownie.reverts("Insufficient funds in the lending pool"):
+    with brownie.reverts("insufficient liquidity"):
         tx = loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
@@ -1138,7 +1138,7 @@ def test_invalidate_wrong_sender(
     loans_contract,
     borrower
 ):
-    with brownie.reverts("Only the contract owner can invalidate loans"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.invalidate(borrower, 0, {'from': borrower})
 
 
@@ -1147,7 +1147,7 @@ def test_invalidate_loan_not_created(
     contract_owner,
     borrower
 ):
-    with brownie.reverts("This loan has not been created for the borrower"):
+    with brownie.reverts("loan not found"):
         loans_contract.invalidate(borrower, 0, {'from': contract_owner})
 
 
@@ -1190,7 +1190,7 @@ def test_invalidate_loan_already_invalidated(
 
     loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
-    with brownie.reverts("The loan was already invalidated"):
+    with brownie.reverts("loan already invalidated"):
         loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
 
@@ -1233,7 +1233,7 @@ def test_invalidate_loan_already_validated(
 
     loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    with brownie.reverts("The loan was already validated"):
+    with brownie.reverts("loan already validated"):
         loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
 
@@ -1309,7 +1309,7 @@ def test_invalidate_loan(
 
 
 def test_pay_loan_not_issued(loans_contract, borrower):
-    with brownie.reverts("The sender has not started a loan with the given ID"):
+    with brownie.reverts("loan not found"):
         loans_contract.pay(0, LOAN_AMOUNT * (100 + LOAN_INTEREST) / 100, {"from": borrower})
 
 
@@ -1353,7 +1353,7 @@ def test_pay_loan_no_value_sent(
     tx_start_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
     loan = loans_contract.getLoan(borrower, loan_id)
 
-    with brownie.reverts("The amount paid needs to be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         loans_contract.pay(loan["id"], 0, {"from": borrower})
 
 
@@ -1398,8 +1398,11 @@ def test_pay_loan_higher_value_than_needed(
     loan = loans_contract.getLoan(borrower, loan_id)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}") + 10000)
+
+    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     
-    with brownie.reverts("The amount paid is higher than the amount left to be paid"):
+    with brownie.reverts("_amount is more than needed"):
         loans_contract.pay(loan["id"], amount_paid, {"from": borrower})
 
 
@@ -1448,7 +1451,7 @@ def test_pay_loan_defaulted(
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
     time.sleep(8)
-    with brownie.reverts("The maturity of the loan has already been reached and it defaulted"):
+    with brownie.reverts("loan maturity reached"):
         loans_contract.pay(loan["id"], amount_paid, {"from": borrower})
 
 
@@ -1502,7 +1505,7 @@ def test_pay_loan_insufficient_balance(
     
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     
-    with brownie.reverts("User has insufficient balance for the payment"):
+    with brownie.reverts("insufficient balance"):
         tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
 
@@ -1556,7 +1559,7 @@ def test_pay_loan_insufficient_allowance(
     
     erc20_contract.approve(lending_pool_core_contract, amount_paid / 2, {"from": borrower})
     
-    with brownie.reverts("User did not allow funds to be transferred"):
+    with brownie.reverts("insufficient allowance"):
         tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
 
@@ -1720,7 +1723,7 @@ def test_set_default_loan_wrong_sender(
     investor,
     borrower
 ):
-    with brownie.reverts("Only the contract owner can default loans"):
+    with brownie.reverts("msg.sender is not the owner"):
         loans_contract.settleDefault(borrower, 0, {"from": investor})
 
 
@@ -1729,7 +1732,7 @@ def test_set_default_loan_not_started(
     contract_owner,
     borrower
 ):
-    with brownie.reverts("The _borrower has not started a loan with the given ID"):
+    with brownie.reverts("loan not found"):
         loans_contract.settleDefault(borrower, 0, {"from": contract_owner})
 
 
@@ -1787,7 +1790,7 @@ def test_cancel_pendingloan_not_created(
     loans_contract,
     contract_owner
 ):
-    with brownie.reverts("The sender has not created a loan with the given ID"):
+    with brownie.reverts("loan not found"):
         loans_contract.cancelPendingLoan(0, {"from": contract_owner})
 
 
@@ -1833,7 +1836,7 @@ def test_cancel_pendingloan_already_started(
 
     loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    with brownie.reverts("The loan was already started"):
+    with brownie.reverts("loan already validated"):
         loans_contract.cancelPendingLoan(loan_id, {"from": borrower})
 
 
@@ -1879,7 +1882,7 @@ def test_cancel_pendingloan_invalidated(
 
     loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
-    with brownie.reverts("The loan was already invalidated"):
+    with brownie.reverts("loan already invalidated"):
         loans_contract.cancelPendingLoan(loan_id, {"from": borrower})
 
 

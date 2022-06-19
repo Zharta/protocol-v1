@@ -7,13 +7,6 @@ struct InvestorFunds:
     sharesBasisPoints: uint256
     activeForRewards: bool
 
-# Events
-
-event Compound:
-    wallet: address
-    amount: uint256
-    erc20TokenContract: address
-
 # Functions
 
 @view
@@ -27,15 +20,11 @@ def computeWithdrawableAmount(_lender: address) -> uint256:
     pass
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def changeOwnership(_address: address) -> address:
     pass
 
 @external
 def deposit(_lender: address, _amount: uint256) -> bool:
-    pass
-
-@external
-def transferDeposit(_lender: address, _amount: uint256) -> bool:
     pass
 
 @external
@@ -51,11 +40,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     pass
 
 @external
-def transferProtocolFees(_protocolWallet: address, _amount: uint256) -> bool:
-    pass
-
-@external
-def updateLiquidity(_amount: uint256, _rewardsAmount: uint256) -> bool:
+def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
     pass
 
 @payable
@@ -122,3 +107,5 @@ def totalRewards() -> uint256:
 @external
 def totalSharesBasisPoints() -> uint256:
     pass
+
+
