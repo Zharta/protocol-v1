@@ -16,14 +16,6 @@ struct InvestorFunds:
     activeForRewards: bool
 
 
-# Events
-
-event Compound:
-    wallet: address
-    amount: uint256
-    erc20TokenContract: address
-
-
 # Global variables
 
 owner: public(address)
