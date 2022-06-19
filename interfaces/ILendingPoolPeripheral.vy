@@ -45,19 +45,19 @@ def maxFundsInvestable() -> int256:
     pass
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def changeOwnership(_address: address) -> address:
     pass
 
 @external
-def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
+def changeMaxCapitalEfficiency(_value: uint256) -> uint256:
     pass
 
 @external
-def changeProtocolWallet(_newProtocolWallet: address) -> address:
+def changeProtocolWallet(_address: address) -> address:
     pass
 
 @external
-def changeProtocolFeesShare(_newProtocolFeesShare: uint256) -> uint256:
+def changeProtocolFeesShare(_value: uint256) -> uint256:
     pass
 
 @external
@@ -66,6 +66,10 @@ def changePoolStatus(_flag: bool) -> bool:
 
 @external
 def setLendingPoolCoreAddress(_address: address) -> address:
+    pass
+
+@external
+def setLoansPeripheralAddress(_address: address) -> address:
     pass
 
 @external
@@ -164,3 +168,5 @@ def whitelistEnabled() -> bool:
 @external
 def whitelistedAddresses(arg0: address) -> bool:
     pass
+
+
