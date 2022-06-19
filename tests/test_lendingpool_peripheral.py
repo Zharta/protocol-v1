@@ -75,7 +75,7 @@ def test_initial_state(lending_pool_peripheral_contract, erc20_contract, contrac
 
 
 def test_change_ownership_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("Only the owner can change the contract ownership"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changeOwnership(borrower, {"from": borrower})
 
 
@@ -88,7 +88,7 @@ def test_change_ownership(lending_pool_peripheral_contract, borrower, contract_o
 
 
 def test_change_max_capital_efficiency_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("Only the owner can change the max capital efficiency"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changeMaxCapitalEfficiency(MAX_CAPITAL_EFFICIENCY + 1000, {"from": borrower})
 
 
@@ -101,7 +101,7 @@ def test_change_max_capital_efficiency(lending_pool_peripheral_contract, contrac
 
 
 def test_change_protocol_wallet_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("Only the owner can change the protocol wallet address"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changeProtocolWallet(borrower, {"from": borrower})
 
 
@@ -114,7 +114,7 @@ def test_change_protocol_wallet(lending_pool_peripheral_contract, contract_owner
 
 
 def test_change_protocol_fees_share_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("Only the owner can change the protocol fees share"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changeProtocolFeesShare(PROTOCOL_FEES_SHARE + 1000, {"from": borrower})
 
 
@@ -127,12 +127,12 @@ def test_change_protocol_fees_share(lending_pool_peripheral_contract, contract_o
 
 
 def test_change_pool_status_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("Only the owner can change the pool status"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changePoolStatus(False, {"from": borrower})
 
 
 def test_change_pool_status_same_status(lending_pool_peripheral_contract, contract_owner):
-    with brownie.reverts("The new pool status should be different than the current status"):
+    with brownie.reverts("new value is the same"):
         lending_pool_peripheral_contract.changePoolStatus(True, {"from": contract_owner})
 
 
@@ -157,7 +157,7 @@ def test_change_pool_status_again(lending_pool_peripheral_contract, lending_pool
 
 
 def test_deprecate_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("Only the owner can change the pool to deprecated"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.deprecate({"from": borrower})
 
 
@@ -173,17 +173,17 @@ def test_deprecate(lending_pool_peripheral_contract, contract_owner):
 def test_deprecate_already_deprecated(lending_pool_peripheral_contract, contract_owner):
     lending_pool_peripheral_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("The pool is already deprecated"):
+    with brownie.reverts("pool is already deprecated"):
         lending_pool_peripheral_contract.deprecate({"from": contract_owner})
 
 
 def test_change_whitelist_status_wrong_sender(lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Only the owner can change the whitelist status"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changeWhitelistStatus(True, {"from": investor})
 
 
 def test_change_whitelist_status_same_status(lending_pool_peripheral_contract, contract_owner):
-    with brownie.reverts("The new whitelist status should be different than the current status"):
+    with brownie.reverts("new value is the same"):
         lending_pool_peripheral_contract.changeWhitelistStatus(False, {"from": contract_owner})
 
 
@@ -196,12 +196,12 @@ def test_change_whitelist_status(lending_pool_peripheral_contract, contract_owne
 
 
 def test_add_whitelisted_address_wrong_sender(lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Only the owner can add addresses to the whitelist"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.addWhitelistedAddress(investor, {"from": investor})
 
 
 def test_add_whitelisted_address_whitelist_disabled(lending_pool_peripheral_contract, contract_owner, investor):
-    with brownie.reverts("The whitelist is disabled"):
+    with brownie.reverts("whitelist is disabled"):
         lending_pool_peripheral_contract.addWhitelistedAddress(investor, {"from": contract_owner})
 
 
@@ -220,17 +220,17 @@ def test_add_whitelisted_address_already_whitelisted(lending_pool_peripheral_con
     lending_pool_peripheral_contract.addWhitelistedAddress(investor, {"from": contract_owner})
     assert lending_pool_peripheral_contract.whitelistedAddresses(investor)
 
-    with brownie.reverts("The address is already whitelisted"):
+    with brownie.reverts("address is already whitelisted"):
         lending_pool_peripheral_contract.addWhitelistedAddress(investor, {"from": contract_owner})
 
 
 def test_remove_whitelisted_address_wrong_sender(lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Only the owner can remove addresses from the whitelist"):
+    with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.removeWhitelistedAddress(investor, {"from": investor})
 
 
 def test_remove_whitelisted_address_whitelist_disabled(lending_pool_peripheral_contract, contract_owner, investor):
-    with brownie.reverts("The whitelist is disabled"):
+    with brownie.reverts("whitelist is disabled"):
         lending_pool_peripheral_contract.removeWhitelistedAddress(investor, {"from": contract_owner})
 
 
@@ -238,7 +238,7 @@ def test_remove_whitelisted_address_not_whitelisted(lending_pool_peripheral_cont
     lending_pool_peripheral_contract.changeWhitelistStatus(True, {"from": contract_owner})
     assert lending_pool_peripheral_contract.whitelistEnabled()
 
-    with brownie.reverts("The address is not whitelisted"):
+    with brownie.reverts("address is not whitelisted"):
         lending_pool_peripheral_contract.removeWhitelistedAddress(investor, {"from": contract_owner})
 
 
@@ -256,19 +256,19 @@ def test_remove_whitelisted_address(lending_pool_peripheral_contract, contract_o
 def test_deposit_deprecated(lending_pool_peripheral_contract, investor, contract_owner):
     lending_pool_peripheral_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("Pool is deprecated, please withdraw any outstanding deposit"):
+    with brownie.reverts("pool is deprecated, withdraw"):
         lending_pool_peripheral_contract.deposit(0, {"from": investor})
 
 
 def test_deposit_inactive(lending_pool_peripheral_contract, investor, contract_owner):
     lending_pool_peripheral_contract.changePoolStatus(False, {"from": contract_owner})
 
-    with brownie.reverts("Pool is not active right now"):
+    with brownie.reverts("pool is not active right now"):
         lending_pool_peripheral_contract.deposit(0, {"from": investor})
 
 
 def test_deposit_zero_investment(lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Amount deposited has to be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         lending_pool_peripheral_contract.deposit(0, {"from": investor})
 
 
@@ -276,7 +276,7 @@ def test_deposit_insufficient_amount_allowed(lending_pool_peripheral_contract, l
     erc20_contract.mint(investor, Web3.toWei(0.5, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(0.5, "ether"), {"from": investor})
     
-    with brownie.reverts("Insufficient funds allowed to be transfered"):
+    with brownie.reverts("not enough funds allowed"):
         lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
 
@@ -290,7 +290,7 @@ def test_deposit_not_whitelisted(lending_pool_peripheral_contract, lending_pool_
     erc20_contract.mint(investor, deposit_amount, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
     
-    with brownie.reverts("The whitelist is enabled and the sender is not whitelisted"):
+    with brownie.reverts("msg.sender is not whitelisted"):
         lending_pool_peripheral_contract.deposit(deposit_amount, {"from": investor})
 
 
@@ -380,14 +380,14 @@ def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contr
 
 
 def test_withdraw_zero_amount(lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Amount withdrawn has to be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         lending_pool_peripheral_contract.withdraw(0, {"from": investor})
 
 
 def test_withdraw_noinvestment(lending_pool_peripheral_contract, lending_pool_core_contract, investor, contract_owner):
     lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
     
-    with brownie.reverts("The sender has insufficient liquidity for withdrawal"):
+    with brownie.reverts("_amount more than withdrawable"):
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
 
 
@@ -398,7 +398,7 @@ def test_withdraw_insufficient_investment(lending_pool_peripheral_contract, lend
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
     
-    with brownie.reverts("The sender has insufficient liquidity for withdrawal"):
+    with brownie.reverts("_amount more than withdrawable"):
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1.5, "ether"), {"from": investor})
 
 
@@ -441,7 +441,7 @@ def test_send_funds_deprecated(lending_pool_peripheral_contract, lending_pool_co
 
     lending_pool_peripheral_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("Pool is deprecated"):
+    with brownie.reverts("pool is deprecated"):
         lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
 
 
@@ -455,7 +455,7 @@ def test_send_funds_inactive(lending_pool_peripheral_contract, lending_pool_core
 
     lending_pool_peripheral_contract.changePoolStatus(False, {"from": contract_owner})
 
-    with brownie.reverts("The pool is not active and is not investing more right now"):
+    with brownie.reverts("pool is inactive"):
         lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
 
 
@@ -467,7 +467,7 @@ def test_send_funds_wrong_sender(lending_pool_peripheral_contract, lending_pool_
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    with brownie.reverts("Only the loans contract address can request to send funds"):
+    with brownie.reverts("msg.sender is not the loans addr"):
         lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": investor})
 
 
@@ -480,7 +480,7 @@ def test_send_funds_zero_amount(lending_pool_peripheral_contract, lending_pool_c
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    with brownie.reverts("The amount to send should be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         lending_pool_peripheral_contract.sendFunds(
             borrower,
             Web3.toWei(0, "ether"),
@@ -497,7 +497,7 @@ def test_send_funds_wrong_amount(lending_pool_peripheral_contract, lending_pool_
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    with brownie.reverts("No sufficient deposited funds to perform the transaction"):
+    with brownie.reverts("insufficient liquidity"):
         lending_pool_peripheral_contract.sendFunds(
             borrower,
             Web3.toWei(2, "ether"),
@@ -514,7 +514,7 @@ def test_send_funds_insufficient_funds_to_lend(lending_pool_peripheral_contract,
 
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
     
-    with brownie.reverts("No sufficient deposited funds to perform the transaction"):
+    with brownie.reverts("insufficient liquidity"):
         tx_send = lending_pool_peripheral_contract.sendFunds(
             borrower,
             Web3.toWei(0.8, "ether"),
@@ -548,13 +548,10 @@ def test_send_funds(lending_pool_peripheral_contract, lending_pool_core_contract
     assert tx_send.events["FundsTransfer"]["erc20TokenContract"] == erc20_contract
 
 
-# TODO: change
-
-
 def test_receive_funds_wrong_sender(lending_pool_peripheral_contract, borrower, contract_owner):
     lending_pool_peripheral_contract.setLoansPeripheralAddress(contract_owner, {"from": contract_owner})
 
-    with brownie.reverts("The sender address is not the loans contract address"):
+    with brownie.reverts("msg.sender is not the loans addr"):
         lending_pool_peripheral_contract.receiveFunds(
             borrower,
             Web3.toWei(0.2, "ether"),
@@ -566,7 +563,7 @@ def test_receive_funds_wrong_sender(lending_pool_peripheral_contract, borrower, 
 def test_receive_funds_insufficient_amount(lending_pool_peripheral_contract, contract_owner, borrower):
     lending_pool_peripheral_contract.setLoansPeripheralAddress(contract_owner, {"from": contract_owner})
 
-    with brownie.reverts("Insufficient funds allowed to be transfered"):
+    with brownie.reverts("insufficient liquidity"):
         lending_pool_peripheral_contract.receiveFunds(
             borrower,
             Web3.toWei(0.2, "ether"),
@@ -578,7 +575,7 @@ def test_receive_funds_insufficient_amount(lending_pool_peripheral_contract, con
 def test_receive_funds_zero_value(lending_pool_peripheral_contract, contract_owner, borrower):
     lending_pool_peripheral_contract.setLoansPeripheralAddress(contract_owner, {"from": contract_owner})
 
-    with brownie.reverts("The sent value should be higher than 0"):
+    with brownie.reverts("amount should be higher than 0"):
         lending_pool_peripheral_contract.receiveFunds(
             borrower,
             Web3.toWei(0, "ether"),
