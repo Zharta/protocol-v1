@@ -70,7 +70,7 @@ def test_initial_state(lending_pool_core_contract, lending_pool_peripheral_contr
 
 
 def test_change_ownership_wrong_sender(lending_pool_core_contract, borrower):
-    with brownie.reverts("Only the owner can change the contract ownership"):
+    with brownie.reverts("msg.sender is not owner"):
         lending_pool_core_contract.changeOwnership(borrower, {"from": borrower})
 
 
@@ -83,12 +83,12 @@ def test_change_ownership(lending_pool_core_contract, borrower, contract_owner):
 
 
 def test_deposit_wrong_sender(lending_pool_core_contract, investor, borrower):
-    with brownie.reverts("Only defined lending pool peripheral can deposit"):
+    with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.deposit(investor, 0, {"from": borrower})
 
 
 def test_deposit_zero_investment(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Amount deposited has to be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         lending_pool_core_contract.deposit(investor, 0, {"from": lending_pool_peripheral_contract})
 
 
@@ -127,7 +127,7 @@ def test_deposit_twice(lending_pool_core_contract, lending_pool_peripheral_contr
 
 
 def test_transfer_deposit_wrong_sender(lending_pool_core_contract, investor):
-    with brownie.reverts("Only defined lending pool peripheral can request a deposit transfer"):
+    with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.transferDeposit(investor, 0, {"from": investor})
 
 
@@ -137,7 +137,7 @@ def test_transfer_deposit_lender_zeroaddress(lending_pool_core_contract, lending
 
 
 def test_transfer_deposit_lender_zeroaddress(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Amount deposited has to be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         lending_pool_core_contract.transferDeposit(investor, 0, {"from": lending_pool_peripheral_contract})
 
 
@@ -154,29 +154,29 @@ def test_transfer_deposit(lending_pool_core_contract, lending_pool_peripheral_co
 
 
 def test_withdraw_wrong_sender(lending_pool_core_contract, lending_pool_peripheral_contract, investor, borrower):
-    with brownie.reverts("Only defined lending pool peripheral can withdraw"):
+    with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.withdraw(investor, 100, {"from": borrower})
 
 
 def test_withdraw_zero_amount(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
-    with brownie.reverts("Amount withdrawn has to be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         lending_pool_core_contract.withdraw(investor, 0, {"from": lending_pool_peripheral_contract})
 
 
 def test_withdraw_lender_zeroaddress(lending_pool_core_contract, lending_pool_peripheral_contract):
-    with brownie.reverts("The lender can not be the empty address"):
+    with brownie.reverts("The _lender is the zero address"):
         lending_pool_core_contract.withdraw(brownie.ZERO_ADDRESS, 100, {"from": lending_pool_peripheral_contract})
 
 
 def test_withdraw_noinvestment(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
-    with brownie.reverts("The lender has less funds deposited than the amount requested"):
+    with brownie.reverts("_amount more than withdrawable"):
         lending_pool_core_contract.withdraw(investor, Web3.toWei(1, "ether"), {"from": lending_pool_peripheral_contract})
 
 
 def test_withdraw_insufficient_investment(lending_pool_core_contract, lending_pool_peripheral_contract, investor):
     lending_pool_core_contract.deposit(investor, Web3.toWei(1, "ether"), {"from": lending_pool_peripheral_contract})
     
-    with brownie.reverts("The lender has less funds deposited than the amount requested"):
+    with brownie.reverts("_amount more than withdrawable"):
         lending_pool_core_contract.withdraw(investor, Web3.toWei(1.5, "ether"), {"from": lending_pool_peripheral_contract})
 
 
@@ -257,12 +257,12 @@ def test_deposit_withdraw_deposit(lending_pool_core_contract, lending_pool_perip
 
 
 def test_send_funds_wrong_sender(lending_pool_core_contract, borrower):
-    with brownie.reverts("Only defined lending pool peripheral can send funds"):
+    with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": borrower})
 
 
 def test_send_funds_zero_amount(lending_pool_core_contract, lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("The amount to send should be higher than 0"):
+    with brownie.reverts("_amount has to be higher than 0"):
         lending_pool_core_contract.sendFunds(
             borrower,
             Web3.toWei(0, "ether"),
@@ -322,7 +322,7 @@ def test_send_funds(
 
 
 def test_receive_funds_wrong_sender(lending_pool_core_contract, borrower):
-    with brownie.reverts("Only defined lending pool peripheral can receive funds"):
+    with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.receiveFunds(
             borrower,
             Web3.toWei(0.2, "ether"),
@@ -332,7 +332,7 @@ def test_receive_funds_wrong_sender(lending_pool_core_contract, borrower):
 
 
 def test_receive_funds_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("The sent value should be higher than 0"):
+    with brownie.reverts("Amount has to be higher than 0"):
         lending_pool_core_contract.receiveFunds(
             borrower,
             Web3.toWei(0, "ether"),
@@ -341,7 +341,7 @@ def test_receive_funds_zero_value(lending_pool_core_contract, lending_pool_perip
         )
 
 def test_transfer_protocol_fees_wrong_sender(lending_pool_core_contract, contract_owner, borrower):
-    with brownie.reverts("Only defined lending pool peripheral can ask for protocol fees"):
+    with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.transferProtocolFees(
             contract_owner,
             Web3.toWei(0.2, "ether"),
@@ -350,7 +350,7 @@ def test_transfer_protocol_fees_wrong_sender(lending_pool_core_contract, contrac
 
 
 def test_transfer_protocol_fees_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract, contract_owner):
-    with brownie.reverts("The requested value should be higher than 0"):
+    with brownie.reverts("_amount should be higher than 0"):
         lending_pool_core_contract.transferProtocolFees(
             contract_owner,
             Web3.toWei(0, "ether"),
@@ -396,7 +396,7 @@ def test_receive_funds(lending_pool_core_contract, lending_pool_peripheral_contr
 
 
 def test_update_liquidity_wrong_sender(lending_pool_core_contract, borrower):
-    with brownie.reverts("Only defined lending pool peripheral can update liquidity data"):
+    with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.updateLiquidity(
             Web3.toWei(0.2, "ether"),
             Web3.toWei(0.05, "ether"),
@@ -405,7 +405,7 @@ def test_update_liquidity_wrong_sender(lending_pool_core_contract, borrower):
 
 
 def test_update_liquidity_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract):
-    with brownie.reverts("The sent value should be higher than 0"):
+    with brownie.reverts("Amount has to be higher than 0"):
         lending_pool_core_contract.updateLiquidity(
             Web3.toWei(0, "ether"),
             Web3.toWei(0, "ether"),
@@ -426,7 +426,7 @@ def test_update_liquidity_too_much_funds(lending_pool_core_contract, lending_poo
         {"from": lending_pool_peripheral_contract}
     )
 
-    with brownie.reverts("There are more funds being received than expected by the deposited funds variable"):
+    with brownie.reverts("Too much funds received"):
         lending_pool_core_contract.updateLiquidity(
             Web3.toWei(0.3, "ether"),
             0,
