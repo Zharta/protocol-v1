@@ -3,12 +3,7 @@
 
 # Interfaces
 
-interface IERC20Token:
-    def balanceOf(_owner: address) -> uint256: view
-    def allowance(_owner: address, _spender: address) -> uint256: view
-    def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
-    def transferFrom(_sender: address, _recipient: address, _amount: uint256) -> bool: nonpayable
-    def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
+from vyper.interfaces import ERC20 as IERC20
 
 
 # Structs
@@ -53,7 +48,7 @@ totalSharesBasisPoints: public(uint256)
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20Token(self.erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = IERC20(self.erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
@@ -162,7 +157,7 @@ def transferDeposit(_lender: address, _amount: uint256) -> bool:
     assert _amount > 0, "Amount deposited has to be higher than 0"
     assert self._fundsAreAllowed(_lender, self, _amount), "Insufficient funds allowed to be transfered"
 
-    return IERC20Token(self.erc20TokenContract).transferFrom(_lender, self, _amount)
+    return IERC20(self.erc20TokenContract).transferFrom(_lender, self, _amount)
 
 
 @external
@@ -195,7 +190,7 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
 
     self.fundsAvailable -= _amount
 
-    if not IERC20Token(self.erc20TokenContract).transfer(_lender, _amount):
+    if not IERC20(self.erc20TokenContract).transfer(_lender, _amount):
         raise "Withdrawal transfer error"
 
     return True
@@ -208,9 +203,9 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can send funds"
     assert _to != ZERO_ADDRESS, "The address to send funds to is the zero address"
     assert _amount > 0, "The amount to send should be higher than 0"
-    assert IERC20Token(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
+    assert IERC20(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
-    if not IERC20Token(self.erc20TokenContract).transfer(_to, _amount):
+    if not IERC20(self.erc20TokenContract).transfer(_to, _amount):
         raise "Error sending funds"
 
     self.fundsAvailable -= _amount
@@ -229,7 +224,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
     assert self._fundsAreAllowed(_borrower, self, _amount), "Insufficient funds allowed to be transfered"
 
-    if not IERC20Token(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount):
+    if not IERC20(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount):
         return False
 
     return True
@@ -243,7 +238,7 @@ def transferProtocolFees(_protocolWallet: address, _amount: uint256) -> bool:
     assert _protocolWallet != ZERO_ADDRESS, "The protocol wallet address is the zero address"
     assert _amount > 0, "The requested value should be higher than 0"
 
-    if not IERC20Token(self.erc20TokenContract).transfer(_protocolWallet, _amount):
+    if not IERC20(self.erc20TokenContract).transfer(_protocolWallet, _amount):
         return False
 
     return True

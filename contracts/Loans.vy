@@ -3,25 +3,13 @@
 
 # Interfaces
 
+from vyper.interfaces import ERC165 as IERC165
+from vyper.interfaces import ERC721 as IERC721
+from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILoansCore
+from interfaces import ILendingPoolPeripheral
 
-interface ILendingPoolPeripheral:
-    def sendFunds(_to: address, _amount: uint256) -> uint256: nonpayable
-    def receiveFunds(_owner: address, _amount: uint256, _rewardsAmount: uint256) -> uint256: nonpayable
-    def maxFundsInvestable() -> int256: view
-    def erc20TokenContract() -> address: view
-
-interface IERC721:
-    def supportsInterface(_interfaceId: bytes4) -> bool: view
-    def ownerOf(tokenId: uint256) -> address: view
-    def getApproved(tokenId: uint256) -> address: view
-    def isApprovedForAll(owner: address, operator: address) -> bool: view
-    def safeTransferFrom(_from: address, _to: address, tokenId: uint256): nonpayable
-    def transferFrom(_from: address, _to: address, tokenId: uint256): nonpayable
-
-interface IERC20:
-    def allowance(_owner: address, _spender: address) -> uint256: view
-    def balanceOf(_account: address) -> uint256: view
+interface IERC20Symbol:
     def symbol() -> String[100]: view
 
 
@@ -232,7 +220,7 @@ def addCollateralToWhitelist(_address: address) -> bool:
     assert _address != ZERO_ADDRESS, "The address is the zero address"
     assert _address.is_contract == True, "The address sent does not have a deployed contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
-    assert IERC721(_address).supportsInterface(0x80ac58cd), "The address is not of a ERC721 contract"
+    assert IERC165(_address).supportsInterface(0x80ac58cd), "The address is not of a ERC721 contract"
 
     self.whitelistedCollaterals[_address] = True
     if _address not in self.whitelistedCollateralsAddresses:
@@ -311,7 +299,7 @@ def getWhitelistedCollateralsAddresses() -> DynArray[address, 2**50]:
 @view
 @external
 def erc20TokenSymbol() -> String[100]:
-    return IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).symbol()
+    return IERC20Symbol(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).symbol()
 
 
 @view
@@ -404,7 +392,7 @@ def invalidate(_borrower: address, _loanId: uint256):
         ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
 
-        IERC721(collateral.contractAddress).safeTransferFrom(self, _borrower, collateral.tokenId)
+        IERC721(collateral.contractAddress).safeTransferFrom(self, _borrower, collateral.tokenId, b"")
 
     log LoanInvalidated(_borrower, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
@@ -442,7 +430,7 @@ def pay(_loanId: uint256, _amountPaid: uint256):
             ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
             ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
             
-            IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)
+            IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId, b"")
 
         log LoanPaid(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 
@@ -465,7 +453,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
         ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
 
-        IERC721(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId)
+        IERC721(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId, b"")
 
     log LoanDefaulted(
         _borrower,
@@ -490,7 +478,7 @@ def cancelPendingLoan(_loanId: uint256):
         ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
 
-        IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId)    
+        IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId, b"")
 
     log PendingLoanCanceled(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
 

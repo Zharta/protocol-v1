@@ -8,7 +8,6 @@ from decimal import Decimal
 from web3 import Web3
 
 
-
 MAX_NUMBER_OF_LOANS = 10
 MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
@@ -42,18 +41,13 @@ def protocol_wallet(accounts):
 
 
 @pytest.fixture
-def erc20_contract(ERC20PresetMinterPauser, contract_owner):
-    yield ERC20PresetMinterPauser.deploy("Wrapped ETH", "WETH", {'from': contract_owner})
+def erc20_contract(ERC20, contract_owner):
+    yield ERC20.deploy("Wrapped ETH", "WETH", 18, 0, {'from': contract_owner})
 
 
 @pytest.fixture
-def erc721_contract(ERC721PresetMinterPauserAutoId, contract_owner):
-    yield ERC721PresetMinterPauserAutoId.deploy(
-        "VeeFriends",
-        "VEE",
-        "tokenURI",
-        {'from': contract_owner}
-    )
+def erc721_contract(ERC721, contract_owner):
+    yield ERC721.deploy({'from': contract_owner})
 
 
 @pytest.fixture
@@ -274,7 +268,7 @@ def test_add_address_to_whitelist_not_contract_address(loans_contract, contract_
 
 
 def test_add_address_to_whitelist_not_ERC721_contract(loans_contract, erc20_contract, contract_owner):
-    with brownie.reverts("The address is not of a ERC721 contract"):
+    with brownie.reverts(""):
         loans_contract.addCollateralToWhitelist(
             erc20_contract,
             {"from": contract_owner}
@@ -480,17 +474,8 @@ def test_create_max_loans_reached(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(11):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     for k in range(MAX_NUMBER_OF_LOANS):
@@ -558,7 +543,7 @@ def test_create_collaterals_not_owned(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(investor, {"from": contract_owner})
+    erc721_contract.mint(investor, 0, {"from": contract_owner})
 
     with brownie.reverts("Not all collaterals are owned by the borrower"):
         tx = loans_contract.reserve(
@@ -594,11 +579,8 @@ def test_create_loan_collateral_not_approved(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
 
     with brownie.reverts("Not all collaterals are approved to be transferred"):
         tx = loans_contract.reserve(
@@ -627,11 +609,8 @@ def test_create_loan_unsufficient_funds_in_lp(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
 
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
@@ -669,11 +648,8 @@ def test_create_loan_min_amount(
     
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
 
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
@@ -710,11 +686,8 @@ def test_create_loan_max_amount(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
 
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
@@ -754,11 +727,8 @@ def test_create_loan(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -856,11 +826,8 @@ def test_validate_loan_already_validated(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -905,11 +872,8 @@ def test_validate_loan_already_invalidated(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -953,11 +917,8 @@ def test_validate_maturity_in_the_past(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1001,11 +962,8 @@ def test_validate_collateral_notwhitelisted(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1047,7 +1005,7 @@ def test_validate_collaterals_not_owned(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    erc721_contract.mint(borrower, 0, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1090,11 +1048,8 @@ def test_validate_unsufficient_funds_in_lp(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1137,11 +1092,8 @@ def test_validate_loan(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1223,11 +1175,8 @@ def test_invalidate_loan_already_invalidated(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1269,11 +1218,8 @@ def test_invalidate_loan_already_validated(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1317,11 +1263,8 @@ def test_invalidate_loan(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1394,11 +1337,8 @@ def test_pay_loan_no_value_sent(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1441,11 +1381,8 @@ def test_pay_loan_higher_value_than_needed(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1490,17 +1427,14 @@ def test_pay_loan_defaulted(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        chain.time() + 3,
+        chain.time() + 5,
         test_collaterals,
         {'from': borrower}
     )
@@ -1513,7 +1447,7 @@ def test_pay_loan_defaulted(
     erc20_contract.mint(borrower, amount_paid, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
-    time.sleep(5)
+    time.sleep(8)
     with brownie.reverts("The maturity of the loan has already been reached and it defaulted"):
         loans_contract.pay(loan["id"], amount_paid, {"from": borrower})
 
@@ -1541,11 +1475,8 @@ def test_pay_loan_insufficient_balance(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
@@ -1598,11 +1529,8 @@ def test_pay_loan_insufficient_allowance(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
@@ -1655,11 +1583,8 @@ def test_pay_loan(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
@@ -1730,11 +1655,8 @@ def test_pay_loan_multiple(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     amount_paid = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
@@ -1835,17 +1757,14 @@ def test_set_default_loan(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        chain.time() + 3,
+        chain.time() + 5,
         test_collaterals,
         {'from': borrower}
     )
@@ -1853,7 +1772,7 @@ def test_set_default_loan(
 
     tx_new_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    time.sleep(5)
+    time.sleep(8)
     loans_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
 
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
@@ -1896,11 +1815,8 @@ def test_cancel_pendingloan_already_started(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1945,11 +1861,8 @@ def test_cancel_pendingloan_invalidated(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
@@ -1994,11 +1907,8 @@ def test_cancel_pending(
 
     loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
 
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
-    erc721_contract.mint(borrower, {"from": contract_owner})
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(

@@ -35,18 +35,13 @@ def loans_contract(accounts):
 
 
 @pytest.fixture
-def erc20_contract(ERC20PresetMinterPauser, contract_owner):
-    yield ERC20PresetMinterPauser.deploy("Wrapped ETH", "WETH", {'from': contract_owner})
+def erc20_contract(ERC20, contract_owner):
+    yield ERC20.deploy("Wrapped ETH", "WETH", 18, 0, {'from': contract_owner})
 
 
 @pytest.fixture
-def erc721_contract(ERC721PresetMinterPauserAutoId, contract_owner):
-    yield ERC721PresetMinterPauserAutoId.deploy(
-        "VeeFriends",
-        "VEE",
-        "tokenURI",
-        {'from': contract_owner}
-    )
+def erc721_contract(ERC721, contract_owner):
+    yield ERC721.deploy({'from': contract_owner})
 
 
 @pytest.fixture

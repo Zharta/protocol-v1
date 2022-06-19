@@ -33,8 +33,8 @@ def protocol_wallet(accounts):
 
 
 @pytest.fixture
-def erc20_contract(ERC20PresetMinterPauser, contract_owner):
-    yield ERC20PresetMinterPauser.deploy("USD Coin", "USDC", {'from': contract_owner})
+def erc20_contract(ERC20, contract_owner):
+    yield ERC20.deploy("USD Coin", "USDC", 18, 0, {'from': contract_owner})
 
 
 @pytest.fixture
