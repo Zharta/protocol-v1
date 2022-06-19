@@ -41,12 +41,7 @@ def erc20_contract(ERC20, contract_owner):
 
 @pytest.fixture
 def erc721_contract(ERC721, contract_owner):
-    yield ERC721.deploy(
-        "VeeFriends",
-        "VEE",
-        "tokenURI",
-        {'from': contract_owner}
-    )
+    yield ERC721.deploy({'from': contract_owner})
 
 
 @pytest.fixture
