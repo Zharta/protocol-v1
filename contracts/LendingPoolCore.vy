@@ -208,13 +208,17 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
 
 
 @external
-def transferProtocolFees(_protocolWallet: address, _amount: uint256) -> bool:
+def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _protocolWallet != ZERO_ADDRESS, "_protocolWallet is the zero address"
+    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
     assert _amount > 0, "_amount should be higher than 0"
 
+    if not IERC20(self.erc20TokenContract).transferFrom(_borrower, self, _amount):
+        return False
+    
     return IERC20(self.erc20TokenContract).transfer(_protocolWallet, _amount)
 
 

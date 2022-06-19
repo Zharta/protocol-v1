@@ -40,7 +40,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     pass
 
 @external
-def transferProtocolFees(_protocolWallet: address, _amount: uint256) -> bool:
+def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
     pass
 
 @payable

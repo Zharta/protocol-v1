@@ -338,34 +338,40 @@ def test_receive_funds_zero_value(lending_pool_core_contract, lending_pool_perip
 def test_transfer_protocol_fees_wrong_sender(lending_pool_core_contract, contract_owner, borrower):
     with brownie.reverts("msg.sender is not LP peripheral"):
         lending_pool_core_contract.transferProtocolFees(
+            borrower,
             contract_owner,
             Web3.toWei(0.2, "ether"),
             {"from": borrower}
         )
 
 
-def test_transfer_protocol_fees_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract, contract_owner):
+def test_transfer_protocol_fees_zero_value(lending_pool_core_contract, lending_pool_peripheral_contract, contract_owner, borrower):
     with brownie.reverts("_amount should be higher than 0"):
         lending_pool_core_contract.transferProtocolFees(
+            borrower,
             contract_owner,
             Web3.toWei(0, "ether"),
             {"from": lending_pool_peripheral_contract}
         )
 
 
-def test_transfer_protocol_fees(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, contract_owner):  
-    erc20_contract.mint(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": contract_owner})
+def test_transfer_protocol_fees(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, contract_owner, borrower):  
+    amount = Web3.toWei(1, "ether")
 
-    assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(1, "ether")
+    erc20_contract.mint(borrower, amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount, {"from": borrower})
+
+    assert user_balance(erc20_contract, lending_pool_core_contract) == 0
 
     lending_pool_core_contract.transferProtocolFees(
+        borrower,
         contract_owner,
-        Web3.toWei(1, "ether"),
+        amount,
         {"from": lending_pool_peripheral_contract}
     )
 
     assert user_balance(erc20_contract, lending_pool_core_contract) == 0
-    assert user_balance(erc20_contract, contract_owner) == Web3.toWei(1, "ether")
+    assert user_balance(erc20_contract, contract_owner) == amount
 
 
 def test_receive_funds(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, borrower, contract_owner):
