@@ -3,13 +3,8 @@
 
 # Interfaces
 
+from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILendingPoolCore
-
-interface IERC20Token:
-    def allowance(_owner: address, _spender: address) -> uint256: view
-    def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
-    def transferFrom(_sender: address, _recipient: address, _amount: uint256) -> bool: nonpayable
-    def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256) -> bool: nonpayable
 
 
 # Structs
@@ -76,7 +71,7 @@ whitelistedAddresses: public(HashMap[address, bool])
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20Token(self.erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = IERC20(self.erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 

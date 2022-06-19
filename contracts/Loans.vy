@@ -5,12 +5,11 @@
 
 from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
+from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILoansCore
 from interfaces import ILendingPoolPeripheral
 
-interface IERC20:
-    def allowance(_owner: address, _spender: address) -> uint256: view
-    def balanceOf(_account: address) -> uint256: view
+interface IERC20Symbol:
     def symbol() -> String[100]: view
 
 
@@ -300,7 +299,7 @@ def getWhitelistedCollateralsAddresses() -> DynArray[address, 2**50]:
 @view
 @external
 def erc20TokenSymbol() -> String[100]:
-    return IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).symbol()
+    return IERC20Symbol(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).symbol()
 
 
 @view
