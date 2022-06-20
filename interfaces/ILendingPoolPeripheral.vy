@@ -36,12 +36,7 @@ event FundsReceipt:
 
 @view
 @external
-def poolHasFundsToInvest() -> bool:
-    pass
-
-@view
-@external
-def maxFundsInvestable() -> int256:
+def maxFundsInvestable() -> uint256:
     pass
 
 @external

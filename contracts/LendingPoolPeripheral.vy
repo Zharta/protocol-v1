@@ -122,17 +122,23 @@ def _poolHasFundsToInvestAfterInvestment(_amount: uint256) -> bool:
 
 @view
 @internal
-def _maxFundsInvestable() -> int256:
+def _maxFundsInvestable() -> uint256:
     fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
     fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
-    return convert(fundsAvailable, int256) - (convert(fundsAvailable, int256) + convert(fundsInvested, int256)) * (10000 - convert(self.maxCapitalEfficienty, int256)) / 10000
+
+    fundsBuffer: uint256 = (fundsAvailable + fundsInvested) * (10000 - self.maxCapitalEfficienty) / 10000
+
+    if fundsBuffer > fundsAvailable:
+        return 0
+    
+    return fundsAvailable - fundsBuffer
 
 
 ##### EXTERNAL METHODS - VIEW #####
 
 @view
 @external
-def maxFundsInvestable() -> int256:
+def maxFundsInvestable() -> uint256:
     return self._maxFundsInvestable()
 
 
@@ -329,7 +335,7 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
     assert _to != ZERO_ADDRESS, "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
-    assert convert(_amount, int256) <= self._maxFundsInvestable(), "insufficient liquidity"
+    assert _amount <= self._maxFundsInvestable(), "insufficient liquidity"
 
     if self.isPoolInvesting and not self._poolHasFundsToInvestAfterInvestment(_amount):
         self.isPoolInvesting = False
