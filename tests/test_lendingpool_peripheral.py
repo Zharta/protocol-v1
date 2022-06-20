@@ -141,7 +141,6 @@ def test_change_pool_status(lending_pool_peripheral_contract, contract_owner):
 
     assert lending_pool_peripheral_contract.isPoolActive() == False
     assert lending_pool_peripheral_contract.isPoolInvesting() == False
-    assert tx.return_value == lending_pool_peripheral_contract.isPoolActive()
 
 
 def test_change_pool_status_again(lending_pool_peripheral_contract, lending_pool_core_contract, contract_owner):
@@ -153,7 +152,6 @@ def test_change_pool_status_again(lending_pool_peripheral_contract, lending_pool
 
     assert lending_pool_peripheral_contract.isPoolActive() == True
     assert lending_pool_peripheral_contract.isPoolInvesting() == False
-    assert tx.return_value == lending_pool_peripheral_contract.isPoolActive()
 
 
 def test_deprecate_wrong_sender(lending_pool_peripheral_contract, borrower):
@@ -167,7 +165,6 @@ def test_deprecate(lending_pool_peripheral_contract, contract_owner):
     assert lending_pool_peripheral_contract.isPoolDeprecated() == True
     assert lending_pool_peripheral_contract.isPoolActive() == False
     assert lending_pool_peripheral_contract.isPoolInvesting() == False
-    assert tx.return_value == lending_pool_peripheral_contract.isPoolDeprecated()
 
 
 def test_deprecate_already_deprecated(lending_pool_peripheral_contract, contract_owner):

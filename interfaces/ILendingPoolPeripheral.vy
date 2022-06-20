@@ -1,5 +1,3 @@
-# Structs
-
 struct InvestorFunds:
     currentAmountDeposited: uint256
     totalAmountDeposited: uint256
@@ -36,48 +34,43 @@ event FundsReceipt:
 
 @view
 @external
-def poolHasFundsToInvest() -> bool:
-    pass
-
-@view
-@external
-def maxFundsInvestable() -> int256:
+def maxFundsInvestable() -> uint256:
     pass
 
 @external
-def changeOwnership(_address: address) -> address:
+def changeOwnership(_address: address):
     pass
 
 @external
-def changeMaxCapitalEfficiency(_value: uint256) -> uint256:
+def changeMaxCapitalEfficiency(_value: uint256):
     pass
 
 @external
-def changeProtocolWallet(_address: address) -> address:
+def changeProtocolWallet(_address: address):
     pass
 
 @external
-def changeProtocolFeesShare(_value: uint256) -> uint256:
+def changeProtocolFeesShare(_value: uint256):
     pass
 
 @external
-def changePoolStatus(_flag: bool) -> bool:
+def changePoolStatus(_flag: bool):
     pass
 
 @external
-def setLendingPoolCoreAddress(_address: address) -> address:
+def setLendingPoolCoreAddress(_address: address):
     pass
 
 @external
-def setLoansPeripheralAddress(_address: address) -> address:
+def setLoansPeripheralAddress(_address: address):
     pass
 
 @external
-def deprecate() -> bool:
+def deprecate():
     pass
 
 @external
-def changeWhitelistStatus(_flag: bool) -> bool:
+def changeWhitelistStatus(_flag: bool):
     pass
 
 @external
@@ -89,19 +82,19 @@ def removeWhitelistedAddress(_address: address):
     pass
 
 @external
-def deposit(_amount: uint256) -> bool:
+def deposit(_amount: uint256):
     pass
 
 @external
-def withdraw(_amount: uint256) -> bool:
+def withdraw(_amount: uint256):
     pass
 
 @external
-def sendFunds(_to: address, _amount: uint256) -> bool:
+def sendFunds(_to: address, _amount: uint256):
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
 @payable

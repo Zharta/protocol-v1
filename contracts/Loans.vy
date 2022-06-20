@@ -92,7 +92,6 @@ ongoingLoans: public(HashMap[address, uint256])
 isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
-whitelistedCollateralsAddresses: public(DynArray[address, 2**50]) # array of all collateral addresses that are or were already whitelisted
 whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral address, is the collection whitelisted
 
 loansCoreAddress: public(address)
@@ -161,141 +160,111 @@ def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collatera
 
 
 @external
-def changeOwnership(_address: address) -> address:
+def changeOwnership(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert _address != self.owner, "new owner addr is the same"
 
     self.owner = _address
 
-    return self.owner
-
 
 @external
-def changeMaxAllowedLoans(_value: uint256) -> uint256:
+def changeMaxAllowedLoans(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value > 0, "value for max loans is 0"
     assert _value != self.maxAllowedLoans, "new max loans value is the same"
 
     self.maxAllowedLoans = _value
 
-    return self.maxAllowedLoans
-
 
 @external
-def changeMaxAllowedLoanDuration(_value: uint256) -> uint256:
+def changeMaxAllowedLoanDuration(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value > 0, "value for max duration is 0"
     assert _value != self.maxAllowedLoanDuration, "new max duration value is the same"
 
     self.maxAllowedLoanDuration = _value
 
-    return self.maxAllowedLoanDuration
-
 
 @external
-def changeMinLoanAmount(_value: uint256) -> uint256:
+def changeMinLoanAmount(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value != self.minLoanAmount, "new min loan amount is the same"
     assert _value <= self.maxLoanAmount, "min amount is > than max amount"
     
-
     self.minLoanAmount = _value
-
-    return self.minLoanAmount
 
 
 @external
-def changeMaxLoanAmount(_value: uint256) -> uint256:
+def changeMaxLoanAmount(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value != self.maxLoanAmount, "new max loan amount is the same"
     assert _value >= self.minLoanAmount, "max amount is < than min amount"
 
     self.maxLoanAmount = _value
 
-    return self.maxLoanAmount
-
 
 @external
-def addCollateralToWhitelist(_address: address) -> bool:
+def addCollateralToWhitelist(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
-    assert _address.is_contract == True, "_address is not a contract"
+    assert _address.is_contract, "_address is not a contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
     assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
 
     self.whitelistedCollaterals[_address] = True
-    if _address not in self.whitelistedCollateralsAddresses:
-        self.whitelistedCollateralsAddresses.append(_address)
-
-    return True
 
 
 @external
-def removeCollateralFromWhitelist(_address: address) -> bool:
+def removeCollateralFromWhitelist(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address in self.whitelistedCollateralsAddresses, "collateral is not whitelisted"
+    assert self.whitelistedCollaterals[_address], "collateral is not whitelisted"
 
     self.whitelistedCollaterals[_address] = False
 
-    return True
-
 
 @external
-def setLoansCoreAddress(_address: address) -> address:
+def setLoansCoreAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert self.loansCoreAddress != _address, "new LoansCore addr is the same"
 
     self.loansCoreAddress = _address
-    return self.loansCoreAddress
 
 
 @external
-def setLendingPoolPeripheralAddress(_address: address) -> address:
+def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert self.lendingPoolAddress != _address, "new LPPeriph addr is the same"
 
     self.lendingPoolAddress = _address
-    return self.lendingPoolAddress
 
 
 @external
-def setLendingPoolCoreAddress(_address: address) -> address:
+def setLendingPoolCoreAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert self.lendingPoolCoreAddress != _address, "new LPCore addr is the same"
 
     self.lendingPoolCoreAddress = _address
-    return self.lendingPoolCoreAddress
 
 
 @external
-def changeContractStatus(_flag: bool) -> bool:
+def changeContractStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.isAcceptingLoans != _flag, "new contract status is the same"
 
     self.isAcceptingLoans = _flag
 
-    return self.isAcceptingLoans
-
 
 @external
-def deprecate() -> bool:
+def deprecate():
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert not self.isDeprecated, "contract is already deprecated"
 
     self.isDeprecated = True
     self.isAcceptingLoans = False
-
-    return self.isDeprecated
-
-
-@view
-@external
-def getWhitelistedCollateralsAddresses() -> DynArray[address, 2**50]:
-    return self.whitelistedCollateralsAddresses
 
 
 @view
@@ -330,7 +299,7 @@ def reserve(
     assert self._areCollateralsWhitelisted(_collaterals), "not all NFTs are accepted"
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
-    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= convert(_amount, int256), "insufficient liquidity"
+    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= _amount, "insufficient liquidity"
     assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "max loans already reached"
     assert _amount >= self.minLoanAmount, "loan amount < than the min value"
     assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
@@ -366,8 +335,7 @@ def validate(_borrower: address, _loanId: uint256):
     assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
     assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "maturity is in the past"
     assert self._areCollateralsWhitelisted(ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "not all NFTs are accepted"
-    assert self._areCollateralsOwned(self, ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "_borrower does not own all NFTs"
-    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= convert(ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId), int256), "insufficient liquidity"
+    assert ILendingPoolPeripheral(self.lendingPoolAddress).maxFundsInvestable() >= ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId), "insufficient liquidity"
 
     ILoansCore(self.loansCoreAddress).updateLoanStarted(_borrower, _loanId)
     ILoansCore(self.loansCoreAddress).updateHighestSingleCollateralLoan(_borrower, _loanId)

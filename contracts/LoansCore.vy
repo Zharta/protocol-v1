@@ -112,8 +112,7 @@ def _addLoan(_borrower: address, _loan: Loan) -> bool:
     if _loan.id == len(self.loans[_borrower]):
         self.loans[_borrower].append(_loan)
         return True
-    else:
-        return False
+    return False
 
 
 ##### EXTERNAL METHODS #####
@@ -124,24 +123,20 @@ def __init__():
 
 
 @external
-def changeOwnership(_address: address) -> address:
+def changeOwnership(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.owner != _address, "new owner address is the same"
 
     self.owner = _address
 
-    return self.owner
-
 
 @external
-def setLoansPeripheral(_address: address) -> address:
+def setLoansPeripheral(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert _address != self.loansPeripheral, "new loans addr is the same"
 
     self.loansPeripheral = _address
-
-    return self.loansPeripheral
 
 
 @view
