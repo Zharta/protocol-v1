@@ -90,13 +90,12 @@ def __init__(
 
 
 @external
-def changeOwnership(_address: address) -> address:
+def changeOwnership(_address: address):
     assert msg.sender == self.owner, "msg.sender is not owner"
     assert _address != ZERO_ADDRESS, "The _address is the zero address"
     assert _address != self.owner, "The _address is the same"
 
     self.owner = _address
-    return self.owner
 
 
 @external

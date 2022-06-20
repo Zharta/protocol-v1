@@ -169,47 +169,43 @@ def __init__(
 
 
 @external
-def changeOwnership(_address: address) -> address:
+def changeOwnership(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero address"
     assert _address != self.owner, "new owner address is the same"
 
     self.owner = _address
-    return self.owner
 
 
 @external
-def changeMaxCapitalEfficiency(_value: uint256) -> uint256:
+def changeMaxCapitalEfficiency(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value <= 10000, "capital eff exceeds 10000 bps"
     assert _value != self.maxCapitalEfficienty, "new value is the same"
 
     self.maxCapitalEfficienty = _value
-    return self.maxCapitalEfficienty
 
 
 @external
-def changeProtocolWallet(_address: address) -> address:
+def changeProtocolWallet(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero address"
     assert _address != self.protocolWallet, "new value is the same"
 
     self.protocolWallet = _address
-    return self.protocolWallet
 
 
 @external
-def changeProtocolFeesShare(_value: uint256) -> uint256:
+def changeProtocolFeesShare(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value <= 10000, "fees share exceeds 10000 bps"
     assert _value != self.protocolFeesShare, "new value is the same"
 
     self.protocolFeesShare = _value
-    return self.protocolFeesShare
 
 
 @external
-def changePoolStatus(_flag: bool) -> bool:
+def changePoolStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.isPoolActive != _flag, "new value is the same"
 
@@ -221,31 +217,27 @@ def changePoolStatus(_flag: bool) -> bool:
     if _flag and not self.isPoolInvesting and self._poolHasFundsToInvestAfterWithdraw(0):
         self.isPoolInvesting = True
 
-    return self.isPoolActive
-
 
 @external
-def setLendingPoolCoreAddress(_address: address) -> address:
+def setLendingPoolCoreAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero address"
     assert _address != self.lendingPoolCoreContract, "new value is the same"
 
     self.lendingPoolCoreContract = _address
-    return self.lendingPoolCoreContract
 
 
 @external
-def setLoansPeripheralAddress(_address: address) -> address:
+def setLoansPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero address"
     assert _address != self.loansContract, "new value is the same"
 
     self.loansContract = _address
-    return self.loansContract
 
 
 @external
-def deprecate() -> bool:
+def deprecate():
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert not self.isPoolDeprecated, "pool is already deprecated"
 
@@ -253,16 +245,13 @@ def deprecate() -> bool:
     self.isPoolActive = False
     self.isPoolInvesting = False
 
-    return self.isPoolDeprecated
-
 
 @external
-def changeWhitelistStatus(_flag: bool) -> bool:
+def changeWhitelistStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.whitelistEnabled != _flag, "new value is the same"
 
     self.whitelistEnabled = _flag
-    return _flag
 
 
 @external
@@ -284,7 +273,7 @@ def removeWhitelistedAddress(_address: address):
 
 
 @external
-def deposit(_amount: uint256) -> bool:
+def deposit(_amount: uint256):
     # _amount should be passed in wei
 
     assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
@@ -303,11 +292,9 @@ def deposit(_amount: uint256) -> bool:
 
     log Deposit(msg.sender, _amount, self.erc20TokenContract)
 
-    return True
-
 
 @external
-def withdraw(_amount: uint256) -> bool:
+def withdraw(_amount: uint256):
     # _amount should be passed in wei
 
     assert _amount > 0, "_amount has to be higher than 0"
@@ -322,11 +309,9 @@ def withdraw(_amount: uint256) -> bool:
 
     log Withdrawal(msg.sender, _amount, self.erc20TokenContract)
 
-    return True
-
 
 @external
-def sendFunds(_to: address, _amount: uint256) -> bool:
+def sendFunds(_to: address, _amount: uint256):
     # _amount should be passed in wei
 
     assert not self.isPoolDeprecated, "pool is deprecated"
@@ -345,11 +330,9 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
 
     log FundsTransfer(_to, _amount, self.erc20TokenContract)
 
-    return True
-
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
@@ -370,8 +353,6 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
         raise "error transferring protocol fees"
 
     log FundsReceipt(msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
-
-    return True
 
 
 @external

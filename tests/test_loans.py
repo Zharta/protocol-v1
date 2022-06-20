@@ -318,7 +318,6 @@ def test_change_min_loan_amount(loans_contract, contract_owner):
     tx = loans_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": contract_owner})
 
     assert loans_contract.minLoanAmount() == MIN_LOAN_AMOUNT * 1.1
-    assert tx.return_value == loans_contract.minLoanAmount()
 
 
 def test_change_max_loan_amount_wrong_sender(loans_contract, borrower):
@@ -335,7 +334,6 @@ def test_change_max_loan_amount(loans_contract, contract_owner):
     tx = loans_contract.changeMaxLoanAmount(MAX_LOAN_AMOUNT * 1.1, {"from": contract_owner})
 
     assert loans_contract.maxLoanAmount() == MAX_LOAN_AMOUNT * 1.1
-    assert tx.return_value == loans_contract.maxLoanAmount()
 
 
 def test_change_contract_status_wrong_sender(loans_contract, borrower):
@@ -352,7 +350,6 @@ def test_change_contract_status(loans_contract, contract_owner):
     tx = loans_contract.changeContractStatus(False, {"from": contract_owner})
 
     assert loans_contract.isAcceptingLoans() == False
-    assert tx.return_value == loans_contract.isAcceptingLoans()
 
 
 def test_deprecate_wrong_sender(loans_contract, borrower):
@@ -365,7 +362,6 @@ def test_deprecate(loans_contract, contract_owner):
 
     assert loans_contract.isDeprecated() == True
     assert loans_contract.isAcceptingLoans() == False
-    assert tx.return_value == loans_contract.isDeprecated()
 
 
 def test_deprecate_already_deprecated(loans_contract, contract_owner):
@@ -839,6 +835,10 @@ def test_validate_loan_already_validated(
     )
     loan_id = tx_create_loan.return_value
 
+    print(loans_contract.getPendingLoan(borrower, loan_id))
+    for collateral in test_collaterals:
+        print(erc721_contract.ownerOf(collateral[1]))
+
     loans_contract.validate(borrower, loan_id, {'from': contract_owner})
     
     print(loans_contract.getLoan(borrower, loan_id))
@@ -978,48 +978,6 @@ def test_validate_collateral_notwhitelisted(
 
     with brownie.reverts("not all NFTs are accepted"):
         loans_contract.validate(borrower, 0, {'from': contract_owner})
-
-
-def test_validate_collaterals_not_owned(
-    loans_contract,
-    loans_core_contract,
-    lending_pool_peripheral_contract,
-    lending_pool_core_contract,
-    erc721_contract,
-    erc20_contract,
-    contract_owner,
-    investor,
-    borrower
-):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
-
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
-
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    
-    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
-    
-    loans_contract.addCollateralToWhitelist(erc721_contract.address, {"from": contract_owner})
-
-    borrower_initial_balance = erc20_contract.balanceOf(borrower)
-
-    erc721_contract.mint(borrower, 0, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract.address, True, {"from": borrower})
-
-    tx_create_loan = loans_contract.reserve(
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        [(erc721_contract.address, 0)],
-        {'from': borrower}
-    )
-
-    erc721_contract.transferFrom(loans_contract, borrower, 0, {"from": loans_contract})
-
-    with brownie.reverts("_borrower does not own all NFTs"):
-        tx = loans_contract.validate(borrower, 0, {'from': contract_owner})
 
 
 def test_validate_unsufficient_funds_in_lp(

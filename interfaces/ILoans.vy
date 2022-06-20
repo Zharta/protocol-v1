@@ -58,52 +58,51 @@ event LoanCanceled:
 # Functions
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def changeOwnership(_address: address):
     pass
 
 @external
-def changeMaxAllowedLoans(_maxAllowedLoans: uint256) -> uint256:
+def changeMaxAllowedLoans(_value: uint256):
     pass
 
 @external
-def changeMaxAllowedLoanDuration(_maxAllowedLoanDuration: uint256) -> uint256:
+def changeMaxAllowedLoanDuration(_value: uint256):
     pass
 
 @external
-def addCollateralToWhitelist(_address: address) -> bool:
+def changeMinLoanAmount(_value: uint256):
     pass
 
 @external
-def removeCollateralFromWhitelist(_address: address) -> bool:
+def changeMaxLoanAmount(_value: uint256):
     pass
 
 @external
-def changeMinLoanAmount(_newMinLoanAmount: uint256) -> uint256:
+def addCollateralToWhitelist(_address: address):
     pass
 
 @external
-def changeMaxLoanAmount(_newMaxLoanAmount: uint256) -> uint256:
+def removeCollateralFromWhitelist(_address: address):
     pass
 
 @external
-def setLoansCoreAddress(_address: address) -> address:
+def setLoansCoreAddress(_address: address):
     pass
 
 @external
-def setLendingPoolAddress(_address: address) -> address:
+def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
-def changeContractStatus(_flag: bool) -> bool:
+def setLendingPoolCoreAddress(_address: address):
     pass
 
 @external
-def deprecate() -> bool:
+def changeContractStatus(_flag: bool):
     pass
 
-@view
 @external
-def getWhitelistedCollateralsAddresses() -> DynArray[address, 1125899906842624]:
+def deprecate():
     pass
 
 @view
@@ -134,7 +133,7 @@ def invalidate(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def pay(_loanId: uint256, _amountPaid: uint256):
+def pay(_loanId: uint256, _amount: uint256):
     pass
 
 @external
@@ -192,11 +191,6 @@ def isDeprecated() -> bool:
 
 @view
 @external
-def whitelistedCollateralsAddresses(arg0: uint256) -> address:
-    pass
-
-@view
-@external
 def whitelistedCollaterals(arg0: address) -> bool:
     pass
 
@@ -209,3 +203,10 @@ def loansCoreAddress() -> address:
 @external
 def lendingPoolAddress() -> address:
     pass
+
+@view
+@external
+def lendingPoolCoreAddress() -> address:
+    pass
+
+
