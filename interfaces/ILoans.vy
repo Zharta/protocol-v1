@@ -20,6 +20,10 @@ struct Loan:
 
 # Events
 
+event OwnershipTransferred:
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
 event LoanCreated:
     wallet: address
     loanId: uint256
@@ -58,7 +62,11 @@ event LoanCanceled:
 # Functions
 
 @external
-def changeOwnership(_address: address):
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
     pass
 
 @external
@@ -152,6 +160,11 @@ def __default__():
 @view
 @external
 def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
     pass
 
 @view

@@ -26,14 +26,25 @@ struct TopStats:
     highestRepayment: Loan
     highestDefaultedLoan: Loan
 
+# Events
+
+event OwnershipTransferred:
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
 # Functions
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def proposeOwner(_address: address):
     pass
 
 @external
-def setLoansPeripheral(_address: address) -> address:
+def claimOwnership():
+    pass
+
+@external
+def setLoansPeripheral(_address: address):
     pass
 
 @view
@@ -205,6 +216,11 @@ def __default__():
 @view
 @external
 def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
     pass
 
 @view

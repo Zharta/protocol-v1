@@ -68,7 +68,7 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, cont
 
 
 @pytest.fixture
-def lending_pool_core_contract(LendingPoolCore, lending_pool_peripheral_contract, erc20_contract, contract_owner, protocol_wallet):
+def lending_pool_core_contract(LendingPoolCore, lending_pool_peripheral_contract, erc20_contract, contract_owner):
     yield LendingPoolCore.deploy(
         lending_pool_peripheral_contract,
         erc20_contract,
@@ -108,17 +108,61 @@ def test_initial_state(loans_contract, contract_owner):
     assert loans_contract.isDeprecated() == False
 
 
-def test_change_ownership_wrong_sender(loans_contract, borrower):
+def test_propose_owner_wrong_sender(loans_core_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.changeOwnership(borrower, {"from": borrower})
+        loans_core_contract.proposeOwner(borrower, {"from": borrower})
 
 
-def test_change_ownership(loans_contract, borrower, contract_owner):
-    loans_contract.changeOwnership(borrower, {"from": contract_owner})
-    assert loans_contract.owner() == borrower
+def test_propose_owner_zero_address(loans_core_contract, contract_owner):
+    with brownie.reverts("_address it the zero address"):
+        loans_core_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
 
-    loans_contract.changeOwnership(contract_owner, {"from": borrower})
-    assert loans_contract.owner() == contract_owner
+
+def test_propose_owner_same_owner(loans_core_contract, contract_owner):
+    with brownie.reverts("proposed owner addr is the owner"):
+        loans_core_contract.proposeOwner(contract_owner, {"from": contract_owner})
+
+
+def test_propose_owner(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
+    loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
+
+    assert loans_core_contract.proposedOwner() == borrower
+    assert loans_core_contract.owner() == contract_owner
+
+
+def test_propose_owner_same_proposed(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
+    loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
+    
+    with brownie.reverts("proposed owner addr is the same"):
+        loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
+
+
+def test_claim_ownership_wrong_sender(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
+    loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
+
+    with brownie.reverts("msg.sender is not the proposed"):
+        loans_core_contract.claimOwnership({"from": contract_owner})
+
+
+def test_claim_ownership(loans_core_contract, loans_contract, contract_owner, borrower):
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
+    loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
+
+    tx = loans_core_contract.claimOwnership({"from": borrower})
+
+    assert loans_core_contract.owner() == borrower
+    assert loans_core_contract.proposedOwner() == brownie.ZERO_ADDRESS
+
+    event = tx.events["OwnershipTransferred"]
+    assert event["owner"] == contract_owner
+    assert event["proposedOwner"] == borrower
 
 
 def test_change_max_allowed_loans_wrong_sender(loans_contract, borrower):
