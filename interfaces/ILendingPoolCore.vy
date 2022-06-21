@@ -35,6 +35,10 @@ def claimOwnership():
     pass
 
 @external
+def setLendingPoolPeripheralAddress(_address: address):
+    pass
+
+@external
 def deposit(_lender: address, _amount: uint256) -> bool:
     pass
 

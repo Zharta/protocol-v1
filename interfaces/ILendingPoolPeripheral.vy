@@ -68,10 +68,6 @@ def changePoolStatus(_flag: bool):
     pass
 
 @external
-def setLendingPoolCoreAddress(_address: address):
-    pass
-
-@external
 def setLoansPeripheralAddress(_address: address):
     pass
 

@@ -94,15 +94,7 @@ def removeCollateralFromWhitelist(_address: address):
     pass
 
 @external
-def setLoansCoreAddress(_address: address):
-    pass
-
-@external
 def setLendingPoolPeripheralAddress(_address: address):
-    pass
-
-@external
-def setLendingPoolCoreAddress(_address: address):
     pass
 
 @external
