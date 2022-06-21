@@ -88,14 +88,11 @@ def computeWithdrawableAmount(_lender: address) -> uint256:
 
 @external
 def __init__(
-    _lendingPoolPeripheral: address,
     _erc20TokenContract: address
 ):
-    assert _lendingPoolPeripheral != ZERO_ADDRESS, "The address is the zero address"
     assert _erc20TokenContract != ZERO_ADDRESS, "The address is the zero address"
 
     self.owner = msg.sender
-    self.lendingPoolPeripheral = _lendingPoolPeripheral
     self.erc20TokenContract = _erc20TokenContract
 
 
@@ -117,6 +114,15 @@ def claimOwnership():
 
     self.owner = self.proposedOwner
     self.proposedOwner = ZERO_ADDRESS
+
+
+@external
+def setLendingPoolPeripheralAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "address is the zero address"
+    assert _address != self.lendingPoolPeripheral, "new value is the same"
+
+    self.lendingPoolPeripheral = _address
 
 
 @external
