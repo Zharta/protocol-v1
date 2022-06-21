@@ -19,6 +19,11 @@ struct InvestorFunds:
 
 # Events
 
+event OwnershipTransferred:
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
 event Deposit:
     wallet: address
     amount: uint256
@@ -50,6 +55,8 @@ event FundsReceipt:
 # Global variables
 
 owner: public(address)
+proposedOwner: public(address)
+
 loansContract: public(address)
 lendingPoolCoreContract: public(address)
 erc20TokenContract: public(address)
@@ -169,12 +176,23 @@ def __init__(
 
 
 @external
-def changeOwnership(_address: address):
+def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero address"
-    assert _address != self.owner, "new owner address is the same"
+    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert self.owner != _address, "proposed owner addr is the owner"
+    assert self.proposedOwner != _address, "proposed owner addr is the same"
 
-    self.owner = _address
+    self.proposedOwner = _address
+
+
+@external
+def claimOwnership():
+    assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
+
+    log OwnershipTransferred(self.owner, self.proposedOwner, self.erc20TokenContract)
+
+    self.owner = self.proposedOwner
+    self.proposedOwner = ZERO_ADDRESS
 
 
 @external
