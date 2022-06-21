@@ -243,10 +243,3 @@ def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: 
     assert _amount > 0, "_amount should be higher than 0"
 
     return IERC20(self.erc20TokenContract).transferFrom(_borrower, _protocolWallet, _amount)
-
-
-@external
-@payable
-def __default__():
-  if msg.value > 0:
-    send(msg.sender, msg.value)

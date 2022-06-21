@@ -365,10 +365,3 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
         raise "error transferring protocol fees"
 
     log FundsReceipt(msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
-
-
-@external
-@payable
-def __default__():
-  if msg.value > 0:
-    send(msg.sender, msg.value)

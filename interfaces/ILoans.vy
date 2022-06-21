@@ -144,11 +144,6 @@ def settleDefault(_borrower: address, _loanId: uint256):
 def cancelPendingLoan(_loanId: uint256):
     pass
 
-@payable
-@external
-def __default__():
-    pass
-
 @view
 @external
 def owner() -> address:

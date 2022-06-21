@@ -453,10 +453,3 @@ def cancelPendingLoan(_loanId: uint256):
         IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId, b"")
 
     log PendingLoanCanceled(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
-
-
-@external
-@payable
-def __default__():
-    if msg.value > 0:
-        send(msg.sender, msg.value)
