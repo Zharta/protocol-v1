@@ -246,30 +246,12 @@ def removeCollateralFromWhitelist(_address: address):
 
 
 @external
-def setLoansCoreAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
-    assert self.loansCoreAddress != _address, "new LoansCore addr is the same"
-
-    self.loansCoreAddress = _address
-
-
-@external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert self.lendingPoolAddress != _address, "new LPPeriph addr is the same"
 
     self.lendingPoolAddress = _address
-
-
-@external
-def setLendingPoolCoreAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
-    assert self.lendingPoolCoreAddress != _address, "new LPCore addr is the same"
-
-    self.lendingPoolCoreAddress = _address
 
 
 @external
