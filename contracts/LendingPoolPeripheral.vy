@@ -153,18 +153,21 @@ def maxFundsInvestable() -> uint256:
 
 @external
 def __init__(
+    _lendingPoolCoreContract: address,
     _erc20TokenContract: address,
     _protocolWallet: address,
     _protocolFeesShare: uint256,
     _maxCapitalEfficienty: uint256,
     _whitelistEnabled: bool
 ):
+    assert _lendingPoolCoreContract != ZERO_ADDRESS, "address is the zero address"
     assert _erc20TokenContract != ZERO_ADDRESS, "address is the zero address"
     assert _protocolWallet != ZERO_ADDRESS, "address is the zero address"
     assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
     assert _maxCapitalEfficienty <= 10000, "capital eff exceeds 10000 bps"
 
     self.owner = msg.sender
+    self.lendingPoolCoreContract = _lendingPoolCoreContract
     self.erc20TokenContract = _erc20TokenContract
     self.protocolWallet = _protocolWallet
     self.protocolFeesShare = _protocolFeesShare
@@ -234,15 +237,6 @@ def changePoolStatus(_flag: bool):
 
     if _flag and not self.isPoolInvesting and self._poolHasFundsToInvestAfterWithdraw(0):
         self.isPoolInvesting = True
-
-
-@external
-def setLendingPoolCoreAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero address"
-    assert _address != self.lendingPoolCoreContract, "new value is the same"
-
-    self.lendingPoolCoreContract = _address
 
 
 @external
