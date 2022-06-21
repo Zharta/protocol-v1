@@ -56,22 +56,22 @@ def loans_core_contract(LoansCore, contract_owner):
 
 
 @pytest.fixture
-def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPoolPeripheral.deploy(
+def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
+    yield LendingPoolCore.deploy(
         erc20_contract,
-        protocol_wallet,
-        PROTOCOL_FEES_SHARE,
-        MAX_CAPITAL_EFFICIENCY,
-        False,
         {'from': contract_owner}
     )
 
 
 @pytest.fixture
-def lending_pool_core_contract(LendingPoolCore, lending_pool_peripheral_contract, erc20_contract, contract_owner):
-    yield LendingPoolCore.deploy(
-        lending_pool_peripheral_contract,
+def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
+    yield LendingPoolPeripheral.deploy(
+        lending_pool_core_contract,
         erc20_contract,
+        protocol_wallet,
+        PROTOCOL_FEES_SHARE,
+        MAX_CAPITAL_EFFICIENCY,
+        False,
         {'from': contract_owner}
     )
 
@@ -183,38 +183,6 @@ def test_change_max_allowed_loan_duration(loans_contract, contract_owner):
     assert loans_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION
 
 
-def test_set_loans_core_address_not_owner(loans_contract, loans_core_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.setLoansCoreAddress(
-            loans_core_contract,
-            {"from": borrower}
-        )
-
-
-def test_set_loans_core_address_zero_address(loans_contract, contract_owner):
-    with brownie.reverts("_address is the zero address"):
-        loans_contract.setLoansCoreAddress(
-            brownie.ZERO_ADDRESS,
-            {"from": contract_owner}
-        )
-
-
-def test_set_loans_core_address(loans_contract, loans_core_contract, contract_owner):
-    loans_contract.setLoansCoreAddress(
-        contract_owner,
-        {"from": contract_owner}
-    )
-
-    assert loans_contract.loansCoreAddress() == contract_owner
-
-    loans_contract.setLoansCoreAddress(
-        loans_core_contract,
-        {"from": contract_owner}
-    )
-
-    assert loans_contract.loansCoreAddress() == loans_core_contract
-
-
 def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
         loans_contract.setLendingPoolPeripheralAddress(
@@ -245,38 +213,6 @@ def test_set_lending_pool_address(loans_contract, lending_pool_peripheral_contra
     )
 
     assert loans_contract.lendingPoolAddress() == lending_pool_peripheral_contract
-
-
-def test_set_lending_pool_address_core_not_owner(loans_contract, lending_pool_core_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.setLendingPoolCoreAddress(
-            lending_pool_core_contract,
-            {"from": borrower}
-        )
-
-
-def test_set_lending_pool_address_core_zero_address(loans_contract, contract_owner):
-    with brownie.reverts("_address is the zero address"):
-        loans_contract.setLendingPoolCoreAddress(
-            brownie.ZERO_ADDRESS,
-            {"from": contract_owner}
-        )
-
-
-def test_set_lending_pool_core_address(loans_contract, lending_pool_core_contract, contract_owner):
-    loans_contract.setLendingPoolCoreAddress(
-        contract_owner,
-        {"from": contract_owner}
-    )
-
-    assert loans_contract.lendingPoolCoreAddress() == contract_owner
-
-    loans_contract.setLendingPoolCoreAddress(
-        lending_pool_core_contract,
-        {"from": contract_owner}
-    )
-
-    assert loans_contract.lendingPoolCoreAddress() == lending_pool_core_contract
 
 
 def test_add_address_to_whitelist_wrong_sender(loans_contract, erc721_contract, borrower):
@@ -494,7 +430,7 @@ def test_create_max_loans_reached(
     investor,
     borrower
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -563,7 +499,7 @@ def test_create_collaterals_not_owned(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -599,7 +535,7 @@ def test_create_loan_collateral_not_approved(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -634,7 +570,7 @@ def test_create_loan_unsufficient_funds_in_lp(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -668,7 +604,7 @@ def test_create_loan_min_amount(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -707,7 +643,7 @@ def test_create_loan_max_amount(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -745,7 +681,7 @@ def test_create_loan(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -846,7 +782,7 @@ def test_validate_loan_already_validated(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -896,7 +832,7 @@ def test_validate_loan_already_invalidated(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -939,7 +875,7 @@ def test_validate_maturity_in_the_past(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -984,7 +920,7 @@ def test_validate_collateral_notwhitelisted(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1028,7 +964,7 @@ def test_validate_unsufficient_funds_in_lp(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1072,7 +1008,7 @@ def test_validate_loan(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1157,7 +1093,7 @@ def test_invalidate_loan_already_invalidated(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1200,7 +1136,7 @@ def test_invalidate_loan_already_validated(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1243,7 +1179,7 @@ def test_invalidate_loan(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1319,7 +1255,7 @@ def test_pay_loan_no_value_sent(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1363,7 +1299,7 @@ def test_pay_loan_higher_value_than_needed(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1412,7 +1348,7 @@ def test_pay_loan_defaulted(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1461,7 +1397,7 @@ def test_pay_loan_insufficient_balance(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1515,7 +1451,7 @@ def test_pay_loan_insufficient_allowance(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1569,7 +1505,7 @@ def test_pay_loan(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1640,7 +1576,7 @@ def test_pay_loan_multiple(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1742,7 +1678,7 @@ def test_set_default_loan(
     borrower,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1800,7 +1736,7 @@ def test_cancel_pendingloan_already_started(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1846,7 +1782,7 @@ def test_cancel_pendingloan_invalidated(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
@@ -1892,7 +1828,7 @@ def test_cancel_pending(
     investor,
     test_collaterals
 ):
-    lending_pool_peripheral_contract.setLendingPoolCoreAddress(lending_pool_core_contract, {"from": contract_owner})
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})

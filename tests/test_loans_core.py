@@ -49,6 +49,7 @@ def test_collaterals(erc721_contract):
 @pytest.fixture
 def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, contract_owner, accounts):
     yield LendingPoolPeripheral.deploy(
+        accounts[3],
         erc20_contract,
         accounts[4],
         1000,
@@ -72,7 +73,7 @@ def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract,
         1,
         loans_core_contract,
         lending_pool_peripheral_contract,
-        accounts[3],
+        accounts[5],
         {'from': contract_owner}
     )
 
