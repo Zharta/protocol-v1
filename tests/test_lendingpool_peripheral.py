@@ -74,17 +74,53 @@ def test_initial_state(lending_pool_peripheral_contract, erc20_contract, contrac
     assert not lending_pool_peripheral_contract.whitelistEnabled()
 
 
-def test_change_ownership_wrong_sender(lending_pool_peripheral_contract, borrower):
+def test_propose_owner_wrong_sender(lending_pool_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        lending_pool_peripheral_contract.changeOwnership(borrower, {"from": borrower})
+        lending_pool_peripheral_contract.proposeOwner(borrower, {"from": borrower})
 
 
-def test_change_ownership(lending_pool_peripheral_contract, borrower, contract_owner):
-    lending_pool_peripheral_contract.changeOwnership(borrower, {"from": contract_owner})
-    assert lending_pool_peripheral_contract.owner() == borrower
+def test_propose_owner_zero_address(lending_pool_peripheral_contract, contract_owner):
+    with brownie.reverts("_address it the zero address"):
+        lending_pool_peripheral_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
 
-    lending_pool_peripheral_contract.changeOwnership(contract_owner, {"from": borrower})
+
+def test_propose_owner_same_owner(lending_pool_peripheral_contract, contract_owner):
+    with brownie.reverts("proposed owner addr is the owner"):
+        lending_pool_peripheral_contract.proposeOwner(contract_owner, {"from": contract_owner})
+
+
+def test_propose_owner(lending_pool_peripheral_contract, contract_owner, borrower):
+    lending_pool_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+
+    assert lending_pool_peripheral_contract.proposedOwner() == borrower
     assert lending_pool_peripheral_contract.owner() == contract_owner
+
+
+def test_propose_owner_same_proposed(lending_pool_peripheral_contract, contract_owner, borrower):
+    lending_pool_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+    
+    with brownie.reverts("proposed owner addr is the same"):
+        lending_pool_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+
+
+def test_claim_ownership_wrong_sender(lending_pool_peripheral_contract, contract_owner, borrower):
+    lending_pool_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+
+    with brownie.reverts("msg.sender is not the proposed"):
+        lending_pool_peripheral_contract.claimOwnership({"from": contract_owner})
+
+
+def test_claim_ownership(lending_pool_peripheral_contract, contract_owner, borrower):
+    lending_pool_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+
+    tx = lending_pool_peripheral_contract.claimOwnership({"from": borrower})
+
+    assert lending_pool_peripheral_contract.owner() == borrower
+    assert lending_pool_peripheral_contract.proposedOwner() == brownie.ZERO_ADDRESS
+
+    event = tx.events["OwnershipTransferred"]
+    assert event["owner"] == contract_owner
+    assert event["proposedOwner"] == borrower
 
 
 def test_change_max_capital_efficiency_wrong_sender(lending_pool_peripheral_contract, borrower):

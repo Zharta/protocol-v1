@@ -7,6 +7,13 @@ struct InvestorFunds:
     sharesBasisPoints: uint256
     activeForRewards: bool
 
+# Events
+
+event OwnershipTransferred:
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
 # Functions
 
 @view
@@ -20,7 +27,11 @@ def computeWithdrawableAmount(_lender: address) -> uint256:
     pass
 
 @external
-def changeOwnership(_address: address) -> address:
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
     pass
 
 @external
@@ -51,6 +62,11 @@ def __default__():
 @view
 @external
 def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
     pass
 
 @view

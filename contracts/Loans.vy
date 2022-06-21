@@ -36,6 +36,11 @@ struct Loan:
 
 # Events
 
+event OwnershipTransferred:
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
 event LoanCreated:
     wallet: address
     loanId: uint256
@@ -82,6 +87,8 @@ event LoanCanceled:
 # Global variables
 
 owner: public(address)
+proposedOwner: public(address)
+
 maxAllowedLoans: public(uint256)
 maxAllowedLoanDuration: public(uint256)
 minLoanAmount: public(uint256)
@@ -160,12 +167,27 @@ def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collatera
 
 
 @external
-def changeOwnership(_address: address):
+def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
-    assert _address != self.owner, "new owner addr is the same"
+    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert self.owner != _address, "proposed owner addr is the owner"
+    assert self.proposedOwner != _address, "proposed owner addr is the same"
 
-    self.owner = _address
+    self.proposedOwner = _address
+
+
+@external
+def claimOwnership():
+    assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
+
+    log OwnershipTransferred(
+        self.owner,
+        self.proposedOwner,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
+    self.owner = self.proposedOwner
+    self.proposedOwner = ZERO_ADDRESS
 
 
 @external

@@ -1,3 +1,5 @@
+# Structs
+
 struct InvestorFunds:
     currentAmountDeposited: uint256
     totalAmountDeposited: uint256
@@ -7,6 +9,10 @@ struct InvestorFunds:
 
 # Events
 
+event OwnershipTransferred:
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
 event Deposit:
     wallet: address
     amount: uint256
@@ -38,7 +44,11 @@ def maxFundsInvestable() -> uint256:
     pass
 
 @external
-def changeOwnership(_address: address):
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
     pass
 
 @external
@@ -105,6 +115,11 @@ def __default__():
 @view
 @external
 def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
     pass
 
 @view
