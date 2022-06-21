@@ -58,11 +58,6 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
 def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
     pass
 
-@payable
-@external
-def __default__():
-    pass
-
 @view
 @external
 def owner() -> address:

@@ -103,11 +103,6 @@ def sendFunds(_to: address, _amount: uint256):
 def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
-@payable
-@external
-def __default__():
-    pass
-
 @view
 @external
 def owner() -> address:

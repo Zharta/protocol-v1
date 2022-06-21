@@ -469,10 +469,3 @@ def updateHighestDefaultedLoan(_borrower: address, _loanId: uint256):
 
     if self.topStats.highestDefaultedLoan.amount < self.loans[_borrower][_loanId].amount:
         self.topStats.highestDefaultedLoan = self.loans[_borrower][_loanId]
-
-
-@external
-@payable
-def __default__():
-    if msg.value > 0:
-        send(msg.sender, msg.value)
