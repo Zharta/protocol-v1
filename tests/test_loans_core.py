@@ -139,14 +139,6 @@ def test_claim_ownership(loans_core_contract, loans_contract, contract_owner, bo
     assert event["proposedOwner"] == borrower
 
 
-def test_change_ownership(loans_core_contract, borrower, contract_owner):
-    loans_core_contract.changeOwnership(borrower, {"from": contract_owner})
-    assert loans_core_contract.owner() == borrower
-
-    loans_core_contract.changeOwnership(contract_owner, {"from": borrower})
-    assert loans_core_contract.owner() == contract_owner
-
-
 def test_set_loans_peripheral_wrong_sender(loans_core_contract, loans_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
         loans_core_contract.setLoansPeripheral(loans_contract, {"from": borrower})
