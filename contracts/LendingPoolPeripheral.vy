@@ -19,11 +19,71 @@ struct InvestorFunds:
 
 # Events
 
+event OwnerProposed:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+    erc20TokenContract: address
+
+event MaxCapitalEfficiencyChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event ProtocolWalletChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event ProtocolFeesShareChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event LoansPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event WhitelistStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event WhitelistAddressAdded:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
+event WhitelistAddressRemoved:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
+event ContractStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event InvestingStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event ContractDeprecated:
+    erc20TokenContractIndexed: indexed(address)
     erc20TokenContract: address
 
 event Deposit:
@@ -188,12 +248,26 @@ def proposeOwner(_address: address):
 
     self.proposedOwner = _address
 
+    log OwnerProposed(
+        self.owner,
+        _address,
+        self.owner,
+        _address,
+        self.erc20TokenContract
+    )
+
 
 @external
 def claimOwnership():
     assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
 
-    log OwnershipTransferred(self.owner, self.proposedOwner, self.owner, self.proposedOwner, self.erc20TokenContract)
+    log OwnershipTransferred(
+        self.owner,
+        self.proposedOwner,
+        self.owner,
+        self.proposedOwner,
+        self.erc20TokenContract
+    )
 
     self.owner = self.proposedOwner
     self.proposedOwner = ZERO_ADDRESS
@@ -205,14 +279,28 @@ def changeMaxCapitalEfficiency(_value: uint256):
     assert _value <= 10000, "capital eff exceeds 10000 bps"
     assert _value != self.maxCapitalEfficienty, "new value is the same"
 
+    log MaxCapitalEfficiencyChanged(
+        self.erc20TokenContract,
+        self.maxCapitalEfficienty,
+        _value,
+        self.erc20TokenContract
+    )
+
     self.maxCapitalEfficienty = _value
 
 
 @external
 def changeProtocolWallet(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero address"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert _address != self.protocolWallet, "new value is the same"
+
+    log ProtocolWalletChanged(
+        self.erc20TokenContract,
+        self.protocolWallet,
+        _address,
+        self.erc20TokenContract
+    )
 
     self.protocolWallet = _address
 
@@ -223,7 +311,77 @@ def changeProtocolFeesShare(_value: uint256):
     assert _value <= 10000, "fees share exceeds 10000 bps"
     assert _value != self.protocolFeesShare, "new value is the same"
 
+    log ProtocolFeesShareChanged(
+        self.erc20TokenContract,
+        self.protocolFeesShare,
+        _value,
+        self.erc20TokenContract
+    )
+
     self.protocolFeesShare = _value
+
+
+@external
+def setLoansPeripheralAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
+    assert _address != self.loansContract, "new value is the same"
+
+    log LoansPeripheralAddressSet(
+        self.erc20TokenContract,
+        self.loansContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+    self.loansContract = _address
+
+
+@external
+def changeWhitelistStatus(_flag: bool):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert self.whitelistEnabled != _flag, "new value is the same"
+
+    self.whitelistEnabled = _flag
+
+    log WhitelistStatusChanged(
+        self.erc20TokenContract,
+        _flag,
+        self.erc20TokenContract
+    )
+
+
+@external
+def addWhitelistedAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.whitelistEnabled, "whitelist is disabled"
+    assert not self.whitelistedAddresses[_address], "address is already whitelisted"
+
+    self.whitelistedAddresses[_address] = True
+
+    log WhitelistAddressAdded(
+        self.erc20TokenContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+
+@external
+def removeWhitelistedAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.whitelistEnabled, "whitelist is disabled"
+    assert self.whitelistedAddresses[_address], "address is not whitelisted"
+
+    self.whitelistedAddresses[_address] = False
+
+    log WhitelistAddressRemoved(
+        self.erc20TokenContract,
+        _address,
+        self.erc20TokenContract
+    )
 
 
 @external
@@ -236,17 +394,26 @@ def changePoolStatus(_flag: bool):
     if not _flag:
         self.isPoolInvesting = False
 
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            False,
+            self.erc20TokenContract
+        )
+
     if _flag and not self.isPoolInvesting and self._poolHasFundsToInvestAfterWithdraw(0):
         self.isPoolInvesting = True
 
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            True,
+            self.erc20TokenContract
+        )
 
-@external
-def setLoansPeripheralAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero address"
-    assert _address != self.loansContract, "new value is the same"
-
-    self.loansContract = _address
+    log ContractStatusChanged(
+        self.erc20TokenContract,
+        _flag,
+        self.erc20TokenContract
+    )
 
 
 @external
@@ -258,31 +425,22 @@ def deprecate():
     self.isPoolActive = False
     self.isPoolInvesting = False
 
+    log ContractStatusChanged(
+        self.erc20TokenContract,
+        False,
+        self.erc20TokenContract
+    )
 
-@external
-def changeWhitelistStatus(_flag: bool):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.whitelistEnabled != _flag, "new value is the same"
+    log InvestingStatusChanged(
+        self.erc20TokenContract,
+        False,
+        self.erc20TokenContract
+    )
 
-    self.whitelistEnabled = _flag
-
-
-@external
-def addWhitelistedAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.whitelistEnabled, "whitelist is disabled"
-    assert not self.whitelistedAddresses[_address], "address is already whitelisted"
-
-    self.whitelistedAddresses[_address] = True
-
-
-@external
-def removeWhitelistedAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.whitelistEnabled, "whitelist is disabled"
-    assert self.whitelistedAddresses[_address], "address is not whitelisted"
-
-    self.whitelistedAddresses[_address] = False
+    log ContractDeprecated(
+        self.erc20TokenContract,
+        self.erc20TokenContract
+    )
 
 
 @external
