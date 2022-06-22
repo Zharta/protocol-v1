@@ -41,11 +41,24 @@ struct TopStats:
 
 # Events
 
+event OwnerProposed:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+    erc20TokenContract: address
+
+event LoansPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
     erc20TokenContract: address
 
 
@@ -152,6 +165,16 @@ def proposeOwner(_address: address):
 
     self.proposedOwner = _address
 
+    log OwnerProposed(
+        self.owner,
+        self.proposedOwner,
+        self.owner,
+        self.proposedOwner,
+        ILendingPoolPeripheral(
+            ILoansPeripheral(self.loansPeripheral).lendingPoolAddress()
+        ).erc20TokenContract()
+    )
+
 
 @external
 def claimOwnership():
@@ -176,6 +199,17 @@ def setLoansPeripheral(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert _address != self.loansPeripheral, "new loans addr is the same"
+
+    log LoansPeripheralAddressSet(
+        ILendingPoolPeripheral(
+            ILoansPeripheral(_address).lendingPoolAddress()
+        ).erc20TokenContract(),
+        self.loansPeripheral,
+        _address,
+        ILendingPoolPeripheral(
+            ILoansPeripheral(_address).lendingPoolAddress()
+        ).erc20TokenContract()
+    )
 
     self.loansPeripheral = _address
 
