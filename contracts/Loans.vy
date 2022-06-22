@@ -43,6 +43,68 @@ event OwnershipTransferred:
     proposedOwner: address
     erc20TokenContract: address
 
+event OwnerProposed:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
+event MaxAllowedLoansChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event MaxLoansChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event MaxLoanDurationChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event MinLoanAmountChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event MaxLoanAmountChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event CollateralToWhitelistAdded:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
+event CollateralToWhitelistRemoved:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
+event LendingPoolPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event ContractStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event ContractDeprecated:
+    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContract: address
+
 event LoanCreated:
     walletIndexed: indexed(address)
     wallet: address
@@ -179,6 +241,14 @@ def proposeOwner(_address: address):
 
     self.proposedOwner = _address
 
+    log OwnerProposed(
+        self.owner,
+        self.proposedOwner,
+        self.owner,
+        self.proposedOwner,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
 
 @external
 def claimOwnership():
@@ -202,6 +272,13 @@ def changeMaxAllowedLoans(_value: uint256):
     assert _value > 0, "value for max loans is 0"
     assert _value != self.maxAllowedLoans, "new max loans value is the same"
 
+    log MaxLoansChanged(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        self.maxAllowedLoans,
+        _value,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
     self.maxAllowedLoans = _value
 
 
@@ -210,6 +287,13 @@ def changeMaxAllowedLoanDuration(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value > 0, "value for max duration is 0"
     assert _value != self.maxAllowedLoanDuration, "new max duration value is the same"
+
+    log MaxLoanDurationChanged(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        self.maxAllowedLoanDuration,
+        _value,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
     self.maxAllowedLoanDuration = _value
 
@@ -220,6 +304,13 @@ def changeMinLoanAmount(_value: uint256):
     assert _value != self.minLoanAmount, "new min loan amount is the same"
     assert _value <= self.maxLoanAmount, "min amount is > than max amount"
     
+    log MinLoanAmountChanged(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        self.minLoanAmount,
+        _value,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
     self.minLoanAmount = _value
 
 
@@ -228,6 +319,13 @@ def changeMaxLoanAmount(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value != self.maxLoanAmount, "new max loan amount is the same"
     assert _value >= self.minLoanAmount, "max amount is < than min amount"
+
+    log MaxLoanAmountChanged(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        self.maxLoanAmount,
+        _value,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
     self.maxLoanAmount = _value
 
@@ -242,6 +340,12 @@ def addCollateralToWhitelist(_address: address):
 
     self.whitelistedCollaterals[_address] = True
 
+    log CollateralToWhitelistAdded(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        _address,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
 
 @external
 def removeCollateralFromWhitelist(_address: address):
@@ -250,12 +354,26 @@ def removeCollateralFromWhitelist(_address: address):
 
     self.whitelistedCollaterals[_address] = False
 
+    log CollateralToWhitelistRemoved(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        _address,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
 
 @external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
     assert self.lendingPoolAddress != _address, "new LPPeriph addr is the same"
+
+    log LendingPoolPeripheralAddressSet(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        self.lendingPoolAddress,
+        _address,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
     self.lendingPoolAddress = _address
 
@@ -267,6 +385,12 @@ def changeContractStatus(_flag: bool):
 
     self.isAcceptingLoans = _flag
 
+    log ContractStatusChanged(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        _flag,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
 
 @external
 def deprecate():
@@ -275,6 +399,11 @@ def deprecate():
 
     self.isDeprecated = True
     self.isAcceptingLoans = False
+
+    log ContractDeprecated(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
 
 @view
