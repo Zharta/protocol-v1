@@ -21,40 +21,45 @@ struct Loan:
 # Events
 
 event OwnershipTransferred:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
     erc20TokenContract: address
 event LoanCreated:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanValidated:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanInvalidated:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanPayment:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
 event LoanPaid:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanDefaulted:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
 event PendingLoanCanceled:
-    wallet: address
-    loanId: uint256
-    erc20TokenContract: address
-event LoanCanceled:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
