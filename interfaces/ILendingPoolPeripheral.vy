@@ -9,11 +9,60 @@ struct InvestorFunds:
 
 # Events
 
+event OwnerProposed:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
 event OwnershipTransferred:
     ownerIndexed: address
     proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
+    erc20TokenContract: address
+event MaxCapitalEfficiencyChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event ProtocolWalletChanged:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event ProtocolFeesShareChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event LoansPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event WhitelistStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event WhitelistAddressAdded:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event WhitelistAddressRemoved:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event ContractStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event InvestingStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event ContractDeprecated:
+    erc20TokenContractIndexed: address
     erc20TokenContract: address
 event Deposit:
     walletIndexed: address
@@ -66,15 +115,7 @@ def changeProtocolFeesShare(_value: uint256):
     pass
 
 @external
-def changePoolStatus(_flag: bool):
-    pass
-
-@external
 def setLoansPeripheralAddress(_address: address):
-    pass
-
-@external
-def deprecate():
     pass
 
 @external
@@ -87,6 +128,14 @@ def addWhitelistedAddress(_address: address):
 
 @external
 def removeWhitelistedAddress(_address: address):
+    pass
+
+@external
+def changePoolStatus(_flag: bool):
+    pass
+
+@external
+def deprecate():
     pass
 
 @external

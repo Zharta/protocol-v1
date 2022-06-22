@@ -18,11 +18,24 @@ struct InvestorFunds:
 
 # Events
 
+event OwnerProposed:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+    erc20TokenContract: address
+
+event LendingPoolPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
     erc20TokenContract: address
 
 
@@ -107,12 +120,26 @@ def proposeOwner(_address: address):
 
     self.proposedOwner = _address
 
+    log OwnerProposed(
+        self.owner,
+        _address,
+        self.owner,
+        _address,
+        self.erc20TokenContract
+    )
+
 
 @external
 def claimOwnership():
     assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
 
-    log OwnershipTransferred(self.owner, self.proposedOwner, self.owner, self.proposedOwner, self.erc20TokenContract)
+    log OwnershipTransferred(
+        self.owner,
+        self.proposedOwner,
+        self.owner,
+        self.proposedOwner,
+        self.erc20TokenContract
+    )
 
     self.owner = self.proposedOwner
     self.proposedOwner = ZERO_ADDRESS
@@ -123,6 +150,13 @@ def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero address"
     assert _address != self.lendingPoolPeripheral, "new value is the same"
+
+    log LendingPoolPeripheralAddressSet(
+        self.erc20TokenContract,
+        self.lendingPoolPeripheral,
+        _address,
+        self.erc20TokenContract
+    )
 
     self.lendingPoolPeripheral = _address
 

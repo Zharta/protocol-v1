@@ -28,11 +28,22 @@ struct TopStats:
 
 # Events
 
+event OwnerProposed:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
 event OwnershipTransferred:
     ownerIndexed: address
     proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
+    erc20TokenContract: address
+event LoansPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
     erc20TokenContract: address
 
 # Functions

@@ -101,10 +101,14 @@ def test_propose_owner_same_owner(loans_core_contract, contract_owner):
 def test_propose_owner(loans_core_contract, loans_contract, contract_owner, borrower):
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
-    loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
+    tx = loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
     assert loans_core_contract.proposedOwner() == borrower
     assert loans_core_contract.owner() == contract_owner
+
+    event = tx.events["OwnerProposed"]
+    assert event["owner"] == contract_owner
+    assert event["proposedOwner"] == borrower
 
 
 def test_propose_owner_same_proposed(loans_core_contract, loans_contract, contract_owner, borrower):
@@ -158,11 +162,12 @@ def test_set_loans_peripheral_same_address(loans_core_contract, loans_contract, 
 
 
 def test_set_loans_peripheral(loans_core_contract, loans_contract, contract_owner):
-    loans_core_contract.setLoansPeripheral(contract_owner, {"from": contract_owner})
-    assert loans_core_contract.loansPeripheral() == contract_owner
-
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    tx = loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
     assert loans_core_contract.loansPeripheral() == loans_contract
+
+    event = tx.events["LoansPeripheralAddressSet"]
+    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["newValue"] == loans_contract
 
 
 def test_add_loan_wrong_sender(loans_core_contract, contract_owner, borrower, test_collaterals):

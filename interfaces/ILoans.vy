@@ -26,6 +26,57 @@ event OwnershipTransferred:
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+event OwnerProposed:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event MaxAllowedLoansChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MaxLoansChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MaxLoanDurationChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MinLoanAmountChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MaxLoanAmountChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event CollateralToWhitelistAdded:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event CollateralToWhitelistRemoved:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event LendingPoolPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event ContractStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event ContractDeprecated:
+    erc20TokenContractIndexed: address
+    erc20TokenContract: address
 event LoanCreated:
     walletIndexed: address
     wallet: address
