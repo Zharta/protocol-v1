@@ -37,48 +37,52 @@ struct Loan:
 # Events
 
 event OwnershipTransferred:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
 
 event LoanCreated:
+    walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 
 event LoanValidated:
+    walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 
 event LoanInvalidated:
+    walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 
 event LoanPayment:
+    walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
 
 event LoanPaid:
+    walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 
 event LoanDefaulted:
+    walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
 
 event PendingLoanCanceled:
-    wallet: address
-    loanId: uint256
-    erc20TokenContract: address
-
-event LoanCanceled:
+    walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
     erc20TokenContract: address
@@ -181,6 +185,8 @@ def claimOwnership():
     assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
 
     log OwnershipTransferred(
+        self.owner,
+        self.proposedOwner,
         self.owner,
         self.proposedOwner,
         ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
@@ -324,7 +330,12 @@ def reserve(
 
         IERC721(collateral.contractAddress).transferFrom(msg.sender, self, collateral.tokenId)
 
-    log LoanCreated(msg.sender, newLoanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+    log LoanCreated(
+        msg.sender,
+        msg.sender,
+        newLoanId,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
     return newLoanId
 
@@ -347,7 +358,12 @@ def validate(_borrower: address, _loanId: uint256):
 
     ILendingPoolPeripheral(self.lendingPoolAddress).sendFunds(_borrower, ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId))
 
-    log LoanValidated(_borrower, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+    log LoanValidated(
+        _borrower,
+        _borrower,
+        _loanId,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
 
 @external
@@ -368,7 +384,12 @@ def invalidate(_borrower: address, _loanId: uint256):
 
         IERC721(collateral.contractAddress).safeTransferFrom(self, _borrower, collateral.tokenId, b"")
 
-    log LoanInvalidated(_borrower, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+    log LoanInvalidated(
+        _borrower,
+        _borrower,
+        _loanId,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
 
 @external
@@ -404,9 +425,20 @@ def pay(_loanId: uint256, _amount: uint256):
             
             IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId, b"")
 
-        log LoanPaid(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+        log LoanPaid(
+            msg.sender,
+            msg.sender,
+            _loanId,
+            ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+        )
 
-    log LoanPayment(msg.sender, _loanId, _amount, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+    log LoanPayment(
+        msg.sender,
+        msg.sender,
+        _loanId,
+        _amount,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
 
 
 @external
@@ -428,6 +460,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
         IERC721(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId, b"")
 
     log LoanDefaulted(
+        _borrower,
         _borrower,
         _loanId,
         ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId),
@@ -452,4 +485,9 @@ def cancelPendingLoan(_loanId: uint256):
 
         IERC721(collateral.contractAddress).safeTransferFrom(self, msg.sender, collateral.tokenId, b"")
 
-    log PendingLoanCanceled(msg.sender, _loanId, ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract())
+    log PendingLoanCanceled(
+        msg.sender,
+        msg.sender,
+        _loanId,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )

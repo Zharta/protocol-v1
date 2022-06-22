@@ -20,31 +20,32 @@ struct InvestorFunds:
 # Events
 
 event OwnershipTransferred:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
 
 event Deposit:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
 
 event Withdrawal:
-    wallet: address
-    amount: uint256
-    erc20TokenContract: address
-
-event Compound:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
 
 event FundsTransfer:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
 
 event FundsReceipt:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     rewardsPool: uint256
@@ -192,7 +193,7 @@ def proposeOwner(_address: address):
 def claimOwnership():
     assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
 
-    log OwnershipTransferred(self.owner, self.proposedOwner, self.erc20TokenContract)
+    log OwnershipTransferred(self.owner, self.proposedOwner, self.owner, self.proposedOwner, self.erc20TokenContract)
 
     self.owner = self.proposedOwner
     self.proposedOwner = ZERO_ADDRESS
@@ -302,7 +303,7 @@ def deposit(_amount: uint256):
     if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount):
         raise "error creating deposit"
 
-    log Deposit(msg.sender, _amount, self.erc20TokenContract)
+    log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
 
 @external
@@ -319,7 +320,7 @@ def withdraw(_amount: uint256):
     if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _amount):
         raise "error withdrawing funds"
 
-    log Withdrawal(msg.sender, _amount, self.erc20TokenContract)
+    log Withdrawal(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
 
 @external
@@ -340,7 +341,7 @@ def sendFunds(_to: address, _amount: uint256):
     if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_to, _amount):
         raise "error sending funds in LPCore"
 
-    log FundsTransfer(_to, _amount, self.erc20TokenContract)
+    log FundsTransfer(_to, _to, _amount, self.erc20TokenContract)
 
 
 @external
@@ -364,4 +365,4 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, rewardsProtocol):
         raise "error transferring protocol fees"
 
-    log FundsReceipt(msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
+    log FundsReceipt(msg.sender, msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)

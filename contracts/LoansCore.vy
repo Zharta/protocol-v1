@@ -42,6 +42,8 @@ struct TopStats:
 # Events
 
 event OwnershipTransferred:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
@@ -156,6 +158,8 @@ def claimOwnership():
     assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
 
     log OwnershipTransferred(
+        self.owner,
+        self.proposedOwner,
         self.owner,
         self.proposedOwner,
         ILendingPoolPeripheral(

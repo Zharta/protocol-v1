@@ -10,26 +10,28 @@ struct InvestorFunds:
 # Events
 
 event OwnershipTransferred:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
     erc20TokenContract: address
 event Deposit:
+    walletIndexed: address
     wallet: address
     amount: uint256
     erc20TokenContract: address
 event Withdrawal:
-    wallet: address
-    amount: uint256
-    erc20TokenContract: address
-event Compound:
+    walletIndexed: address
     wallet: address
     amount: uint256
     erc20TokenContract: address
 event FundsTransfer:
+    walletIndexed: address
     wallet: address
     amount: uint256
     erc20TokenContract: address
 event FundsReceipt:
+    walletIndexed: address
     wallet: address
     amount: uint256
     rewardsPool: uint256

@@ -19,6 +19,8 @@ struct InvestorFunds:
 # Events
 
 event OwnershipTransferred:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
@@ -110,7 +112,7 @@ def proposeOwner(_address: address):
 def claimOwnership():
     assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
 
-    log OwnershipTransferred(self.owner, self.proposedOwner, self.erc20TokenContract)
+    log OwnershipTransferred(self.owner, self.proposedOwner, self.owner, self.proposedOwner, self.erc20TokenContract)
 
     self.owner = self.proposedOwner
     self.proposedOwner = ZERO_ADDRESS
