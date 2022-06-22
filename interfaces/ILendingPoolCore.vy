@@ -10,6 +10,8 @@ struct InvestorFunds:
 # Events
 
 event OwnershipTransferred:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
     erc20TokenContract: address
