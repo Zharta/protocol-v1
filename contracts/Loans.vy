@@ -243,9 +243,9 @@ def proposeOwner(_address: address):
 
     log OwnerProposed(
         self.owner,
-        self.proposedOwner,
+        _address,
         self.owner,
-        self.proposedOwner,
+        _address,
         ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
     )
 

@@ -84,10 +84,14 @@ def test_propose_owner_same_owner(lending_pool_core_contract, contract_owner):
 
 
 def test_propose_owner(lending_pool_core_contract, contract_owner, borrower):
-    lending_pool_core_contract.proposeOwner(borrower, {"from": contract_owner})
+    tx = lending_pool_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    assert lending_pool_core_contract.proposedOwner() == borrower
     assert lending_pool_core_contract.owner() == contract_owner
+    assert lending_pool_core_contract.proposedOwner() == borrower
+
+    event = tx.events["OwnerProposed"]
+    assert event["owner"] == contract_owner
+    assert event["proposedOwner"] == borrower
 
 
 def test_propose_owner_same_proposed(lending_pool_core_contract, contract_owner, borrower):
@@ -128,9 +132,13 @@ def test_set_lending_pool_peripheral_address_zero_address(lending_pool_core_cont
 
 
 def test_set_lending_pool_peripheral_address(lending_pool_core_contract, lending_pool_peripheral_contract, contract_owner):
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    tx = lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
 
     assert lending_pool_core_contract.lendingPoolPeripheral() == lending_pool_peripheral_contract
+
+    event = tx.events["LendingPoolPeripheralAddressSet"]
+    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["newValue"] == lending_pool_peripheral_contract
 
 
 def test_set_lending_pool_peripheral_address_same_address(lending_pool_core_contract, lending_pool_peripheral_contract, contract_owner):
