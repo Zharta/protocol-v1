@@ -232,6 +232,17 @@ def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collatera
     return True
 
 
+@view
+@internal
+def _loanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
+    loan: Loan = ILoansCore(self.loansCoreAddress).getLoan(_borrower, _loanId)
+
+    if loan.started:
+        return (loan.amount - loan.paidAmount) * (10000 * self.maxAllowedLoanDuration + loan.interest * (block.timestamp - loan.startTime)) / (10000 * self.maxAllowedLoanDuration)
+    
+    return MAX_UINT256
+
+
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
@@ -424,6 +435,14 @@ def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     return ILoansCore(self.loansCoreAddress).getLoan(_borrower, _loanId)
 
 
+@view
+@external
+def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
+    loan: Loan = ILoansCore(self.loansCoreAddress).getLoan(_borrower, _loanId)
+    
+    return self._loanPayableAmount(_borrower, _loanId)
+
+
 @external
 def reserve(
     _amount: uint256,
@@ -525,11 +544,12 @@ def invalidate(_borrower: address, _loanId: uint256):
 def pay(_loanId: uint256, _amount: uint256):
     assert ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "loan not found"
     assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
+    assert not ILoansCore(self.loansCoreAddress).getLoanPaid(msg.sender, _loanId), "loan already paid"
     assert _amount > 0, "_amount has to be higher than 0"
     assert IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).balanceOf(msg.sender) >=_amount, "insufficient balance"
     assert IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).allowance(msg.sender, self.lendingPoolCoreAddress) >= _amount, "insufficient allowance"
 
-    maxPayment: uint256 = ILoansCore(self.loansCoreAddress).getLoanAmount(msg.sender, _loanId) * (10000 + ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId)) / 10000
+    maxPayment: uint256 = ILoansCore(self.loansCoreAddress).getLoanAmount(msg.sender, _loanId) * (10000 * self.maxAllowedLoanDuration + ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId) * (block.timestamp - ILoansCore(self.loansCoreAddress).getLoanStartTime(msg.sender, _loanId))) / (10000 * self.maxAllowedLoanDuration)
     allowedPayment: uint256 = maxPayment - ILoansCore(self.loansCoreAddress).getLoanPaidAmount(msg.sender, _loanId)
     assert _amount <= allowedPayment, "_amount is more than needed"
 

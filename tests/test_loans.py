@@ -1396,7 +1396,7 @@ def test_pay_loan_higher_value_than_needed(
     tx_start_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
     loan = loans_contract.getLoan(borrower, loan_id)
 
-    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}") + 10000)
+    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
     erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
@@ -1589,10 +1589,6 @@ def test_pay_loan(
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
 
-    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
-
-    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
-
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     tx_create_loan = loans_contract.reserve(
@@ -1606,11 +1602,16 @@ def test_pay_loan(
 
     loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
+    loan_details = loans_contract.getLoan(borrower, loan_id)
+    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
+    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == amount_paid
 
+    borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
-    
+
+    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
+    
     tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     loan_details = loans_contract.getLoan(borrower, loan_id)
@@ -1618,6 +1619,7 @@ def test_pay_loan(
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
     assert loan_details["paid"] == loans_core_contract.getLoanPaid(borrower, loan_id)
     assert loan_details["paidAmount"] == loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
+    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == 0
 
     assert tx_pay_loan.events["LoanPaid"]["wallet"] == borrower
     assert tx_pay_loan.events["LoanPaid"]["loanId"] == loan_id
@@ -1661,10 +1663,6 @@ def test_pay_loan_multiple(
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
 
-    amount_paid = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
-    
-    erc20_contract.mint(borrower, 2 * amount_paid - LOAN_AMOUNT, {"from": contract_owner})
-
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     tx_create_loan = loans_contract.reserve(
@@ -1676,17 +1674,21 @@ def test_pay_loan_multiple(
     )
     loan_id = tx_create_loan.return_value
 
-    tx_new_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+
+    loan_details = loans_contract.getLoan(borrower, loan_id)
+    amount_paid = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
-
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
+    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT / 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     tx_pay_loan1 = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     assert not loans_core_contract.getLoanPaid(borrower, loan_id)
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
+    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == loans_contract
@@ -1697,16 +1699,20 @@ def test_pay_loan_multiple(
 
     assert loans_contract.ongoingLoans(borrower) == 1
 
-    erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
-    tx_pay_loan2 = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+    amount_paid2 = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
+    
+    erc20_contract.mint(borrower, amount_paid2 - LOAN_AMOUNT / 2, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount_paid2, {"from": borrower})
+    tx_pay_loan2 = loans_contract.pay(loan_id, amount_paid2, {"from": borrower})
 
     assert loans_core_contract.getLoanPaid(borrower, loan_id)
-    assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid * 2
+    assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid + amount_paid2
+    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == 0
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - amount_paid * 2
+    assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - (amount_paid + amount_paid2)
 
     assert loans_contract.ongoingLoans(borrower) == 0
 
@@ -1714,7 +1720,57 @@ def test_pay_loan_multiple(
     assert tx_pay_loan2.events["LoanPaid"]["loanId"] == loan_id
     assert tx_pay_loan2.events["LoanPayment"]["wallet"] == borrower
     assert tx_pay_loan2.events["LoanPayment"]["loanId"] == loan_id
-    assert tx_pay_loan2.events["LoanPayment"]["amount"] == amount_paid
+    assert tx_pay_loan2.events["LoanPayment"]["amount"] == amount_paid2
+
+
+def test_pay_loan_already_paid(
+    loans_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals
+):
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
+    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+
+    tx_create_loan = loans_contract.reserve(
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {'from': borrower}
+    )
+    loan_id = tx_create_loan.return_value
+
+    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+
+    loan_details = loans_contract.getLoan(borrower, loan_id)
+    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
+
+    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
+    
+    loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+
+    with brownie.reverts("loan already paid"):
+        loans_contract.pay(loan_id, amount_paid, {"from": borrower})
 
 
 def test_set_default_loan_wrong_sender(

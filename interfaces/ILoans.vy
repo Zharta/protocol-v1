@@ -176,6 +176,11 @@ def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
 def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
+@view
+@external
+def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
+    pass
+
 @external
 def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
     pass
