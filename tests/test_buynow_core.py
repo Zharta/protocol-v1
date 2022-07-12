@@ -269,7 +269,7 @@ def test_add_liquidation_wrong_sender(buy_now_core_contract, borrower):
 def test_add_liquidation_collateral_zero_address(buy_now_core_contract, buy_now_peripheral_contract, contract_owner):
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
 
-    with brownie.reverts("collat addr is the zero address"):
+    with brownie.reverts("collat addr is the zero addr"):
         buy_now_core_contract.addLiquidation(
             brownie.ZERO_ADDRESS,
             0,

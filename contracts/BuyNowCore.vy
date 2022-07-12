@@ -222,7 +222,7 @@ def addLiquidation(
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
     assert self.liquidations[liquidationKey].startTime == 0, "liquidation already exists"
 
-    assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero address"
+    assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
     assert _collateralAddress.is_contract, "collat addr is not a contract"
     assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
     assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultAddress, "collateral not owned by vault"
