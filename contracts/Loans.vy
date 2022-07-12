@@ -249,6 +249,12 @@ def _loanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
     return MAX_UINT256
 
 
+@pure
+@internal
+def _computeDaysPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint256) -> uint256:
+    return (_recentTimestamp - _olderTimestamp) - ((_recentTimestamp - _olderTimestamp) % 86400)
+
+
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
@@ -572,7 +578,15 @@ def pay(_loanId: uint256, _amount: uint256):
     assert IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).balanceOf(msg.sender) >=_amount, "insufficient balance"
     assert IERC20(ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()).allowance(msg.sender, self.lendingPoolCoreAddress) >= _amount, "insufficient allowance"
 
-    maxPayment: uint256 = ILoansCore(self.loansCoreAddress).getLoanAmount(msg.sender, _loanId) * (10000 * self.maxAllowedLoanDuration + ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId) * (block.timestamp - ILoansCore(self.loansCoreAddress).getLoanStartTime(msg.sender, _loanId))) / (10000 * self.maxAllowedLoanDuration)
+    loanAmount: uint256 = ILoansCore(self.loansCoreAddress).getLoanAmount(msg.sender, _loanId)
+    loanInterest: uint256 = ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId)
+
+    # compute days passed in seconds
+    timeDiff: uint256 = self._computeDaysPassedInSeconds(block.timestamp, ILoansCore(self.loansCoreAddress).getLoanStartTime(msg.sender, _loanId))
+
+    # pro-rata computation of max amount payable based on actual loan duration in days
+    maxPayment: uint256 = loanAmount * (10000 * self.maxAllowedLoanDuration + loanInterest * timeDiff) / (10000 * self.maxAllowedLoanDuration)
+    
     allowedPayment: uint256 = maxPayment - ILoansCore(self.loansCoreAddress).getLoanPaidAmount(msg.sender, _loanId)
     assert _amount <= allowedPayment, "_amount is more than needed"
 
