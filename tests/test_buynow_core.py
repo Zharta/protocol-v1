@@ -45,8 +45,9 @@ def loans_core_contract(LoansCore, contract_owner):
 
 
 @pytest.fixture
-def buy_now_peripheral_contract(BuyNowPeripheral, contract_owner):
+def buy_now_peripheral_contract(BuyNowPeripheral, buy_now_core_contract, contract_owner):
     yield BuyNowPeripheral.deploy(
+        buy_now_core_contract,
         GRACE_PERIOD_DURATION,
         BUY_NOW_PERIOD_DURATION,
         AUCTION_DURATION,
