@@ -96,6 +96,12 @@ event LendingPoolPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
+event LendingPoolCoreAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
 event ContractStatusChanged:
     erc20TokenContractIndexed: indexed(address)
     value: bool
@@ -387,6 +393,23 @@ def setLendingPoolPeripheralAddress(_address: address):
     )
 
     self.lendingPoolAddress = _address
+
+
+@external
+def setLendingPoolCoreAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
+    assert self.lendingPoolCoreAddress != _address, "new LPCore addr is the same"
+
+    log LendingPoolCoreAddressSet(
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract(),
+        self.lendingPoolCoreAddress,
+        _address,
+        ILendingPoolPeripheral(self.lendingPoolAddress).erc20TokenContract()
+    )
+
+    self.lendingPoolCoreAddress = _address
 
 
 @external

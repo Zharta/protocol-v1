@@ -70,6 +70,11 @@ event LendingPoolPeripheralAddressSet:
     currentValue: address
     newValue: address
     erc20TokenContract: address
+event LendingPoolCoreAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
 event ContractStatusChanged:
     erc20TokenContractIndexed: address
     value: bool
@@ -151,6 +156,10 @@ def removeCollateralFromWhitelist(_address: address):
 
 @external
 def setLendingPoolPeripheralAddress(_address: address):
+    pass
+
+@external
+def setLendingPoolCoreAddress(_address: address):
     pass
 
 @external
