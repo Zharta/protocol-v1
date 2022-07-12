@@ -14,7 +14,6 @@ INTEREST_AMOUNT = Web3.toWei(0.1, "ether")
 APR = 200
 
 
-
 @pytest.fixture
 def contract_owner(accounts):
     yield accounts[0]
@@ -217,17 +216,18 @@ def test_add_loans_core_address_same_address(buy_now_core_contract, loans_core_c
 
 
 def test_remove_loans_core_address_wrong_sender(buy_now_core_contract, loans_core_contract, erc20_contract, contract_owner, borrower):
-    buy_now_core_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
-
     with brownie.reverts("msg.sender is not the owner"):
         buy_now_core_contract.removeLoansCoreAddress(erc20_contract, {"from": borrower})
 
 
 def test_remove_loans_core_address_zero_address(buy_now_core_contract, loans_core_contract, erc20_contract, contract_owner):
-    buy_now_core_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
-
     with brownie.reverts("erc20TokenAddr is the zero addr"):
         buy_now_core_contract.removeLoansCoreAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+
+
+def test_remove_loans_core_address_not_contract(buy_now_core_contract, loans_core_contract, erc20_contract, contract_owner):
+    with brownie.reverts("erc20TokenAddr is not a contract"):
+        buy_now_core_contract.removeLoansCoreAddress(contract_owner, {"from": contract_owner})
 
 
 def test_remove_loans_core_address_not_found(buy_now_core_contract, erc20_contract, contract_owner):
@@ -235,7 +235,7 @@ def test_remove_loans_core_address_not_found(buy_now_core_contract, erc20_contra
         buy_now_core_contract.removeLoansCoreAddress(erc20_contract, {"from": contract_owner})
 
 
-def test_remove_loans_core_address_zero_address(buy_now_core_contract, loans_core_contract, erc20_contract, contract_owner):
+def test_remove_loans_core_address(buy_now_core_contract, loans_core_contract, erc20_contract, contract_owner):
     buy_now_core_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
 
     assert buy_now_core_contract.loansCoreAddresses(erc20_contract) == loans_core_contract
