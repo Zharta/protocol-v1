@@ -60,6 +60,51 @@ event LiquidationRemoved:
 def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidation:
     pass
 
+@view
+@external
+def getLiquidationStartTime(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationGracePeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationBuyNowPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationPrincipal(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationInterestAmount(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationAPR(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationBorrower(_collateralAddress: address, _tokenId: uint256) -> address:
+    pass
+
+@view
+@external
+def getLiquidationERC20Contract(_collateralAddress: address, _tokenId: uint256) -> address:
+    pass
+
+@view
+@external
+def isLiquidationInAuction(_collateralAddress: address, _tokenId: uint256) -> bool:
+    pass
+
 @external
 def proposeOwner(_address: address):
     pass

@@ -102,6 +102,52 @@ def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidatio
     return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)]
 
 
+@view
+@external
+def getLiquidationStartTime(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].startTime
+
+@view
+@external
+def getLiquidationGracePeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].gracePeriodMaturity
+
+@view
+@external
+def getLiquidationBuyNowPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].buyNowPeriodMaturity
+
+@view
+@external
+def getLiquidationPrincipal(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].principal
+
+@view
+@external
+def getLiquidationInterestAmount(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].interestAmount
+
+@view
+@external
+def getLiquidationAPR(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].apr
+
+@view
+@external
+def getLiquidationBorrower(_collateralAddress: address, _tokenId: uint256) -> address:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].borrower
+
+@view
+@external
+def getLiquidationERC20Contract(_collateralAddress: address, _tokenId: uint256) -> address:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].erc20TokenContract
+
+@view
+@external
+def isLiquidationInAuction(_collateralAddress: address, _tokenId: uint256) -> bool:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].inAuction
+
+
 ##### EXTERNAL METHODS - WRITE #####
 @external
 def __init__():
@@ -222,21 +268,6 @@ def addLiquidation(
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
     assert self.liquidations[liquidationKey].startTime == 0, "liquidation already exists"
 
-    assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
-    assert _collateralAddress.is_contract, "collat addr is not a contract"
-    assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultAddress, "collateral not owned by vault"
-
-    assert _startTime > 0, "startTime is 0"
-    assert _gracePeriodMaturity > 0, "gpmaturity is 0"
-    assert _buyNowPeriodMaturity > 0, "bnpmaturity is 0"
-    assert _principal > 0, "principal is 0"
-    assert _interestAmount > 0, "interestAmount is 0"
-    assert _apr > 0, "apr is 0"
-    assert _borrower != ZERO_ADDRESS, "borrower is the zero addr"
-    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
-
     self.liquidations[liquidationKey] = Liquidation(
         {
             collateralAddress: _collateralAddress,
@@ -266,9 +297,10 @@ def addLiquidation(
 def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.buyNowPeripheralAddress, "msg.sender is not BNPeriph addr"
 
-    assert self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].startTime > 0, "liquidation not found"
-
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
+    
+    assert self.liquidations[liquidationKey].startTime > 0, "liquidation not found"
+
     log LiquidationRemoved(
         self.liquidations[liquidationKey].erc20TokenContract,
         self.liquidations[liquidationKey].collateralAddress,
