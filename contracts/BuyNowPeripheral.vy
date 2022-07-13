@@ -86,6 +86,17 @@ event LoansCoreAddressRemoved:
     currentValue: address
     erc20TokenContract: address
 
+event LendingPoolPeripheralAddressAdded:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event LendingPoolPeripheralAddressRemoved:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    erc20TokenContract: address
+
 event CollateralVaultPeripheralAddressSet:
     currentValue: address
     newValue: address
@@ -300,7 +311,42 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
 
 
 @external
-def setCollateralVaultAddress(_address: address):
+def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address.is_contract, "address is not a contract"
+    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
+    assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != _address, "new value is the same"
+
+    log LendingPoolPeripheralAddressAdded(
+        _erc20TokenContract,
+        self.lendingPoolPeripheralAddresses[_erc20TokenContract],
+        _address,
+        _erc20TokenContract
+    )
+
+    self.lendingPoolPeripheralAddresses[_erc20TokenContract] = _address
+
+
+@external
+def removeLendingPoolPeripheralAddress(_erc20TokenContract: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
+    assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != ZERO_ADDRESS, "address not found"
+
+    log LendingPoolPeripheralAddressRemoved(
+        _erc20TokenContract,
+        self.lendingPoolPeripheralAddresses[_erc20TokenContract],
+        _erc20TokenContract
+    )
+
+    self.lendingPoolPeripheralAddresses[_erc20TokenContract] = ZERO_ADDRESS
+
+
+@external
+def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero addr"
     assert self.collateralVaultPeripheralAddress != _address, "new value is the same"
@@ -327,7 +373,7 @@ def addLiquidation(
     assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
     assert _collateralAddress.is_contract, "collat addr is not a contract"
     assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) == IBuyNowCore(self.buyNowCoreAddress).collateralVaultAddress(), "collateral not owned by vault"
+    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
     assert _principal > 0, "principal is 0"
     assert _interestAmount > 0, "interestAmount is 0"
     assert _apr > 0, "apr is 0"
@@ -365,6 +411,11 @@ def addLiquidation(
 
 @external
 def buyNFT(_collateralAddress: address, _tokenId: uint256):
+    assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
+    assert _collateralAddress.is_contract, "collat addr is not a contract"
+    assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
+    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
+
     liquidation: Liquidation = IBuyNowCore(self.buyNowCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     
     if block.timestamp <= liquidation.gracePeriodMaturity:
@@ -397,11 +448,10 @@ def buyNFT(_collateralAddress: address, _tokenId: uint256):
         liquidation.erc20TokenContract
     )
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFunds(
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
         msg.sender,
         liquidation.principal,
-        self._computeInterestAmount(liquidation.principal, liquidation.interestAmount, liquidation.apr, days),
-        True
+        self._computeInterestAmount(liquidation.principal, liquidation.interestAmount, liquidation.apr, days)
     )
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)

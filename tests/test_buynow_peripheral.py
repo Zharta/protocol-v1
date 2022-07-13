@@ -1,3 +1,4 @@
+from decimal import Decimal
 from brownie.network import chain
 from datetime import datetime as dt
 from web3 import Web3
@@ -6,9 +7,9 @@ import brownie
 import pytest
 
 
-GRACE_PERIOD_DURATION = 172800 # 2 days
-BUY_NOW_PERIOD_DURATION = 604800 # 15 days
-AUCTION_DURATION = 604800 # 15 days
+GRACE_PERIOD_DURATION = 5
+BUY_NOW_PERIOD_DURATION = 5
+AUCTION_DURATION = 5
 
 PRINCIPAL = Web3.toWei(1, "ether")
 INTEREST_AMOUNT = Web3.toWei(0.1, "ether")
@@ -30,11 +31,6 @@ def borrower(accounts):
 
 
 @pytest.fixture
-def collateral_vault_contract(accounts):
-    yield accounts[2]
-
-
-@pytest.fixture
 def erc20_contract(ERC20, contract_owner):
     yield ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
 
@@ -45,9 +41,17 @@ def erc721_contract(ERC721, contract_owner):
 
 
 @pytest.fixture
-def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, contract_owner, accounts):
+def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
+    yield LendingPoolCore.deploy(
+        erc20_contract,
+        {'from': contract_owner}
+    )
+
+
+@pytest.fixture
+def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, accounts):
     yield LendingPoolPeripheral.deploy(
-        accounts[3],
+        lending_pool_core_contract,
         erc20_contract,
         accounts[4],
         1000,
@@ -73,6 +77,21 @@ def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_periphera
         lending_pool_peripheral_contract,
         accounts[5],
         {'from': contract_owner}
+    )
+
+
+@pytest.fixture
+def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
+    yield CollateralVaultCore.deploy(
+        {"from": contract_owner}
+    )
+
+
+@pytest.fixture
+def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_vault_core_contract, contract_owner):
+    yield CollateralVaultPeripheral.deploy(
+        collateral_vault_core_contract,
+        {"from": contract_owner}
     )
 
 
@@ -334,7 +353,36 @@ def test_remove_loans_core_address(buy_now_peripheral_contract, loans_core_contr
     assert event["erc20TokenContract"] == erc20_contract
 
 
-def test_add_liquidation_zero_values(buy_now_peripheral_contract, buy_now_core_contract, loans_core_contract, collateral_vault_contract, erc20_contract, erc721_contract, contract_owner, borrower):
+def test_set_collateral_vault_address_wrong_sender(buy_now_peripheral_contract, collateral_vault_peripheral_contract, borrower):
+    with brownie.reverts("msg.sender is not the owner"):
+        buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": borrower})
+
+
+def test_set_collateral_vault_address_zero_address(buy_now_peripheral_contract, contract_owner):
+    with brownie.reverts("address is the zero addr"):
+        buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+
+
+def test_set_collateral_vault_address(buy_now_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
+    tx = buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+    assert buy_now_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
+
+    event = tx.events["CollateralVaultPeripheralAddressSet"]
+    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["newValue"] == collateral_vault_peripheral_contract
+
+
+def test_set_collateral_vault_address_same_address(buy_now_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+    assert buy_now_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
+
+    with brownie.reverts("new value is the same"):
+        buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+
+def test_add_liquidation_zero_values(buy_now_peripheral_contract, buy_now_core_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc20_contract, erc721_contract, contract_owner, borrower):
     buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
     
     with brownie.reverts("collat addr is the zero addr"):
@@ -349,9 +397,12 @@ def test_add_liquidation_zero_values(buy_now_peripheral_contract, buy_now_core_c
             brownie.ZERO_ADDRESS
         )
     
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
-    erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
     
     with brownie.reverts("principal is 0"):
         buy_now_peripheral_contract.addLiquidation(
@@ -442,9 +493,9 @@ def test_add_liquidation_collat_not_nft(buy_now_peripheral_contract, erc20_contr
         )
 
 
-def test_add_liquidation_collat_not_owned_by_vault(buy_now_peripheral_contract, buy_now_core_contract, collateral_vault_contract, erc721_contract, contract_owner):
+def test_add_liquidation_collat_not_owned_by_vault(buy_now_peripheral_contract, buy_now_core_contract, collateral_vault_peripheral_contract, erc721_contract, contract_owner):
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
     erc721_contract.mint(contract_owner, 0, {"from": contract_owner})
 
@@ -461,15 +512,18 @@ def test_add_liquidation_collat_not_owned_by_vault(buy_now_peripheral_contract, 
         )
 
 
-def test_add_liquidation(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, borrower, contract_owner):
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
+def test_add_liquidation(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+    
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
 
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
     buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
 
-    erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
-
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
     
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -509,15 +563,18 @@ def test_add_liquidation(buy_now_peripheral_contract, buy_now_core_contract, loa
     assert event["erc20TokenContract"] == erc20_contract
 
 
-def test_add_liquidation_loan_not_defaulted(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, borrower, contract_owner):
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
+def test_add_liquidation_loan_not_defaulted(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+    
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
 
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
     buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
 
-    erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
-
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
     
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -542,16 +599,19 @@ def test_add_liquidation_loan_not_defaulted(buy_now_peripheral_contract, buy_now
         )
 
 
-def test_add_liquidation_collat_not_in_loan(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, borrower, contract_owner):
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
-    buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
-
-    buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
-
-    erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
-    erc721_contract.mint(collateral_vault_contract, 1, {"from": contract_owner})
+def test_add_liquidation_collat_not_in_loan(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
+    erc721_contract.mint(collateral_vault_core_contract, 1, {"from": contract_owner})
     
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -577,5 +637,166 @@ def test_add_liquidation_collat_not_in_loan(buy_now_peripheral_contract, buy_now
         )
 
 
+def test_buy_nft_collat_not_contract(buy_now_peripheral_contract, contract_owner):
+    with brownie.reverts("collat addr is not a contract"):
+        buy_now_peripheral_contract.buyNFT(
+            contract_owner,
+            0
+        )
 
 
+def test_buy_nft_collat_not_nft(buy_now_peripheral_contract, erc20_contract):
+    with brownie.reverts(""):
+        buy_now_peripheral_contract.buyNFT(
+            erc20_contract,
+            0
+        )
+
+
+def test_buy_nft_collat_not_owned_by_vault(buy_now_peripheral_contract, buy_now_core_contract, collateral_vault_peripheral_contract, erc721_contract, contract_owner):
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+    erc721_contract.mint(contract_owner, 0, {"from": contract_owner})
+
+    with brownie.reverts("collateral not owned by vault"):
+        buy_now_peripheral_contract.buyNFT(
+            erc721_contract,
+            0
+        )
+
+
+def test_buy_nft_not_allowed(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, lending_pool_peripheral_contract, lending_pool_core_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": contract_owner})
+
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
+    
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract, 0)],
+        {"from": loans_peripheral_contract}
+    )
+    loan_id = tx_add_loan.return_value
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
+
+    buy_now_peripheral_contract.addLiquidation(
+        erc721_contract,
+        0,
+        PRINCIPAL,
+        INTEREST_AMOUNT,
+        APR,
+        borrower,
+        0,
+        erc20_contract
+    )
+
+    with brownie.reverts("msg.sender is not borrower"):
+        buy_now_peripheral_contract.buyNFT(
+            erc721_contract,
+            0,
+            {"from": contract_owner}
+        )
+
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION + 1)
+
+    with brownie.reverts("msg.sender is not a lender"):
+        buy_now_peripheral_contract.buyNFT(
+            erc721_contract,
+            0,
+            {"from": contract_owner}
+        )
+    
+    chain.mine(blocks=1, timedelta=BUY_NOW_PERIOD_DURATION + 1)
+
+    with brownie.reverts("liquidation out of buying period"):
+        buy_now_peripheral_contract.buyNFT(
+            erc721_contract,
+            0,
+            {"from": contract_owner}
+        )
+
+
+def test_buy_nft(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+    
+    buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, PRINCIPAL * 2, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, PRINCIPAL * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit(PRINCIPAL * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.sendFunds(contract_owner, PRINCIPAL, {"from": loans_peripheral_contract})
+    
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract, 0)],
+        {"from": loans_peripheral_contract}
+    )
+    loan_id = tx_add_loan.return_value
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
+
+    buy_now_peripheral_contract.addLiquidation(
+        erc721_contract,
+        0,
+        PRINCIPAL,
+        INTEREST_AMOUNT,
+        APR,
+        borrower,
+        0,
+        erc20_contract
+    )
+
+    grace_period_price = int(Decimal(PRINCIPAL) + Decimal(INTEREST_AMOUNT) + Decimal(PRINCIPAL * APR * 2) / Decimal(365))
+    erc20_contract.mint(borrower, grace_period_price, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, grace_period_price, {"from": borrower})
+
+    tx = buy_now_peripheral_contract.buyNFT(
+        erc721_contract,
+        0,
+        {"from": borrower}
+    )
+
+    liquidation = buy_now_peripheral_contract.getLiquidation(erc721_contract, 0)
+    assert liquidation["collateralAddress"] == brownie.ZERO_ADDRESS
+    assert liquidation["startTime"] == 0
+    assert liquidation["borrower"] == brownie.ZERO_ADDRESS
+    assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
+
+    event = tx.events["LiquidationRemoved"]
+    assert event["collateralAddress"] == erc721_contract
+    assert event["tokenId"] == 0
+    assert event["erc20TokenContract"] == erc20_contract
+
+    event = tx.events["NFTPurchased"]
+    assert event["collateralAddress"] == erc721_contract
+    assert event["tokenId"] == 0
+    assert event["amount"] == grace_period_price
+    assert event["erc20TokenContract"] == erc20_contract
