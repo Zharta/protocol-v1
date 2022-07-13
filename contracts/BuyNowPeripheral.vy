@@ -467,6 +467,11 @@ def buyNFT(_collateralAddress: address, _tokenId: uint256):
 
 
 @external
+def liquidateNFTXInGracePeriod():
+    pass
+
+
+@external
 def liquidateNFTX():
     pass
 
