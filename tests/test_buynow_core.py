@@ -298,11 +298,6 @@ def test_add_liquidation(buy_now_core_contract, buy_now_peripheral_contract, col
     assert liquidation["borrower"] == borrower
     assert liquidation["erc20TokenContract"] == erc20_contract
 
-    event = tx.events["LiquidationAdded"]
-    assert event["collateralAddress"] == erc721_contract
-    assert event["tokenId"] == 0
-    assert event["erc20TokenContract"] == erc20_contract
-
 
 def test_add_liquidation_already_exists(buy_now_core_contract, buy_now_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, contract_owner, borrower):
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
@@ -381,9 +376,4 @@ def test_remove_liquidation_(buy_now_core_contract, buy_now_peripheral_contract,
     assert liquidation["startTime"] == 0
     assert liquidation["borrower"] == brownie.ZERO_ADDRESS
     assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
-
-    event = tx.events["LiquidationRemoved"]
-    assert event["collateralAddress"] == erc721_contract
-    assert event["tokenId"] == 0
-    assert event["erc20TokenContract"] == erc20_contract
 

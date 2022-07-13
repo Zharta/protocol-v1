@@ -40,10 +40,6 @@ event OwnerProposed:
     owner: address
     proposedOwner: address
 
-event CollateralVaultAddressSet:
-    currentValue: address
-    newValue: address
-
 event BuyNowPeripheralAddressSet:
     currentValue: address
     newValue: address
@@ -59,27 +55,12 @@ event LoansCoreAddressRemoved:
     currentValue: address
     erc20TokenContract: address
 
-event LiquidationAdded:
-    erc20TokenContractIndexed: indexed(address)
-    collateralAddressIndexed: indexed(address)
-    collateralAddress: address
-    tokenId: uint256
-    erc20TokenContract: address
-
-event LiquidationRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    collateralAddressIndexed: indexed(address)
-    collateralAddress: address
-    tokenId: uint256
-    erc20TokenContract: address
-
 
 # Global variables
 
 owner: public(address)
 proposedOwner: public(address)
 
-collateralVaultAddress: public(address)
 buyNowPeripheralAddress: public(address)
 loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
 
@@ -187,20 +168,6 @@ def claimOwnership():
 
 
 @external
-def setCollateralVaultAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
-    assert self.collateralVaultAddress != _address, "new value is the same"
-
-    log CollateralVaultAddressSet(
-        self.collateralVaultAddress,
-        _address
-    )
-
-    self.collateralVaultAddress = _address
-
-
-@external
 def setBuyNowPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero addr"
@@ -284,14 +251,6 @@ def addLiquidation(
         }
     )
 
-    log LiquidationAdded(
-        _erc20TokenContract,
-        _collateralAddress,
-        _collateralAddress,
-        _tokenId,
-        _erc20TokenContract
-    )
-
 
 @external
 def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
@@ -301,16 +260,6 @@ def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
     
     assert self.liquidations[liquidationKey].startTime > 0, "liquidation not found"
 
-    log LiquidationRemoved(
-        self.liquidations[liquidationKey].erc20TokenContract,
-        self.liquidations[liquidationKey].collateralAddress,
-        self.liquidations[liquidationKey].collateralAddress,
-        self.liquidations[liquidationKey].tokenId,
-        self.liquidations[liquidationKey].erc20TokenContract
-    )
-
     self.liquidations[liquidationKey] = empty(Liquidation)
-
-
 
 
