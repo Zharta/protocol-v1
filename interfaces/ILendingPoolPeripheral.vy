@@ -41,6 +41,11 @@ event LoansPeripheralAddressSet:
     currentValue: address
     newValue: address
     erc20TokenContract: address
+event BuyNowPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
 event WhitelistStatusChanged:
     erc20TokenContractIndexed: address
     value: bool
@@ -94,6 +99,11 @@ event FundsReceipt:
 def maxFundsInvestable() -> uint256:
     pass
 
+@view
+@external
+def lenderFunds(_lender: address) -> InvestorFunds:
+    pass
+
 @external
 def proposeOwner(_address: address):
     pass
@@ -116,6 +126,10 @@ def changeProtocolFeesShare(_value: uint256):
 
 @external
 def setLoansPeripheralAddress(_address: address):
+    pass
+
+@external
+def setBuyNowPeripheralAddress(_address: address):
     pass
 
 @external
@@ -151,7 +165,7 @@ def sendFunds(_to: address, _amount: uint256):
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, isLiquidation: bool):
     pass
 
 @view
@@ -177,6 +191,11 @@ def lendingPoolCoreContract() -> address:
 @view
 @external
 def erc20TokenContract() -> address:
+    pass
+
+@view
+@external
+def buyNowPeripheralContract() -> address:
     pass
 
 @view
