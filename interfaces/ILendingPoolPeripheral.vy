@@ -165,7 +165,11 @@ def sendFunds(_to: address, _amount: uint256):
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, isLiquidation: bool):
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    pass
+
+@external
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
 @view
