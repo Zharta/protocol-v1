@@ -118,35 +118,6 @@ def test_claim_ownership(buy_now_core_contract, contract_owner, borrower):
     assert event["proposedOwner"] == borrower
 
 
-def test_set_collateral_vault_address_wrong_sender(buy_now_core_contract, collateral_vault_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": borrower})
-
-
-def test_set_collateral_vault_address_zero_address(buy_now_core_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        buy_now_core_contract.setCollateralVaultAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
-
-
-def test_set_collateral_vault_address(buy_now_core_contract, collateral_vault_contract, contract_owner):
-    tx = buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
-
-    assert buy_now_core_contract.collateralVaultAddress() == collateral_vault_contract
-
-    event = tx.events["CollateralVaultAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
-    assert event["newValue"] == collateral_vault_contract
-
-
-def test_set_collateral_vault_address_same_address(buy_now_core_contract, collateral_vault_contract, contract_owner):
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
-
-    assert buy_now_core_contract.collateralVaultAddress() == collateral_vault_contract
-
-    with brownie.reverts("new value is the same"):
-        buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
-
-
 def test_set_buy_now_peripheral_address_wrong_sender(buy_now_core_contract, buy_now_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
         buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": borrower})
@@ -269,7 +240,6 @@ def test_add_liquidation_wrong_sender(buy_now_core_contract, borrower):
 
 def test_add_liquidation(buy_now_core_contract, buy_now_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, contract_owner, borrower):
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
 
     erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
 
@@ -301,7 +271,6 @@ def test_add_liquidation(buy_now_core_contract, buy_now_peripheral_contract, col
 
 def test_add_liquidation_already_exists(buy_now_core_contract, buy_now_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, contract_owner, borrower):
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
 
     erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
 
@@ -348,25 +317,24 @@ def test_remove_liquidation_not_found(buy_now_core_contract, buy_now_peripheral_
         buy_now_core_contract.removeLiquidation(erc721_contract, 0, {"from": buy_now_peripheral_contract})
 
 
-def test_remove_liquidation_(buy_now_core_contract, buy_now_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, contract_owner, borrower):
+def test_remove_liquidation(buy_now_core_contract, buy_now_peripheral_contract, collateral_vault_contract, erc721_contract, erc20_contract, contract_owner, borrower):
     buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
-    buy_now_core_contract.setCollateralVaultAddress(collateral_vault_contract, {"from": contract_owner})
 
     erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
 
     start_time = chain.time()
     buy_now_core_contract.addLiquidation(
-            erc721_contract,
-            0,
-            start_time,
-            start_time + GRACE_PERIOD_DURATION,
-            start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
-            PRINCIPAL,
-            INTEREST_AMOUNT,
-            APR,
-            borrower,
-            erc20_contract,
-            {"from": buy_now_peripheral_contract}
+        erc721_contract,
+        0,
+        start_time,
+        start_time + GRACE_PERIOD_DURATION,
+        start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
+        PRINCIPAL,
+        INTEREST_AMOUNT,
+        APR,
+        borrower,
+        erc20_contract,
+        {"from": buy_now_peripheral_contract}
     )
     
     tx = buy_now_core_contract.removeLiquidation(erc721_contract, 0, {"from": buy_now_peripheral_contract})
