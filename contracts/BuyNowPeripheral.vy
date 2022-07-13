@@ -8,6 +8,7 @@ from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 from interfaces import IBuyNowCore
 from interfaces import ILendingPoolPeripheral
+from interfaces import ICollateralVaultPeripheral
 
 interface ILoansCore:
     def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 100]: view
@@ -85,7 +86,18 @@ event LoansCoreAddressRemoved:
     currentValue: address
     erc20TokenContract: address
 
+event CollateralVaultPeripheralAddressSet:
+    currentValue: address
+    newValue: address
+
 event LiquidationAdded:
+    erc20TokenContractIndexed: indexed(address)
+    collateralAddressIndexed: indexed(address)
+    collateralAddress: address
+    tokenId: uint256
+    erc20TokenContract: address
+
+event LiquidationRemoved:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
     collateralAddress: address
@@ -113,6 +125,7 @@ auctionPeriodDuration: public(uint256)
 buyNowCoreAddress: public(address)
 loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
 lendingPoolPeripheralAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LendingPoolCore
+collateralVaultPeripheralAddress: public(address)
 
 lenderMinDepositAmount: public(uint256)
 
@@ -287,6 +300,20 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
 
 
 @external
+def setCollateralVaultAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert self.collateralVaultPeripheralAddress != _address, "new value is the same"
+
+    log CollateralVaultPeripheralAddressSet(
+        self.collateralVaultPeripheralAddress,
+        _address
+    )
+
+    self.collateralVaultPeripheralAddress = _address
+
+
+@external
 def addLiquidation(
     _collateralAddress: address,
     _tokenId: uint256,
@@ -362,6 +389,14 @@ def buyNFT(_collateralAddress: address, _tokenId: uint256):
 
     IBuyNowCore(self.buyNowCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 
+    log LiquidationRemoved(
+        liquidation.erc20TokenContract,
+        liquidation.collateralAddress,
+        liquidation.collateralAddress,
+        liquidation.tokenId,
+        liquidation.erc20TokenContract
+    )
+
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFunds(
         msg.sender,
         liquidation.principal,
@@ -369,7 +404,7 @@ def buyNFT(_collateralAddress: address, _tokenId: uint256):
         True
     )
 
-    # TODO: implement vault transfer
+    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
 
     log NFTPurchased(
         liquidation.erc20TokenContract,
