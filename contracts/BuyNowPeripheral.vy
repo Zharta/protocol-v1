@@ -3,13 +3,18 @@
 
 # Interfaces
 
+from vyper.interfaces import ERC20 as IERC20
 from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 from interfaces import IBuyNowCore
+from interfaces import ILendingPoolPeripheral
 
 interface ILoansCore:
     def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 100]: view
     def getLoanDefaulted(_borrower: address, _loanId: uint256) -> bool: view
+
+# interface ILendingPoolCore:
+#     def getLenderCurrentAmountDeposited(_lender: address) -> uint256: view
 
 
 # Structs
@@ -17,6 +22,13 @@ interface ILoansCore:
 struct Collateral:
     contractAddress: address
     tokenId: uint256
+
+struct InvestorFunds:
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    sharesBasisPoints: uint256
+    activeForRewards: bool
 
 struct Liquidation:
     collateralAddress: address
@@ -80,6 +92,14 @@ event LiquidationAdded:
     tokenId: uint256
     erc20TokenContract: address
 
+event NFTPurchased:
+    erc20TokenContractIndexed: indexed(address)
+    collateralAddressIndexed: indexed(address)
+    collateralAddress: address
+    tokenId: uint256
+    amount: uint256
+    erc20TokenContract: address
+
 
 # Global variables
 
@@ -92,7 +112,9 @@ auctionPeriodDuration: public(uint256)
 
 buyNowCoreAddress: public(address)
 loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
+lendingPoolPeripheralAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LendingPoolCore
 
+lenderMinDepositAmount: public(uint256)
 
 ##### INTERNAL METHODS #####
 
@@ -102,6 +124,18 @@ def _isCollateralInArray(_collateralAddress: address, _tokenId: uint256, _collat
         if collateral.contractAddress == _collateralAddress and collateral.tokenId == _tokenId:
             return True
     return False
+
+
+@pure
+@internal
+def _computeNFTPrice(principal: uint256, interestAmount: uint256, apr: uint256, days: uint256) -> uint256:
+    return principal + interestAmount + (principal * apr * days) / 365
+
+
+@pure
+@internal
+def _computeInterestAmount(principal: uint256, interestAmount: uint256, apr: uint256, days: uint256) -> uint256:
+    return interestAmount + (principal * apr * days) / 365
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -303,8 +337,48 @@ def addLiquidation(
 
 
 @external
-def buyNFT():
-    pass
+def buyNFT(_collateralAddress: address, _tokenId: uint256):
+    liquidation: Liquidation = IBuyNowCore(self.buyNowCoreAddress).getLiquidation(_collateralAddress, _tokenId)
+    
+    if block.timestamp <= liquidation.gracePeriodMaturity:
+        assert msg.sender == liquidation.borrower, "msg.sender is not borrower"
+    elif block.timestamp <= liquidation.buyNowPeriodMaturity:
+        assert ILendingPoolPeripheral(
+            self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+        ).lenderFunds(msg.sender).currentAmountDeposited > self.lenderMinDepositAmount, "msg.sender is not a lender"
+    else:
+        raise "liquidation out of buying period"
+    
+    assert not liquidation.inAuction, "liquidation is in auction"
+
+    nftPrice: uint256 = 0
+    days: uint256 = 0
+    if block.timestamp <= liquidation.gracePeriodMaturity:
+        nftPrice = self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, 2)
+        days = 2
+    elif block.timestamp <= liquidation.buyNowPeriodMaturity:
+        nftPrice = self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, 17)
+        days = 17
+
+    IBuyNowCore(self.buyNowCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
+
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFunds(
+        msg.sender,
+        liquidation.principal,
+        self._computeInterestAmount(liquidation.principal, liquidation.interestAmount, liquidation.apr, days),
+        True
+    )
+
+    # TODO: implement vault transfer
+
+    log NFTPurchased(
+        liquidation.erc20TokenContract,
+        _collateralAddress,
+        _collateralAddress,
+        _tokenId,
+        nftPrice,
+        liquidation.erc20TokenContract
+    )
 
 
 @external
