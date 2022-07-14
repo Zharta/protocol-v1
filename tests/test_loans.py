@@ -51,6 +51,21 @@ def erc721_contract(ERC721, contract_owner):
 
 
 @pytest.fixture
+def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
+    yield CollateralVaultCore.deploy(
+        {"from": contract_owner}
+    )
+
+
+@pytest.fixture
+def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_vault_core_contract, contract_owner):
+    yield CollateralVaultPeripheral.deploy(
+        collateral_vault_core_contract,
+        {"from": contract_owner}
+    )
+
+
+@pytest.fixture
 def loans_core_contract(LoansCore, contract_owner):
     yield LoansCore.deploy({'from': contract_owner})
 
@@ -90,7 +105,7 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
 
 
 @pytest.fixture
-def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, contract_owner):
+def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
     yield Loans.deploy(
         MAX_NUMBER_OF_LOANS,
         MAX_LOAN_DURATION,
@@ -98,7 +113,7 @@ def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract,
         MAX_LOAN_AMOUNT,
         loans_core_contract,
         lending_pool_peripheral_contract,
-        lending_pool_core_contract,
+        collateral_vault_peripheral_contract,
         {'from': contract_owner}
     )
 
@@ -246,7 +261,7 @@ def test_set_lending_pool_address(loans_contract, lending_pool_peripheral_contra
         {"from": contract_owner}
     )
 
-    assert loans_contract.lendingPoolAddress() == lending_pool_peripheral_contract_aux
+    assert loans_contract.lendingPoolPeripheralAddress() == lending_pool_peripheral_contract_aux
 
     event = tx.events["LendingPoolPeripheralAddressSet"]
     assert event["currentValue"] == lending_pool_peripheral_contract
@@ -257,7 +272,7 @@ def test_set_lending_pool_address(loans_contract, lending_pool_peripheral_contra
         {"from": contract_owner}
     )
 
-    assert loans_contract.lendingPoolAddress() == lending_pool_peripheral_contract
+    assert loans_contract.lendingPoolPeripheralAddress() == lending_pool_peripheral_contract
 
     event = tx.events["LendingPoolPeripheralAddressSet"]
     assert event["currentValue"] == lending_pool_peripheral_contract_aux
@@ -493,6 +508,8 @@ def test_create_max_loans_reached(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -501,6 +518,9 @@ def test_create_max_loans_reached(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -513,7 +533,7 @@ def test_create_max_loans_reached(
 
     for k in range(11):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     for k in range(MAX_NUMBER_OF_LOANS):
         loans_contract.reserve(
@@ -538,14 +558,9 @@ def test_create_max_loans_reached(
 
 def test_create_collateral_notwhitelisted(
     loans_contract,
-    loans_core_contract,
-    erc721_contract,
-    contract_owner,
     borrower,
     test_collaterals
 ):
-    
-    
     with brownie.reverts("not all NFTs are accepted"):
         loans_contract.reserve(
             LOAN_AMOUNT,
@@ -597,6 +612,8 @@ def test_create_loan_collateral_not_approved(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -606,6 +623,9 @@ def test_create_loan_collateral_not_approved(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -634,13 +654,19 @@ def test_create_loan_unsufficient_funds_in_lp(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
+    erc20_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -649,7 +675,7 @@ def test_create_loan_unsufficient_funds_in_lp(
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     with brownie.reverts("insufficient liquidity"):
         tx = loans_contract.reserve(
@@ -666,6 +692,8 @@ def test_create_loan_min_amount(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -675,6 +703,9 @@ def test_create_loan_min_amount(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -688,7 +719,7 @@ def test_create_loan_min_amount(
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     with brownie.reverts("loan amount < than the min value"):
         tx = loans_contract.reserve(
@@ -705,6 +736,8 @@ def test_create_loan_max_amount(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -714,6 +747,9 @@ def test_create_loan_max_amount(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -726,7 +762,7 @@ def test_create_loan_max_amount(
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     with brownie.reverts("loan amount > than the max value"):
         tx = loans_contract.reserve(
@@ -743,6 +779,8 @@ def test_create_loan(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -755,6 +793,9 @@ def test_create_loan(
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
+
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
@@ -766,7 +807,7 @@ def test_create_loan(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -792,7 +833,7 @@ def test_create_loan(
     assert loan_details["canceled"] == False
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
     assert loans_contract.ongoingLoans(borrower) == 1
 
@@ -844,6 +885,8 @@ def test_validate_loan_already_validated(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -853,6 +896,9 @@ def test_validate_loan_already_validated(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -865,7 +911,7 @@ def test_validate_loan_already_validated(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -894,6 +940,8 @@ def test_validate_loan_already_invalidated(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -903,6 +951,9 @@ def test_validate_loan_already_invalidated(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -915,7 +966,7 @@ def test_validate_loan_already_invalidated(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -937,6 +988,8 @@ def test_validate_maturity_in_the_past(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -946,6 +999,9 @@ def test_validate_maturity_in_the_past(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -960,7 +1016,7 @@ def test_validate_maturity_in_the_past(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -982,6 +1038,8 @@ def test_validate_collateral_notwhitelisted(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -991,6 +1049,9 @@ def test_validate_collateral_notwhitelisted(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1005,7 +1066,7 @@ def test_validate_collateral_notwhitelisted(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1026,6 +1087,8 @@ def test_validate_unsufficient_funds_in_lp(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1035,6 +1098,9 @@ def test_validate_unsufficient_funds_in_lp(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1049,7 +1115,7 @@ def test_validate_unsufficient_funds_in_lp(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1070,6 +1136,8 @@ def test_validate_loan(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1079,6 +1147,9 @@ def test_validate_loan(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1093,7 +1164,7 @@ def test_validate_loan(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1125,7 +1196,7 @@ def test_validate_loan(
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
     assert loans_core_contract.getHighestCollateralBundleLoan() == loan_details
 
@@ -1155,6 +1226,8 @@ def test_invalidate_loan_already_invalidated(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1164,6 +1237,9 @@ def test_invalidate_loan_already_invalidated(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1176,7 +1252,7 @@ def test_invalidate_loan_already_invalidated(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1198,6 +1274,8 @@ def test_invalidate_loan_already_validated(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1207,6 +1285,9 @@ def test_invalidate_loan_already_validated(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1219,7 +1300,7 @@ def test_invalidate_loan_already_validated(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1241,6 +1322,8 @@ def test_invalidate_loan(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1250,6 +1333,9 @@ def test_invalidate_loan(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1264,7 +1350,7 @@ def test_invalidate_loan(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1290,7 +1376,7 @@ def test_invalidate_loan(
     assert loan_details["canceled"] == False
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
     assert tx_create_loan.events[-1]["wallet"] == borrower
     assert tx_create_loan.events[-1]["loanId"] == 0
@@ -1317,6 +1403,8 @@ def test_pay_loan_no_value_sent(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1326,6 +1414,9 @@ def test_pay_loan_no_value_sent(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1338,7 +1429,7 @@ def test_pay_loan_no_value_sent(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1361,6 +1452,8 @@ def test_pay_loan_higher_value_than_needed(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1370,6 +1463,9 @@ def test_pay_loan_higher_value_than_needed(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1382,7 +1478,7 @@ def test_pay_loan_higher_value_than_needed(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1410,6 +1506,8 @@ def test_pay_loan_defaulted(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1419,6 +1517,9 @@ def test_pay_loan_defaulted(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1431,7 +1532,7 @@ def test_pay_loan_defaulted(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1459,6 +1560,8 @@ def test_pay_loan_insufficient_balance(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1468,6 +1571,9 @@ def test_pay_loan_insufficient_balance(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1479,7 +1585,7 @@ def test_pay_loan_insufficient_balance(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
@@ -1513,6 +1619,8 @@ def test_pay_loan_insufficient_allowance(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1522,6 +1630,9 @@ def test_pay_loan_insufficient_allowance(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1533,7 +1644,7 @@ def test_pay_loan_insufficient_allowance(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
@@ -1567,6 +1678,8 @@ def test_pay_loan(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1576,6 +1689,9 @@ def test_pay_loan(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1587,7 +1703,7 @@ def test_pay_loan(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
@@ -1642,6 +1758,8 @@ def test_pay_loan_multiple(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1651,6 +1769,9 @@ def test_pay_loan_multiple(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1665,7 +1786,7 @@ def test_pay_loan_multiple(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
@@ -1703,7 +1824,7 @@ def test_pay_loan_multiple(
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
     
     assert tx_pay_loan1.events["LoanPayment"]["wallet"] == borrower
     assert tx_pay_loan1.events["LoanPayment"]["loanId"] == loan_id
@@ -1740,6 +1861,8 @@ def test_pay_loan_already_paid(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1749,6 +1872,9 @@ def test_pay_loan_already_paid(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1760,7 +1886,7 @@ def test_pay_loan_already_paid(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1809,6 +1935,8 @@ def test_set_default_loan(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1818,6 +1946,9 @@ def test_set_default_loan(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1830,7 +1961,7 @@ def test_set_default_loan(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1867,6 +1998,8 @@ def test_cancel_pendingloan_already_started(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1876,6 +2009,9 @@ def test_cancel_pendingloan_already_started(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1888,7 +2024,7 @@ def test_cancel_pendingloan_already_started(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1913,6 +2049,8 @@ def test_cancel_pendingloan_invalidated(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1922,6 +2060,9 @@ def test_cancel_pendingloan_invalidated(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1934,7 +2075,7 @@ def test_cancel_pendingloan_invalidated(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
@@ -1959,6 +2100,8 @@ def test_cancel_pending(
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1968,6 +2111,9 @@ def test_cancel_pending(
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_contract, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
 
@@ -1980,7 +2126,7 @@ def test_cancel_pending(
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,

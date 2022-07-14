@@ -1,10 +1,7 @@
 import pytest
 import datetime as dt
 import brownie
-import time
 
-from brownie.network import chain
-from decimal import Decimal
 from web3 import Web3
 
 
