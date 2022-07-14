@@ -7,7 +7,6 @@ from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILoansCore
-# from interfaces import ILendingPoolPeripheral
 from interfaces import ICollateralVaultPeripheral
 
 interface IERC20Symbol:
@@ -104,12 +103,6 @@ event LendingPoolPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
-# event LendingPoolCoreAddressSet:
-#     erc20TokenContractIndexed: indexed(address)
-#     currentValue: address
-#     newValue: address
-#     erc20TokenContract: address
-
 event CollateralVaultPeripheralAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
@@ -189,7 +182,6 @@ whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral addr
 
 loansCoreAddress: public(address)
 lendingPoolPeripheralAddress: public(address)
-# lendingPoolCoreAddress: public(address)
 collateralVaultPeripheralAddress: public(address)
 
 
@@ -201,7 +193,6 @@ def __init__(
     _maxLoanAmount: uint256,
     _loansCoreAddress: address,
     _lendingPoolPeripheralAddress: address,
-    # _lendingPoolCoreAddress: address
     _collateralVaultPeripheralAddress: address
 ):
     assert _maxAllowedLoans > 0, "value for max loans is 0"
@@ -209,7 +200,6 @@ def __init__(
     assert _maxLoanAmount >= _minLoanAmount, "max amount is < than min amount"
     assert _loansCoreAddress != ZERO_ADDRESS, "address is the zero address"
     assert _lendingPoolPeripheralAddress != ZERO_ADDRESS, "address is the zero address"
-    # assert _lendingPoolCoreAddress != ZERO_ADDRESS, "address is the zero address"
     assert _collateralVaultPeripheralAddress != ZERO_ADDRESS, "address is the zero address"
 
     self.owner = msg.sender
@@ -219,7 +209,6 @@ def __init__(
     self.maxLoanAmount = _maxLoanAmount
     self.loansCoreAddress = _loansCoreAddress
     self.lendingPoolPeripheralAddress = _lendingPoolPeripheralAddress
-    # self.lendingPoolCoreAddress = _lendingPoolCoreAddress
     self.collateralVaultPeripheralAddress = _collateralVaultPeripheralAddress
     self.isAcceptingLoans = True
     self.isDeprecated = False
@@ -419,23 +408,6 @@ def setLendingPoolPeripheralAddress(_address: address):
     self.lendingPoolPeripheralAddress = _address
 
 
-# @external
-# def setLendingPoolCoreAddress(_address: address):
-#     assert msg.sender == self.owner, "msg.sender is not the owner"
-#     assert _address != ZERO_ADDRESS, "_address is the zero address"
-#     assert _address.is_contract, "_address is not a contract"
-#     assert self.lendingPoolCoreAddress != _address, "new LPCore addr is the same"
-
-#     log LendingPoolCoreAddressSet(
-#         ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
-#         self.lendingPoolCoreAddress,
-#         _address,
-#         ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
-#     )
-
-#     self.lendingPoolCoreAddress = _address
-
-
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
@@ -540,13 +512,6 @@ def reserve(
         ILoansCore(self.loansCoreAddress).addCollateralToLoan(msg.sender, collateral, newLoanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, False)
 
-        # IERC721(collateral.contractAddress).safeTransferFrom(
-        #     msg.sender,
-        #     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(),
-        #     collateral.tokenId,
-        #     b""
-        # )
-
         ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).storeCollateral(
             msg.sender,
             collateral.contractAddress,
@@ -606,13 +571,6 @@ def invalidate(_borrower: address, _loanId: uint256):
         ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
 
-        # IERC721(collateral.contractAddress).safeTransferFrom(
-        #     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(),
-        #     _borrower,
-        #     collateral.tokenId,
-        #     b""
-        # )
-
         ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
             _borrower,
             collateral.contractAddress,
@@ -667,13 +625,6 @@ def pay(_loanId: uint256, _amount: uint256):
         for collateral in collaterals:
             ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
             ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
-            
-            # IERC721(collateral.contractAddress).safeTransferFrom(
-            #     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(),
-            #     msg.sender,
-            #     collateral.tokenId,
-            #     b""
-            # )
 
             ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
                 msg.sender,
@@ -714,9 +665,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
         ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
 
-        # TODO: integrate BuyNow liquidation process
-        # IERC721(collateral.contractAddress).safeTransferFrom(self, self.owner, collateral.tokenId, b"")
-        
+        # TODO: integrate BuyNow liquidation process        
         ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
             self.owner,
             collateral.contractAddress,
@@ -747,13 +696,6 @@ def cancelPendingLoan(_loanId: uint256):
     for collateral in collaterals:
         ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
-
-        # IERC721(collateral.contractAddress).safeTransferFrom(
-        #     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(),
-        #     msg.sender,
-        #     collateral.tokenId,
-        #     b""
-        # )
 
         ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
             msg.sender,
