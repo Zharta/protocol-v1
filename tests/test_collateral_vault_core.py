@@ -2,39 +2,44 @@ import brownie
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def contract_owner(accounts):
     yield accounts[0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def borrower(accounts):
     yield accounts[1]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc20_contract(ERC20, contract_owner):
     yield ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc721_contract(ERC721, contract_owner):
     yield ERC721.deploy({'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
     yield CollateralVaultCore.deploy(
         {"from": contract_owner}
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_vault_core_contract, contract_owner):
     yield CollateralVaultPeripheral.deploy(
         collateral_vault_core_contract,
         {"from": contract_owner}
     )
+
+
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
 
 
 def test_initial_state(collateral_vault_core_contract, contract_owner):

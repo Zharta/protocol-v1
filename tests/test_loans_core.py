@@ -10,32 +10,32 @@ LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def contract_owner(accounts):
     yield accounts[0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def borrower(accounts):
     yield accounts[1]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def investor(accounts):
     yield accounts[2]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc20_contract(ERC20, contract_owner):
     yield ERC20.deploy("Wrapped ETH", "WETH", 18, 0, {'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc721_contract(ERC721, contract_owner):
     yield ERC721.deploy({'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def test_collaterals(erc721_contract):
     result = []
     for k in range(5):
@@ -43,7 +43,7 @@ def test_collaterals(erc721_contract):
     yield result
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, contract_owner, accounts):
     yield LendingPoolPeripheral.deploy(
         accounts[3],
@@ -56,12 +56,12 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, cont
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_core_contract(LoansCore, contract_owner):
     yield LoansCore.deploy({"from": contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, contract_owner, accounts):
     yield Loans.deploy(
         1,
@@ -73,6 +73,11 @@ def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract,
         accounts[5],
         {'from': contract_owner}
     )
+
+
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
 
 
 def test_initial_state(loans_core_contract, contract_owner):

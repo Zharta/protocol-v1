@@ -20,44 +20,44 @@ PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def contract_owner(accounts):
     yield accounts[0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def borrower(accounts):
     yield accounts[1]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def investor(accounts):
     yield accounts[2]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def protocol_wallet(accounts):
     yield accounts[3]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc20_contract(ERC20, contract_owner):
     yield ERC20.deploy("Wrapped ETH", "WETH", 18, 0, {'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc721_contract(ERC721, contract_owner):
     yield ERC721.deploy({'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
     yield CollateralVaultCore.deploy(
         {"from": contract_owner}
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_vault_core_contract, contract_owner):
     yield CollateralVaultPeripheral.deploy(
         collateral_vault_core_contract,
@@ -65,12 +65,12 @@ def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_v
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_core_contract(LoansCore, contract_owner):
     yield LoansCore.deploy({'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
     yield LendingPoolCore.deploy(
         erc20_contract,
@@ -78,7 +78,7 @@ def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
     yield LendingPoolPeripheral.deploy(
         lending_pool_core_contract,
@@ -91,7 +91,7 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_co
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
     yield LendingPoolPeripheral.deploy(
         lending_pool_core_contract,
@@ -104,7 +104,7 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
     yield Loans.deploy(
         MAX_NUMBER_OF_LOANS,
@@ -118,12 +118,17 @@ def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract,
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def test_collaterals(erc721_contract):
     result = []
     for k in range(5):
         result.append((erc721_contract, k))
     yield result
+
+
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
 
 
 def test_initial_state(loans_contract, contract_owner):

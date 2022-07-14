@@ -11,32 +11,32 @@ PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def contract_owner(accounts):
     yield accounts[0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def borrower(accounts):
     yield accounts[1]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def investor(accounts):
     yield accounts[2]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def protocol_wallet(accounts):
     yield accounts[3]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc20_contract(ERC20, contract_owner):
     yield ERC20.deploy("USD Coin", "USDC", 18, 0, {'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
     yield LendingPoolCore.deploy(
         erc20_contract,
@@ -44,7 +44,7 @@ def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
     yield LendingPoolPeripheral.deploy(
         lending_pool_core_contract,
@@ -57,7 +57,7 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_co
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_contract(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
     yield Loans.deploy(
         1,
@@ -71,7 +71,7 @@ def loans_contract(Loans, lending_pool_peripheral_contract, contract_owner, acco
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
     yield Loans.deploy(
         1,
@@ -83,6 +83,11 @@ def loans_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, 
         accounts[5],
         {'from': contract_owner}
     )
+
+
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
 
 
 def user_balance(token_contract, user):

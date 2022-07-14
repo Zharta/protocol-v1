@@ -2,27 +2,27 @@ import brownie
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def contract_owner(accounts):
     yield accounts[0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def borrower(accounts):
     yield accounts[1]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc20_contract(ERC20, contract_owner):
     yield ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def erc721_contract(ERC721, contract_owner):
     yield ERC721.deploy({'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, contract_owner, accounts):
     yield LendingPoolPeripheral.deploy(
         accounts[3],
@@ -35,12 +35,12 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, erc20_contract, cont
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_core_contract(LoansCore, contract_owner):
     yield LoansCore.deploy({'from': contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, contract_owner, accounts):
     yield Loans.deploy(
         1,
@@ -54,13 +54,12 @@ def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_periphera
     )
 
 
-
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def buy_now_core_contract(BuyNowCore, contract_owner):
     yield BuyNowCore.deploy({"from": contract_owner})
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def buy_now_peripheral_contract(BuyNowPeripheral, buy_now_core_contract, contract_owner):
     yield BuyNowPeripheral.deploy(
         buy_now_core_contract,
@@ -71,19 +70,24 @@ def buy_now_peripheral_contract(BuyNowPeripheral, buy_now_core_contract, contrac
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
     yield CollateralVaultCore.deploy(
         {"from": contract_owner}
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_vault_core_contract, contract_owner):
     yield CollateralVaultPeripheral.deploy(
         collateral_vault_core_contract,
         {"from": contract_owner}
     )
+
+
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
 
 
 def test_initial_state(collateral_vault_peripheral_contract, collateral_vault_core_contract, contract_owner):
