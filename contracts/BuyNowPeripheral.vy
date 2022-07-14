@@ -107,6 +107,8 @@ event LiquidationAdded:
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
+    gracePeriodPrice: uint256
+    buyNowPeriodPrice: uint256
 
 event LiquidationRemoved:
     erc20TokenContractIndexed: indexed(address)
@@ -405,7 +407,9 @@ def addLiquidation(
         _collateralAddress,
         _collateralAddress,
         _tokenId,
-        _erc20TokenContract
+        _erc20TokenContract,
+        self._computeNFTPrice(_principal, _interestAmount, _apr, 2),
+        self._computeNFTPrice(_principal, _interestAmount, _apr, 17)
     )
 
 

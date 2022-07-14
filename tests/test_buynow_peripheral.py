@@ -630,6 +630,8 @@ def test_add_liquidation(buy_now_peripheral_contract, buy_now_core_contract, loa
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["erc20TokenContract"] == erc20_contract
+    assert event["gracePeriodPrice"] == int(Decimal(PRINCIPAL) + Decimal(INTEREST_AMOUNT) + Decimal(PRINCIPAL * APR * 2) / Decimal(365))
+    assert event["buyNowPeriodPrice"] == int(Decimal(PRINCIPAL) + Decimal(INTEREST_AMOUNT) + Decimal(PRINCIPAL * APR * 17) / Decimal(365))
 
 
 def test_add_liquidation_loan_not_defaulted(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
