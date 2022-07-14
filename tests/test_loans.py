@@ -558,9 +558,6 @@ def test_create_max_loans_reached(
 
 def test_create_collateral_notwhitelisted(
     loans_contract,
-    loans_core_contract,
-    erc721_contract,
-    contract_owner,
     borrower,
     test_collaterals
 ):
