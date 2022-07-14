@@ -4,7 +4,7 @@
 # Interfaces
 
 interface ILoansPeripheral:
-    def lendingPoolAddress() -> address: view
+    def lendingPoolPeripheralAddress() -> address: view
 
 interface ILendingPoolPeripheral:
     def erc20TokenContract() -> address: view
@@ -171,7 +171,7 @@ def proposeOwner(_address: address):
         self.owner,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
         ).erc20TokenContract()
     )
 
@@ -186,7 +186,7 @@ def claimOwnership():
         self.owner,
         self.proposedOwner,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
         ).erc20TokenContract()
     )
 
@@ -202,12 +202,12 @@ def setLoansPeripheral(_address: address):
 
     log LoansPeripheralAddressSet(
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
         ).erc20TokenContract(),
         self.loansPeripheral,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
         ).erc20TokenContract()
     )
 
