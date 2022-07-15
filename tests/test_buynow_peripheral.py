@@ -875,6 +875,7 @@ def test_buy_nft_grace_period(buy_now_peripheral_contract, buy_now_core_contract
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["amount"] == grace_period_price
+    assert event["_from"] == borrower
     assert event["erc20TokenContract"] == erc20_contract
 
 
@@ -950,4 +951,5 @@ def test_buy_nft_buynow_period(buy_now_peripheral_contract, buy_now_core_contrac
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["amount"] == buy_now_period_price
+    assert event["_from"] == contract_owner
     assert event["erc20TokenContract"] == erc20_contract

@@ -120,9 +120,11 @@ event LiquidationRemoved:
 event NFTPurchased:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
+    fromIndexed: indexed(address)
     collateralAddress: address
     tokenId: uint256
     amount: uint256
+    _from: address
     erc20TokenContract: address
 
 
@@ -459,9 +461,11 @@ def buyNFT(_collateralAddress: address, _tokenId: uint256):
     log NFTPurchased(
         liquidation.erc20TokenContract,
         _collateralAddress,
+        msg.sender,
         _collateralAddress,
         _tokenId,
         nftPrice,
+        msg.sender,
         liquidation.erc20TokenContract
     )
 
