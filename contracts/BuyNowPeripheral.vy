@@ -421,26 +421,22 @@ def buyNFT(_collateralAddress: address, _tokenId: uint256):
     assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
 
     liquidation: Liquidation = IBuyNowCore(self.buyNowCoreAddress).getLiquidation(_collateralAddress, _tokenId)
-    
+
+    assert not liquidation.inAuction, "liquidation is in auction"
+
+    days: uint256 = 0
     if block.timestamp <= liquidation.gracePeriodMaturity:
         assert msg.sender == liquidation.borrower, "msg.sender is not borrower"
+        days = 2
     elif block.timestamp <= liquidation.buyNowPeriodMaturity:
         assert ILendingPoolPeripheral(
             self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
         ).lenderFunds(msg.sender).currentAmountDeposited > self.lenderMinDepositAmount, "msg.sender is not a lender"
+        days = 17
     else:
         raise "liquidation out of buying period"
-    
-    assert not liquidation.inAuction, "liquidation is in auction"
 
-    nftPrice: uint256 = 0
-    days: uint256 = 0
-    if block.timestamp <= liquidation.gracePeriodMaturity:
-        nftPrice = self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, 2)
-        days = 2
-    elif block.timestamp <= liquidation.buyNowPeriodMaturity:
-        nftPrice = self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, 17)
-        days = 17
+    nftPrice: uint256 = self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, days)
 
     IBuyNowCore(self.buyNowCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 

@@ -1026,14 +1026,15 @@ def test_validate_maturity_in_the_past(
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        chain.time() + 3,
+        chain.time() + 10,
         test_collaterals,
         {'from': borrower}
     )
 
     assert tx_create_loan.return_value == 0
 
-    time.sleep(5)
+    chain.mine(blocks=1, timedelta=15)
+    #time.sleep(5)
     with brownie.reverts("maturity is in the past"):
         loans_contract.validate(borrower, 0, {'from': contract_owner})
 
@@ -1555,7 +1556,8 @@ def test_pay_loan_defaulted(
     erc20_contract.mint(borrower, amount_paid, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
-    time.sleep(12)
+    chain.mine(blocks=1, timedelta=15)
+    # time.sleep(12)
     with brownie.reverts("loan maturity reached"):
         loans_contract.pay(loan["id"], amount_paid, {"from": borrower})
 
@@ -1971,7 +1973,7 @@ def test_set_default_loan(
     tx_create_loan = loans_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        chain.time() + 15,
+        chain.time() + 10,
         test_collaterals,
         {'from': borrower}
     )
@@ -1979,7 +1981,8 @@ def test_set_default_loan(
 
     tx_new_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    time.sleep(17)
+    chain.mine(blocks=1, timedelta=15)
+    # time.sleep(17)
     loans_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
 
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
