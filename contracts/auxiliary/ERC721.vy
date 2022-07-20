@@ -72,6 +72,8 @@ minter: address
 
 baseURL: String[53]
 
+totalSupply: public(uint256)
+
 # @dev Static list of supported ERC165 interface ids
 SUPPORTED_INTERFACES: constant(bytes4[2]) = [
     # ERC165 interface ID of ERC165
@@ -235,6 +237,16 @@ def _transferFrom(_from: address, _to: address, _tokenId: uint256, _sender: addr
     log Transfer(_from, _to, _tokenId)
 
 
+@internal
+def _increaseTotalSupply():
+    self.totalSupply += 1
+
+
+@internal
+def _decreaseTotalSupply():
+    self.totalSupply -= 1
+
+
 ### TRANSFER FUNCTIONS ###
 
 @external
@@ -341,6 +353,7 @@ def mint(_to: address, _tokenId: uint256) -> bool:
     assert _to != ZERO_ADDRESS
     # Add NFT. Throws if `_tokenId` is owned by someone
     self._addTokenTo(_to, _tokenId)
+    self._increaseTotalSupply()
     log Transfer(ZERO_ADDRESS, _to, _tokenId)
     return True
 
@@ -361,6 +374,7 @@ def burn(_tokenId: uint256):
     assert owner != ZERO_ADDRESS
     self._clearApproval(owner, _tokenId)
     self._removeTokenFrom(owner, _tokenId)
+    self._decreaseTotalSupply()
     log Transfer(owner, ZERO_ADDRESS, _tokenId)
 
 
