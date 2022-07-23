@@ -21,6 +21,8 @@ struct Liquidation:
     principal: uint256
     interestAmount: uint256
     apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    gracePeriodPrice: uint256
+    buyNowPeriodPrice: uint256
     borrower: address
     erc20TokenContract: address
     inAuction: bool
@@ -227,6 +229,8 @@ def addLiquidation(
     _principal: uint256,
     _interestAmount: uint256,
     _apr: uint256,
+    _gracePeriodPrice: uint256,
+    _buyNowPeriodPrice: uint256,
     _borrower: address,
     _erc20TokenContract: address
 ):
@@ -245,6 +249,8 @@ def addLiquidation(
             principal: _principal,
             interestAmount: _interestAmount,
             apr: _apr,
+            gracePeriodPrice: _gracePeriodPrice,
+            buyNowPeriodPrice: _buyNowPeriodPrice,
             borrower: _borrower,
             erc20TokenContract: _erc20TokenContract,
             inAuction: False,

@@ -2,7 +2,6 @@ from brownie.network import chain
 from web3 import Web3
 
 import brownie
-import pytest
 
 
 GRACE_PERIOD_DURATION = 172800 # 2 days
@@ -12,57 +11,6 @@ AUCTION_DURATION = 604800 # 15 days
 PRINCIPAL = Web3.toWei(1, "ether")
 INTEREST_AMOUNT = Web3.toWei(0.1, "ether")
 APR = 200
-
-
-@pytest.fixture(scope="module", autouse=True)
-def contract_owner(accounts):
-    yield accounts[0]
-
-
-@pytest.fixture(scope="module", autouse=True)
-def borrower(accounts):
-    yield accounts[1]
-
-
-@pytest.fixture(scope="module", autouse=True)
-def collateral_vault_contract(accounts):
-    yield accounts[2]
-
-
-@pytest.fixture(scope="module", autouse=True)
-def erc20_contract(ERC20, contract_owner):
-    yield ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
-
-
-@pytest.fixture(scope="module", autouse=True)
-def erc721_contract(ERC721, contract_owner):
-    yield ERC721.deploy({'from': contract_owner})
-
-
-@pytest.fixture(scope="module", autouse=True)
-def loans_core_contract(LoansCore, contract_owner):
-    yield LoansCore.deploy({'from': contract_owner})
-
-
-@pytest.fixture(scope="module", autouse=True)
-def buy_now_peripheral_contract(BuyNowPeripheral, buy_now_core_contract, contract_owner):
-    yield BuyNowPeripheral.deploy(
-        buy_now_core_contract,
-        GRACE_PERIOD_DURATION,
-        BUY_NOW_PERIOD_DURATION,
-        AUCTION_DURATION,
-        {"from": contract_owner}
-    )
-
-
-@pytest.fixture(scope="module", autouse=True)
-def buy_now_core_contract(BuyNowCore, contract_owner):
-    yield BuyNowCore.deploy({"from": contract_owner})
-
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
 
 
 def test_initial_state(buy_now_core_contract, contract_owner,):
@@ -237,6 +185,8 @@ def test_add_liquidation_wrong_sender(buy_now_core_contract, borrower):
             0,
             0,
             0,
+            0,
+            0,
             brownie.ZERO_ADDRESS,
             brownie.ZERO_ADDRESS,
             {"from": borrower}
@@ -248,19 +198,24 @@ def test_add_liquidation(buy_now_core_contract, buy_now_peripheral_contract, col
 
     erc721_contract.mint(collateral_vault_contract, 0, {"from": contract_owner})
 
+    grace_period_price = PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365
+    buy_now_period_price = PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365
+
     start_time = chain.time()
     tx = buy_now_core_contract.addLiquidation(
-            erc721_contract,
-            0,
-            start_time,
-            start_time + GRACE_PERIOD_DURATION,
-            start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
-            PRINCIPAL,
-            INTEREST_AMOUNT,
-            APR,
-            borrower,
-            erc20_contract,
-            {"from": buy_now_peripheral_contract}
+        erc721_contract,
+        0,
+        start_time,
+        start_time + GRACE_PERIOD_DURATION,
+        start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
+        PRINCIPAL,
+        INTEREST_AMOUNT,
+        APR,
+        grace_period_price,
+        buy_now_period_price,
+        borrower,
+        erc20_contract,
+        {"from": buy_now_peripheral_contract}
     )
 
     liquidation = buy_now_core_contract.getLiquidation(erc721_contract, 0)
@@ -270,6 +225,8 @@ def test_add_liquidation(buy_now_core_contract, buy_now_peripheral_contract, col
     assert liquidation["principal"] == PRINCIPAL
     assert liquidation["interestAmount"] == INTEREST_AMOUNT
     assert liquidation["apr"] == APR
+    assert liquidation["gracePeriodPrice"] == grace_period_price
+    assert liquidation["buyNowPeriodPrice"] == buy_now_period_price
     assert liquidation["borrower"] == borrower
     assert liquidation["erc20TokenContract"] == erc20_contract
 
@@ -281,17 +238,19 @@ def test_add_liquidation_already_exists(buy_now_core_contract, buy_now_periphera
 
     start_time = chain.time()
     buy_now_core_contract.addLiquidation(
-            erc721_contract,
-            0,
-            start_time,
-            start_time + GRACE_PERIOD_DURATION,
-            start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
-            PRINCIPAL,
-            INTEREST_AMOUNT,
-            APR,
-            borrower,
-            erc20_contract,
-            {"from": buy_now_peripheral_contract}
+        erc721_contract,
+        0,
+        start_time,
+        start_time + GRACE_PERIOD_DURATION,
+        start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
+        PRINCIPAL,
+        INTEREST_AMOUNT,
+        APR,
+        PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365,
+        PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365,
+        borrower,
+        erc20_contract,
+        {"from": buy_now_peripheral_contract}
     )
 
     with brownie.reverts("liquidation already exists"):
@@ -304,6 +263,8 @@ def test_add_liquidation_already_exists(buy_now_core_contract, buy_now_periphera
             PRINCIPAL,
             INTEREST_AMOUNT,
             APR,
+            PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365,
+            PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365,
             borrower,
             erc20_contract,
             {"from": buy_now_peripheral_contract}
@@ -337,6 +298,8 @@ def test_remove_liquidation(buy_now_core_contract, buy_now_peripheral_contract, 
         PRINCIPAL,
         INTEREST_AMOUNT,
         APR,
+        PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365,
+        PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365,
         borrower,
         erc20_contract,
         {"from": buy_now_peripheral_contract}

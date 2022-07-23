@@ -9,6 +9,8 @@ struct Liquidation:
     principal: uint256
     interestAmount: uint256
     apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    gracePeriodPrice: uint256
+    buyNowPeriodPrice: uint256
     borrower: address
     erc20TokenContract: address
     inAuction: bool
@@ -25,9 +27,6 @@ event OwnerProposed:
     proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-event CollateralVaultAddressSet:
-    currentValue: address
-    newValue: address
 event BuyNowPeripheralAddressSet:
     currentValue: address
     newValue: address
@@ -39,18 +38,6 @@ event LoansCoreAddressAdded:
 event LoansCoreAddressRemoved:
     erc20TokenContractIndexed: address
     currentValue: address
-    erc20TokenContract: address
-event LiquidationAdded:
-    erc20TokenContractIndexed: address
-    collateralAddressIndexed: address
-    collateralAddress: address
-    tokenId: uint256
-    erc20TokenContract: address
-event LiquidationRemoved:
-    erc20TokenContractIndexed: address
-    collateralAddressIndexed: address
-    collateralAddress: address
-    tokenId: uint256
     erc20TokenContract: address
 
 # Functions
@@ -114,10 +101,6 @@ def claimOwnership():
     pass
 
 @external
-def setCollateralVaultAddress(_address: address):
-    pass
-
-@external
 def setBuyNowPeripheralAddress(_address: address):
     pass
 
@@ -130,7 +113,7 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
     pass
 
 @external
-def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _buyNowPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _borrower: address, _erc20TokenContract: address):
+def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _buyNowPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _buyNowPeriodPrice: uint256, _borrower: address, _erc20TokenContract: address):
     pass
 
 @external
@@ -145,11 +128,6 @@ def owner() -> address:
 @view
 @external
 def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def collateralVaultAddress() -> address:
     pass
 
 @view
