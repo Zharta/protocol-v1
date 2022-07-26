@@ -1,93 +1,11 @@
-from brownie.network import chain
-from datetime import datetime as dt
 from decimal import Decimal
 from web3 import Web3
 
 import brownie
-import pytest
 
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-
-
-@pytest.fixture(scope="module", autouse=True)
-def contract_owner(accounts):
-    yield accounts[0]
-
-
-@pytest.fixture(scope="module", autouse=True)
-def borrower(accounts):
-    yield accounts[1]
-
-
-@pytest.fixture(scope="module", autouse=True)
-def investor(accounts):
-    yield accounts[2]
-
-
-@pytest.fixture(scope="module", autouse=True)
-def protocol_wallet(accounts):
-    yield accounts[3]
-
-
-@pytest.fixture(scope="module", autouse=True)
-def erc20_contract(ERC20, contract_owner):
-    yield ERC20.deploy("USD Coin", "USDC", 18, 0, {'from': contract_owner})
-
-
-@pytest.fixture(scope="module", autouse=True)
-def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
-    yield LendingPoolCore.deploy(
-        erc20_contract,
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture(scope="module", autouse=True)
-def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPoolPeripheral.deploy(
-        lending_pool_core_contract,
-        erc20_contract,
-        protocol_wallet,
-        PROTOCOL_FEES_SHARE,
-        MAX_CAPITAL_EFFICIENCY,
-        False,
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture(scope="module", autouse=True)
-def loans_contract(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
-    yield Loans.deploy(
-        1,
-        1,
-        0,
-        1,
-        accounts[4],
-        lending_pool_peripheral_contract,
-        accounts[5],
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture(scope="module", autouse=True)
-def loans_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
-    yield Loans.deploy(
-        1,
-        1,
-        0,
-        1,
-        accounts[4],
-        lending_pool_peripheral_contract,
-        accounts[5],
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
 
 
 def user_balance(token_contract, user):
@@ -253,20 +171,20 @@ def test_change_loans_peripheral_address_not_contract(lending_pool_peripheral_co
         lending_pool_peripheral_contract.setLoansPeripheralAddress(borrower, {"from": contract_owner})
 
 
-def test_change_loans_peripheral_address(lending_pool_peripheral_contract, loans_contract, loans_contract_aux, contract_owner, protocol_wallet):
-    tx = lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract_aux, {"from": contract_owner})
-    assert lending_pool_peripheral_contract.loansContract() == loans_contract_aux
+def test_change_loans_peripheral_address(lending_pool_peripheral_contract, loans_peripheral_contract, loans_peripheral_contract_aux, contract_owner, protocol_wallet):
+    tx = lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract_aux, {"from": contract_owner})
+    assert lending_pool_peripheral_contract.loansContract() == loans_peripheral_contract_aux
 
     event = tx.events["LoansPeripheralAddressSet"]
     assert event["currentValue"] == brownie.ZERO_ADDRESS
-    assert event["newValue"] == loans_contract_aux
+    assert event["newValue"] == loans_peripheral_contract_aux
 
-    tx = lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
-    assert lending_pool_peripheral_contract.loansContract() == loans_contract
+    tx = lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    assert lending_pool_peripheral_contract.loansContract() == loans_peripheral_contract
 
     event = tx.events["LoansPeripheralAddressSet"]
-    assert event["currentValue"] == loans_contract_aux
-    assert event["newValue"] == loans_contract
+    assert event["currentValue"] == loans_peripheral_contract_aux
+    assert event["newValue"] == loans_peripheral_contract
 
 
 def test_change_whitelist_status_wrong_sender(lending_pool_peripheral_contract, investor):
@@ -643,9 +561,9 @@ def test_send_funds_wrong_sender(lending_pool_peripheral_contract, lending_pool_
         lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": investor})
 
 
-def test_send_funds_zero_amount(lending_pool_peripheral_contract, lending_pool_core_contract, loans_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_zero_amount(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -656,13 +574,13 @@ def test_send_funds_zero_amount(lending_pool_peripheral_contract, lending_pool_c
         lending_pool_peripheral_contract.sendFunds(
             borrower,
             Web3.toWei(0, "ether"),
-            {"from": loans_contract}
+            {"from": loans_peripheral_contract}
         )
 
 
-def test_send_funds_wrong_amount(lending_pool_peripheral_contract, lending_pool_core_contract, loans_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_wrong_amount(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -673,13 +591,13 @@ def test_send_funds_wrong_amount(lending_pool_peripheral_contract, lending_pool_
         lending_pool_peripheral_contract.sendFunds(
             borrower,
             Web3.toWei(2, "ether"),
-            {"from": loans_contract}
+            {"from": loans_peripheral_contract}
         )
 
 
-def test_send_funds_insufficient_funds_to_lend(lending_pool_peripheral_contract, lending_pool_core_contract, loans_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_insufficient_funds_to_lend(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -690,13 +608,13 @@ def test_send_funds_insufficient_funds_to_lend(lending_pool_peripheral_contract,
         tx_send = lending_pool_peripheral_contract.sendFunds(
             borrower,
             Web3.toWei(0.8, "ether"),
-            {"from": loans_contract}
+            {"from": loans_peripheral_contract}
         )
 
 
-def test_send_funds(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, loans_contract, contract_owner, investor, borrower):
+def test_send_funds(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, loans_peripheral_contract, contract_owner, investor, borrower):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     initial_balance = user_balance(erc20_contract, borrower)
     
@@ -708,7 +626,7 @@ def test_send_funds(lending_pool_peripheral_contract, lending_pool_core_contract
     tx_send = lending_pool_peripheral_contract.sendFunds(
         borrower,
         Web3.toWei(0.2, "ether"),
-        {"from": loans_contract}
+        {"from": loans_peripheral_contract}
     )
 
     assert user_balance(erc20_contract, borrower) == initial_balance + Web3.toWei(0.2, "ether")
@@ -720,8 +638,8 @@ def test_send_funds(lending_pool_peripheral_contract, lending_pool_core_contract
     assert tx_send.events["FundsTransfer"]["erc20TokenContract"] == erc20_contract
 
 
-def test_receive_funds_wrong_sender(lending_pool_peripheral_contract, loans_contract, borrower, contract_owner):
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+def test_receive_funds_wrong_sender(lending_pool_peripheral_contract, loans_peripheral_contract, borrower, contract_owner):
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     with brownie.reverts("msg.sender is not the loans addr"):
         lending_pool_peripheral_contract.receiveFunds(
@@ -732,33 +650,33 @@ def test_receive_funds_wrong_sender(lending_pool_peripheral_contract, loans_cont
         )
 
 
-def test_receive_funds_insufficient_amount(lending_pool_peripheral_contract, loans_contract, contract_owner, borrower):
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+def test_receive_funds_insufficient_amount(lending_pool_peripheral_contract, loans_peripheral_contract, contract_owner, borrower):
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     with brownie.reverts("insufficient liquidity"):
         lending_pool_peripheral_contract.receiveFunds(
             borrower,
             Web3.toWei(0.2, "ether"),
             Web3.toWei(0.05, "ether"),
-            {"from": loans_contract}
+            {"from": loans_peripheral_contract}
         )
 
 
-def test_receive_funds_zero_value(lending_pool_peripheral_contract, loans_contract, contract_owner, borrower):
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+def test_receive_funds_zero_value(lending_pool_peripheral_contract, loans_peripheral_contract, contract_owner, borrower):
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     with brownie.reverts("amount should be higher than 0"):
         lending_pool_peripheral_contract.receiveFunds(
             borrower,
             Web3.toWei(0, "ether"),
             Web3.toWei(0, "ether"),
-            {"from": loans_contract}
+            {"from": loans_peripheral_contract}
         )
 
 
-def test_receive_funds(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, loans_contract, contract_owner, investor, borrower, protocol_wallet):
+def test_receive_funds(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, loans_peripheral_contract, contract_owner, investor, borrower, protocol_wallet):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -767,7 +685,7 @@ def test_receive_funds(lending_pool_peripheral_contract, lending_pool_core_contr
     lending_pool_peripheral_contract.sendFunds(
         borrower,
         Web3.toWei(0.2, "ether"),
-        {"from": loans_contract}
+        {"from": loans_peripheral_contract}
     )
 
     erc20_contract.mint(borrower, Web3.toWei(0.02, "ether"), {"from": contract_owner})
@@ -777,7 +695,7 @@ def test_receive_funds(lending_pool_peripheral_contract, lending_pool_core_contr
         borrower,
         Web3.toWei(0.2, "ether"),
         Web3.toWei(0.02, "ether"),
-        {"from": loans_contract}
+        {"from": loans_peripheral_contract}
     )
 
     expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
@@ -795,16 +713,16 @@ def test_receive_funds(lending_pool_peripheral_contract, lending_pool_core_contr
     assert user_balance(erc20_contract, protocol_wallet) == Web3.toWei(expectedProtocolFees, "ether")
     assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(1 + expectedPoolFees, "ether")
 
-    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_contract
+    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_peripheral_contract
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
 
 
-def test_receive_funds_multiple_lenders(lending_pool_peripheral_contract, lending_pool_core_contract, loans_contract, erc20_contract, contract_owner, investor, borrower, protocol_wallet):
+def test_receive_funds_multiple_lenders(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower, protocol_wallet):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -817,7 +735,7 @@ def test_receive_funds_multiple_lenders(lending_pool_peripheral_contract, lendin
     tx_send = lending_pool_peripheral_contract.sendFunds(
         borrower,
         Web3.toWei(0.2, "ether"),
-        {"from": loans_contract}
+        {"from": loans_peripheral_contract}
     )
 
     erc20_contract.mint(borrower, Web3.toWei(0.22, "ether"), {"from": contract_owner})
@@ -827,7 +745,7 @@ def test_receive_funds_multiple_lenders(lending_pool_peripheral_contract, lendin
         borrower,
         Web3.toWei(0.2, "ether"),
         Web3.toWei(0.02, "ether"),
-        {"from": loans_contract}
+        {"from": loans_peripheral_contract}
     )
 
     expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
@@ -850,7 +768,7 @@ def test_receive_funds_multiple_lenders(lending_pool_peripheral_contract, lendin
     assert user_balance(erc20_contract, protocol_wallet) == Web3.toWei(expectedProtocolFees, "ether")
     assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(4 + expectedPoolFees, "ether")
 
-    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_contract
+    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_peripheral_contract
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
