@@ -3,6 +3,7 @@
 struct Collateral:
     contractAddress: address
     tokenId: uint256
+    amount: uint256
 
 
 struct Loan:
@@ -11,7 +12,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 100]
+    collaterals: DynArray[Collateral, 20]
     paidAmount: uint256
     started: bool
     invalidated: bool
@@ -87,7 +88,7 @@ def getLoanInterest(_borrower: address, _loanId: uint256) -> uint256:
 
 @view
 @external
-def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 100]:
+def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 20]:
     pass
 
 @view
@@ -157,12 +158,12 @@ def getHighestDefaultedLoan() -> Loan:
 
 @view
 @external
-def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
+def collateralKeysArray() -> DynArray[bytes32, 1048576]:
     pass
 
 @view
 @external
-def getCollateralsIdsByAddress(_address: address) -> DynArray[uint256, 1125899906842624]:
+def getCollateralsIdsByAddress(_address: address) -> DynArray[uint256, 1048576]:
     pass
 
 @external
@@ -178,7 +179,7 @@ def updateCollaterals(_collateral: Collateral, _toRemove: bool):
     pass
 
 @external
-def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
+def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 20]) -> uint256:
     pass
 
 @external
