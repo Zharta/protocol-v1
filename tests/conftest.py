@@ -20,34 +20,43 @@ BUY_NOW_PERIOD_DURATION = 5 # 15 days
 AUCTION_DURATION = 5 # 15 days
 
 
-@pytest.fixture(scope="module", autouse=True)
-def contract_owner(accounts):
-    yield accounts[0]
+import conftest_base
+
+contract_owner = conftest_base.contract_owner
+investor = conftest_base.investor
+borrower = conftest_base.borrower
+protocol_wallet = conftest_base.protocol_wallet
+erc20_contract = conftest_base.erc20_contract
+erc721_contract = conftest_base.erc721_contract
+
+# @pytest.fixture(scope="module", autouse=True)
+# def contract_owner(accounts):
+#     yield accounts[0]
 
 
-@pytest.fixture(scope="module", autouse=True)
-def investor(accounts):
-    yield accounts[1]
+# @pytest.fixture(scope="module", autouse=True)
+# def investor(accounts):
+#     yield accounts[1]
 
 
-@pytest.fixture(scope="module", autouse=True)
-def borrower(accounts):
-    yield accounts[2]
+# @pytest.fixture(scope="module", autouse=True)
+# def borrower(accounts):
+#     yield accounts[2]
 
 
-@pytest.fixture(scope="module", autouse=True)
-def protocol_wallet(accounts):
-    yield accounts[3]
+# @pytest.fixture(scope="module", autouse=True)
+# def protocol_wallet(accounts):
+#     yield accounts[3]
 
 
-@pytest.fixture(scope="module", autouse=True)
-def erc20_contract(ERC20, contract_owner):
-    yield ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
+# @pytest.fixture(scope="module", autouse=True)
+# def erc20_contract(ERC20, contract_owner):
+#     yield ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
 
 
-@pytest.fixture(scope="module", autouse=True)
-def erc721_contract(ERC721, contract_owner):
-    yield ERC721.deploy({'from': contract_owner})
+# @pytest.fixture(scope="module", autouse=True)
+# def erc721_contract(ERC721, contract_owner):
+#     yield ERC721.deploy({'from': contract_owner})
 
 
 @pytest.fixture(scope="module", autouse=True)
