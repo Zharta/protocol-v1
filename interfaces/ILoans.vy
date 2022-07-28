@@ -71,7 +71,12 @@ event LendingPoolPeripheralAddressSet:
     currentValue: address
     newValue: address
     erc20TokenContract: address
-event LendingPoolCoreAddressSet:
+event CollateralVaultPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event BuyNowPeripheralAddressSet:
     erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
@@ -160,7 +165,11 @@ def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
-def setLendingPoolCoreAddress(_address: address):
+def setCollateralVaultPeripheralAddress(_address: address):
+    pass
+
+@external
+def setBuyNowPeripheralAddress(_address: address):
     pass
 
 @external
@@ -272,12 +281,17 @@ def loansCoreAddress() -> address:
 
 @view
 @external
-def lendingPoolAddress() -> address:
+def lendingPoolPeripheralAddress() -> address:
     pass
 
 @view
 @external
-def lendingPoolCoreAddress() -> address:
+def collateralVaultPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def buyNowPeripheralAddress() -> address:
     pass
 
 
