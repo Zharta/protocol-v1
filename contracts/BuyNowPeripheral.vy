@@ -212,7 +212,7 @@ def _computeNFTPrice(principal: uint256, interestAmount: uint256, apr: uint256, 
 
 @pure
 @internal
-def _computeInterestAmount(principal: uint256, interestAmount: uint256, apr: uint256, duration: uint256) -> uint256:
+def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint256, apr: uint256, duration: uint256) -> uint256:
     return interestAmount + (principal * apr * duration) / 31536000
 
 
@@ -519,7 +519,7 @@ def addLiquidation(
     assert self._isCollateralInArray(borrowerLoan.collaterals, _collateralAddress, _tokenId), "collateral not in loan"
 
     principal: uint256 = self._getCollateralAmount(borrowerLoan.collaterals, _collateralAddress, _tokenId)
-    interestAmount: uint256 = principal * (10000 + borrowerLoan.interest) / 10000
+    interestAmount: uint256 = principal * borrowerLoan.interest / 10000
     # # APR from loan duration (maturity)
     apr: uint256 = borrowerLoan.interest * 31536000 / (borrowerLoan.maturity - borrowerLoan.startTime)
 
@@ -584,8 +584,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     # IERC20(liquidation.erc20TokenContract).approve(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract], liquidation.gracePeriodPrice)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
-        # liquidation.borrower,
-        self,
+        liquidation.borrower,
         liquidation.principal,
         liquidation.gracePeriodPrice - liquidation.principal
     )
@@ -624,7 +623,7 @@ def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
     )
 
     fundsSender: address = msg.sender
-    buyNowPeriodInterestAmount: uint256 = self._computeInterestAmount(
+    buyNowPeriodInterestAmount: uint256 = self._computeLiquidationInterestAmount(
         liquidation.principal,
         liquidation.interestAmount,
         liquidation.apr, self.buyNowPeriodDuration

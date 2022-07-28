@@ -407,7 +407,7 @@ def test_add_liquidation(buy_now_peripheral_contract, buy_now_core_contract, loa
     liquidation = buy_now_peripheral_contract.getLiquidation(erc721_contract, 0)
     loan = loans_core_contract.getLoan(borrower, loan_id)
 
-    interest_amount = int(Decimal(LOAN_AMOUNT) * (Decimal(10000) + Decimal(LOAN_INTEREST)) / Decimal(10000))
+    interest_amount = int(Decimal(LOAN_AMOUNT) * Decimal(LOAN_INTEREST) / Decimal(10000))
     apr = int(Decimal(LOAN_INTEREST) * Decimal(31536000) / (Decimal(MATURITY) - Decimal(loan["startTime"])))
 
     assert liquidation["gracePeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION
@@ -422,8 +422,8 @@ def test_add_liquidation(buy_now_peripheral_contract, buy_now_core_contract, loa
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["erc20TokenContract"] == erc20_contract
-    assert event["gracePeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * 2) / Decimal(365))
-    assert event["buyNowPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * 17) / Decimal(365))
+    assert event["gracePeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * GRACE_PERIOD_DURATION) / Decimal(365 * 24 * 60 * 60))
+    assert event["buyNowPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * BUY_NOW_PERIOD_DURATION) / Decimal(365 * 24 * 60 * 60))
 
 
 def test_add_liquidation_loan_not_defaulted(buy_now_peripheral_contract, buy_now_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
@@ -596,10 +596,10 @@ def test_buy_nft_grace_period(buy_now_peripheral_contract, buy_now_core_contract
 
     loan_start_time = loans_core_contract.getLoanStartTime(borrower, loan_id)
 
-    interest_amount = int(Decimal(LOAN_AMOUNT) * (Decimal(10000) + Decimal(LOAN_INTEREST)) / Decimal(10000))
+    interest_amount = int(Decimal(LOAN_AMOUNT) * Decimal(LOAN_INTEREST) / Decimal(10000))
     apr = int(Decimal(LOAN_INTEREST) * Decimal(31536000) / (Decimal(MATURITY) - Decimal(loan_start_time)))
 
-    grace_period_price = int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * 2) / Decimal(365))
+    grace_period_price = int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + (Decimal(LOAN_AMOUNT) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / Decimal(365 * 24 * 60 * 60))
     erc20_contract.mint(borrower, grace_period_price, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, grace_period_price, {"from": borrower})
 
