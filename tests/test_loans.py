@@ -18,6 +18,10 @@ MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
+GRACE_PERIOD_DURATION = 5
+BUY_NOW_PERIOD_DURATION = 5
+AUCTION_DURATION = 5
+
 
 def test_initial_state(loans_peripheral_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
@@ -1489,7 +1493,6 @@ def test_pay_loan_defaulted(
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
     chain.mine(blocks=1, timedelta=15)
-    # time.sleep(12)
     with brownie.reverts("loan maturity reached"):
         loans_peripheral_contract.pay(loan["id"], amount_paid, {"from": borrower})
 
@@ -1869,7 +1872,7 @@ def test_set_default_loan_not_started(
         loans_peripheral_contract.settleDefault(borrower, 0, {"from": contract_owner})
 
 
-def test_set_default_loan(
+def test_set_default_buynow_zeroaddress(
     loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
@@ -1914,15 +1917,100 @@ def test_set_default_loan(
     tx_new_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     chain.mine(blocks=1, timedelta=15)
-    # time.sleep(17)
+    
+    with brownie.reverts("BNPeriph is the zero address"):
+        loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
+
+
+def test_set_default_loan(
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    buy_now_peripheral_contract,
+    buy_now_core_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})    
+
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    maturity = chain.time() + 10
+    tx_create_loan = loans_peripheral_contract.reserve(
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        maturity,
+        test_collaterals,
+        {'from': borrower}
+    )
+    loan_id = tx_create_loan.return_value
+
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
+
+    loan_start_time = loans_core_contract.getLoanStartTime(borrower, loan_id)
+
+    chain.mine(blocks=1, timedelta=15)
+
     loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
+    # default_time = chain.time()
 
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
 
     assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == contract_owner
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
+        
+        liquidation = buy_now_core_contract.getLiquidation(collateral[0], collateral[1])
+        interest_amount = int(Decimal(collateral[2]) * Decimal(LOAN_INTEREST) / Decimal(10000))
+        apr = int(Decimal(LOAN_INTEREST) * Decimal(31536000) / (Decimal(maturity) - Decimal(loan_start_time)))
+
+        print(buy_now_peripheral_contract.gracePeriodDuration())
+        print(GRACE_PERIOD_DURATION)
+        print(int(collateral[2]))
+        print(interest_amount)
+        print(apr)
+
+        assert liquidation["collateralAddress"] == collateral[0]
+        assert liquidation["tokenId"] == collateral[1]
+        # assert liquidation["gracePeriodMaturity"] == default_time + GRACE_PERIOD_DURATION
+        # assert liquidation["buyNowPeriodMaturity"] == default_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION
+        assert liquidation["principal"] == collateral[2]
+        assert liquidation["interestAmount"] == interest_amount
+        assert liquidation["apr"] == apr
+        assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / Decimal(31536000))
+        assert liquidation["buyNowPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(BUY_NOW_PERIOD_DURATION)) / Decimal(31536000))
+        assert liquidation["borrower"] == borrower
+        assert liquidation["erc20TokenContract"] == erc20_contract
+        assert not liquidation["inAuction"]
 
 
 def test_cancel_pendingloan_not_created(
