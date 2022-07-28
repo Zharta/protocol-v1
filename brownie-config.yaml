@@ -1,9 +1,7 @@
 compiler:
-    evm_version: null
     solc:
-        version: 0.6.12
         optimizer:
             enabled: true
             runs: 200
-        remappings:
-          - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@3.0.0"
+        # remappings:
+        #   - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@3.0.0"
