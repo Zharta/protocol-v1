@@ -1,4 +1,3 @@
-import pytest
 import datetime as dt
 import brownie
 import time
@@ -19,409 +18,322 @@ MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
-
-@pytest.fixture
-def contract_owner(accounts):
-    yield accounts[0]
-
-
-@pytest.fixture
-def borrower(accounts):
-    yield accounts[1]
+GRACE_PERIOD_DURATION = 5
+BUY_NOW_PERIOD_DURATION = 5
+AUCTION_DURATION = 5
 
 
-@pytest.fixture
-def investor(accounts):
-    yield accounts[2]
-
-
-@pytest.fixture
-def protocol_wallet(accounts):
-    yield accounts[3]
-
-
-@pytest.fixture
-def erc20_contract(ERC20, contract_owner):
-    yield ERC20.deploy("Wrapped ETH", "WETH", 18, 0, {'from': contract_owner})
-
-
-@pytest.fixture
-def erc721_contract(ERC721, contract_owner):
-    yield ERC721.deploy({'from': contract_owner})
-
-
-@pytest.fixture
-def loans_core_contract(LoansCore, contract_owner):
-    yield LoansCore.deploy({'from': contract_owner})
-
-
-@pytest.fixture
-def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
-    yield LendingPoolCore.deploy(
-        erc20_contract,
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture
-def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPoolPeripheral.deploy(
-        lending_pool_core_contract,
-        erc20_contract,
-        protocol_wallet,
-        PROTOCOL_FEES_SHARE,
-        MAX_CAPITAL_EFFICIENCY,
-        False,
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture
-def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPoolPeripheral.deploy(
-        lending_pool_core_contract,
-        erc20_contract,
-        protocol_wallet,
-        PROTOCOL_FEES_SHARE,
-        MAX_CAPITAL_EFFICIENCY,
-        False,
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture
-def loans_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, contract_owner):
-    yield Loans.deploy(
-        MAX_NUMBER_OF_LOANS,
-        MAX_LOAN_DURATION,
-        MIN_LOAN_AMOUNT,
-        MAX_LOAN_AMOUNT,
-        loans_core_contract,
-        lending_pool_peripheral_contract,
-        lending_pool_core_contract,
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture
-def test_collaterals(erc721_contract):
-    result = []
-    for k in range(5):
-        result.append((erc721_contract, k))
-    yield result
-
-
-def test_initial_state(loans_contract, contract_owner):
+def test_initial_state(loans_peripheral_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
-    assert loans_contract.owner() == contract_owner
-    assert loans_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
-    assert loans_contract.minLoanAmount() == MIN_LOAN_AMOUNT
-    assert loans_contract.maxLoanAmount() == MAX_LOAN_AMOUNT
-    assert loans_contract.isAcceptingLoans() == True
-    assert loans_contract.isDeprecated() == False
+    assert loans_peripheral_contract.owner() == contract_owner
+    assert loans_peripheral_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
+    assert loans_peripheral_contract.minLoanAmount() == MIN_LOAN_AMOUNT
+    assert loans_peripheral_contract.maxLoanAmount() == MAX_LOAN_AMOUNT
+    assert loans_peripheral_contract.isAcceptingLoans() == True
+    assert loans_peripheral_contract.isDeprecated() == False
 
 
-def test_propose_owner_wrong_sender(loans_contract, borrower):
+def test_propose_owner_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.proposeOwner(borrower, {"from": borrower})
+        loans_peripheral_contract.proposeOwner(borrower, {"from": borrower})
 
 
-def test_propose_owner_zero_address(loans_contract, contract_owner):
+def test_propose_owner_zero_address(loans_peripheral_contract, contract_owner):
     with brownie.reverts("_address it the zero address"):
-        loans_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
+        loans_peripheral_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
 
 
-def test_propose_owner_same_owner(loans_contract, contract_owner):
+def test_propose_owner_same_owner(loans_peripheral_contract, contract_owner):
     with brownie.reverts("proposed owner addr is the owner"):
-        loans_contract.proposeOwner(contract_owner, {"from": contract_owner})
+        loans_peripheral_contract.proposeOwner(contract_owner, {"from": contract_owner})
 
 
-def test_propose_owner(loans_contract, contract_owner, borrower):
-    tx = loans_contract.proposeOwner(borrower, {"from": contract_owner})
+def test_propose_owner(loans_peripheral_contract, contract_owner, borrower):
+    tx = loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    assert loans_contract.proposedOwner() == borrower
-    assert loans_contract.owner() == contract_owner
+    assert loans_peripheral_contract.proposedOwner() == borrower
+    assert loans_peripheral_contract.owner() == contract_owner
 
     event = tx.events["OwnerProposed"]
     assert event["owner"] == contract_owner
     assert event["proposedOwner"] == borrower
 
 
-def test_propose_owner_same_proposed(loans_contract, contract_owner, borrower):
-    loans_contract.proposeOwner(borrower, {"from": contract_owner})
+def test_propose_owner_same_proposed(loans_peripheral_contract, contract_owner, borrower):
+    loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
     
     with brownie.reverts("proposed owner addr is the same"):
-        loans_contract.proposeOwner(borrower, {"from": contract_owner})
+        loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
 
-def test_claim_ownership_wrong_sender(loans_contract, contract_owner, borrower):
-    loans_contract.proposeOwner(borrower, {"from": contract_owner})
+def test_claim_ownership_wrong_sender(loans_peripheral_contract, contract_owner, borrower):
+    loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
     with brownie.reverts("msg.sender is not the proposed"):
-        loans_contract.claimOwnership({"from": contract_owner})
+        loans_peripheral_contract.claimOwnership({"from": contract_owner})
 
 
-def test_claim_ownership(loans_contract, contract_owner, borrower):
-    loans_contract.proposeOwner(borrower, {"from": contract_owner})
+def test_claim_ownership(loans_peripheral_contract, contract_owner, borrower):
+    loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    tx = loans_contract.claimOwnership({"from": borrower})
+    tx = loans_peripheral_contract.claimOwnership({"from": borrower})
 
-    assert loans_contract.owner() == borrower
-    assert loans_contract.proposedOwner() == brownie.ZERO_ADDRESS
+    assert loans_peripheral_contract.owner() == borrower
+    assert loans_peripheral_contract.proposedOwner() == brownie.ZERO_ADDRESS
 
     event = tx.events["OwnershipTransferred"]
     assert event["owner"] == contract_owner
     assert event["proposedOwner"] == borrower
 
 
-def test_change_max_allowed_loans_wrong_sender(loans_contract, borrower):
+def test_change_max_allowed_loans_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS - 1, {"from": borrower})
+        loans_peripheral_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS - 1, {"from": borrower})
 
 
-def test_change_max_allowed_loans(loans_contract, contract_owner):
-    tx = loans_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS - 1, {"from": contract_owner})
-    assert loans_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS - 1
+def test_change_max_allowed_loans(loans_peripheral_contract, contract_owner):
+    tx = loans_peripheral_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS - 1, {"from": contract_owner})
+    assert loans_peripheral_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS - 1
 
     event = tx.events["MaxLoansChanged"]
     assert event["currentValue"] == MAX_NUMBER_OF_LOANS
     assert event["newValue"] == MAX_NUMBER_OF_LOANS - 1
 
-    tx = loans_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS, {"from": contract_owner})
-    assert loans_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
+    tx = loans_peripheral_contract.changeMaxAllowedLoans(MAX_NUMBER_OF_LOANS, {"from": contract_owner})
+    assert loans_peripheral_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
 
     event = tx.events["MaxLoansChanged"]
     assert event["currentValue"] == MAX_NUMBER_OF_LOANS - 1
     assert event["newValue"] == MAX_NUMBER_OF_LOANS
 
 
-def test_change_max_allowed_loan_duration_wrong_sender(loans_contract, borrower):
+def test_change_max_allowed_loan_duration_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION - 1, {"from": borrower})
+        loans_peripheral_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION - 1, {"from": borrower})
 
 
-def test_change_max_allowed_loan_duration(loans_contract, contract_owner):
-    tx = loans_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION - 1, {"from": contract_owner})
-    assert loans_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION - 1
+def test_change_max_allowed_loan_duration(loans_peripheral_contract, contract_owner):
+    tx = loans_peripheral_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION - 1, {"from": contract_owner})
+    assert loans_peripheral_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION - 1
 
     event = tx.events["MaxLoanDurationChanged"]
     assert event["currentValue"] == MAX_LOAN_DURATION
     assert event["newValue"] == MAX_LOAN_DURATION - 1
 
-    tx = loans_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION, {"from": contract_owner})
-    assert loans_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION
+    tx = loans_peripheral_contract.changeMaxAllowedLoanDuration(MAX_LOAN_DURATION, {"from": contract_owner})
+    assert loans_peripheral_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION
 
     event = tx.events["MaxLoanDurationChanged"]
     assert event["currentValue"] == MAX_LOAN_DURATION - 1
     assert event["newValue"] == MAX_LOAN_DURATION
 
 
-def test_set_lending_pool_address_not_owner(loans_contract, lending_pool_peripheral_contract, borrower):
+def test_set_lending_pool_address_not_owner(loans_peripheral_contract, lending_pool_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.setLendingPoolPeripheralAddress(
+        loans_peripheral_contract.setLendingPoolPeripheralAddress(
             lending_pool_peripheral_contract,
             {"from": borrower}
         )
 
 
-def test_set_lending_pool_address_zero_address(loans_contract, contract_owner):
+def test_set_lending_pool_address_zero_address(loans_peripheral_contract, contract_owner):
     with brownie.reverts("_address is the zero address"):
-        loans_contract.setLendingPoolPeripheralAddress(
+        loans_peripheral_contract.setLendingPoolPeripheralAddress(
             brownie.ZERO_ADDRESS,
             {"from": contract_owner}
         )
 
 
-def test_set_lending_pool_address_not_contract(loans_contract, contract_owner):
+def test_set_lending_pool_address_not_contract(loans_peripheral_contract, contract_owner):
     with brownie.reverts("_address is not a contract"):
-        loans_contract.setLendingPoolPeripheralAddress(
+        loans_peripheral_contract.setLendingPoolPeripheralAddress(
             contract_owner,
             {"from": contract_owner}
         )
 
 
-def test_set_lending_pool_address(loans_contract, lending_pool_peripheral_contract, lending_pool_peripheral_contract_aux, contract_owner):
-    tx = loans_contract.setLendingPoolPeripheralAddress(
+def test_set_lending_pool_address(loans_peripheral_contract, lending_pool_peripheral_contract, lending_pool_peripheral_contract_aux, contract_owner):
+    tx = loans_peripheral_contract.setLendingPoolPeripheralAddress(
         lending_pool_peripheral_contract_aux,
         {"from": contract_owner}
     )
 
-    assert loans_contract.lendingPoolAddress() == lending_pool_peripheral_contract_aux
+    assert loans_peripheral_contract.lendingPoolPeripheralAddress() == lending_pool_peripheral_contract_aux
 
     event = tx.events["LendingPoolPeripheralAddressSet"]
     assert event["currentValue"] == lending_pool_peripheral_contract
     assert event["newValue"] == lending_pool_peripheral_contract_aux
 
-    tx = loans_contract.setLendingPoolPeripheralAddress(
+    tx = loans_peripheral_contract.setLendingPoolPeripheralAddress(
         lending_pool_peripheral_contract,
         {"from": contract_owner}
     )
 
-    assert loans_contract.lendingPoolAddress() == lending_pool_peripheral_contract
+    assert loans_peripheral_contract.lendingPoolPeripheralAddress() == lending_pool_peripheral_contract
 
     event = tx.events["LendingPoolPeripheralAddressSet"]
     assert event["currentValue"] == lending_pool_peripheral_contract_aux
     assert event["newValue"] == lending_pool_peripheral_contract
 
 
-def test_add_address_to_whitelist_wrong_sender(loans_contract, erc721_contract, borrower):
+def test_add_address_to_whitelist_wrong_sender(loans_peripheral_contract, erc721_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.addCollateralToWhitelist(
+        loans_peripheral_contract.addCollateralToWhitelist(
             erc721_contract,
             {"from": borrower}
         )
 
 
-def test_add_address_to_whitelist_zero_address(loans_contract, contract_owner):
+def test_add_address_to_whitelist_zero_address(loans_peripheral_contract, contract_owner):
     with brownie.reverts("_address is the zero address"):
-        loans_contract.addCollateralToWhitelist(
+        loans_peripheral_contract.addCollateralToWhitelist(
             brownie.ZERO_ADDRESS,
             {"from": contract_owner}
         )
 
 
-def test_add_address_to_whitelist_not_contract_address(loans_contract, contract_owner):
+def test_add_address_to_whitelist_not_contract_address(loans_peripheral_contract, contract_owner):
     with brownie.reverts("_address is not a contract"):
-        loans_contract.addCollateralToWhitelist(
+        loans_peripheral_contract.addCollateralToWhitelist(
             "0xa3aee8bce55beea1951ef834b99f3ac60d1abeeb",
             {"from": contract_owner}
         )
 
 
-def test_add_address_to_whitelist_not_ERC721_contract(loans_contract, erc20_contract, contract_owner):
+def test_add_address_to_whitelist_not_ERC721_contract(loans_peripheral_contract, erc20_contract, contract_owner):
     with brownie.reverts(""):
-        loans_contract.addCollateralToWhitelist(
+        loans_peripheral_contract.addCollateralToWhitelist(
             erc20_contract,
             {"from": contract_owner}
         )
 
 
-def test_add_address_to_whitelist(loans_contract, erc721_contract, contract_owner):
-    tx = loans_contract.addCollateralToWhitelist(
+def test_add_address_to_whitelist(loans_peripheral_contract, erc721_contract, contract_owner):
+    tx = loans_peripheral_contract.addCollateralToWhitelist(
         erc721_contract,
         {"from": contract_owner}
     )
 
-    assert loans_contract.whitelistedCollaterals(erc721_contract)
+    assert loans_peripheral_contract.whitelistedCollaterals(erc721_contract)
 
     event = tx.events["CollateralToWhitelistAdded"]
     assert event["value"] == erc721_contract
 
 
-def test_remove_address_from_whitelist_wrong_sender(loans_contract, erc721_contract, contract_owner, borrower):
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+def test_remove_address_from_whitelist_wrong_sender(loans_peripheral_contract, erc721_contract, contract_owner, borrower):
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.removeCollateralFromWhitelist(erc721_contract, {"from": borrower})
+        loans_peripheral_contract.removeCollateralFromWhitelist(erc721_contract, {"from": borrower})
 
 
-def test_remove_address_from_whitelist_not_whitelisted(loans_contract, erc721_contract, contract_owner):
+def test_remove_address_from_whitelist_not_whitelisted(loans_peripheral_contract, erc721_contract, contract_owner):
     with brownie.reverts("collateral is not whitelisted"):
-        loans_contract.removeCollateralFromWhitelist(erc721_contract, {"from": contract_owner})
+        loans_peripheral_contract.removeCollateralFromWhitelist(erc721_contract, {"from": contract_owner})
 
 
-def test_remove_address_from_whitelist(loans_contract, erc721_contract, contract_owner):
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
-    assert loans_contract.whitelistedCollaterals(erc721_contract)
+def test_remove_address_from_whitelist(loans_peripheral_contract, erc721_contract, contract_owner):
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    assert loans_peripheral_contract.whitelistedCollaterals(erc721_contract)
 
-    tx = loans_contract.removeCollateralFromWhitelist(erc721_contract, {"from": contract_owner})
-    assert not loans_contract.whitelistedCollaterals(erc721_contract)
+    tx = loans_peripheral_contract.removeCollateralFromWhitelist(erc721_contract, {"from": contract_owner})
+    assert not loans_peripheral_contract.whitelistedCollaterals(erc721_contract)
 
     event = tx.events["CollateralToWhitelistRemoved"]
     assert event["value"] == erc721_contract
 
 
-def test_change_min_loan_amount_wrong_sender(loans_contract, borrower):
+def test_change_min_loan_amount_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
+        loans_peripheral_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
 
 
-def test_change_min_loan_amount_wrong_amount(loans_contract, contract_owner):
+def test_change_min_loan_amount_wrong_amount(loans_peripheral_contract, contract_owner):
     with brownie.reverts("min amount is > than max amount"):
-        loans_contract.changeMinLoanAmount(MAX_LOAN_AMOUNT * 2, {"from": contract_owner})
+        loans_peripheral_contract.changeMinLoanAmount(MAX_LOAN_AMOUNT * 2, {"from": contract_owner})
 
 
-def test_change_min_loan_amount(loans_contract, contract_owner):
-    tx = loans_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": contract_owner})
+def test_change_min_loan_amount(loans_peripheral_contract, contract_owner):
+    tx = loans_peripheral_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": contract_owner})
 
-    assert loans_contract.minLoanAmount() == MIN_LOAN_AMOUNT * 1.1
+    assert loans_peripheral_contract.minLoanAmount() == MIN_LOAN_AMOUNT * 1.1
 
     event = tx.events["MinLoanAmountChanged"]
     assert event["currentValue"] == MIN_LOAN_AMOUNT
     assert event["newValue"] == MIN_LOAN_AMOUNT * 1.1
 
 
-def test_change_max_loan_amount_wrong_sender(loans_contract, borrower):
+def test_change_max_loan_amount_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
+        loans_peripheral_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
 
 
-def test_change_max_loan_amount_wrong_amount(loans_contract, contract_owner):
+def test_change_max_loan_amount_wrong_amount(loans_peripheral_contract, contract_owner):
     with brownie.reverts("max amount is < than min amount"):
-        loans_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT / 2, {"from": contract_owner})
+        loans_peripheral_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT / 2, {"from": contract_owner})
 
 
-def test_change_max_loan_amount(loans_contract, contract_owner):
-    tx = loans_contract.changeMaxLoanAmount(MAX_LOAN_AMOUNT * 1.1, {"from": contract_owner})
+def test_change_max_loan_amount(loans_peripheral_contract, contract_owner):
+    tx = loans_peripheral_contract.changeMaxLoanAmount(MAX_LOAN_AMOUNT * 1.1, {"from": contract_owner})
 
-    assert loans_contract.maxLoanAmount() == MAX_LOAN_AMOUNT * 1.1
+    assert loans_peripheral_contract.maxLoanAmount() == MAX_LOAN_AMOUNT * 1.1
 
     event = tx.events["MaxLoanAmountChanged"]
     assert event["currentValue"] == MAX_LOAN_AMOUNT
     assert event["newValue"] == MAX_LOAN_AMOUNT * 1.1
 
 
-def test_change_contract_status_wrong_sender(loans_contract, borrower):
+def test_change_contract_status_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.changeContractStatus(False, {"from": borrower})
+        loans_peripheral_contract.changeContractStatus(False, {"from": borrower})
 
 
-def test_change_contract_status_same_status(loans_contract, contract_owner):
+def test_change_contract_status_same_status(loans_peripheral_contract, contract_owner):
     with brownie.reverts("new contract status is the same"):
-        loans_contract.changeContractStatus(True, {"from": contract_owner})
+        loans_peripheral_contract.changeContractStatus(True, {"from": contract_owner})
 
 
-def test_change_contract_status(loans_contract, contract_owner):
-    tx = loans_contract.changeContractStatus(False, {"from": contract_owner})
+def test_change_contract_status(loans_peripheral_contract, contract_owner):
+    tx = loans_peripheral_contract.changeContractStatus(False, {"from": contract_owner})
 
-    assert not loans_contract.isAcceptingLoans()
+    assert not loans_peripheral_contract.isAcceptingLoans()
 
     event = tx.events["ContractStatusChanged"]
     assert not event["value"]
 
 
-def test_deprecate_wrong_sender(loans_contract, borrower):
+def test_deprecate_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.deprecate({"from": borrower})
+        loans_peripheral_contract.deprecate({"from": borrower})
 
 
-def test_deprecate(loans_contract, contract_owner):
-    tx = loans_contract.deprecate({"from": contract_owner})
+def test_deprecate(loans_peripheral_contract, contract_owner):
+    tx = loans_peripheral_contract.deprecate({"from": contract_owner})
 
-    assert loans_contract.isDeprecated() == True
-    assert loans_contract.isAcceptingLoans() == False
+    assert loans_peripheral_contract.isDeprecated() == True
+    assert loans_peripheral_contract.isAcceptingLoans() == False
 
     event = tx.events["ContractDeprecated"]
     assert event is not None
 
 
-def test_deprecate_already_deprecated(loans_contract, contract_owner):
-    loans_contract.deprecate({"from": contract_owner})
+def test_deprecate_already_deprecated(loans_peripheral_contract, contract_owner):
+    loans_peripheral_contract.deprecate({"from": contract_owner})
 
     with brownie.reverts("contract is already deprecated"):
-        loans_contract.deprecate({"from": contract_owner})
+        loans_peripheral_contract.deprecate({"from": contract_owner})
 
 
 def test_create_deprecated(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_contract.deprecate({"from": contract_owner})
+    loans_peripheral_contract.deprecate({"from": contract_owner})
 
     with brownie.reverts("contract is deprecated"):
-        tx_start_loan = loans_contract.reserve(
+        tx_start_loan = loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -431,15 +343,15 @@ def test_create_deprecated(
 
 
 def test_create_not_accepting_loans(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_contract.changeContractStatus(False, {"from": contract_owner})
+    loans_peripheral_contract.changeContractStatus(False, {"from": contract_owner})
 
     with brownie.reverts("contract is not accepting loans"):
-        tx_start_loan = loans_contract.reserve(
+        tx_start_loan = loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -449,17 +361,17 @@ def test_create_not_accepting_loans(
 
 
 def test_create_maturity_too_long(
-    loans_contract,
+    loans_peripheral_contract,
     erc721_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     maturity = int(dt.datetime.now().timestamp()) + MAX_LOAN_DURATION * 2
     with brownie.reverts("maturity exceeds the max allowed"):
-        loans_contract.reserve(
+        loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
@@ -469,17 +381,17 @@ def test_create_maturity_too_long(
 
 
 def test_create_maturity_in_the_past(
-    loans_contract,
+    loans_peripheral_contract,
     erc721_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     maturity = int(dt.datetime.now().timestamp()) - 3600
     with brownie.reverts("maturity is in the past"):
-        loans_contract.reserve(
+        loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
@@ -489,10 +401,12 @@ def test_create_maturity_in_the_past(
 
 
 def test_create_max_loans_reached(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -500,54 +414,52 @@ def test_create_max_loans_reached(
     borrower
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(50, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(50, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(50, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(11):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     for k in range(MAX_NUMBER_OF_LOANS):
-        loans_contract.reserve(
+        loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [(erc721_contract, k)],
+            [(erc721_contract, k, LOAN_AMOUNT)],
             {'from': borrower}
         )
-        assert loans_contract.ongoingLoans(borrower) == k + 1
+        assert loans_peripheral_contract.ongoingLoans(borrower) == k + 1
         time.sleep(0.2)
 
     with brownie.reverts("max loans already reached"):
-        loans_contract.reserve(
+        loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [(erc721_contract, MAX_NUMBER_OF_LOANS)],
+            [(erc721_contract, MAX_NUMBER_OF_LOANS, 0)],
             {'from': borrower}
         )
 
 
 def test_create_collateral_notwhitelisted(
-    loans_contract,
-    loans_core_contract,
-    erc721_contract,
-    contract_owner,
+    loans_peripheral_contract,
     borrower,
     test_collaterals
 ):
-    
-    
     with brownie.reverts("not all NFTs are accepted"):
-        loans_contract.reserve(
+        loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -557,7 +469,7 @@ def test_create_collateral_notwhitelisted(
 
 
 def test_create_collaterals_not_owned(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -569,21 +481,21 @@ def test_create_collaterals_not_owned(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     erc721_contract.mint(investor, 0, {"from": contract_owner})
 
     with brownie.reverts("msg.sender does not own all NFTs"):
-        tx = loans_contract.reserve(
+        tx = loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -593,10 +505,12 @@ def test_create_collaterals_not_owned(
 
 
 def test_create_loan_collateral_not_approved(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -605,22 +519,25 @@ def test_create_loan_collateral_not_approved(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
     with brownie.reverts("not all NFTs are approved"):
-        tx = loans_contract.reserve(
+        tx = loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -630,29 +547,35 @@ def test_create_loan_collateral_not_approved(
 
 
 def test_create_loan_unsufficient_funds_in_lp(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
+    erc20_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     with brownie.reverts("insufficient liquidity"):
-        tx = loans_contract.reserve(
+        tx = loans_peripheral_contract.reserve(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -662,10 +585,12 @@ def test_create_loan_unsufficient_funds_in_lp(
 
 
 def test_create_loan_min_amount(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -674,24 +599,27 @@ def test_create_loan_min_amount(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
     
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     with brownie.reverts("loan amount < than the min value"):
-        tx = loans_contract.reserve(
+        tx = loans_peripheral_contract.reserve(
             Web3.toWei(0.01, "ether"),
             LOAN_INTEREST,
             MATURITY,
@@ -701,10 +629,12 @@ def test_create_loan_min_amount(
 
 
 def test_create_loan_max_amount(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -713,23 +643,26 @@ def test_create_loan_max_amount(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(15, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(15, "ether"), {"from": investor})
     lending_pool_peripheral_contract.deposit(Web3.toWei(15, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     with brownie.reverts("loan amount > than the max value"):
-        tx = loans_contract.reserve(
+        tx = loans_peripheral_contract.reserve(
             Web3.toWei(10, "ether"),
             LOAN_INTEREST,
             MATURITY,
@@ -738,11 +671,57 @@ def test_create_loan_max_amount(
         )
 
 
-def test_create_loan(
-    loans_contract,
+def test_create_loan_different_amounts(
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    borrower,
+    investor
+):
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+
+    borrower_initial_balance = erc20_contract.balanceOf(borrower)
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    with brownie.reverts("amount in collats != than amount"):
+        loans_peripheral_contract.reserve(
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            [(erc721_contract, k, 0) for k in range(5)],
+            {'from': borrower}
+        )
+
+
+def test_create_loan(
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -751,24 +730,27 @@ def test_create_loan(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -777,7 +759,7 @@ def test_create_loan(
     )
     loan_id = tx_create_loan.return_value
 
-    loan_details = loans_contract.getPendingLoan(borrower, loan_id)
+    loan_details = loans_peripheral_contract.getPendingLoan(borrower, loan_id)
     assert loan_details["id"] == loan_id
     assert loan_details["amount"] == LOAN_AMOUNT
     assert loan_details["interest"] == LOAN_INTEREST
@@ -792,58 +774,60 @@ def test_create_loan(
     assert loan_details["canceled"] == False
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
-    assert loans_contract.ongoingLoans(borrower) == 1
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
     assert tx_create_loan.events[-1]["wallet"] == borrower
     assert tx_create_loan.events[-1]["loanId"] == 0
 
 
 def test_validate_wrong_sender(
-    loans_contract,
+    loans_peripheral_contract,
     borrower
 ):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.validate(borrower, 0, {'from': borrower})
+        loans_peripheral_contract.validate(borrower, 0, {'from': borrower})
 
 
 def test_validate_deprecated(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner,
     borrower
 ):
-    loans_contract.deprecate({"from": contract_owner})
+    loans_peripheral_contract.deprecate({"from": contract_owner})
 
     with brownie.reverts("contract is deprecated"):
-        loans_contract.validate(borrower, 0, {'from': contract_owner})
+        loans_peripheral_contract.validate(borrower, 0, {'from': contract_owner})
 
 
 def test_validate_not_accepting_loans(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner,
     borrower
 ):
-    loans_contract.changeContractStatus(False, {"from": contract_owner})
+    loans_peripheral_contract.changeContractStatus(False, {"from": contract_owner})
 
     with brownie.reverts("contract is not accepting loans"):
-        tx_start_loan = loans_contract.validate(borrower, 0, {'from': contract_owner})
+        tx_start_loan = loans_peripheral_contract.validate(borrower, 0, {'from': contract_owner})
 
 
 def test_validate_loan_not_created(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner,
     borrower
 ):
     with brownie.reverts("loan not found"):
-        loans_contract.validate(borrower, 0, {'from': contract_owner})
+        loans_peripheral_contract.validate(borrower, 0, {'from': contract_owner})
 
 
 def test_validate_loan_already_validated(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -852,22 +836,25 @@ def test_validate_loan_already_validated(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -876,24 +863,26 @@ def test_validate_loan_already_validated(
     )
     loan_id = tx_create_loan.return_value
 
-    print(loans_contract.getPendingLoan(borrower, loan_id))
+    print(loans_peripheral_contract.getPendingLoan(borrower, loan_id))
     for collateral in test_collaterals:
         print(erc721_contract.ownerOf(collateral[1]))
 
-    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
     
-    print(loans_contract.getLoan(borrower, loan_id))
+    print(loans_peripheral_contract.getLoan(borrower, loan_id))
     print(loans_core_contract.getLoanStarted(borrower, loan_id))
 
     with brownie.reverts("loan already validated"):
-        loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+        loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
 
 def test_validate_loan_already_invalidated(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -902,22 +891,25 @@ def test_validate_loan_already_invalidated(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -926,17 +918,19 @@ def test_validate_loan_already_invalidated(
     )
     loan_id = tx_create_loan.return_value
 
-    loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
     with brownie.reverts("loan already invalidated"):
-        loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+        loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
 
 def test_validate_maturity_in_the_past(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -945,43 +939,49 @@ def test_validate_maturity_in_the_past(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        chain.time() + 3,
+        chain.time() + 10,
         test_collaterals,
         {'from': borrower}
     )
 
     assert tx_create_loan.return_value == 0
 
-    time.sleep(5)
+    chain.mine(blocks=1, timedelta=15)
+    #time.sleep(5)
     with brownie.reverts("maturity is in the past"):
-        loans_contract.validate(borrower, 0, {'from': contract_owner})
+        loans_peripheral_contract.validate(borrower, 0, {'from': contract_owner})
 
 
 def test_validate_collateral_notwhitelisted(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -990,24 +990,27 @@ def test_validate_collateral_notwhitelisted(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1015,17 +1018,19 @@ def test_validate_collateral_notwhitelisted(
         {'from': borrower}
     )
 
-    loans_contract.removeCollateralFromWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.removeCollateralFromWhitelist(erc721_contract, {"from": contract_owner})
 
     with brownie.reverts("not all NFTs are accepted"):
-        loans_contract.validate(borrower, 0, {'from': contract_owner})
+        loans_peripheral_contract.validate(borrower, 0, {'from': contract_owner})
 
 
 def test_validate_unsufficient_funds_in_lp(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1034,24 +1039,27 @@ def test_validate_unsufficient_funds_in_lp(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})   
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1062,14 +1070,16 @@ def test_validate_unsufficient_funds_in_lp(
     lending_pool_peripheral_contract.withdraw(Web3.toWei(0.9, "ether"), {"from": investor})
 
     with brownie.reverts("insufficient liquidity"):
-        tx = loans_contract.validate(borrower, 0, {'from': contract_owner})
+        tx = loans_peripheral_contract.validate(borrower, 0, {'from': contract_owner})
 
 
 def test_validate_loan(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1078,24 +1088,27 @@ def test_validate_loan(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1104,9 +1117,9 @@ def test_validate_loan(
     )
     loan_id = tx_create_loan.return_value
 
-    tx_start_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    tx_start_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
     
-    loan_details = loans_contract.getLoan(borrower, loan_id)
+    loan_details = loans_peripheral_contract.getLoan(borrower, loan_id)
     assert loan_details["id"] == loan_id
     assert loan_details["amount"] == LOAN_AMOUNT
     assert loan_details["interest"] == LOAN_INTEREST
@@ -1125,7 +1138,7 @@ def test_validate_loan(
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
     assert loans_core_contract.getHighestCollateralBundleLoan() == loan_details
 
@@ -1134,27 +1147,29 @@ def test_validate_loan(
 
 
 def test_invalidate_wrong_sender(
-    loans_contract,
+    loans_peripheral_contract,
     borrower
 ):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.invalidate(borrower, 0, {'from': borrower})
+        loans_peripheral_contract.invalidate(borrower, 0, {'from': borrower})
 
 
 def test_invalidate_loan_not_created(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner,
     borrower
 ):
     with brownie.reverts("loan not found"):
-        loans_contract.invalidate(borrower, 0, {'from': contract_owner})
+        loans_peripheral_contract.invalidate(borrower, 0, {'from': contract_owner})
 
 
 def test_invalidate_loan_already_invalidated(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1163,22 +1178,25 @@ def test_invalidate_loan_already_invalidated(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1187,17 +1205,19 @@ def test_invalidate_loan_already_invalidated(
     )
     loan_id = tx_create_loan.return_value
 
-    loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
     with brownie.reverts("loan already invalidated"):
-        loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
+        loans_peripheral_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
 
 def test_invalidate_loan_already_validated(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1206,22 +1226,25 @@ def test_invalidate_loan_already_validated(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1230,17 +1253,19 @@ def test_invalidate_loan_already_validated(
     )
     loan_id = tx_create_loan.return_value
 
-    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     with brownie.reverts("loan already validated"):
-        loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
+        loans_peripheral_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
 
 def test_invalidate_loan(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1249,24 +1274,27 @@ def test_invalidate_loan(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1275,7 +1303,7 @@ def test_invalidate_loan(
     )
     loan_id = tx_create_loan.return_value
 
-    loan_details = loans_contract.getPendingLoan(borrower, loan_id)
+    loan_details = loans_peripheral_contract.getPendingLoan(borrower, loan_id)
     assert loan_details["id"] == loan_id
     assert loan_details["amount"] == LOAN_AMOUNT
     assert loan_details["interest"] == LOAN_INTEREST
@@ -1290,33 +1318,35 @@ def test_invalidate_loan(
     assert loan_details["canceled"] == False
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
     assert tx_create_loan.events[-1]["wallet"] == borrower
     assert tx_create_loan.events[-1]["loanId"] == 0
 
-    tx_invalidate_loan = loans_contract.invalidate(borrower, 0, {'from': contract_owner})
-    assert loans_contract.getLoan(borrower, loan_id)["invalidated"]
+    tx_invalidate_loan = loans_peripheral_contract.invalidate(borrower, 0, {'from': contract_owner})
+    assert loans_peripheral_contract.getLoan(borrower, loan_id)["invalidated"]
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert loans_contract.ongoingLoans(borrower) == 0
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
     assert tx_invalidate_loan.events[-1]["wallet"] == borrower
     assert tx_invalidate_loan.events[-1]["loanId"] == 0
 
 
-def test_pay_loan_not_issued(loans_contract, borrower):
+def test_pay_loan_not_issued(loans_peripheral_contract, borrower):
     with brownie.reverts("loan not found"):
-        loans_contract.pay(0, LOAN_AMOUNT * (100 + LOAN_INTEREST) / 100, {"from": borrower})
+        loans_peripheral_contract.pay(0, LOAN_AMOUNT * (100 + LOAN_INTEREST) / 100, {"from": borrower})
 
 
 def test_pay_loan_no_value_sent(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1325,22 +1355,25 @@ def test_pay_loan_no_value_sent(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1349,18 +1382,20 @@ def test_pay_loan_no_value_sent(
     )
     loan_id = tx_create_loan.return_value
 
-    tx_start_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
-    loan = loans_contract.getLoan(borrower, loan_id)
+    tx_start_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loan = loans_peripheral_contract.getLoan(borrower, loan_id)
 
     with brownie.reverts("_amount has to be higher than 0"):
-        loans_contract.pay(loan["id"], 0, {"from": borrower})
+        loans_peripheral_contract.pay(loan["id"], 0, {"from": borrower})
 
 
 def test_pay_loan_higher_value_than_needed(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1369,22 +1404,25 @@ def test_pay_loan_higher_value_than_needed(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1393,8 +1431,8 @@ def test_pay_loan_higher_value_than_needed(
     )
     loan_id = tx_create_loan.return_value
 
-    tx_start_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
-    loan = loans_contract.getLoan(borrower, loan_id)
+    tx_start_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loan = loans_peripheral_contract.getLoan(borrower, loan_id)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
@@ -1402,14 +1440,16 @@ def test_pay_loan_higher_value_than_needed(
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     
     with brownie.reverts("_amount is more than needed"):
-        loans_contract.pay(loan["id"], amount_paid, {"from": borrower})
+        loans_peripheral_contract.pay(loan["id"], amount_paid, {"from": borrower})
 
 
 def test_pay_loan_defaulted(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1418,47 +1458,52 @@ def test_pay_loan_defaulted(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        chain.time() + 5,
+        chain.time() + 10,
         test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_create_loan.return_value
 
-    tx_start_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
-    loan = loans_contract.getLoan(borrower, loan_id)
+    tx_start_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loan = loans_peripheral_contract.getLoan(borrower, loan_id)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
     erc20_contract.mint(borrower, amount_paid, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
-    time.sleep(8)
+    chain.mine(blocks=1, timedelta=15)
     with brownie.reverts("loan maturity reached"):
-        loans_contract.pay(loan["id"], amount_paid, {"from": borrower})
+        loans_peripheral_contract.pay(loan["id"], amount_paid, {"from": borrower})
 
 
 def test_pay_loan_insufficient_balance(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1467,19 +1512,22 @@ def test_pay_loan_insufficient_balance(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     tx_invest = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
@@ -1487,7 +1535,7 @@ def test_pay_loan_insufficient_balance(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1496,7 +1544,7 @@ def test_pay_loan_insufficient_balance(
     )
     loan_id = tx_create_loan.return_value
 
-    tx_start_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    tx_start_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
 
@@ -1505,14 +1553,16 @@ def test_pay_loan_insufficient_balance(
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     
     with brownie.reverts("insufficient balance"):
-        tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+        tx_pay_loan = loans_peripheral_contract.pay(loan_id, amount_paid, {"from": borrower})
 
 
 def test_pay_loan_insufficient_allowance(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1521,19 +1571,22 @@ def test_pay_loan_insufficient_allowance(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     tx_invest = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
@@ -1541,7 +1594,7 @@ def test_pay_loan_insufficient_allowance(
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1550,7 +1603,7 @@ def test_pay_loan_insufficient_allowance(
     )
     loan_id = tx_create_loan.return_value
 
-    tx_new_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    tx_new_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
 
@@ -1559,14 +1612,16 @@ def test_pay_loan_insufficient_allowance(
     erc20_contract.approve(lending_pool_core_contract, amount_paid / 2, {"from": borrower})
     
     with brownie.reverts("insufficient allowance"):
-        tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+        tx_pay_loan = loans_peripheral_contract.pay(loan_id, amount_paid, {"from": borrower})
 
 
 def test_pay_loan(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1575,23 +1630,26 @@ def test_pay_loan(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     tx_invest = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1600,11 +1658,13 @@ def test_pay_loan(
     )
     loan_id = tx_create_loan.return_value
 
-    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    loan_details = loans_contract.getLoan(borrower, loan_id)
-    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
-    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == amount_paid
+    loan_details = loans_peripheral_contract.getLoan(borrower, loan_id)
+    amount_payable = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)
+    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
+    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
+    assert amount_payable == amount_paid
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
@@ -1612,14 +1672,14 @@ def test_pay_loan(
     erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     
-    tx_pay_loan = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+    tx_pay_loan = loans_peripheral_contract.pay(loan_id, amount_paid, {"from": borrower})
 
-    loan_details = loans_contract.getLoan(borrower, loan_id)
+    loan_details = loans_peripheral_contract.getLoan(borrower, loan_id)
     assert loans_core_contract.getLoanPaid(borrower, loan_id)
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
     assert loan_details["paid"] == loans_core_contract.getLoanPaid(borrower, loan_id)
     assert loan_details["paidAmount"] == loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
-    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == 0
+    assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == 0
 
     assert tx_pay_loan.events["LoanPaid"]["wallet"] == borrower
     assert tx_pay_loan.events["LoanPaid"]["loanId"] == loan_id
@@ -1630,16 +1690,18 @@ def test_pay_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert loans_contract.ongoingLoans(borrower) == 0
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
     assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - amount_paid
 
 
 def test_pay_loan_multiple(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1648,24 +1710,29 @@ def test_pay_loan_multiple(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+
+    erc20_contract.mint(borrower, LOAN_AMOUNT * 2, {"from": contract_owner})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
     borrower_initial_balance = erc20_contract.balanceOf(borrower)
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1674,47 +1741,55 @@ def test_pay_loan_multiple(
     )
     loan_id = tx_create_loan.return_value
 
-    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    loan_details = loans_contract.getLoan(borrower, loan_id)
-    amount_paid = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
+    loan_details = loans_peripheral_contract.getLoan(borrower, loan_id)
+    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
+    amount_paid = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
+
+    print(f"LOAN AMOUNT / 2 --> {LOAN_AMOUNT / 2.0}")
+    print(f"TIME DIFF --> {time_diff}")
+    print(f"AMOUNT PAID --> {amount_paid}")
+    print(f"PAYABLE AMOUNT 1 --> {loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)}")
+
+    amount_payable = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)
+    print(f"PAYABLE AMOUNT 2 --> {amount_payable}")
+    assert amount_payable == amount_paid * 2
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
-    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT / 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
-    tx_pay_loan1 = loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+    tx_pay_loan1 = loans_peripheral_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     assert not loans_core_contract.getLoanPaid(borrower, loan_id)
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
-    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == loans_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
     
     assert tx_pay_loan1.events["LoanPayment"]["wallet"] == borrower
     assert tx_pay_loan1.events["LoanPayment"]["loanId"] == loan_id
     assert tx_pay_loan1.events["LoanPayment"]["amount"] == amount_paid
 
-    assert loans_contract.ongoingLoans(borrower) == 1
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
-    amount_paid2 = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
+    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
+    amount_paid2 = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
     
-    erc20_contract.mint(borrower, amount_paid2 - LOAN_AMOUNT / 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid2, {"from": borrower})
-    tx_pay_loan2 = loans_contract.pay(loan_id, amount_paid2, {"from": borrower})
+    tx_pay_loan2 = loans_peripheral_contract.pay(loan_id, amount_paid2, {"from": borrower})
 
     assert loans_core_contract.getLoanPaid(borrower, loan_id)
     assert loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid + amount_paid2
-    assert loans_contract.getLoanPayableAmount(borrower, loan_id) == 0
+    assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == 0
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
     assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - (amount_paid + amount_paid2)
 
-    assert loans_contract.ongoingLoans(borrower) == 0
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
     assert tx_pay_loan2.events["LoanPaid"]["wallet"] == borrower
     assert tx_pay_loan2.events["LoanPaid"]["loanId"] == loan_id
@@ -1724,10 +1799,12 @@ def test_pay_loan_multiple(
 
 
 def test_pay_loan_already_paid(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1736,21 +1813,24 @@ def test_pay_loan_already_paid(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1759,43 +1839,46 @@ def test_pay_loan_already_paid(
     )
     loan_id = tx_create_loan.return_value
 
-    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    loan_details = loans_contract.getLoan(borrower, loan_id)
-    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * (chain.time() - loan_details['startTime'])) / (10000 * MAX_LOAN_DURATION)}"))
+    loan_details = loans_peripheral_contract.getLoan(borrower, loan_id)
+    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
+    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
 
     erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     
-    loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+    loans_peripheral_contract.pay(loan_id, amount_paid, {"from": borrower})
 
     with brownie.reverts("loan already paid"):
-        loans_contract.pay(loan_id, amount_paid, {"from": borrower})
+        loans_peripheral_contract.pay(loan_id, amount_paid, {"from": borrower})
 
 
 def test_set_default_loan_wrong_sender(
-    loans_contract,
+    loans_peripheral_contract,
     investor,
     borrower
 ):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_contract.settleDefault(borrower, 0, {"from": investor})
+        loans_peripheral_contract.settleDefault(borrower, 0, {"from": investor})
 
 
 def test_set_default_loan_not_started(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner,
     borrower
 ):
     with brownie.reverts("loan not found"):
-        loans_contract.settleDefault(borrower, 0, {"from": contract_owner})
+        loans_peripheral_contract.settleDefault(borrower, 0, {"from": contract_owner})
 
 
-def test_set_default_loan(
-    loans_contract,
+def test_set_default_buynow_zeroaddress(
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc721_contract,
     erc20_contract,
     contract_owner,
@@ -1804,56 +1887,147 @@ def test_set_default_loan(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})    
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
-        chain.time() + 5,
+        chain.time() + 10,
         test_collaterals,
         {'from': borrower}
     )
     loan_id = tx_create_loan.return_value
 
-    tx_new_loan = loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    tx_new_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
-    time.sleep(8)
-    loans_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
+    chain.mine(blocks=1, timedelta=15)
+    
+    with brownie.reverts("BNPeriph is the zero address"):
+        loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
+
+
+def test_set_default_loan(
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    buy_now_peripheral_contract,
+    buy_now_core_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})    
+
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    buy_now_core_contract.setBuyNowPeripheralAddress(buy_now_peripheral_contract, {"from": contract_owner})
+
+    buy_now_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+    buy_now_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    maturity = chain.time() + 10
+    tx_create_loan = loans_peripheral_contract.reserve(
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        maturity,
+        test_collaterals,
+        {'from': borrower}
+    )
+    loan_id = tx_create_loan.return_value
+
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
+
+    loan_start_time = loans_core_contract.getLoanStartTime(borrower, loan_id)
+
+    chain.mine(blocks=1, timedelta=15)
+
+    loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
+    # default_time = chain.time()
 
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
 
-    assert loans_contract.ongoingLoans(borrower) == 0
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == contract_owner
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
+        
+        liquidation = buy_now_core_contract.getLiquidation(collateral[0], collateral[1])
+        interest_amount = int(Decimal(collateral[2]) * Decimal(LOAN_INTEREST) / Decimal(10000))
+        apr = int(Decimal(LOAN_INTEREST) * Decimal(31536000) / (Decimal(maturity) - Decimal(loan_start_time)))
+
+        print(buy_now_peripheral_contract.gracePeriodDuration())
+        print(GRACE_PERIOD_DURATION)
+        print(int(collateral[2]))
+        print(interest_amount)
+        print(apr)
+
+        assert liquidation["collateralAddress"] == collateral[0]
+        assert liquidation["tokenId"] == collateral[1]
+        # assert liquidation["gracePeriodMaturity"] == default_time + GRACE_PERIOD_DURATION
+        # assert liquidation["buyNowPeriodMaturity"] == default_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION
+        assert liquidation["principal"] == collateral[2]
+        assert liquidation["interestAmount"] == interest_amount
+        assert liquidation["apr"] == apr
+        assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / Decimal(31536000))
+        assert liquidation["buyNowPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(BUY_NOW_PERIOD_DURATION)) / Decimal(31536000))
+        assert liquidation["borrower"] == borrower
+        assert liquidation["erc20TokenContract"] == erc20_contract
+        assert not liquidation["inAuction"]
 
 
 def test_cancel_pendingloan_not_created(
-    loans_contract,
+    loans_peripheral_contract,
     contract_owner
 ):
     with brownie.reverts("loan not found"):
-        loans_contract.cancelPendingLoan(0, {"from": contract_owner})
+        loans_peripheral_contract.cancelPendingLoan(0, {"from": contract_owner})
 
 
 def test_cancel_pendingloan_already_started(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1862,22 +2036,25 @@ def test_cancel_pendingloan_already_started(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
 
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1885,21 +2062,23 @@ def test_cancel_pendingloan_already_started(
         {'from': borrower}
     )
 
-    assert loans_contract.ongoingLoans(borrower) == 1
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
     loan_id = tx_create_loan.return_value
 
-    loans_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     with brownie.reverts("loan already validated"):
-        loans_contract.cancelPendingLoan(loan_id, {"from": borrower})
+        loans_peripheral_contract.cancelPendingLoan(loan_id, {"from": borrower})
 
 
 def test_cancel_pendingloan_invalidated(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1908,22 +2087,25 @@ def test_cancel_pendingloan_invalidated(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1931,21 +2113,23 @@ def test_cancel_pendingloan_invalidated(
         {'from': borrower}
     )
 
-    assert loans_contract.ongoingLoans(borrower) == 1
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
     loan_id = tx_create_loan.return_value
 
-    loans_contract.invalidate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.invalidate(borrower, loan_id, {'from': contract_owner})
 
     with brownie.reverts("loan already invalidated"):
-        loans_contract.cancelPendingLoan(loan_id, {"from": borrower})
+        loans_peripheral_contract.cancelPendingLoan(loan_id, {"from": borrower})
 
 
 def test_cancel_pending(
-    loans_contract,
+    loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
     erc20_contract,
     erc721_contract,
     contract_owner,
@@ -1954,22 +2138,25 @@ def test_cancel_pending(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
 
-    loans_core_contract.setLoansPeripheral(loans_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    loans_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(loans_contract, True, {"from": borrower})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    tx_create_loan = loans_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1977,15 +2164,15 @@ def test_cancel_pending(
         {'from': borrower}
     )
 
-    assert loans_contract.ongoingLoans(borrower) == 1
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
     loan_id = tx_create_loan.return_value
 
-    tx_cancel_loan = loans_contract.cancelPendingLoan(loan_id, {"from": borrower})
+    tx_cancel_loan = loans_peripheral_contract.cancelPendingLoan(loan_id, {"from": borrower})
 
     assert loans_core_contract.getLoanCanceled(borrower, loan_id)
 
-    assert loans_contract.ongoingLoans(borrower) == 0
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
     assert tx_cancel_loan.events[-1]["wallet"] == borrower
     assert tx_cancel_loan.events[-1]["loanId"] == loan_id

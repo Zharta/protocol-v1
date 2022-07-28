@@ -1,61 +1,6 @@
-from multiprocessing import pool
-from brownie.network import chain
-from datetime import datetime as dt
-from decimal import Decimal
 from web3 import Web3
 
 import brownie
-import pytest
-
-
-PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-
-
-@pytest.fixture
-def contract_owner(accounts):
-    yield accounts[0]
-
-
-@pytest.fixture
-def borrower(accounts):
-    yield accounts[1]
-
-
-@pytest.fixture
-def investor(accounts):
-    yield accounts[2]
-
-
-@pytest.fixture
-def protocol_wallet(accounts):
-    yield accounts[3]
-
-
-@pytest.fixture
-def erc20_contract(ERC20, contract_owner):
-    yield ERC20.deploy("USD Coin", "USDC", 18, 0, {'from': contract_owner})
-
-
-@pytest.fixture
-def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
-    yield LendingPoolCore.deploy(
-        erc20_contract,
-        {'from': contract_owner}
-    )
-
-
-@pytest.fixture
-def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPoolPeripheral.deploy(
-        lending_pool_core_contract,
-        erc20_contract,
-        protocol_wallet,
-        PROTOCOL_FEES_SHARE,
-        MAX_CAPITAL_EFFICIENCY,
-        False,
-        {'from': contract_owner}
-    )
 
 
 def user_balance(token_contract, user):

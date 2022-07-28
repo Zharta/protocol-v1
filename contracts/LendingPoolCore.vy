@@ -259,8 +259,6 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
-    assert _amount <= self.fundsInvested, "Too much funds received"
-    assert self._fundsAreAllowed(_borrower, self, _amount), "Not enough funds allowed"
 
     self.fundsAvailable += _amount + _rewardsAmount
     self.fundsInvested -= _amount

@@ -4,7 +4,7 @@
 # Interfaces
 
 interface ILoansPeripheral:
-    def lendingPoolAddress() -> address: view
+    def lendingPoolPeripheralAddress() -> address: view
 
 interface ILendingPoolPeripheral:
     def erc20TokenContract() -> address: view
@@ -15,7 +15,7 @@ interface ILendingPoolPeripheral:
 struct Collateral:
     contractAddress: address
     tokenId: uint256
-
+    amount: uint256
 
 struct Loan:
     id: uint256
@@ -23,14 +23,13 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 100]
+    collaterals: DynArray[Collateral, 20]
     paidAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
     defaulted: bool
     canceled: bool
-
 
 struct TopStats:
     highestSingleCollateralLoan: Loan
@@ -69,15 +68,15 @@ proposedOwner: public(address)
 
 loansPeripheral: public(address)
 
-loans: HashMap[address, DynArray[Loan, 2**50]]
+loans: HashMap[address, DynArray[Loan, 2**16]]
 
 # key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
 collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256, bool]]]) # given a collateral, a borrower and a loan id, is the collateral still used in that loan id
-collateralKeys: DynArray[bytes32, 2**50] # array of collaterals expressed by their keys
+collateralKeys: DynArray[bytes32, 2**20] # array of collaterals expressed by their keys
 collateralsUsed: public(HashMap[bytes32, bool]) # given a collateral, is it being used in a loan
 collateralsData: public(HashMap[bytes32, Collateral]) # given a collateral key, what is its data
-collateralsIdsByAddress: public(HashMap[address, DynArray[uint256, 2**50]]) # given a collateral address, what are the token ids that were already in a loan
+collateralsIdsByAddress: public(HashMap[address, DynArray[uint256, 2**20]]) # given a collateral address, what are the token ids that were already in a loan
 
 # Stats
 topStats: TopStats
@@ -107,7 +106,7 @@ def _isLoanInvalidated(_borrower: address, _loanId: uint256) -> bool:
     return False
 
 
-@view
+@pure
 @internal
 def _computeCollateralKey(_collateralAddress: address, _collateralId: uint256) -> bytes32:
   return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
@@ -171,7 +170,7 @@ def proposeOwner(_address: address):
         self.owner,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
         ).erc20TokenContract()
     )
 
@@ -186,7 +185,7 @@ def claimOwnership():
         self.owner,
         self.proposedOwner,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
         ).erc20TokenContract()
     )
 
@@ -202,12 +201,12 @@ def setLoansPeripheral(_address: address):
 
     log LoansPeripheralAddressSet(
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
         ).erc20TokenContract(),
         self.loansPeripheral,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
         ).erc20TokenContract()
     )
 
@@ -252,10 +251,10 @@ def getLoanInterest(_borrower: address, _loanId: uint256) -> uint256:
 
 @view
 @external
-def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 100]:
+def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 20]:
     if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].collaterals
-    return empty(DynArray[Collateral, 100])
+    return empty(DynArray[Collateral, 20])
 
 
 @view
@@ -356,13 +355,13 @@ def getHighestDefaultedLoan() -> Loan:
 
 @view
 @external
-def collateralKeysArray() -> DynArray[bytes32, 2**50]:
+def collateralKeysArray() -> DynArray[bytes32, 2**20]:
   return self.collateralKeys
 
 
 @view
 @external
-def getCollateralsIdsByAddress(_address: address) -> DynArray[uint256, 2**50]:
+def getCollateralsIdsByAddress(_address: address) -> DynArray[uint256, 2**20]:
   return self.collateralsIdsByAddress[_address]
 
 
@@ -395,7 +394,7 @@ def addLoan(
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
-    _collaterals: DynArray[Collateral, 100]
+    _collaterals: DynArray[Collateral, 20]
 ) -> uint256:
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
 

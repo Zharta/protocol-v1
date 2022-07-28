@@ -1,0 +1,3 @@
+[submodule "contracts/auxiliary"]
+	path = contracts/auxiliary
+	url = https://gitlab.com/z106/auxiliary-smart-contracts

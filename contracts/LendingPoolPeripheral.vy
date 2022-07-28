@@ -57,6 +57,12 @@ event LoansPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
+event BuyNowPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
 event WhitelistStatusChanged:
     erc20TokenContractIndexed: indexed(address)
     value: bool
@@ -121,6 +127,7 @@ proposedOwner: public(address)
 loansContract: public(address)
 lendingPoolCoreContract: public(address)
 erc20TokenContract: public(address)
+buyNowPeripheralContract: public(address)
 
 protocolWallet: public(address)
 protocolFeesShare: public(uint256) # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
@@ -134,7 +141,7 @@ whitelistEnabled: public(bool)
 whitelistedAddresses: public(HashMap[address, bool])
 
 
-##### INTERNAL METHODS #####
+##### INTERNAL METHODS - VIEW #####
 
 @view
 @internal
@@ -202,12 +209,37 @@ def _maxFundsInvestable() -> uint256:
     return fundsAvailable - fundsBuffer
 
 
+##### INTERNAL METHODS - WRITE #####
+
+@internal
+def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
+
+    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, rewardsPool):
+        self.isPoolInvesting = True
+
+    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, rewardsPool):
+        raise "error receiving funds in LPCore"
+    
+    if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, rewardsProtocol):
+        raise "error transferring protocol fees"
+
+    log FundsReceipt(msg.sender, msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
+
+
 ##### EXTERNAL METHODS - VIEW #####
 
 @view
 @external
 def maxFundsInvestable() -> uint256:
     return self._maxFundsInvestable()
+
+
+@view
+@external
+def lenderFunds(_lender: address) -> InvestorFunds:
+    return ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender)
 
 
 ##### EXTERNAL METHODS - NON-VIEW #####
@@ -336,6 +368,23 @@ def setLoansPeripheralAddress(_address: address):
     )
 
     self.loansContract = _address
+
+
+@external
+def setBuyNowPeripheralAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
+    assert _address != self.buyNowPeripheralContract, "new value is the same"
+
+    log BuyNowPeripheralAddressSet(
+        self.erc20TokenContract,
+        self.buyNowPeripheralContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+    self.buyNowPeripheralContract = _address
 
 
 @external
@@ -511,16 +560,16 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     
-    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
-    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
+    self._receiveFunds(_borrower, _amount, _rewardsAmount)
 
-    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, rewardsPool):
-        self.isPoolInvesting = True
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, rewardsPool):
-        raise "error receiving funds in LPCore"
+@external
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    # _amount and _rewardsAmount should be passed in wei
+
+    assert msg.sender == self.buyNowPeripheralContract, "msg.sender is not the BN addr"
+    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
+    assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     
-    if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, rewardsProtocol):
-        raise "error transferring protocol fees"
-
-    log FundsReceipt(msg.sender, msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
+    self._receiveFunds(_borrower, _amount, _rewardsAmount)

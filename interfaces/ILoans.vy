@@ -3,6 +3,7 @@
 struct Collateral:
     contractAddress: address
     tokenId: uint256
+    amount: uint256
 
 struct Loan:
     id: uint256
@@ -10,7 +11,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 100]
+    collaterals: DynArray[Collateral, 20]
     paidAmount: uint256
     started: bool
     invalidated: bool
@@ -66,6 +67,11 @@ event CollateralToWhitelistRemoved:
     value: address
     erc20TokenContract: address
 event LendingPoolPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event LendingPoolCoreAddressSet:
     erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
@@ -154,6 +160,10 @@ def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
+def setLendingPoolCoreAddress(_address: address):
+    pass
+
+@external
 def changeContractStatus(_flag: bool):
     pass
 
@@ -182,7 +192,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
     pass
 
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 20]) -> uint256:
     pass
 
 @external

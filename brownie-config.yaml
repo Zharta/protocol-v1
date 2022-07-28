@@ -1,0 +1,7 @@
+compiler:
+    solc:
+        optimizer:
+            enabled: true
+            runs: 200
+        # remappings:
+        #   - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@3.0.0"
