@@ -249,7 +249,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "(address,uint256)[]"
+        "type": "(address,uint256,uint256)[]"
       }
     ]
   },
@@ -441,7 +441,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -512,7 +512,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -574,7 +574,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -636,7 +636,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -698,7 +698,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -760,7 +760,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -839,6 +839,10 @@
           {
             "name": "tokenId",
             "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
           }
         ]
       },
@@ -869,6 +873,10 @@
           {
             "name": "tokenId",
             "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
           }
         ]
       },
@@ -894,6 +902,10 @@
           },
           {
             "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
             "type": "uint256"
           }
         ]
@@ -928,7 +940,7 @@
       },
       {
         "name": "_collaterals",
-        "type": "(address,uint256)[]"
+        "type": "(address,uint256,uint256)[]"
       }
     ],
     "outputs": [
@@ -1222,6 +1234,10 @@
           },
           {
             "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
             "type": "uint256"
           }
         ]
