@@ -3,6 +3,21 @@
 struct Collateral:
     contractAddress: address
     tokenId: uint256
+    amount: uint256
+
+struct Loan:
+    id: uint256
+    amount: uint256
+    interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    maturity: uint256
+    startTime: uint256
+    collaterals: DynArray[Collateral, 20]
+    paidAmount: uint256
+    started: bool
+    invalidated: bool
+    paid: bool
+    defaulted: bool
+    canceled: bool
 
 struct InvestorFunds:
     currentAmountDeposited: uint256
@@ -20,6 +35,8 @@ struct Liquidation:
     principal: uint256
     interestAmount: uint256
     apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    gracePeriodPrice: uint256
+    buyNowPeriodPrice: uint256
     borrower: address
     erc20TokenContract: address
     inAuction: bool
@@ -69,12 +86,23 @@ event LendingPoolPeripheralAddressRemoved:
 event CollateralVaultPeripheralAddressSet:
     currentValue: address
     newValue: address
+event NFTXVaultFactoryAddressSet:
+    currentValue: address
+    newValue: address
+event NFTXMarketplaceZapAddressSet:
+    currentValue: address
+    newValue: address
+event SushiRouterAddressSet:
+    currentValue: address
+    newValue: address
 event LiquidationAdded:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
+    gracePeriodPrice: uint256
+    buyNowPeriodPrice: uint256
 event LiquidationRemoved:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
@@ -84,9 +112,11 @@ event LiquidationRemoved:
 event NFTPurchased:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
+    fromIndexed: address
     collateralAddress: address
     tokenId: uint256
     amount: uint256
+    _from: address
     erc20TokenContract: address
 
 # Functions
@@ -141,15 +171,31 @@ def setCollateralVaultPeripheralAddress(_address: address):
     pass
 
 @external
-def addLiquidation(_collateralAddress: address, _tokenId: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _borrower: address, _loanId: uint256, _erc20TokenContract: address):
+def setNFTXVaultFactoryAddress(_address: address):
     pass
 
 @external
-def buyNFT(_collateralAddress: address, _tokenId: uint256):
+def setNFTXMarketplaceZapAddress(_address: address):
     pass
 
 @external
-def liquidateNFTX():
+def setSushiRouterAddress(_address: address):
+    pass
+
+@external
+def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: address, _loanId: uint256, _erc20TokenContract: address):
+    pass
+
+@external
+def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
+    pass
+
+@external
+def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
+    pass
+
+@external
+def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
@@ -199,6 +245,21 @@ def lendingPoolPeripheralAddresses(arg0: address) -> address:
 @view
 @external
 def collateralVaultPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def nftxVaultFactoryAddress() -> address:
+    pass
+
+@view
+@external
+def nftxMarketplaceZapAddress() -> address:
+    pass
+
+@view
+@external
+def sushiRouterAddress() -> address:
     pass
 
 @view

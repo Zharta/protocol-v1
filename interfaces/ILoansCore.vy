@@ -5,7 +5,6 @@ struct Collateral:
     tokenId: uint256
     amount: uint256
 
-
 struct Loan:
     id: uint256
     amount: uint256
@@ -19,7 +18,6 @@ struct Loan:
     paid: bool
     defaulted: bool
     canceled: bool
-
 
 struct TopStats:
     highestSingleCollateralLoan: Loan
