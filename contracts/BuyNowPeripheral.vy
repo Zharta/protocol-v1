@@ -11,14 +11,18 @@ from interfaces import ILoansCore
 from interfaces import ILendingPoolPeripheral
 from interfaces import ICollateralVaultPeripheral
 
+interface ISushiRouter:
+    def getAmountsOut(amountIn: uint256, path: address[2]) -> uint256[2]: view
+
 interface INFTXVaultFactory:
     def vaultsForAsset(assetAddress: address) -> DynArray[address, 10]: view
 
 interface INFTXVault:
+    def vaultId() -> uint256: view
     def allValidNFTs(tokenIds: uint256[1]) -> bool: view
 
-interface ISushiRouter:
-    def getAmountsOut(amountIn: uint256, path: address[2]) -> uint256[2]: view
+interface INFTXMarketplaceZap:
+    def mintAndSell721WETH(vaultId: uint256, ids: uint256[1], minWethOut: uint256, path: address[2], to: address): nonpayable
 
 
 # Structs
@@ -125,6 +129,10 @@ event NFTXVaultFactoryAddressSet:
     currentValue: address
     newValue: address
 
+event NFTXMarketplaceZapAddressSet:
+    currentValue: address
+    newValue: address
+
 event SushiRouterAddressSet:
     currentValue: address
     newValue: address
@@ -170,6 +178,7 @@ loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 co
 lendingPoolPeripheralAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LendingPoolCore
 collateralVaultPeripheralAddress: public(address)
 nftxVaultFactoryAddress: public(address)
+nftxMarketplaceZapAddress: public(address)
 sushiRouterAddress: public(address)
 wethAddress: immutable(address)
 
@@ -177,41 +186,56 @@ lenderMinDepositAmount: public(uint256)
 
 ##### INTERNAL METHODS #####
 
+# @view
+# @internal
+# def _daysForInterest(_liquidation: Liquidation) -> uint256:
+#     days: uint256 = 0
+#     if block.timestamp <= _liquidation.gracePeriodMaturity:
+#         assert msg.sender == _liquidation.borrower, "msg.sender is not borrower"
+#         days = 2
+#     elif block.timestamp <= _liquidation.buyNowPeriodMaturity:
+#         assert ILendingPoolPeripheral(
+#             self.lendingPoolPeripheralAddresses[_liquidation.erc20TokenContract]
+#         ).lenderFunds(msg.sender).currentAmountDeposited > self.lenderMinDepositAmount, "msg.sender is not a lender"
+#         days = 17
+#     else:
+#         raise "liquidation out of buying period"
+    
+#     return days
+
+
+@pure
+@internal
+def _computeNFTPrice(principal: uint256, interestAmount: uint256, apr: uint256, duration: uint256) -> uint256:
+    return principal + interestAmount + (principal * apr * duration) / 31536000
+
+
+@pure
+@internal
+def _computeInterestAmount(principal: uint256, interestAmount: uint256, apr: uint256, duration: uint256) -> uint256:
+    return interestAmount + (principal * apr * duration) / 31536000
+
+
 @view
 @internal
-def _daysForInterest(_liquidation: Liquidation) -> uint256:
-    days: uint256 = 0
-    if block.timestamp <= _liquidation.gracePeriodMaturity:
-        assert msg.sender == _liquidation.borrower, "msg.sender is not borrower"
-        days = 2
-    elif block.timestamp <= _liquidation.buyNowPeriodMaturity:
-        assert ILendingPoolPeripheral(
-            self.lendingPoolPeripheralAddresses[_liquidation.erc20TokenContract]
-        ).lenderFunds(msg.sender).currentAmountDeposited > self.lenderMinDepositAmount, "msg.sender is not a lender"
-        days = 17
-    else:
-        raise "liquidation out of buying period"
-    
-    return days
+def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
+    vault_addrs: DynArray[address, 10] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
+    return vault_addrs[len(vault_addrs) - 1]
 
 
-@pure
+@view
 @internal
-def _computeNFTPrice(principal: uint256, interestAmount: uint256, apr: uint256, days: uint256) -> uint256:
-    return principal + interestAmount + (principal * apr * days) / 365
-
-
-@pure
-@internal
-def _computeInterestAmount(principal: uint256, interestAmount: uint256, apr: uint256, days: uint256) -> uint256:
-    return interestAmount + (principal * apr * days) / 365
+def _getNFTXVaultIdFromCollateralAddr(_collateralAddress: address) -> uint256:
+    vault_addr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
+    return INFTXVault(vault_addr).vaultId()
 
 
 @view
 @internal
 def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> uint256:
-    vault_addrs: DynArray[address, 10] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
-    vault_addr: address = vault_addrs[len(vault_addrs) - 1]
+    # vault_addrs: DynArray[address, 10] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
+    # vault_addr: address = vault_addrs[len(vault_addrs) - 1]
+    vault_addr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
 
     assert INFTXVault(vault_addr).allValidNFTs([_tokenId]), "collateral not accepted"
 
@@ -453,6 +477,20 @@ def setNFTXVaultFactoryAddress(_address: address):
 
 
 @external
+def setNFTXMarketplaceZapAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert self.nftxMarketplaceZapAddress != _address, "new value is the same"
+
+    log NFTXMarketplaceZapAddressSet(
+        self.nftxMarketplaceZapAddress,
+        _address
+    )
+
+    self.nftxMarketplaceZapAddress = _address
+
+
+@external
 def setSushiRouterAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero addr"
@@ -485,8 +523,8 @@ def addLiquidation(
     # # APR from loan duration (maturity)
     apr: uint256 = borrowerLoan.interest * 31536000 / (borrowerLoan.maturity - borrowerLoan.startTime)
 
-    gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, 2)
-    protocolPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, 17)
+    gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.gracePeriodDuration)
+    protocolPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.buyNowPeriodDuration)
     # autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
     autoLiquidationPrice: uint256 = 0
     buyNowPeriodPrice: uint256 = 0
@@ -523,63 +561,6 @@ def addLiquidation(
     )
 
 
-# @external
-# def buyNFT(_collateralAddress: address, _tokenId: uint256):
-#     assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
-#     assert _collateralAddress.is_contract, "collat addr is not a contract"
-#     assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
-#     assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
-
-#     liquidation: Liquidation = IBuyNowCore(self.buyNowCoreAddress).getLiquidation(_collateralAddress, _tokenId)
-
-#     assert not liquidation.inAuction, "liquidation is in auction"
-
-#     # days: uint256 = 0
-#     # if block.timestamp <= liquidation.gracePeriodMaturity:
-#     #     assert msg.sender == liquidation.borrower, "msg.sender is not borrower"
-#     #     days = 2
-#     # elif block.timestamp <= liquidation.buyNowPeriodMaturity:
-#     #     assert ILendingPoolPeripheral(
-#     #         self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
-#     #     ).lenderFunds(msg.sender).currentAmountDeposited > self.lenderMinDepositAmount, "msg.sender is not a lender"
-#     #     days = 17
-#     # else:
-#     #     raise "liquidation out of buying period"
-    
-#     days: uint256 = self._daysForInterest(liquidation)
-
-#     # nftPrice: uint256 = self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, days)
-
-#     IBuyNowCore(self.buyNowCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
-
-#     log LiquidationRemoved(
-#         liquidation.erc20TokenContract,
-#         liquidation.collateralAddress,
-#         liquidation.collateralAddress,
-#         liquidation.tokenId,
-#         liquidation.erc20TokenContract
-#     )
-
-#     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
-#         msg.sender,
-#         liquidation.principal,
-#         self._computeInterestAmount(liquidation.principal, liquidation.interestAmount, liquidation.apr, days)
-#     )
-
-#     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
-
-#     log NFTPurchased(
-#         liquidation.erc20TokenContract,
-#         _collateralAddress,
-#         msg.sender,
-#         _collateralAddress,
-#         _tokenId,
-#         self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, days),
-#         msg.sender,
-#         liquidation.erc20TokenContract
-#     )
-
-
 @external
 def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
@@ -599,10 +580,14 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.erc20TokenContract
     )
 
+    # IERC20(liquidation.erc20TokenContract).transferFrom(msg.sender, liquidation.gracePeriodPrice)
+    # IERC20(liquidation.erc20TokenContract).approve(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract], liquidation.gracePeriodPrice)
+
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
-        msg.sender,
+        # liquidation.borrower,
+        self,
         liquidation.principal,
-        self._computeInterestAmount(liquidation.principal, liquidation.interestAmount, liquidation.apr, 2)
+        liquidation.gracePeriodPrice - liquidation.principal
     )
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
@@ -613,7 +598,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         msg.sender,
         _collateralAddress,
         _tokenId,
-        self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, 2),
+        liquidation.gracePeriodPrice,
         msg.sender,
         liquidation.erc20TokenContract
     )
@@ -621,23 +606,12 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
-    assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
-    assert _collateralAddress.is_contract, "collat addr is not a contract"
-    assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
     assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
     assert block.timestamp > IBuyNowCore(self.buyNowCoreAddress).getLiquidationGracePeriodMaturity(_collateralAddress, _tokenId), "liquidation in grace period"
     assert block.timestamp <= IBuyNowCore(self.buyNowCoreAddress).getLiquidationBuyNowPeriodMaturity(_collateralAddress, _tokenId), "liquidation out of buynow period"
     assert not IBuyNowCore(self.buyNowCoreAddress).isLiquidationInAuction(_collateralAddress, _tokenId), "liquidation is in auction"
 
     liquidation: Liquidation = IBuyNowCore(self.buyNowCoreAddress).getLiquidation(_collateralAddress, _tokenId)
-    protocolPrice: uint256 = self._computeNFTPrice(liquidation.principal, liquidation.interestAmount, liquidation.apr, 17)
-    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
-    nftPrice: uint256 = 0
-    
-    if protocolPrice > autoLiquidationPrice:
-        nftPrice = protocolPrice
-    else:
-        nftPrice = autoLiquidationPrice
 
     IBuyNowCore(self.buyNowCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 
@@ -649,10 +623,32 @@ def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.erc20TokenContract
     )
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
-        msg.sender,
+    fundsSender: address = msg.sender
+    buyNowPeriodInterestAmount: uint256 = self._computeInterestAmount(
         liquidation.principal,
-        nftPrice
+        liquidation.interestAmount,
+        liquidation.apr, self.buyNowPeriodDuration
+    )
+    if liquidation.buyNowPeriodPrice > liquidation.principal + buyNowPeriodInterestAmount:
+        fundsSender = self
+        IERC20(liquidation.erc20TokenContract).transferFrom(
+            msg.sender,
+            self,
+            liquidation.buyNowPeriodPrice
+        )
+        IERC20(liquidation.erc20TokenContract).approve(
+            self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract],
+            liquidation.principal + buyNowPeriodInterestAmount
+        )
+        IERC20(liquidation.erc20TokenContract).transfer(
+            liquidation.borrower,
+            liquidation.buyNowPeriodPrice - (liquidation.principal + buyNowPeriodInterestAmount)
+        )
+
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+        fundsSender,
+        liquidation.principal,
+        buyNowPeriodInterestAmount
     )
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
@@ -663,15 +659,73 @@ def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
         msg.sender,
         _collateralAddress,
         _tokenId,
-        nftPrice,
+        liquidation.buyNowPeriodPrice,
         msg.sender,
         liquidation.erc20TokenContract
     )
 
 
 @external
-def liquidateNFTX():
-    pass
+def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
+    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
+    assert block.timestamp > IBuyNowCore(self.buyNowCoreAddress).getLiquidationBuyNowPeriodMaturity(_collateralAddress, _tokenId), "liquidation out of buynow period"
+    assert not IBuyNowCore(self.buyNowCoreAddress).isLiquidationInAuction(_collateralAddress, _tokenId), "liquidation is in auction"
+
+    liquidation: Liquidation = IBuyNowCore(self.buyNowCoreAddress).getLiquidation(_collateralAddress, _tokenId)
+
+    IBuyNowCore(self.buyNowCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
+
+    log LiquidationRemoved(
+        liquidation.erc20TokenContract,
+        liquidation.collateralAddress,
+        liquidation.collateralAddress,
+        liquidation.tokenId,
+        liquidation.erc20TokenContract
+    )
+
+    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
+
+    INFTXMarketplaceZap(self.nftxMarketplaceZapAddress).mintAndSell721WETH(
+        self._getNFTXVaultIdFromCollateralAddr(_collateralAddress),
+        [_tokenId],
+        autoLiquidationPrice,
+        [wethAddress, self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)],
+        self
+    )
+
+    # TODO: swap WETH for liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
+    # TODO: recompute "autoLiquidationPrice" to be in liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
+
+    IERC20(liquidation.erc20TokenContract).approve(
+        self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract],
+        autoLiquidationPrice
+    )
+
+    principal: uint256 = liquidation.principal
+    interestAmount: uint256 = 0
+    if autoLiquidationPrice <= liquidation.principal:
+        principal = autoLiquidationPrice
+    else:
+        interestAmount = autoLiquidationPrice - liquidation.principal
+
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+        msg.sender,
+        principal,
+        interestAmount
+    )
+
+    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
+
+    log NFTPurchased(
+        liquidation.erc20TokenContract,
+        _collateralAddress,
+        msg.sender,
+        _collateralAddress,
+        _tokenId,
+        autoLiquidationPrice,
+        msg.sender,
+        liquidation.erc20TokenContract
+    )
 
 
 @external
