@@ -10,7 +10,6 @@ from vyper.interfaces import ERC721 as IERC721
 # Structs
 
 
-
 # Events
 
 event OwnershipTransferred:
@@ -38,8 +37,6 @@ proposedOwner: public(address)
 collateralVaultPeripheralAddress: public(address)
 
 ##### INTERNAL METHODS #####
-
-
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -115,3 +112,10 @@ def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: 
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
 
     IERC721(_collateralAddress).safeTransferFrom(self, _wallet,  _tokenId, b"")
+
+
+@external
+def approveOperator(_address: address, _collateralAddress: address, _tokenId: uint256):
+    assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
+
+    IERC721(_collateralAddress).approve(_address, _tokenId)

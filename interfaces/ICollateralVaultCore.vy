@@ -41,6 +41,10 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
 def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
+@external
+def approveOperator(_address: address, _collateralAddress: address, _tokenId: uint256):
+    pass
+
 @view
 @external
 def owner() -> address:

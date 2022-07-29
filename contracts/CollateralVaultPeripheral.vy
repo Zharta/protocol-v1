@@ -11,7 +11,6 @@ from interfaces import ICollateralVaultCore
 # Structs
 
 
-
 # Events
 
 event OwnershipTransferred:
@@ -66,6 +65,13 @@ event CollateralFromLiquidationTransferred:
     tokenId: uint256
     _to: address
 
+event OperatorApproved:
+    collateralAddressIndexed: indexed(address)
+    toIndexed: indexed(address)
+    collateralAddress: address
+    tokenId: uint256
+    operator: address
+
 
 # Global variables
 
@@ -77,15 +83,10 @@ loansPeripheralAddresses: public(HashMap[address, address]) # mapping between ER
 buyNowPeripheralAddress: public(address) # mapping between ERC20 contract and LoansCore
 
 
-
 ##### INTERNAL METHODS #####
 
 
-
-
 ##### EXTERNAL METHODS - VIEW #####
-
-
 
 
 ##### EXTERNAL METHODS - WRITE #####
@@ -244,4 +245,24 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
         _collateralAddress,
         _tokenId,
         _wallet
+    )
+
+
+@external
+def approveBackstopBuyer(_address: address, _collateralAddress: address, _tokenId: uint256):
+    assert msg.sender == self.buyNowPeripheralAddress, "msg.sender is not authorised"
+    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
+    assert _collateralAddress.is_contract, "collat addr is not a contract"
+    assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
+    assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultCoreAddress, "collateral not owned by CVCore"
+
+    ICollateralVaultCore(self.collateralVaultCoreAddress).approveOperator(_address, _collateralAddress, _tokenId)
+
+    log OperatorApproved(
+        _collateralAddress,
+        _address,
+        _collateralAddress,
+        _tokenId,
+        _address
     )

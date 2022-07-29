@@ -684,6 +684,12 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
     autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
 
+    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).approveBackstopBuyer(
+        self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress),
+        _collateralAddress,
+        _tokenId
+    )
+
     INFTXMarketplaceZap(self.nftxMarketplaceZapAddress).mintAndSell721WETH(
         self._getNFTXVaultIdFromCollateralAddr(_collateralAddress),
         [_tokenId],
@@ -708,21 +714,19 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         interestAmount = autoLiquidationPrice - liquidation.principal
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
-        msg.sender,
+        self,
         principal,
         interestAmount
     )
 
-    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
-
     log NFTPurchased(
         liquidation.erc20TokenContract,
         _collateralAddress,
-        msg.sender,
+        self.nftxMarketplaceZapAddress,
         _collateralAddress,
         _tokenId,
         autoLiquidationPrice,
-        msg.sender,
+        self.nftxMarketplaceZapAddress,
         liquidation.erc20TokenContract
     )
 

@@ -78,6 +78,10 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
 def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
+@external
+def approveBackstopBuyer(_address: address, _collateralAddress: address, _tokenId: uint256):
+    pass
+
 @view
 @external
 def owner() -> address:
