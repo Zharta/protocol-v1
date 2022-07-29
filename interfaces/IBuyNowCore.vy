@@ -1,6 +1,7 @@
 # Structs
 
 struct Liquidation:
+    lid: bytes32
     collateralAddress: address
     tokenId: uint256
     startTime: uint256
@@ -113,7 +114,7 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
     pass
 
 @external
-def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _buyNowPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _buyNowPeriodPrice: uint256, _borrower: address, _erc20TokenContract: address):
+def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _buyNowPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _buyNowPeriodPrice: uint256, _borrower: address, _erc20TokenContract: address) -> bytes32:
     pass
 
 @external

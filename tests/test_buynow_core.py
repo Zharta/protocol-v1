@@ -2,6 +2,7 @@ from brownie.network import chain
 from web3 import Web3
 
 import brownie
+import eth_abi
 
 
 GRACE_PERIOD_DURATION = 172800 # 2 days
@@ -218,7 +219,17 @@ def test_add_liquidation(buy_now_core_contract, buy_now_peripheral_contract, col
         {"from": buy_now_peripheral_contract}
     )
 
+    liquidation_id_abi_encoded = eth_abi.encode_abi(
+        ["address", "uint256", "uint256"],
+        [erc721_contract.address, 0, start_time]
+    ).hex()
+    liquidation_id = Web3.solidityKeccak(
+        ["bytes32"],
+        ["0x" + liquidation_id_abi_encoded]
+    ).hex()
+
     liquidation = buy_now_core_contract.getLiquidation(erc721_contract, 0)
+    assert liquidation["lid"] == liquidation_id
     assert liquidation["startTime"] == start_time
     assert liquidation["gracePeriodMaturity"] == start_time + GRACE_PERIOD_DURATION
     assert liquidation["buyNowPeriodMaturity"] == start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION

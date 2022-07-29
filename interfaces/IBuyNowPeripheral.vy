@@ -27,6 +27,7 @@ struct InvestorFunds:
     activeForRewards: bool
 
 struct Liquidation:
+    lid: bytes32
     collateralAddress: address
     tokenId: uint256
     startTime: uint256
@@ -98,6 +99,7 @@ event SushiRouterAddressSet:
 event LiquidationAdded:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
@@ -106,6 +108,7 @@ event LiquidationAdded:
 event LiquidationRemoved:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address

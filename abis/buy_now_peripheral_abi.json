@@ -301,6 +301,11 @@
         "indexed": true
       },
       {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
+      },
+      {
         "name": "collateralAddress",
         "type": "address",
         "indexed": false
@@ -341,6 +346,11 @@
         "name": "collateralAddressIndexed",
         "type": "address",
         "indexed": true
+      },
+      {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
       },
       {
         "name": "collateralAddress",
@@ -427,6 +437,10 @@
         "name": "",
         "type": "tuple",
         "components": [
+          {
+            "name": "lid",
+            "type": "bytes32"
+          },
           {
             "name": "collateralAddress",
             "type": "address"

@@ -54,6 +54,7 @@ struct InvestorFunds:
     activeForRewards: bool
 
 struct Liquidation:
+    lid: bytes32
     collateralAddress: address
     tokenId: uint256
     startTime: uint256
@@ -140,6 +141,7 @@ event SushiRouterAddressSet:
 event LiquidationAdded:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
@@ -149,6 +151,7 @@ event LiquidationAdded:
 event LiquidationRemoved:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
@@ -185,24 +188,6 @@ wethAddress: immutable(address)
 lenderMinDepositAmount: public(uint256)
 
 ##### INTERNAL METHODS #####
-
-# @view
-# @internal
-# def _daysForInterest(_liquidation: Liquidation) -> uint256:
-#     days: uint256 = 0
-#     if block.timestamp <= _liquidation.gracePeriodMaturity:
-#         assert msg.sender == _liquidation.borrower, "msg.sender is not borrower"
-#         days = 2
-#     elif block.timestamp <= _liquidation.buyNowPeriodMaturity:
-#         assert ILendingPoolPeripheral(
-#             self.lendingPoolPeripheralAddresses[_liquidation.erc20TokenContract]
-#         ).lenderFunds(msg.sender).currentAmountDeposited > self.lenderMinDepositAmount, "msg.sender is not a lender"
-#         days = 17
-#     else:
-#         raise "liquidation out of buying period"
-    
-#     return days
-
 
 @pure
 @internal
@@ -521,7 +506,7 @@ def addLiquidation(
     principal: uint256 = self._getCollateralAmount(borrowerLoan.collaterals, _collateralAddress, _tokenId)
     interestAmount: uint256 = principal * borrowerLoan.interest / 10000
     # # APR from loan duration (maturity)
-    apr: uint256 = borrowerLoan.interest * 31536000 / (borrowerLoan.maturity - borrowerLoan.startTime)
+    apr: uint256 = borrowerLoan.interest * 12
 
     gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.gracePeriodDuration)
     protocolPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.buyNowPeriodDuration)
@@ -534,8 +519,7 @@ def addLiquidation(
     else:
         buyNowPeriodPrice = autoLiquidationPrice
 
-
-    IBuyNowCore(self.buyNowCoreAddress).addLiquidation(
+    lid: bytes32 = IBuyNowCore(self.buyNowCoreAddress).addLiquidation(
         _collateralAddress,
         _tokenId,
         block.timestamp,
@@ -553,6 +537,7 @@ def addLiquidation(
     log LiquidationAdded(
         _erc20TokenContract,
         _collateralAddress,
+        lid,
         _collateralAddress,
         _tokenId,
         _erc20TokenContract,
@@ -575,6 +560,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     log LiquidationRemoved(
         liquidation.erc20TokenContract,
         liquidation.collateralAddress,
+        liquidation.lid,
         liquidation.collateralAddress,
         liquidation.tokenId,
         liquidation.erc20TokenContract
@@ -617,6 +603,7 @@ def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
     log LiquidationRemoved(
         liquidation.erc20TokenContract,
         liquidation.collateralAddress,
+        liquidation.lid,
         liquidation.collateralAddress,
         liquidation.tokenId,
         liquidation.erc20TokenContract
@@ -677,6 +664,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     log LiquidationRemoved(
         liquidation.erc20TokenContract,
         liquidation.collateralAddress,
+        liquidation.lid,
         liquidation.collateralAddress,
         liquidation.tokenId,
         liquidation.erc20TokenContract

@@ -13,6 +13,7 @@ interface ILoansCore:
 # Structs
 
 struct Liquidation:
+    lid: bytes32
     collateralAddress: address
     tokenId: uint256
     startTime: uint256
@@ -71,7 +72,13 @@ liquidations: HashMap[bytes32, Liquidation]
 
 ##### INTERNAL METHODS #####
 
-@view
+@pure
+@internal
+def _computeLiquidationId(_collateralAddress: address, _collateralId: uint256, _timestamp: uint256) -> bytes32:
+  return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32), convert(_timestamp, bytes32)))
+
+
+@pure
 @internal
 def _computeLiquidationKey(_collateralAddress: address, _collateralId: uint256) -> bytes32:
   return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
@@ -233,14 +240,16 @@ def addLiquidation(
     _buyNowPeriodPrice: uint256,
     _borrower: address,
     _erc20TokenContract: address
-):
+) -> bytes32:
     assert msg.sender == self.buyNowPeripheralAddress, "msg.sender is not BNPeriph addr"
     
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
     assert self.liquidations[liquidationKey].startTime == 0, "liquidation already exists"
 
+    lid: bytes32 = self._computeLiquidationId(_collateralAddress, _tokenId, block.timestamp)
     self.liquidations[liquidationKey] = Liquidation(
         {
+            lid: lid,
             collateralAddress: _collateralAddress,
             tokenId: _tokenId,
             startTime: _startTime,
@@ -256,6 +265,8 @@ def addLiquidation(
             inAuction: False,
         }
     )
+
+    return lid
 
 
 @external

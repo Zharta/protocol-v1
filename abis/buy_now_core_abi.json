@@ -139,6 +139,10 @@
         "type": "tuple",
         "components": [
           {
+            "name": "lid",
+            "type": "bytes32"
+          },
+          {
             "name": "collateralAddress",
             "type": "address"
           },
@@ -502,7 +506,12 @@
         "type": "address"
       }
     ],
-    "outputs": []
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ]
   },
   {
     "stateMutability": "nonpayable",
