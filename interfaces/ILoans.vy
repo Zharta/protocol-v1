@@ -76,7 +76,7 @@ event CollateralVaultPeripheralAddressSet:
     currentValue: address
     newValue: address
     erc20TokenContract: address
-event BuyNowPeripheralAddressSet:
+event LiquidationsPeripheralAddressSet:
     erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
@@ -169,7 +169,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
     pass
 
 @external
-def setBuyNowPeripheralAddress(_address: address):
+def setLiquidationsPeripheralAddress(_address: address):
     pass
 
 @external
@@ -291,7 +291,7 @@ def collateralVaultPeripheralAddress() -> address:
 
 @view
 @external
-def buyNowPeripheralAddress() -> address:
+def liquidationsPeripheralAddress() -> address:
     pass
 
 

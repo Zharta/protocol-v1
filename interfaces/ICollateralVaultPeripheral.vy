@@ -22,7 +22,7 @@ event LoansPeripheralAddressRemoved:
     erc20TokenContractIndexed: address
     currentValue: address
     erc20TokenContract: address
-event BuyNowPeripheralAddressSet:
+event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
 event CollateralStored:
@@ -43,6 +43,12 @@ event CollateralFromLiquidationTransferred:
     collateralAddress: address
     tokenId: uint256
     _to: address
+event OperatorApproved:
+    collateralAddressIndexed: address
+    toIndexed: address
+    collateralAddress: address
+    tokenId: uint256
+    operator: address
 
 # Functions
 
@@ -63,7 +69,7 @@ def removeLoansPeripheralAddress(_erc20TokenContract: address):
     pass
 
 @external
-def setBuyNowPeripheralAddress(_address: address):
+def setLiquidationsPeripheralAddress(_address: address):
     pass
 
 @external
@@ -104,7 +110,7 @@ def loansPeripheralAddresses(arg0: address) -> address:
 
 @view
 @external
-def buyNowPeripheralAddress() -> address:
+def liquidationsPeripheralAddress() -> address:
     pass
 
 

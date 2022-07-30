@@ -57,13 +57,13 @@ event OwnerProposed:
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-event BuyNowPeriodDurationChanged:
+event LiquidationsPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 event AuctionPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-event BuyNowCoreAddressSet:
+event LiquidationsCoreAddressSet:
     currentValue: address
     newValue: address
 event LoansCoreAddressAdded:
@@ -142,7 +142,7 @@ def setGracePeriodDuration(_duration: uint256):
     pass
 
 @external
-def setBuyNowPeriodDuration(_duration: uint256):
+def setLiquidationsPeriodDuration(_duration: uint256):
     pass
 
 @external
@@ -150,7 +150,7 @@ def setAuctionPeriodDuration(_duration: uint256):
     pass
 
 @external
-def setBuyNowCoreAddress(_address: address):
+def setLiquidationsCoreAddress(_address: address):
     pass
 
 @external
@@ -194,7 +194,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
-def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
+def buyNFTLiquidationsPeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
@@ -232,7 +232,7 @@ def auctionPeriodDuration() -> uint256:
 
 @view
 @external
-def buyNowCoreAddress() -> address:
+def liquidationsCoreAddress() -> address:
     pass
 
 @view

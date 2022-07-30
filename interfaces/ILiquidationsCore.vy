@@ -28,7 +28,7 @@ event OwnerProposed:
     proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-event BuyNowPeripheralAddressSet:
+event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
 event LoansCoreAddressAdded:
@@ -102,7 +102,7 @@ def claimOwnership():
     pass
 
 @external
-def setBuyNowPeripheralAddress(_address: address):
+def setLiquidationsPeripheralAddress(_address: address):
     pass
 
 @external
@@ -133,7 +133,7 @@ def proposedOwner() -> address:
 
 @view
 @external
-def buyNowPeripheralAddress() -> address:
+def liquidationsPeripheralAddress() -> address:
     pass
 
 @view
