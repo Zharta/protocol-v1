@@ -1999,8 +1999,8 @@ def test_set_default_loan(
         assert liquidation["principal"] == collateral[2]
         assert liquidation["interestAmount"] == interest_amount
         assert liquidation["apr"] == apr
-        assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) + Decimal(10000)))
-        assert liquidation["buyNowPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(BUY_NOW_PERIOD_DURATION)) / (Decimal(31536000) + Decimal(10000)))
+        assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+        assert liquidation["buyNowPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(BUY_NOW_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
         assert liquidation["borrower"] == borrower
         assert liquidation["erc20TokenContract"] == erc20_contract
         assert not liquidation["inAuction"]
