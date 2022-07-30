@@ -192,13 +192,13 @@ lenderMinDepositAmount: public(uint256)
 @pure
 @internal
 def _computeNFTPrice(principal: uint256, interestAmount: uint256, apr: uint256, duration: uint256) -> uint256:
-    return principal + interestAmount + (principal * apr * duration) / 31536000
+    return principal + interestAmount + (principal * apr * duration) / 315360000000 # 315360000000 = 365 days in seconds times 10000 base percentage points
 
 
 @pure
 @internal
 def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint256, apr: uint256, duration: uint256) -> uint256:
-    return interestAmount + (principal * apr * duration) / 31536000
+    return interestAmount + (principal * apr * duration) / 315360000000 # 315360000000 = 365 days in seconds times 10000 base percentage points
 
 
 @view
@@ -590,7 +590,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
 
 
 @external
-def buyNFTLiquidationsPeriod(_collateralAddress: address, _tokenId: uint256):
+def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
     assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
     assert block.timestamp > ILiquidationsCore(self.liquidationsCoreAddress).getLiquidationGracePeriodMaturity(_collateralAddress, _tokenId), "liquidation in grace period"
     assert block.timestamp <= ILiquidationsCore(self.liquidationsCoreAddress).getLiquidationBuyNowPeriodMaturity(_collateralAddress, _tokenId), "liquidation out of buynow period"

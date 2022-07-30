@@ -742,7 +742,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "buyNFTLiquidationsPeriod",
+    "name": "buyNFTBuyNowPeriod",
     "inputs": [
       {
         "name": "_collateralAddress",

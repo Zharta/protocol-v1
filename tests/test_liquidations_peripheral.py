@@ -434,8 +434,8 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["erc20TokenContract"] == erc20_contract
-    assert event["gracePeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * GRACE_PERIOD_DURATION) / Decimal(31536000))
-    assert event["buyNowPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * BUY_NOW_PERIOD_DURATION) / Decimal(31536000))
+    assert event["gracePeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * GRACE_PERIOD_DURATION) / (Decimal(31536000) * Decimal(10000)))
+    assert event["buyNowPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * BUY_NOW_PERIOD_DURATION) / (Decimal(31536000) * Decimal(10000)))
 
 
 def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
@@ -611,7 +611,7 @@ def test_buy_nft_grace_period(liquidations_peripheral_contract, liquidations_cor
     interest_amount = int(Decimal(LOAN_AMOUNT) * Decimal(LOAN_INTEREST) / Decimal(10000))
     apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
-    grace_period_price = int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + (Decimal(LOAN_AMOUNT) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / Decimal(31536000))
+    grace_period_price = int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + (Decimal(LOAN_AMOUNT) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
     erc20_contract.mint(borrower, grace_period_price, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, grace_period_price, {"from": borrower})
 

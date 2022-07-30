@@ -194,7 +194,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
-def buyNFTLiquidationsPeriod(_collateralAddress: address, _tokenId: uint256):
+def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
