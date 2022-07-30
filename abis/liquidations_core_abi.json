@@ -54,7 +54,7 @@
     "type": "event"
   },
   {
-    "name": "BuyNowPeripheralAddressSet",
+    "name": "LiquidationsPeripheralAddressSet",
     "inputs": [
       {
         "name": "currentValue",
@@ -415,7 +415,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setBuyNowPeripheralAddress",
+    "name": "setLiquidationsPeripheralAddress",
     "inputs": [
       {
         "name": "_address",
@@ -556,7 +556,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "buyNowPeripheralAddress",
+    "name": "liquidationsPeripheralAddress",
     "inputs": [],
     "outputs": [
       {

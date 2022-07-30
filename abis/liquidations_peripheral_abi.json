@@ -71,7 +71,7 @@
     "type": "event"
   },
   {
-    "name": "BuyNowPeriodDurationChanged",
+    "name": "LiquidationsPeriodDurationChanged",
     "inputs": [
       {
         "name": "currentValue",
@@ -105,7 +105,7 @@
     "type": "event"
   },
   {
-    "name": "BuyNowCoreAddressSet",
+    "name": "LiquidationsCoreAddressSet",
     "inputs": [
       {
         "name": "currentValue",
@@ -502,7 +502,7 @@
     "type": "constructor",
     "inputs": [
       {
-        "name": "_buyNowCoreAddress",
+        "name": "_liquidationsCoreAddress",
         "type": "address"
       },
       {
@@ -558,7 +558,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setBuyNowPeriodDuration",
+    "name": "setLiquidationsPeriodDuration",
     "inputs": [
       {
         "name": "_duration",
@@ -582,7 +582,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setBuyNowCoreAddress",
+    "name": "setLiquidationsCoreAddress",
     "inputs": [
       {
         "name": "_address",
@@ -742,7 +742,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "buyNFTBuyNowPeriod",
+    "name": "buyNFTLiquidationsPeriod",
     "inputs": [
       {
         "name": "_collateralAddress",
@@ -841,7 +841,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "buyNowCoreAddress",
+    "name": "liquidationsCoreAddress",
     "inputs": [],
     "outputs": [
       {

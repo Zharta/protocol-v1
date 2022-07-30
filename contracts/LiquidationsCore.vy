@@ -43,7 +43,7 @@ event OwnerProposed:
     owner: address
     proposedOwner: address
 
-event BuyNowPeripheralAddressSet:
+event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
 
@@ -64,7 +64,7 @@ event LoansCoreAddressRemoved:
 owner: public(address)
 proposedOwner: public(address)
 
-buyNowPeripheralAddress: public(address)
+liquidationsPeripheralAddress: public(address)
 loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
 
 liquidations: HashMap[bytes32, Liquidation]
@@ -177,18 +177,18 @@ def claimOwnership():
 
 
 @external
-def setBuyNowPeripheralAddress(_address: address):
+def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
-    assert self.buyNowPeripheralAddress != _address, "new value is the same"
+    assert self.liquidationsPeripheralAddress != _address, "new value is the same"
 
-    log BuyNowPeripheralAddressSet(
-        self.buyNowPeripheralAddress,
+    log LiquidationsPeripheralAddressSet(
+        self.liquidationsPeripheralAddress,
         _address
     )
 
-    self.buyNowPeripheralAddress = _address
+    self.liquidationsPeripheralAddress = _address
 
 
 @external
@@ -241,7 +241,7 @@ def addLiquidation(
     _borrower: address,
     _erc20TokenContract: address
 ) -> bytes32:
-    assert msg.sender == self.buyNowPeripheralAddress, "msg.sender is not BNPeriph addr"
+    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not BNPeriph addr"
     
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
     assert self.liquidations[liquidationKey].startTime == 0, "liquidation already exists"
@@ -271,7 +271,7 @@ def addLiquidation(
 
 @external
 def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
-    assert msg.sender == self.buyNowPeripheralAddress, "msg.sender is not BNPeriph addr"
+    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not BNPeriph addr"
 
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
     

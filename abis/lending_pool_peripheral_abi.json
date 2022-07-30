@@ -172,7 +172,7 @@
     "type": "event"
   },
   {
-    "name": "BuyNowPeripheralAddressSet",
+    "name": "LiquidationsPeripheralAddressSet",
     "inputs": [
       {
         "name": "erc20TokenContractIndexed",
@@ -595,7 +595,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setBuyNowPeripheralAddress",
+    "name": "setLiquidationsPeripheralAddress",
     "inputs": [
       {
         "name": "_address",
@@ -802,7 +802,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "buyNowPeripheralContract",
+    "name": "liquidationsPeripheralContract",
     "inputs": [],
     "outputs": [
       {

@@ -120,7 +120,7 @@
     "type": "event"
   },
   {
-    "name": "BuyNowPeripheralAddressSet",
+    "name": "LiquidationsPeripheralAddressSet",
     "inputs": [
       {
         "name": "currentValue",
@@ -233,6 +233,38 @@
     "type": "event"
   },
   {
+    "name": "OperatorApproved",
+    "inputs": [
+      {
+        "name": "collateralAddressIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "toIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "collateralAddress",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "operator",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "stateMutability": "nonpayable",
     "type": "constructor",
     "inputs": [
@@ -293,7 +325,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setBuyNowPeripheralAddress",
+    "name": "setLiquidationsPeripheralAddress",
     "inputs": [
       {
         "name": "_address",
@@ -371,6 +403,26 @@
     "outputs": []
   },
   {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "approveBackstopBuyer",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      },
+      {
+        "name": "_collateralAddress",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
     "stateMutability": "view",
     "type": "function",
     "name": "owner",
@@ -426,7 +478,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "buyNowPeripheralAddress",
+    "name": "liquidationsPeripheralAddress",
     "inputs": [],
     "outputs": [
       {

@@ -1,6 +1,7 @@
 from datetime import datetime as dt
 from web3 import Web3
 
+import conftest_base
 import pytest
 
 
@@ -20,43 +21,12 @@ BUY_NOW_PERIOD_DURATION = 5 # 15 days
 AUCTION_DURATION = 5 # 15 days
 
 
-import conftest_base
-
 contract_owner = conftest_base.contract_owner
 investor = conftest_base.investor
 borrower = conftest_base.borrower
 protocol_wallet = conftest_base.protocol_wallet
 erc20_contract = conftest_base.erc20_contract
 erc721_contract = conftest_base.erc721_contract
-
-# @pytest.fixture(scope="module", autouse=True)
-# def contract_owner(accounts):
-#     yield accounts[0]
-
-
-# @pytest.fixture(scope="module", autouse=True)
-# def investor(accounts):
-#     yield accounts[1]
-
-
-# @pytest.fixture(scope="module", autouse=True)
-# def borrower(accounts):
-#     yield accounts[2]
-
-
-# @pytest.fixture(scope="module", autouse=True)
-# def protocol_wallet(accounts):
-#     yield accounts[3]
-
-
-# @pytest.fixture(scope="module", autouse=True)
-# def erc20_contract(ERC20, contract_owner):
-#     yield ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
-
-
-# @pytest.fixture(scope="module", autouse=True)
-# def erc721_contract(ERC721, contract_owner):
-#     yield ERC721.deploy({'from': contract_owner})
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -134,14 +104,14 @@ def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contr
 
 
 @pytest.fixture(scope="module", autouse=True)
-def buy_now_core_contract(BuyNowCore, contract_owner):
-    yield BuyNowCore.deploy({"from": contract_owner})
+def liquidations_core_contract(LiquidationsCore, contract_owner):
+    yield LiquidationsCore.deploy({"from": contract_owner})
 
 
 @pytest.fixture(scope="module", autouse=True)
-def buy_now_peripheral_contract(BuyNowPeripheral, buy_now_core_contract, erc20_contract, contract_owner):
-    yield BuyNowPeripheral.deploy(
-        buy_now_core_contract,
+def liquidations_peripheral_contract(LiquidationsPeripheral, liquidations_core_contract, erc20_contract, contract_owner):
+    yield LiquidationsPeripheral.deploy(
+        liquidations_core_contract,
         GRACE_PERIOD_DURATION,
         BUY_NOW_PERIOD_DURATION,
         AUCTION_DURATION,

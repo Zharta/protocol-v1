@@ -57,7 +57,7 @@ event LoansPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
-event BuyNowPeripheralAddressSet:
+event LiquidationsPeripheralAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
@@ -127,7 +127,7 @@ proposedOwner: public(address)
 loansContract: public(address)
 lendingPoolCoreContract: public(address)
 erc20TokenContract: public(address)
-buyNowPeripheralContract: public(address)
+liquidationsPeripheralContract: public(address)
 
 protocolWallet: public(address)
 protocolFeesShare: public(uint256) # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
@@ -371,20 +371,20 @@ def setLoansPeripheralAddress(_address: address):
 
 
 @external
-def setBuyNowPeripheralAddress(_address: address):
+def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
-    assert _address != self.buyNowPeripheralContract, "new value is the same"
+    assert _address != self.liquidationsPeripheralContract, "new value is the same"
 
-    log BuyNowPeripheralAddressSet(
+    log LiquidationsPeripheralAddressSet(
         self.erc20TokenContract,
-        self.buyNowPeripheralContract,
+        self.liquidationsPeripheralContract,
         _address,
         self.erc20TokenContract
     )
 
-    self.buyNowPeripheralContract = _address
+    self.liquidationsPeripheralContract = _address
 
 
 @external
@@ -567,7 +567,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
 def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     # _amount and _rewardsAmount should be passed in wei
 
-    assert msg.sender == self.buyNowPeripheralContract, "msg.sender is not the BN addr"
+    assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
     assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"

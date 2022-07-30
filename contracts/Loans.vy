@@ -19,7 +19,7 @@ interface ILendingPoolPeripheral:
     def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): nonpayable
     def lendingPoolCoreContract() -> address: view
 
-interface IBuyNowPeripheral:
+interface ILiquidationsPeripheral:
     def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
 
 
@@ -113,7 +113,7 @@ event CollateralVaultPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
-event BuyNowPeripheralAddressSet:
+event LiquidationsPeripheralAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
@@ -193,7 +193,7 @@ whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral addr
 loansCoreAddress: public(address)
 lendingPoolPeripheralAddress: public(address)
 collateralVaultPeripheralAddress: public(address)
-buyNowPeripheralAddress: public(address)
+liquidationsPeripheralAddress: public(address)
 
 
 @external
@@ -437,20 +437,20 @@ def setCollateralVaultPeripheralAddress(_address: address):
 
 
 @external
-def setBuyNowPeripheralAddress(_address: address):
+def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
-    assert self.buyNowPeripheralAddress != _address, "new LPCore addr is the same"
+    assert self.liquidationsPeripheralAddress != _address, "new LPCore addr is the same"
 
-    log BuyNowPeripheralAddressSet(
+    log LiquidationsPeripheralAddressSet(
         ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
-        self.buyNowPeripheralAddress,
+        self.liquidationsPeripheralAddress,
         _address,
         ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
     )
 
-    self.buyNowPeripheralAddress = _address
+    self.liquidationsPeripheralAddress = _address
 
 
 @external
@@ -687,7 +687,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan not found"
     assert block.timestamp > ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
-    assert self.buyNowPeripheralAddress != ZERO_ADDRESS, "BNPeriph is the zero address"
+    assert self.liquidationsPeripheralAddress != ZERO_ADDRESS, "BNPeriph is the zero address"
 
     self.ongoingLoans[_borrower] -= 1
 
@@ -699,14 +699,14 @@ def settleDefault(_borrower: address, _loanId: uint256):
         ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
 
-        # TODO: integrate BuyNow liquidation process       
+        # TODO: integrate Liquidations liquidation process       
         # ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
         #     self.owner,
         #     collateral.contractAddress,
         #     collateral.tokenId,
         #     ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
         # )
-        IBuyNowPeripheral(self.buyNowPeripheralAddress).addLiquidation(
+        ILiquidationsPeripheral(self.liquidationsPeripheralAddress).addLiquidation(
             collateral.contractAddress,
             collateral.tokenId,
             _borrower,

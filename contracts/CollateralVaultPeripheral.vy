@@ -40,7 +40,7 @@ event LoansPeripheralAddressRemoved:
     currentValue: address
     erc20TokenContract: address
 
-event BuyNowPeripheralAddressSet:
+event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
 
@@ -80,7 +80,7 @@ proposedOwner: public(address)
 
 collateralVaultCoreAddress: public(address)
 loansPeripheralAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
-buyNowPeripheralAddress: public(address) # mapping between ERC20 contract and LoansCore
+liquidationsPeripheralAddress: public(address) # mapping between ERC20 contract and LoansCore
 
 
 ##### INTERNAL METHODS #####
@@ -167,18 +167,18 @@ def removeLoansPeripheralAddress(_erc20TokenContract: address):
 
 
 @external
-def setBuyNowPeripheralAddress(_address: address):
+def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != ZERO_ADDRESS, "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
-    assert self.buyNowPeripheralAddress != _address, "new value is the same"
+    assert self.liquidationsPeripheralAddress != _address, "new value is the same"
 
-    log BuyNowPeripheralAddressSet(
-        self.buyNowPeripheralAddress,
+    log LiquidationsPeripheralAddressSet(
+        self.liquidationsPeripheralAddress,
         _address
     )
 
-    self.buyNowPeripheralAddress = _address
+    self.liquidationsPeripheralAddress = _address
 
 
 @external
@@ -230,7 +230,7 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
 
 @external
 def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256):
-    assert msg.sender == self.buyNowPeripheralAddress, "msg.sender is not authorised"
+    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not authorised"
     assert _wallet != ZERO_ADDRESS, "address is the zero addr"
     assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
     assert _collateralAddress.is_contract, "collat addr is not a contract"
@@ -250,7 +250,7 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
 
 @external
 def approveBackstopBuyer(_address: address, _collateralAddress: address, _tokenId: uint256):
-    assert msg.sender == self.buyNowPeripheralAddress, "msg.sender is not authorised"
+    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not authorised"
     assert _address != ZERO_ADDRESS, "address is the zero addr"
     assert _collateralAddress != ZERO_ADDRESS, "collat addr is the zero addr"
     assert _collateralAddress.is_contract, "collat addr is not a contract"
