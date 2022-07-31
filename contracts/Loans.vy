@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.4
 
 
 # Interfaces
@@ -209,9 +209,9 @@ def __init__(
     assert _maxAllowedLoans > 0, "value for max loans is 0"
     assert _maxAllowedLoanDuration > 0, "valor for max duration is 0"
     assert _maxLoanAmount >= _minLoanAmount, "max amount is < than min amount"
-    assert _loansCoreAddress != ZERO_ADDRESS, "address is the zero address"
-    assert _lendingPoolPeripheralAddress != ZERO_ADDRESS, "address is the zero address"
-    assert _collateralVaultPeripheralAddress != ZERO_ADDRESS, "address is the zero address"
+    assert _loansCoreAddress != empty(address), "address is the zero address"
+    assert _lendingPoolPeripheralAddress != empty(address), "address is the zero address"
+    assert _collateralVaultPeripheralAddress != empty(address), "address is the zero address"
 
     self.owner = msg.sender
     self.maxAllowedLoans = _maxAllowedLoans
@@ -264,7 +264,7 @@ def _loanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
     if loan.started:
         return (loan.amount - loan.paidAmount) * (10000 * self.maxAllowedLoanDuration + loan.interest * (block.timestamp - loan.startTime)) / (10000 * self.maxAllowedLoanDuration)
     
-    return MAX_UINT256
+    return max_value(uint256)
 
 
 @pure
@@ -276,7 +276,7 @@ def _computeDaysPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -304,7 +304,7 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
@@ -374,7 +374,7 @@ def changeMaxLoanAmount(_value: uint256):
 @external
 def addCollateralToWhitelist(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
     assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
@@ -405,7 +405,7 @@ def removeCollateralFromWhitelist(_address: address):
 @external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.lendingPoolPeripheralAddress != _address, "new LPPeriph addr is the same"
 
@@ -422,7 +422,7 @@ def setLendingPoolPeripheralAddress(_address: address):
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.collateralVaultPeripheralAddress != _address, "new LPCore addr is the same"
 
@@ -439,7 +439,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
 @external
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.liquidationsPeripheralAddress != _address, "new LPCore addr is the same"
 
@@ -687,7 +687,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan not found"
     assert block.timestamp > ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
-    assert self.liquidationsPeripheralAddress != ZERO_ADDRESS, "BNPeriph is the zero address"
+    assert self.liquidationsPeripheralAddress != empty(address), "BNPeriph is the zero address"
 
     self.ongoingLoans[_borrower] -= 1
 

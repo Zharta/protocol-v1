@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.4
 
 
 # Interfaces
@@ -48,7 +48,7 @@ lendingPoolPeripheral: public(address)
 erc20TokenContract: public(address)
 
 funds: public(HashMap[address, InvestorFunds])
-lenders: public(DynArray[address, 2**50])
+lenders: DynArray[address, 2**50]
 knownLenders: public(HashMap[address, bool])
 activeLenders: public(uint256)
 
@@ -105,7 +105,7 @@ def computeWithdrawableAmount(_lender: address) -> uint256:
 def __init__(
     _erc20TokenContract: address
 ):
-    assert _erc20TokenContract != ZERO_ADDRESS, "The address is the zero address"
+    assert _erc20TokenContract != empty(address), "The address is the zero address"
 
     self.owner = msg.sender
     self.erc20TokenContract = _erc20TokenContract
@@ -114,7 +114,7 @@ def __init__(
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -142,13 +142,13 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero address"
+    assert _address != empty(address), "address is the zero address"
     assert _address != self.lendingPoolPeripheral, "new value is the same"
 
     log LendingPoolPeripheralAddressSet(
@@ -166,7 +166,7 @@ def deposit(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _lender != ZERO_ADDRESS, "The _address is the zero address"
+    assert _lender != empty(address), "The _address is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
     assert self._fundsAreAllowed(_lender, self, _amount), "Not enough funds allowed"
 
@@ -209,7 +209,7 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _amount > 0, "_amount has to be higher than 0"
-    assert _lender != ZERO_ADDRESS, "The _lender is the zero address"
+    assert _lender != empty(address), "The _lender is the zero address"
     assert self._computeWithdrawableAmount(_lender) >= _amount, "_amount more than withdrawable"
     assert self.fundsAvailable >= _amount, "Available funds less than amount"
 
@@ -241,7 +241,7 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
   # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _to != ZERO_ADDRESS, "_to is the zero address"
+    assert _to != empty(address), "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
     assert IERC20(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
@@ -257,7 +257,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
 
     self.fundsAvailable += _amount + _rewardsAmount
@@ -272,8 +272,8 @@ def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: 
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _protocolWallet != ZERO_ADDRESS, "_protocolWallet is the zero address"
-    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _protocolWallet != empty(address), "_protocolWallet is the zero address"
+    assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount > 0, "_amount should be higher than 0"
 
     return IERC20(self.erc20TokenContract).transferFrom(_borrower, _protocolWallet, _amount)
