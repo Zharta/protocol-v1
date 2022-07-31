@@ -5,5 +5,5 @@ compiler:
             runs: 200
         # remappings:
         #   - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@3.0.0"
-    vyper:
-        version: 0.3.3
+    # vyper:
+    #     version: 0.3.3

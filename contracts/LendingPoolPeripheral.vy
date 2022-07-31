@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.4
 
 
 # Interfaces
@@ -295,9 +295,9 @@ def __init__(
     _maxCapitalEfficienty: uint256,
     _whitelistEnabled: bool
 ):
-    assert _lendingPoolCoreContract != ZERO_ADDRESS, "address is the zero address"
-    assert _erc20TokenContract != ZERO_ADDRESS, "address is the zero address"
-    assert _protocolWallet != ZERO_ADDRESS, "address is the zero address"
+    assert _lendingPoolCoreContract != empty(address), "address is the zero address"
+    assert _erc20TokenContract != empty(address), "address is the zero address"
+    assert _protocolWallet != empty(address), "address is the zero address"
     assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
     assert _maxCapitalEfficienty <= 10000, "capital eff exceeds 10000 bps"
 
@@ -316,7 +316,7 @@ def __init__(
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -344,7 +344,7 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
@@ -366,7 +366,7 @@ def changeMaxCapitalEfficiency(_value: uint256):
 @external
 def changeProtocolWallet(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address != self.protocolWallet, "new value is the same"
 
     log ProtocolWalletChanged(
@@ -398,7 +398,7 @@ def changeProtocolFeesShare(_value: uint256):
 @external
 def setLoansPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert _address != self.loansContract, "new value is the same"
 
@@ -415,7 +415,7 @@ def setLoansPeripheralAddress(_address: address):
 @external
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert _address != self.liquidationsPeripheralContract, "new value is the same"
 
@@ -463,7 +463,7 @@ def changeWhitelistStatus(_flag: bool):
 @external
 def addWhitelistedAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert self.whitelistEnabled, "whitelist is disabled"
     assert not self.whitelistedAddresses[_address], "address is already whitelisted"
 
@@ -479,7 +479,7 @@ def addWhitelistedAddress(_address: address):
 @external
 def removeWhitelistedAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert self.whitelistEnabled, "whitelist is disabled"
     assert self.whitelistedAddresses[_address], "address is not whitelisted"
 
@@ -605,7 +605,7 @@ def sendFunds(_to: address, _amount: uint256):
     assert self.isPoolActive, "pool is inactive"
     assert self.isPoolInvesting, "max capital eff reached"
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
-    assert _to != ZERO_ADDRESS, "_to is the zero address"
+    assert _to != empty(address), "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
     assert _amount <= self._maxFundsInvestable(), "insufficient liquidity"
 
@@ -623,7 +623,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
-    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _borrower != empty(address), "_borrower is the zero address"
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     
@@ -635,7 +635,7 @@ def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAm
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
-    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _borrower != empty(address), "_borrower is the zero address"
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     

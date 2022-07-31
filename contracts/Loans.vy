@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.6
 
 
 # Interfaces
@@ -353,7 +353,7 @@ def _computePeriodPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: ui
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -381,7 +381,7 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
@@ -466,7 +466,7 @@ def changeInterestAccrualPeriod(_value: uint256):
 @external
 def addCollateralToWhitelist(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
     assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
@@ -497,7 +497,7 @@ def removeCollateralFromWhitelist(_address: address):
 @external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.lendingPoolPeripheralContract != _address, "new LPPeriph addr is the same"
 
@@ -514,7 +514,7 @@ def setLendingPoolPeripheralAddress(_address: address):
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.collateralVaultPeripheralContract != _address, "new LPCore addr is the same"
 
@@ -531,7 +531,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
 @external
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.liquidationsPeripheralContract != _address, "new LPCore addr is the same"
 

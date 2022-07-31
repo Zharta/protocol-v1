@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.4
 
 
 # Interfaces
@@ -77,7 +77,7 @@ collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256
 collateralKeys: DynArray[bytes32, 2**20] # array of collaterals expressed by their keys
 collateralsUsed: public(HashMap[bytes32, bool]) # given a collateral, is it being used in a loan
 collateralsData: public(HashMap[bytes32, Collateral]) # given a collateral key, what is its data
-collateralsIdsByAddress: public(HashMap[address, DynArray[uint256, 2**20]]) # given a collateral address, what are the token ids that were already in a loan
+collateralsIdsByAddress: HashMap[address, DynArray[uint256, 2**20]] # given a collateral address, what are the token ids that were already in a loan
 
 collectionsBorrowedAmount: public(HashMap[address, uint256])
 
@@ -161,7 +161,7 @@ def __init__():
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -193,13 +193,13 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
 def setLoansPeripheral(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address != self.loansPeripheral, "new loans addr is the same"
 
     log LoansPeripheralAddressSet(
@@ -265,7 +265,7 @@ def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collate
 def getLoanStartTime(_borrower: address, _loanId: uint256) -> uint256:
     if _loanId < len(self.loans[_borrower]):
         return self.loans[_borrower][_loanId].startTime
-    return MAX_UINT256
+    return max_value(uint256)
 
 
 @view
