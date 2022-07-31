@@ -364,23 +364,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "lenders",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "knownLenders",
     "inputs": [
       {

@@ -795,7 +795,21 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
             "name": "paidAmount",
@@ -866,7 +880,21 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
             "name": "paidAmount",
@@ -936,7 +964,21 @@
       },
       {
         "name": "_collaterals",
-        "type": "(address,uint256,uint256)[]"
+        "type": "tuple[]",
+        "components": [
+          {
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          }
+        ]
       }
     ],
     "outputs": [
