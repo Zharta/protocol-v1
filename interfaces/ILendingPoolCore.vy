@@ -98,11 +98,6 @@ def funds(arg0: address) -> InvestorFunds:
 
 @view
 @external
-def lenders(arg0: uint256) -> address:
-    pass
-
-@view
-@external
 def knownLenders(arg0: address) -> bool:
     pass
 

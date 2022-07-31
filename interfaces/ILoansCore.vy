@@ -255,9 +255,4 @@ def collateralsUsed(arg0: bytes32) -> bool:
 def collateralsData(arg0: bytes32) -> Collateral:
     pass
 
-@view
-@external
-def collateralsIdsByAddress(arg0: address, arg1: uint256) -> uint256:
-    pass
-
 
