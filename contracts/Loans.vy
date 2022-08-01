@@ -256,15 +256,20 @@ def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collatera
     return True
 
 
-@view
+@pure
 @internal
-def _loanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
-    loan: Loan = ILoansCore(self.loansCoreAddress).getLoan(_borrower, _loanId)
+def _collateralsAmounts(_collaterals: DynArray[Collateral, 20]) -> uint256:
+    sumAmount: uint256 = 0
+    for collateral in _collaterals:
+        sumAmount += collateral.amount
 
-    if loan.started:
-        return (loan.amount - loan.paidAmount) * (10000 * self.maxAllowedLoanDuration + loan.interest * (block.timestamp - loan.startTime)) / (10000 * self.maxAllowedLoanDuration)
-    
-    return MAX_UINT256
+    return sumAmount
+
+
+@pure
+@internal
+def _loanPayableAmount(_amount: uint256, _paidAmount: uint256, _interest: uint256, _maxLoanDuration: uint256, _timePassed: uint256) -> uint256:
+    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * _timePassed) / (10000 * _maxLoanDuration)
 
 
 @pure
@@ -504,7 +509,11 @@ def getLoan(_borrower: address, _loanId: uint256) -> Loan:
 def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
     loan: Loan = ILoansCore(self.loansCoreAddress).getLoan(_borrower, _loanId)
     
-    return self._loanPayableAmount(_borrower, _loanId)
+    if loan.started:
+        timePassed: uint256 = self._computeDaysPassedInSeconds(block.timestamp, loan.startTime)
+        return self._loanPayableAmount(loan.amount, loan.paidAmount, loan.interest, self.maxAllowedLoanDuration, timePassed)
+    
+    return MAX_UINT256
 
 
 @external
@@ -521,6 +530,7 @@ def reserve(
     assert self._areCollateralsWhitelisted(_collaterals), "not all NFTs are accepted"
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
+    assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).maxFundsInvestable() >= _amount, "insufficient liquidity"
     assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "max loans already reached"
     assert _amount >= self.minLoanAmount, "loan amount < than the min value"
@@ -536,12 +546,9 @@ def reserve(
         _collaterals
     )
 
-    amountInCollaterals: uint256 = 0
     for collateral in _collaterals:
         ILoansCore(self.loansCoreAddress).addCollateralToLoan(msg.sender, collateral, newLoanId)
         ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, False)
-
-        amountInCollaterals += collateral.amount
 
         ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).storeCollateral(
             msg.sender,
@@ -549,8 +556,6 @@ def reserve(
             collateral.tokenId,
             ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
         )
-    
-    assert amountInCollaterals == _amount, "amount in collats != than amount"
 
     log LoanCreated(
         msg.sender,
