@@ -243,6 +243,104 @@ def test_remove_address_from_whitelist(loans_peripheral_contract, erc721_contrac
     assert event["value"] == erc721_contract
 
 
+def test_change_whitelist_status_wrong_sender(loans_peripheral_contract, investor):
+    with brownie.reverts("msg.sender is not the owner"):
+        loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": investor})
+
+
+def test_change_whitelist_status_same_status(loans_peripheral_contract, contract_owner):
+    with brownie.reverts("new value is the same"):
+        loans_peripheral_contract.changeWalletsWhitelistStatus(False, {"from": contract_owner})
+
+
+def test_change_whitelist_status(loans_peripheral_contract, contract_owner):
+    tx = loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": contract_owner})
+    assert loans_peripheral_contract.walletWhitelistEnabled()
+
+    event = tx.events["WalletsWhitelistStatusChanged"]
+    assert event["value"]
+
+    tx = loans_peripheral_contract.changeWalletsWhitelistStatus(False, {"from": contract_owner})
+    assert not loans_peripheral_contract.walletWhitelistEnabled()
+
+    event = tx.events["WalletsWhitelistStatusChanged"]
+    assert not event["value"]
+
+
+def test_add_whitelisted_address_wrong_sender(loans_peripheral_contract, investor):
+    with brownie.reverts("msg.sender is not the owner"):
+        loans_peripheral_contract.addWhitelistedWallet(investor, {"from": investor})
+
+
+def test_add_whitelisted_address_zero_address(loans_peripheral_contract, contract_owner):
+    with brownie.reverts("_address is the zero address"):
+        loans_peripheral_contract.addWhitelistedWallet(brownie.ZERO_ADDRESS, {"from": contract_owner})
+
+
+def test_add_whitelisted_address_whitelist_disabled(loans_peripheral_contract, contract_owner, investor):
+    with brownie.reverts("wallets whitelist is disabled"):
+        loans_peripheral_contract.addWhitelistedWallet(investor, {"from": contract_owner})
+
+
+def test_add_whitelisted_address(loans_peripheral_contract, contract_owner, investor):
+    loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": contract_owner})
+    assert loans_peripheral_contract.walletWhitelistEnabled()
+
+    tx = loans_peripheral_contract.addWhitelistedWallet(investor, {"from": contract_owner})
+    assert loans_peripheral_contract.walletsWhitelisted(investor)
+
+    event = tx.events["WhitelistedWalletAdded"]
+    assert event["value"] == investor
+
+
+def test_add_whitelisted_address_already_whitelisted(loans_peripheral_contract, contract_owner, investor):
+    loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": contract_owner})
+    assert loans_peripheral_contract.walletWhitelistEnabled()
+
+    loans_peripheral_contract.addWhitelistedWallet(investor, {"from": contract_owner})
+    assert loans_peripheral_contract.walletsWhitelisted(investor)
+
+    with brownie.reverts("address is already whitelisted"):
+        loans_peripheral_contract.addWhitelistedWallet(investor, {"from": contract_owner})
+
+
+def test_remove_whitelisted_address_wrong_sender(loans_peripheral_contract, investor):
+    with brownie.reverts("msg.sender is not the owner"):
+        loans_peripheral_contract.removeWhitelistedWallet(investor, {"from": investor})
+
+
+def test_remove_whitelisted_address_zero_address(loans_peripheral_contract, contract_owner):
+    with brownie.reverts("_address is the zero address"):
+        loans_peripheral_contract.removeWhitelistedWallet(brownie.ZERO_ADDRESS, {"from": contract_owner})
+
+
+def test_remove_whitelisted_address_whitelist_disabled(loans_peripheral_contract, contract_owner, investor):
+    with brownie.reverts("wallets whitelist is disabled"):
+        loans_peripheral_contract.removeWhitelistedWallet(investor, {"from": contract_owner})
+
+
+def test_remove_whitelisted_address_not_whitelisted(loans_peripheral_contract, contract_owner, investor):
+    loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": contract_owner})
+    assert loans_peripheral_contract.walletWhitelistEnabled()
+
+    with brownie.reverts("address is not whitelisted"):
+        loans_peripheral_contract.removeWhitelistedWallet(investor, {"from": contract_owner})
+
+
+def test_remove_whitelisted_address(loans_peripheral_contract, contract_owner, investor):
+    loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": contract_owner})
+    assert loans_peripheral_contract.walletWhitelistEnabled()
+
+    loans_peripheral_contract.addWhitelistedWallet(investor, {"from": contract_owner})
+    assert loans_peripheral_contract.walletsWhitelisted(investor)
+
+    tx = loans_peripheral_contract.removeWhitelistedWallet(investor, {"from": contract_owner})
+    assert not loans_peripheral_contract.walletsWhitelisted(investor)  
+
+    event = tx.events["WhitelistedWalletRemoved"]
+    assert event["value"] == investor
+
+
 def test_change_min_loan_amount_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
@@ -712,6 +810,50 @@ def test_create_loan_max_amount(
         )
 
 
+def test_create_loan_wallet_not_whitelisted(
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(15, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(15, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.deposit(Web3.toWei(15, "ether"), {"from": investor})
+
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": contract_owner})
+
+    with brownie.reverts("msg.sender is not whitelisted"):
+        loans_peripheral_contract.reserve(
+            LOAN_AMOUNT,
+            LOAN_INTEREST,
+            MATURITY,
+            test_collaterals,
+            {'from': borrower}
+        )
+
+
 def test_create_loan(
     loans_peripheral_contract,
     loans_core_contract,
@@ -744,6 +886,75 @@ def test_create_loan(
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    tx_create_loan = loans_peripheral_contract.reserve(
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        {'from': borrower}
+    )
+    loan_id = tx_create_loan.return_value
+
+    loan_details = loans_peripheral_contract.getPendingLoan(borrower, loan_id)
+    assert loan_details["id"] == loan_id
+    assert loan_details["amount"] == LOAN_AMOUNT
+    assert loan_details["interest"] == LOAN_INTEREST
+    assert loan_details["paidAmount"] == 0
+    assert loan_details["maturity"] == MATURITY
+    assert len(loan_details["collaterals"]) == 5
+    assert loan_details["collaterals"] == test_collaterals
+    assert loan_details["started"] == False
+    assert loan_details["invalidated"] == False
+    assert loan_details["paid"] == False
+    assert loan_details["defaulted"] == False
+    assert loan_details["canceled"] == False
+
+    for collateral in test_collaterals:
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
+
+    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
+
+    event = tx_create_loan.events["LoanCreated"]
+    assert event["wallet"] == borrower
+    assert event["loanId"] == 0
+
+
+def test_create_loan_wallet_whitelist_enabled(
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals
+):
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": contract_owner})
+    loans_peripheral_contract.addWhitelistedWallet(borrower, {"from": contract_owner})
 
     tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,

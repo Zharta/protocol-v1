@@ -266,8 +266,6 @@ def __init__(
     self.protocolFeesShare = _protocolFeesShare
     self.maxCapitalEfficienty = _maxCapitalEfficienty
     self.isPoolActive = True
-    self.isPoolDeprecated = False
-    self.isPoolInvesting = False
     self.whitelistEnabled = _whitelistEnabled
 
 

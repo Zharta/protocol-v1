@@ -81,6 +81,18 @@ event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
     erc20TokenContract: address
+event WalletsWhitelistStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event WhitelistedWalletAdded:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event WhitelistedWalletRemoved:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
 event ContractStatusChanged:
     erc20TokenContractIndexed: address
     value: bool
@@ -170,6 +182,18 @@ def setCollateralVaultPeripheralAddress(_address: address):
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
+    pass
+
+@external
+def changeWalletsWhitelistStatus(_flag: bool):
+    pass
+
+@external
+def addWhitelistedWallet(_address: address):
+    pass
+
+@external
+def removeWhitelistedWallet(_address: address):
     pass
 
 @external
@@ -292,6 +316,16 @@ def collateralVaultPeripheralAddress() -> address:
 @view
 @external
 def liquidationsPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def walletWhitelistEnabled() -> bool:
+    pass
+
+@view
+@external
+def walletsWhitelisted(arg0: address) -> bool:
     pass
 
 

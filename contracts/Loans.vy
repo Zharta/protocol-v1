@@ -119,6 +119,21 @@ event LiquidationsPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
+event WalletsWhitelistStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event WhitelistedWalletAdded:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
+event WhitelistedWalletRemoved:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
 event ContractStatusChanged:
     erc20TokenContractIndexed: indexed(address)
     value: bool
@@ -195,6 +210,9 @@ lendingPoolPeripheralAddress: public(address)
 collateralVaultPeripheralAddress: public(address)
 liquidationsPeripheralAddress: public(address)
 
+walletWhitelistEnabled: public(bool)
+walletsWhitelisted: public(HashMap[address, bool])
+
 
 @external
 def __init__(
@@ -222,7 +240,6 @@ def __init__(
     self.lendingPoolPeripheralAddress = _lendingPoolPeripheralAddress
     self.collateralVaultPeripheralAddress = _collateralVaultPeripheralAddress
     self.isAcceptingLoans = True
-    self.isDeprecated = False
 
 
 @internal
@@ -459,6 +476,52 @@ def setLiquidationsPeripheralAddress(_address: address):
 
 
 @external
+def changeWalletsWhitelistStatus(_flag: bool):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert self.walletWhitelistEnabled != _flag, "new value is the same"
+
+    self.walletWhitelistEnabled = _flag
+
+    log WalletsWhitelistStatusChanged(
+        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        _flag,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+    )
+
+
+@external
+def addWhitelistedWallet(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
+    assert not self.walletsWhitelisted[_address], "address is already whitelisted"
+
+    self.walletsWhitelisted[_address] = True
+
+    log WhitelistedWalletAdded(
+        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        _address,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+    )
+
+
+@external
+def removeWhitelistedWallet(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
+    assert self.walletsWhitelisted[_address], "address is not whitelisted"
+
+    self.walletsWhitelisted[_address] = False
+
+    log WhitelistedWalletRemoved(
+        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        _address,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+    )
+
+
+@external
 def changeContractStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.isAcceptingLoans != _flag, "new contract status is the same"
@@ -535,6 +598,9 @@ def reserve(
     assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "max loans already reached"
     assert _amount >= self.minLoanAmount, "loan amount < than the min value"
     assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
+
+    if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
+        raise "msg.sender is not whitelisted"
 
     self.ongoingLoans[msg.sender] += 1
 

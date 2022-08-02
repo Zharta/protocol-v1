@@ -324,6 +324,72 @@
     "type": "event"
   },
   {
+    "name": "WalletsWhitelistStatusChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "bool",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "WhitelistedWalletAdded",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "WhitelistedWalletRemoved",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "name": "ContractStatusChanged",
     "inputs": [
       {
@@ -715,6 +781,42 @@
     "stateMutability": "nonpayable",
     "type": "function",
     "name": "setLiquidationsPeripheralAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "changeWalletsWhitelistStatus",
+    "inputs": [
+      {
+        "name": "_flag",
+        "type": "bool"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "addWhitelistedWallet",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "removeWhitelistedWallet",
     "inputs": [
       {
         "name": "_address",
@@ -1197,6 +1299,35 @@
       {
         "name": "",
         "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "walletWhitelistEnabled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "walletsWhitelisted",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
       }
     ]
   }
