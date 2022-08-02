@@ -1,7 +1,338 @@
 [
   {
+    "name": "OwnerProposed",
+    "inputs": [
+      {
+        "name": "ownerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "proposedOwnerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "proposedOwner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "ownerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "proposedOwnerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "proposedOwner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "MaxCapitalEfficiencyChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "ProtocolWalletChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "ProtocolFeesShareChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LoansPeripheralAddressSet",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LiquidationsPeripheralAddressSet",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "WhitelistStatusChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "bool",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "WhitelistAddressAdded",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "WhitelistAddressRemoved",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "ContractStatusChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "bool",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "InvestingStatusChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "bool",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "ContractDeprecated",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "name": "Deposit",
     "inputs": [
+      {
+        "name": "walletIndexed",
+        "type": "address",
+        "indexed": true
+      },
       {
         "name": "wallet",
         "type": "address",
@@ -25,27 +356,10 @@
     "name": "Withdrawal",
     "inputs": [
       {
-        "name": "wallet",
+        "name": "walletIndexed",
         "type": "address",
-        "indexed": false
+        "indexed": true
       },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false
-      },
-      {
-        "name": "erc20TokenContract",
-        "type": "address",
-        "indexed": false
-      }
-    ],
-    "anonymous": false,
-    "type": "event"
-  },
-  {
-    "name": "Compound",
-    "inputs": [
       {
         "name": "wallet",
         "type": "address",
@@ -69,6 +383,11 @@
     "name": "FundsTransfer",
     "inputs": [
       {
+        "name": "walletIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
         "name": "wallet",
         "type": "address",
         "indexed": false
@@ -90,6 +409,11 @@
   {
     "name": "FundsReceipt",
     "inputs": [
+      {
+        "name": "walletIndexed",
+        "type": "address",
+        "indexed": true
+      },
       {
         "name": "wallet",
         "type": "address",
@@ -122,24 +446,51 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "poolHasFundsToInvest",
+    "name": "maxFundsInvestable",
     "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "bool"
+        "type": "uint256"
       }
     ]
   },
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "maxFundsInvestable",
-    "inputs": [],
+    "name": "lenderFunds",
+    "inputs": [
+      {
+        "name": "_lender",
+        "type": "address"
+      }
+    ],
     "outputs": [
       {
         "name": "",
-        "type": "int256"
+        "type": "tuple",
+        "components": [
+          {
+            "name": "currentAmountDeposited",
+            "type": "uint256"
+          },
+          {
+            "name": "totalAmountDeposited",
+            "type": "uint256"
+          },
+          {
+            "name": "totalAmountWithdrawn",
+            "type": "uint256"
+          },
+          {
+            "name": "sharesBasisPoints",
+            "type": "uint256"
+          },
+          {
+            "name": "activeForRewards",
+            "type": "bool"
+          }
+        ]
       }
     ]
   },
@@ -148,7 +499,7 @@
     "type": "constructor",
     "inputs": [
       {
-        "name": "_loansContract",
+        "name": "_lendingPoolCoreContract",
         "type": "address"
       },
       {
@@ -177,19 +528,21 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "changeOwnership",
+    "name": "proposeOwner",
     "inputs": [
       {
-        "name": "_newOwner",
+        "name": "_address",
         "type": "address"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ]
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "claimOwnership",
+    "inputs": [],
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -197,16 +550,11 @@
     "name": "changeMaxCapitalEfficiency",
     "inputs": [
       {
-        "name": "_newMaxCapitalEfficiency",
+        "name": "_value",
         "type": "uint256"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -214,16 +562,11 @@
     "name": "changeProtocolWallet",
     "inputs": [
       {
-        "name": "_newProtocolWallet",
+        "name": "_address",
         "type": "address"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -231,62 +574,35 @@
     "name": "changeProtocolFeesShare",
     "inputs": [
       {
-        "name": "_newProtocolFeesShare",
+        "name": "_value",
         "type": "uint256"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "changePoolStatus",
-    "inputs": [
-      {
-        "name": "_flag",
-        "type": "bool"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ]
-  },
-  {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "setLendingPoolCoreAddress",
+    "name": "setLoansPeripheralAddress",
     "inputs": [
       {
         "name": "_address",
         "type": "address"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "deprecate",
-    "inputs": [],
-    "outputs": [
+    "name": "setLiquidationsPeripheralAddress",
+    "inputs": [
       {
-        "name": "",
-        "type": "bool"
+        "name": "_address",
+        "type": "address"
       }
-    ]
+    ],
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -298,12 +614,7 @@
         "type": "bool"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -332,6 +643,25 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
+    "name": "changePoolStatus",
+    "inputs": [
+      {
+        "name": "_flag",
+        "type": "bool"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "deprecate",
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
     "name": "deposit",
     "inputs": [
       {
@@ -339,12 +669,7 @@
         "type": "uint256"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -356,12 +681,7 @@
         "type": "uint256"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -377,12 +697,7 @@
         "type": "uint256"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
@@ -402,21 +717,44 @@
         "type": "uint256"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ]
+    "outputs": []
   },
   {
-    "stateMutability": "payable",
-    "type": "fallback"
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "receiveFundsFromLiquidation",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_amount",
+        "type": "uint256"
+      },
+      {
+        "name": "_rewardsAmount",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
   },
   {
     "stateMutability": "view",
     "type": "function",
     "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "proposedOwner",
     "inputs": [],
     "outputs": [
       {
@@ -453,6 +791,18 @@
     "stateMutability": "view",
     "type": "function",
     "name": "erc20TokenContract",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "liquidationsPeripheralContract",
     "inputs": [],
     "outputs": [
       {

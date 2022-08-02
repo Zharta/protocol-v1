@@ -1,0 +1,947 @@
+[
+  {
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "ownerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "proposedOwnerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "proposedOwner",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "OwnerProposed",
+    "inputs": [
+      {
+        "name": "ownerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "proposedOwnerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "proposedOwner",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "GracePeriodDurationChanged",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LiquidationsPeriodDurationChanged",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "AuctionPeriodDurationChanged",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LiquidationsCoreAddressSet",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LoansCoreAddressAdded",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LoansCoreAddressRemoved",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LendingPoolPeripheralAddressAdded",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LendingPoolPeripheralAddressRemoved",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "CollateralVaultPeripheralAddressSet",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "NFTXVaultFactoryAddressSet",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "NFTXMarketplaceZapAddressSet",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "SushiRouterAddressSet",
+    "inputs": [
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LiquidationAdded",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "collateralAddressIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
+      },
+      {
+        "name": "collateralAddress",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "gracePeriodPrice",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "buyNowPeriodPrice",
+        "type": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LiquidationRemoved",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "collateralAddressIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
+      },
+      {
+        "name": "collateralAddress",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "NFTPurchased",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "collateralAddressIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "fromIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "collateralAddress",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "_from",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLiquidation",
+    "inputs": [
+      {
+        "name": "_collateralAddress",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {
+            "name": "lid",
+            "type": "bytes32"
+          },
+          {
+            "name": "collateralAddress",
+            "type": "address"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint256"
+          },
+          {
+            "name": "gracePeriodMaturity",
+            "type": "uint256"
+          },
+          {
+            "name": "buyNowPeriodMaturity",
+            "type": "uint256"
+          },
+          {
+            "name": "principal",
+            "type": "uint256"
+          },
+          {
+            "name": "interestAmount",
+            "type": "uint256"
+          },
+          {
+            "name": "apr",
+            "type": "uint256"
+          },
+          {
+            "name": "gracePeriodPrice",
+            "type": "uint256"
+          },
+          {
+            "name": "buyNowPeriodPrice",
+            "type": "uint256"
+          },
+          {
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "name": "erc20TokenContract",
+            "type": "address"
+          },
+          {
+            "name": "inAuction",
+            "type": "bool"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_liquidationsCoreAddress",
+        "type": "address"
+      },
+      {
+        "name": "_gracePeriodDuration",
+        "type": "uint256"
+      },
+      {
+        "name": "_buyNowPeriodDuration",
+        "type": "uint256"
+      },
+      {
+        "name": "_auctionPeriodDuration",
+        "type": "uint256"
+      },
+      {
+        "name": "_wethAddress",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "proposeOwner",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "claimOwnership",
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setGracePeriodDuration",
+    "inputs": [
+      {
+        "name": "_duration",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setLiquidationsPeriodDuration",
+    "inputs": [
+      {
+        "name": "_duration",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setAuctionPeriodDuration",
+    "inputs": [
+      {
+        "name": "_duration",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setLiquidationsCoreAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "addLoansCoreAddress",
+    "inputs": [
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      },
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "removeLoansCoreAddress",
+    "inputs": [
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "addLendingPoolPeripheralAddress",
+    "inputs": [
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      },
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "removeLendingPoolPeripheralAddress",
+    "inputs": [
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setCollateralVaultPeripheralAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setNFTXVaultFactoryAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setNFTXMarketplaceZapAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setSushiRouterAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "addLiquidation",
+    "inputs": [
+      {
+        "name": "_collateralAddress",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      },
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "buyNFTGracePeriod",
+    "inputs": [
+      {
+        "name": "_collateralAddress",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "buyNFTBuyNowPeriod",
+    "inputs": [
+      {
+        "name": "_collateralAddress",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "liquidateNFTX",
+    "inputs": [
+      {
+        "name": "_collateralAddress",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "liquidateOpenSea",
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "proposedOwner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "gracePeriodDuration",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "buyNowPeriodDuration",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "auctionPeriodDuration",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "liquidationsCoreAddress",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "loansCoreAddresses",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "lendingPoolPeripheralAddresses",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "collateralVaultPeripheralAddress",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "nftxVaultFactoryAddress",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "nftxMarketplaceZapAddress",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "sushiRouterAddress",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "lenderMinDepositAmount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  }
+]
