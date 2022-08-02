@@ -9,23 +9,83 @@ struct InvestorFunds:
 
 # Events
 
+event OwnerProposed:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event OwnershipTransferred:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event MaxCapitalEfficiencyChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event ProtocolWalletChanged:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event ProtocolFeesShareChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event LoansPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event LiquidationsPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event WhitelistStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event WhitelistAddressAdded:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event WhitelistAddressRemoved:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event ContractStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event InvestingStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event ContractDeprecated:
+    erc20TokenContractIndexed: address
+    erc20TokenContract: address
 event Deposit:
+    walletIndexed: address
     wallet: address
     amount: uint256
     erc20TokenContract: address
 event Withdrawal:
-    wallet: address
-    amount: uint256
-    erc20TokenContract: address
-event Compound:
+    walletIndexed: address
     wallet: address
     amount: uint256
     erc20TokenContract: address
 event FundsTransfer:
+    walletIndexed: address
     wallet: address
     amount: uint256
     erc20TokenContract: address
 event FundsReceipt:
+    walletIndexed: address
     wallet: address
     amount: uint256
     rewardsPool: uint256
@@ -36,44 +96,44 @@ event FundsReceipt:
 
 @view
 @external
-def poolHasFundsToInvest() -> bool:
+def maxFundsInvestable() -> uint256:
     pass
 
 @view
 @external
-def maxFundsInvestable() -> int256:
+def lenderFunds(_lender: address) -> InvestorFunds:
     pass
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def proposeOwner(_address: address):
     pass
 
 @external
-def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
+def claimOwnership():
     pass
 
 @external
-def changeProtocolWallet(_newProtocolWallet: address) -> address:
+def changeMaxCapitalEfficiency(_value: uint256):
     pass
 
 @external
-def changeProtocolFeesShare(_newProtocolFeesShare: uint256) -> uint256:
+def changeProtocolWallet(_address: address):
     pass
 
 @external
-def changePoolStatus(_flag: bool) -> bool:
+def changeProtocolFeesShare(_value: uint256):
     pass
 
 @external
-def setLendingPoolCoreAddress(_address: address) -> address:
+def setLoansPeripheralAddress(_address: address):
     pass
 
 @external
-def deprecate() -> bool:
+def setLiquidationsPeripheralAddress(_address: address):
     pass
 
 @external
-def changeWhitelistStatus(_flag: bool) -> bool:
+def changeWhitelistStatus(_flag: bool):
     pass
 
 @external
@@ -85,29 +145,41 @@ def removeWhitelistedAddress(_address: address):
     pass
 
 @external
-def deposit(_amount: uint256) -> bool:
+def changePoolStatus(_flag: bool):
     pass
 
 @external
-def withdraw(_amount: uint256) -> bool:
+def deprecate():
     pass
 
 @external
-def sendFunds(_to: address, _amount: uint256) -> bool:
+def deposit(_amount: uint256):
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
+def withdraw(_amount: uint256):
     pass
 
-@payable
 @external
-def __default__():
+def sendFunds(_to: address, _amount: uint256):
+    pass
+
+@external
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    pass
+
+@external
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
 @view
 @external
 def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
     pass
 
 @view
@@ -123,6 +195,11 @@ def lendingPoolCoreContract() -> address:
 @view
 @external
 def erc20TokenContract() -> address:
+    pass
+
+@view
+@external
+def liquidationsPeripheralContract() -> address:
     pass
 
 @view
@@ -164,3 +241,5 @@ def whitelistEnabled() -> bool:
 @external
 def whitelistedAddresses(arg0: address) -> bool:
     pass
+
+

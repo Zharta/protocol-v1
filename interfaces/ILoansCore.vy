@@ -3,7 +3,7 @@
 struct Collateral:
     contractAddress: address
     tokenId: uint256
-
+    amount: uint256
 
 struct Loan:
     id: uint256
@@ -11,7 +11,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 10]
+    collaterals: DynArray[Collateral, 20]
     paidAmount: uint256
     started: bool
     invalidated: bool
@@ -19,21 +19,44 @@ struct Loan:
     defaulted: bool
     canceled: bool
 
-
 struct TopStats:
     highestSingleCollateralLoan: Loan
     highestCollateralBundleLoan: Loan
     highestRepayment: Loan
     highestDefaultedLoan: Loan
 
+# Events
+
+event OwnerProposed:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event OwnershipTransferred:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event LoansPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
 # Functions
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def proposeOwner(_address: address):
     pass
 
 @external
-def changeLoansPeripheral(_newLoansPeripheral: address) -> address:
+def claimOwnership():
+    pass
+
+@external
+def setLoansPeripheral(_address: address):
     pass
 
 @view
@@ -63,7 +86,7 @@ def getLoanInterest(_borrower: address, _loanId: uint256) -> uint256:
 
 @view
 @external
-def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 10]:
+def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 20]:
     pass
 
 @view
@@ -133,12 +156,12 @@ def getHighestDefaultedLoan() -> Loan:
 
 @view
 @external
-def collateralKeysArray() -> DynArray[bytes32, 1125899906842624]:
+def collateralKeysArray() -> DynArray[bytes32, 1048576]:
     pass
 
 @view
 @external
-def getCollateralsIdsByAddress(_address: address) -> DynArray[uint256, 1125899906842624]:
+def getCollateralsIdsByAddress(_address: address) -> DynArray[uint256, 1048576]:
     pass
 
 @external
@@ -154,7 +177,7 @@ def updateCollaterals(_collateral: Collateral, _toRemove: bool):
     pass
 
 @external
-def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> uint256:
+def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 20]) -> uint256:
     pass
 
 @external
@@ -197,14 +220,14 @@ def updateHighestRepayment(_borrower: address, _loanId: uint256):
 def updateHighestDefaultedLoan(_borrower: address, _loanId: uint256):
     pass
 
-@payable
+@view
 @external
-def __default__():
+def owner() -> address:
     pass
 
 @view
 @external
-def owner() -> address:
+def proposedOwner() -> address:
     pass
 
 @view
@@ -236,3 +259,5 @@ def collateralsData(arg0: bytes32) -> Collateral:
 @external
 def collateralsIdsByAddress(arg0: address, arg1: uint256) -> uint256:
     pass
+
+

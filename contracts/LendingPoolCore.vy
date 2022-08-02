@@ -1,14 +1,9 @@
-# @version ^0.3.2
+# @version ^0.3.3
 
 
 # Interfaces
 
-interface IERC20Token:
-    def balanceOf(_owner: address) -> uint256: view
-    def allowance(_owner: address, _spender: address) -> uint256: view
-    def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
-    def transferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
-    def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256): nonpayable
+from vyper.interfaces import ERC20 as IERC20
 
 
 # Structs
@@ -23,15 +18,32 @@ struct InvestorFunds:
 
 # Events
 
-event Compound:
-    wallet: address
-    amount: uint256
+event OwnerProposed:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
+event OwnershipTransferred:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
+event LendingPoolPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
     erc20TokenContract: address
 
 
 # Global variables
 
 owner: public(address)
+proposedOwner: public(address)
+
 lendingPoolPeripheral: public(address)
 erc20TokenContract: public(address)
 
@@ -53,7 +65,7 @@ totalSharesBasisPoints: public(uint256)
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20Token(self.erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = IERC20(self.erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
@@ -91,29 +103,72 @@ def computeWithdrawableAmount(_lender: address) -> uint256:
 
 @external
 def __init__(
-    _lendingPoolPeripheral: address,
     _erc20TokenContract: address
 ):
+    assert _erc20TokenContract != ZERO_ADDRESS, "The address is the zero address"
+
     self.owner = msg.sender
-    self.lendingPoolPeripheral = _lendingPoolPeripheral
     self.erc20TokenContract = _erc20TokenContract
 
 
 @external
-def changeOwnership(_newOwner: address) -> address:
-    assert msg.sender == self.owner, "Only the owner can change the contract ownership"
+def proposeOwner(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert self.owner != _address, "proposed owner addr is the owner"
+    assert self.proposedOwner != _address, "proposed owner addr is the same"
 
-    self.owner = _newOwner
+    self.proposedOwner = _address
 
-    return self.owner
+    log OwnerProposed(
+        self.owner,
+        _address,
+        self.owner,
+        _address,
+        self.erc20TokenContract
+    )
+
+
+@external
+def claimOwnership():
+    assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
+
+    log OwnershipTransferred(
+        self.owner,
+        self.proposedOwner,
+        self.owner,
+        self.proposedOwner,
+        self.erc20TokenContract
+    )
+
+    self.owner = self.proposedOwner
+    self.proposedOwner = ZERO_ADDRESS
+
+
+@external
+def setLendingPoolPeripheralAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "address is the zero address"
+    assert _address != self.lendingPoolPeripheral, "new value is the same"
+
+    log LendingPoolPeripheralAddressSet(
+        self.erc20TokenContract,
+        self.lendingPoolPeripheral,
+        _address,
+        self.erc20TokenContract
+    )
+
+    self.lendingPoolPeripheral = _address
 
 
 @external
 def deposit(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
-    assert msg.sender == self.lendingPoolPeripheral or msg.sender == _lender, "Only defined lending pool peripheral or the lender can deposit"
-    assert _amount > 0, "Amount deposited has to be higher than 0"
+    assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
+    assert _lender != ZERO_ADDRESS, "The _address is the zero address"
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert self._fundsAreAllowed(_lender, self, _amount), "Not enough funds allowed"
 
     sharesAmount: uint256 = self._computeShares(_amount)
 
@@ -145,16 +200,18 @@ def deposit(_lender: address, _amount: uint256) -> bool:
     self.fundsAvailable += _amount
     self.totalSharesBasisPoints += sharesAmount
 
-    return True
+    return IERC20(self.erc20TokenContract).transferFrom(_lender, self, _amount)
 
 
 @external
 def withdraw(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
-    assert msg.sender == self.lendingPoolPeripheral or msg.sender == _lender, "Only defined lending pool peripheral or the lender can withdraw"
-    assert self._computeWithdrawableAmount(_lender) >= _amount, "The lender has less funds deposited than the amount requested"
-    assert self.fundsAvailable >= _amount, "Not enough funds in the pool to be withdrawn"
+    assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert _lender != ZERO_ADDRESS, "The _lender is the zero address"
+    assert self._computeWithdrawableAmount(_lender) >= _amount, "_amount more than withdrawable"
+    assert self.fundsAvailable >= _amount, "Available funds less than amount"
 
     newDepositAmount: uint256 = self._computeWithdrawableAmount(_lender) - _amount
     newLenderSharesAmount: uint256 = self._computeShares(newDepositAmount)
@@ -176,47 +233,47 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
 
     self.fundsAvailable -= _amount
 
-    if not IERC20Token(self.erc20TokenContract).transfer(_lender, _amount):
-        raise "Withdrawal transfer error"
-
-    return True
+    return IERC20(self.erc20TokenContract).transfer(_lender, _amount)
 
 
 @external
 def sendFunds(_to: address, _amount: uint256) -> bool:
   # _amount should be passed in wei
 
-    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can send funds"
-    assert _amount > 0, "The amount to send should be higher than 0"
-    assert IERC20Token(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
-
-    if not IERC20Token(self.erc20TokenContract).transfer(_to, _amount):
-        raise "Error sending funds"
+    assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
+    assert _to != ZERO_ADDRESS, "_to is the zero address"
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert IERC20(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
     self.fundsAvailable -= _amount
     self.fundsInvested += _amount
     self.totalFundsInvested += _amount
 
-    return True
+    return IERC20(self.erc20TokenContract).transfer(_to, _amount)
 
 
 @external
-def receiveFunds(_amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
     # _amount and _rewardsAmount should be passed in wei
 
-    assert msg.sender == self.lendingPoolPeripheral, "Only defined lending pool peripheral can receive funds"
-    assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
-    assert _amount <= self.fundsInvested, "There are more funds being received than expected by the deposited funds variable"
+    assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
+    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
 
     self.fundsAvailable += _amount + _rewardsAmount
     self.fundsInvested -= _amount
     self.totalRewards += _rewardsAmount
 
-    return True
+    return IERC20(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount)
 
 
 @external
-@payable
-def __default__():
-  if msg.value > 0:
-    send(msg.sender, msg.value)
+def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
+    # _amount should be passed in wei
+
+    assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
+    assert _protocolWallet != ZERO_ADDRESS, "_protocolWallet is the zero address"
+    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _amount > 0, "_amount should be higher than 0"
+
+    return IERC20(self.erc20TokenContract).transferFrom(_borrower, _protocolWallet, _amount)

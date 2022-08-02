@@ -3,6 +3,7 @@
 struct Collateral:
     contractAddress: address
     tokenId: uint256
+    amount: uint256
 
 struct Loan:
     id: uint256
@@ -10,7 +11,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 10]
+    collaterals: DynArray[Collateral, 20]
     paidAmount: uint256
     started: bool
     invalidated: bool
@@ -20,37 +21,119 @@ struct Loan:
 
 # Events
 
+event OwnershipTransferred:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event OwnerProposed:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event MaxAllowedLoansChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MaxLoansChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MaxLoanDurationChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MinLoanAmountChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event MaxLoanAmountChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+event CollateralToWhitelistAdded:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event CollateralToWhitelistRemoved:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event LendingPoolPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event CollateralVaultPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event LiquidationsPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event WalletsWhitelistStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event WhitelistedWalletAdded:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event WhitelistedWalletRemoved:
+    erc20TokenContractIndexed: address
+    value: address
+    erc20TokenContract: address
+event ContractStatusChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event ContractDeprecated:
+    erc20TokenContractIndexed: address
+    erc20TokenContract: address
 event LoanCreated:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanValidated:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanInvalidated:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanPayment:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
 event LoanPaid:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
 event LoanDefaulted:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
 event PendingLoanCanceled:
-    wallet: address
-    loanId: uint256
-    erc20TokenContract: address
-event LoanCanceled:
+    walletIndexed: address
     wallet: address
     loanId: uint256
     erc20TokenContract: address
@@ -58,57 +141,72 @@ event LoanCanceled:
 # Functions
 
 @external
-def changeOwnership(_newOwner: address) -> address:
+def proposeOwner(_address: address):
     pass
 
 @external
-def changeMaxAllowedLoans(_maxAllowedLoans: uint256) -> uint256:
+def claimOwnership():
     pass
 
 @external
-def changeMaxAllowedLoanDuration(_maxAllowedLoanDuration: uint256) -> uint256:
+def changeMaxAllowedLoans(_value: uint256):
     pass
 
 @external
-def addCollateralToWhitelist(_address: address) -> bool:
+def changeMaxAllowedLoanDuration(_value: uint256):
     pass
 
 @external
-def removeCollateralFromWhitelist(_address: address) -> bool:
+def changeMinLoanAmount(_value: uint256):
     pass
 
 @external
-def changeMinLoanAmount(_newMinLoanAmount: uint256) -> uint256:
+def changeMaxLoanAmount(_value: uint256):
     pass
 
 @external
-def changeMaxLoanAmount(_newMaxLoanAmount: uint256) -> uint256:
+def addCollateralToWhitelist(_address: address):
     pass
 
 @external
-def setLoansCoreAddress(_address: address) -> address:
+def removeCollateralFromWhitelist(_address: address):
     pass
 
 @external
-def setLendingPoolAddress(_address: address) -> address:
+def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
-def changeContractStatus(_flag: bool) -> bool:
+def setCollateralVaultPeripheralAddress(_address: address):
     pass
 
 @external
-def deprecate() -> bool:
+def setLiquidationsPeripheralAddress(_address: address):
+    pass
+
+@external
+def changeWalletsWhitelistStatus(_flag: bool):
+    pass
+
+@external
+def addWhitelistedWallet(_address: address):
+    pass
+
+@external
+def removeWhitelistedWallet(_address: address):
+    pass
+
+@external
+def changeContractStatus(_flag: bool):
+    pass
+
+@external
+def deprecate():
     pass
 
 @view
 @external
-def getWhitelistedCollateralsAddresses() -> DynArray[address, 1125899906842624]:
-    pass
-
-@view
-@external
-def erc20TokenSymbol() -> String[10]:
+def erc20TokenSymbol() -> String[100]:
     pass
 
 @view
@@ -121,8 +219,13 @@ def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
 def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
+@view
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 10]) -> uint256:
+def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
+    pass
+
+@external
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 20]) -> uint256:
     pass
 
 @external
@@ -134,7 +237,7 @@ def invalidate(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def pay(_loanId: uint256, _amountPaid: uint256):
+def pay(_loanId: uint256, _amount: uint256):
     pass
 
 @external
@@ -145,14 +248,14 @@ def settleDefault(_borrower: address, _loanId: uint256):
 def cancelPendingLoan(_loanId: uint256):
     pass
 
-@payable
+@view
 @external
-def __default__():
+def owner() -> address:
     pass
 
 @view
 @external
-def owner() -> address:
+def proposedOwner() -> address:
     pass
 
 @view
@@ -192,11 +295,6 @@ def isDeprecated() -> bool:
 
 @view
 @external
-def whitelistedCollateralsAddresses(arg0: uint256) -> address:
-    pass
-
-@view
-@external
 def whitelistedCollaterals(arg0: address) -> bool:
     pass
 
@@ -207,5 +305,27 @@ def loansCoreAddress() -> address:
 
 @view
 @external
-def lendingPoolAddress() -> address:
+def lendingPoolPeripheralAddress() -> address:
     pass
+
+@view
+@external
+def collateralVaultPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def liquidationsPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def walletWhitelistEnabled() -> bool:
+    pass
+
+@view
+@external
+def walletsWhitelisted(arg0: address) -> bool:
+    pass
+
+

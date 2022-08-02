@@ -1,15 +1,10 @@
-# @version ^0.3.2
+# @version ^0.3.3
 
 
 # Interfaces
 
+from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILendingPoolCore
-
-interface IERC20Token:
-    def allowance(_owner: address, _spender: address) -> uint256: view
-    def transfer(_recipient: address, _amount: uint256) -> bool: nonpayable
-    def transferFrom(_sender: address, _recipient: address, _amount: uint256) -> bool: nonpayable
-    def safeTransferFrom(_sender: address, _recipient: address, _amount: uint256) -> bool: nonpayable
 
 
 # Structs
@@ -24,27 +19,99 @@ struct InvestorFunds:
 
 # Events
 
+event OwnerProposed:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
+event OwnershipTransferred:
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+
+event MaxCapitalEfficiencyChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event ProtocolWalletChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event ProtocolFeesShareChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
+event LoansPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event LiquidationsPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event WhitelistStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event WhitelistAddressAdded:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
+event WhitelistAddressRemoved:
+    erc20TokenContractIndexed: indexed(address)
+    value: address
+    erc20TokenContract: address
+
+event ContractStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event InvestingStatusChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event ContractDeprecated:
+    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContract: address
+
 event Deposit:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
 
 event Withdrawal:
-    wallet: address
-    amount: uint256
-    erc20TokenContract: address
-
-event Compound:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
 
 event FundsTransfer:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
 
 event FundsReceipt:
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     rewardsPool: uint256
@@ -55,9 +122,12 @@ event FundsReceipt:
 # Global variables
 
 owner: public(address)
+proposedOwner: public(address)
+
 loansContract: public(address)
 lendingPoolCoreContract: public(address)
 erc20TokenContract: public(address)
+liquidationsPeripheralContract: public(address)
 
 protocolWallet: public(address)
 protocolFeesShare: public(uint256) # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
@@ -71,270 +141,433 @@ whitelistEnabled: public(bool)
 whitelistedAddresses: public(HashMap[address, bool])
 
 
-##### INTERNAL METHODS #####
+##### INTERNAL METHODS - VIEW #####
 
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20Token(self.erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = IERC20(self.erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
-@view
+@pure
 @internal
-def _poolHasFundsToInvest() -> bool:
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
-    if fundsAvailable + fundsInvested == 0:
+def _poolHasFundsToInvest(_fundsAvailable: uint256, _fundsInvested: uint256, _capitalEfficienty: uint256) -> bool:
+    if _fundsAvailable + _fundsInvested == 0:
         return False
     
-    return fundsInvested * 10000 / (fundsAvailable + fundsInvested) < self.maxCapitalEfficienty
+    return _fundsInvested * 10000 / (_fundsAvailable + _fundsInvested) < _capitalEfficienty
 
 
 @view
 @internal
-def _maxFundsInvestable() -> int256:
+def _poolHasFundsToInvestAfterDeposit(_amount: uint256) -> bool:
+    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() + _amount
+    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+
+    return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
+
+
+@view
+@internal
+def _poolHasFundsToInvestAfterPayment(_amount: uint256, _rewards: uint256) -> bool:
+    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() + _amount + _rewards
+    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested() - _amount
+
+    return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
+
+
+@view
+@internal
+def _poolHasFundsToInvestAfterWithdraw(_amount: uint256) -> bool:
+    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
+    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+    
+    return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
+
+
+@view
+@internal
+def _poolHasFundsToInvestAfterInvestment(_amount: uint256) -> bool:
+    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
+    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested() + _amount
+    
+    return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
+
+
+@view
+@internal
+def _maxFundsInvestable() -> uint256:
     fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
     fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
-    return convert(fundsAvailable, int256) - (convert(fundsAvailable, int256) + convert(fundsInvested, int256)) * (10000 - convert(self.maxCapitalEfficienty, int256)) / 10000
+
+    fundsBuffer: uint256 = (fundsAvailable + fundsInvested) * (10000 - self.maxCapitalEfficienty) / 10000
+
+    if fundsBuffer > fundsAvailable:
+        return 0
+    
+    return fundsAvailable - fundsBuffer
+
+
+##### INTERNAL METHODS - WRITE #####
+
+@internal
+def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
+
+    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, rewardsPool):
+        self.isPoolInvesting = True
+
+    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, rewardsPool):
+        raise "error receiving funds in LPCore"
+    
+    if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, rewardsProtocol):
+        raise "error transferring protocol fees"
+
+    log FundsReceipt(msg.sender, msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
 
 
 ##### EXTERNAL METHODS - VIEW #####
 
 @view
 @external
-def poolHasFundsToInvest() -> bool:
-    return self._poolHasFundsToInvest()
+def maxFundsInvestable() -> uint256:
+    return self._maxFundsInvestable()
 
 
 @view
 @external
-def maxFundsInvestable() -> int256:
-    return self._maxFundsInvestable()
+def lenderFunds(_lender: address) -> InvestorFunds:
+    return ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender)
 
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
 def __init__(
-    _loansContract: address,
+    _lendingPoolCoreContract: address,
     _erc20TokenContract: address,
     _protocolWallet: address,
     _protocolFeesShare: uint256,
     _maxCapitalEfficienty: uint256,
     _whitelistEnabled: bool
 ):
+    assert _lendingPoolCoreContract != ZERO_ADDRESS, "address is the zero address"
+    assert _erc20TokenContract != ZERO_ADDRESS, "address is the zero address"
+    assert _protocolWallet != ZERO_ADDRESS, "address is the zero address"
+    assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
+    assert _maxCapitalEfficienty <= 10000, "capital eff exceeds 10000 bps"
+
     self.owner = msg.sender
-    self.loansContract = _loansContract
+    self.lendingPoolCoreContract = _lendingPoolCoreContract
     self.erc20TokenContract = _erc20TokenContract
     self.protocolWallet = _protocolWallet
     self.protocolFeesShare = _protocolFeesShare
     self.maxCapitalEfficienty = _maxCapitalEfficienty
     self.isPoolActive = True
-    self.isPoolDeprecated = False
-    self.isPoolInvesting = False
     self.whitelistEnabled = _whitelistEnabled
 
 
 @external
-def changeOwnership(_newOwner: address) -> address:
-    assert msg.sender == self.owner, "Only the owner can change the contract ownership"
+def proposeOwner(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert self.owner != _address, "proposed owner addr is the owner"
+    assert self.proposedOwner != _address, "proposed owner addr is the same"
 
-    self.owner = _newOwner
+    self.proposedOwner = _address
 
-    return self.owner
-
-
-@external
-def changeMaxCapitalEfficiency(_newMaxCapitalEfficiency: uint256) -> uint256:
-    assert msg.sender == self.owner, "Only the owner can change the max capital efficiency"
-
-    self.maxCapitalEfficienty = _newMaxCapitalEfficiency
-
-    return self.maxCapitalEfficienty
-
-
-@external
-def changeProtocolWallet(_newProtocolWallet: address) -> address:
-    assert msg.sender == self.owner, "Only the owner can change the protocol wallet address"
-
-    self.protocolWallet = _newProtocolWallet
-
-    return self.protocolWallet
+    log OwnerProposed(
+        self.owner,
+        _address,
+        self.owner,
+        _address,
+        self.erc20TokenContract
+    )
 
 
 @external
-def changeProtocolFeesShare(_newProtocolFeesShare: uint256) -> uint256:
-    assert msg.sender == self.owner, "Only the owner can change the protocol fees share"
+def claimOwnership():
+    assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
 
-    self.protocolFeesShare = _newProtocolFeesShare
+    log OwnershipTransferred(
+        self.owner,
+        self.proposedOwner,
+        self.owner,
+        self.proposedOwner,
+        self.erc20TokenContract
+    )
 
-    return self.protocolFeesShare
+    self.owner = self.proposedOwner
+    self.proposedOwner = ZERO_ADDRESS
 
 
 @external
-def changePoolStatus(_flag: bool) -> bool:
-    assert msg.sender == self.owner, "Only the owner can change the pool status"
-    assert self.isPoolActive != _flag, "The new pool status should be different than the current status"
+def changeMaxCapitalEfficiency(_value: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value <= 10000, "capital eff exceeds 10000 bps"
+    assert _value != self.maxCapitalEfficienty, "new value is the same"
+
+    log MaxCapitalEfficiencyChanged(
+        self.erc20TokenContract,
+        self.maxCapitalEfficienty,
+        _value,
+        self.erc20TokenContract
+    )
+
+    self.maxCapitalEfficienty = _value
+
+
+@external
+def changeProtocolWallet(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != self.protocolWallet, "new value is the same"
+
+    log ProtocolWalletChanged(
+        self.erc20TokenContract,
+        self.protocolWallet,
+        _address,
+        self.erc20TokenContract
+    )
+
+    self.protocolWallet = _address
+
+
+@external
+def changeProtocolFeesShare(_value: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value <= 10000, "fees share exceeds 10000 bps"
+    assert _value != self.protocolFeesShare, "new value is the same"
+
+    log ProtocolFeesShareChanged(
+        self.erc20TokenContract,
+        self.protocolFeesShare,
+        _value,
+        self.erc20TokenContract
+    )
+
+    self.protocolFeesShare = _value
+
+
+@external
+def setLoansPeripheralAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
+    assert _address != self.loansContract, "new value is the same"
+
+    log LoansPeripheralAddressSet(
+        self.erc20TokenContract,
+        self.loansContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+    self.loansContract = _address
+
+
+@external
+def setLiquidationsPeripheralAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
+    assert _address != self.liquidationsPeripheralContract, "new value is the same"
+
+    log LiquidationsPeripheralAddressSet(
+        self.erc20TokenContract,
+        self.liquidationsPeripheralContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+    self.liquidationsPeripheralContract = _address
+
+
+@external
+def changeWhitelistStatus(_flag: bool):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert self.whitelistEnabled != _flag, "new value is the same"
+
+    self.whitelistEnabled = _flag
+
+    log WhitelistStatusChanged(
+        self.erc20TokenContract,
+        _flag,
+        self.erc20TokenContract
+    )
+
+
+@external
+def addWhitelistedAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.whitelistEnabled, "whitelist is disabled"
+    assert not self.whitelistedAddresses[_address], "address is already whitelisted"
+
+    self.whitelistedAddresses[_address] = True
+
+    log WhitelistAddressAdded(
+        self.erc20TokenContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+
+@external
+def removeWhitelistedAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert self.whitelistEnabled, "whitelist is disabled"
+    assert self.whitelistedAddresses[_address], "address is not whitelisted"
+
+    self.whitelistedAddresses[_address] = False
+
+    log WhitelistAddressRemoved(
+        self.erc20TokenContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+
+@external
+def changePoolStatus(_flag: bool):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert self.isPoolActive != _flag, "new value is the same"
 
     self.isPoolActive = _flag
   
     if not _flag:
         self.isPoolInvesting = False
 
-    if _flag and not self.isPoolInvesting and self._poolHasFundsToInvest():
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            False,
+            self.erc20TokenContract
+        )
+
+    if _flag and not self.isPoolInvesting and self._poolHasFundsToInvestAfterWithdraw(0):
         self.isPoolInvesting = True
 
-    return self.isPoolActive
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            True,
+            self.erc20TokenContract
+        )
+
+    log ContractStatusChanged(
+        self.erc20TokenContract,
+        _flag,
+        self.erc20TokenContract
+    )
 
 
 @external
-def setLendingPoolCoreAddress(_address: address) -> address:
-    assert msg.sender == self.owner, "Only the contract owner can set the lending pool core address"
-
-    self.lendingPoolCoreContract = _address
-    return self.lendingPoolCoreContract
-
-
-@external
-def deprecate() -> bool:
-    assert msg.sender == self.owner, "Only the owner can change the pool to deprecated"
-    assert not self.isPoolDeprecated, "The pool is already deprecated"
+def deprecate():
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert not self.isPoolDeprecated, "pool is already deprecated"
 
     self.isPoolDeprecated = True
     self.isPoolActive = False
     self.isPoolInvesting = False
 
-    return self.isPoolDeprecated
+    log ContractStatusChanged(
+        self.erc20TokenContract,
+        False,
+        self.erc20TokenContract
+    )
+
+    log InvestingStatusChanged(
+        self.erc20TokenContract,
+        False,
+        self.erc20TokenContract
+    )
+
+    log ContractDeprecated(
+        self.erc20TokenContract,
+        self.erc20TokenContract
+    )
 
 
 @external
-def changeWhitelistStatus(_flag: bool) -> bool:
-    assert msg.sender == self.owner, "Only the owner can change the whitelist status"
-    assert self.whitelistEnabled != _flag, "The new whitelist status should be different than the current status"
-
-    self.whitelistEnabled = _flag
-
-    return _flag
-
-
-@external
-def addWhitelistedAddress(_address: address):
-    assert msg.sender == self.owner, "Only the owner can add addresses to the whitelist"
-    assert self.whitelistEnabled, "The whitelist is disabled"
-    assert not self.whitelistedAddresses[_address], "The address is already whitelisted"
-
-    self.whitelistedAddresses[_address] = True
-
-
-@external
-def removeWhitelistedAddress(_address: address):
-    assert msg.sender == self.owner, "Only the owner can remove addresses from the whitelist"
-    assert self.whitelistEnabled, "The whitelist is disabled"
-    assert self.whitelistedAddresses[_address], "The address is not whitelisted"
-
-    self.whitelistedAddresses[_address] = False
-
-
-@external
-# def deposit(_amount: uint256, _autoCompoundRewards: bool) -> bool:
-def deposit(_amount: uint256) -> bool:
+def deposit(_amount: uint256):
     # _amount should be passed in wei
 
-    assert not self.isPoolDeprecated, "Pool is deprecated, please withdraw any outstanding deposit"
-    assert self.isPoolActive, "Pool is not active right now"
-    assert _amount > 0, "Amount deposited has to be higher than 0"
-    assert self._fundsAreAllowed(msg.sender, self, _amount), "Insufficient funds allowed to be transfered"
+    assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
+    assert self.isPoolActive, "pool is not active right now"
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
 
     if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
-        raise "The whitelist is enabled and the sender is not whitelisted"
+        raise "msg.sender is not whitelisted"
 
-  
-    # if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, _autoCompoundRewards):
-    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount):
-        raise "Error creating deposit"
-
-    if not self.isPoolInvesting and self._poolHasFundsToInvest():
+    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterDeposit(_amount):
         self.isPoolInvesting = True
 
-    if not IERC20Token(self.erc20TokenContract).transferFrom(msg.sender, self, _amount):
-        raise "Error transferring deposit amount"
-    
-    if not IERC20Token(self.erc20TokenContract).transfer(self.lendingPoolCoreContract, _amount):
-        raise "Error transferring deposit amount to LPCore"
+    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount):
+        raise "error creating deposit"
 
-    log Deposit(msg.sender, _amount, self.erc20TokenContract)
-
-    return True
+    log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
 
 @external
-def withdraw(_amount: uint256) -> bool:
+def withdraw(_amount: uint256):
     # _amount should be passed in wei
 
-    if self.isPoolInvesting and not self._poolHasFundsToInvest():
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender) >= _amount, "_amount more than withdrawable"
+    assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
+
+    if self.isPoolInvesting and not self._poolHasFundsToInvestAfterWithdraw(_amount):
         self.isPoolInvesting = False
 
     if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _amount):
-        raise "Error withdrawing funds"
+        raise "error withdrawing funds"
 
-    log Withdrawal(msg.sender, _amount, self.erc20TokenContract)
-
-    return True
+    log Withdrawal(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
 
 @external
-def sendFunds(_to: address, _amount: uint256) -> bool:
+def sendFunds(_to: address, _amount: uint256):
     # _amount should be passed in wei
 
-    assert not self.isPoolDeprecated, "Pool is deprecated"
-    assert self.isPoolActive, "The pool is not active and is not investing more right now"
-    assert self.isPoolInvesting, "Max capital efficiency reached, the pool is not investing more right now"
-    assert msg.sender == self.loansContract, "Only the loans contract address can request to send funds"
-    assert _amount > 0, "The amount to send should be higher than 0"
-    assert convert(_amount, int256) <= self._maxFundsInvestable(), "No sufficient deposited funds to perform the transaction"
+    assert not self.isPoolDeprecated, "pool is deprecated"
+    assert self.isPoolActive, "pool is inactive"
+    assert self.isPoolInvesting, "max capital eff reached"
+    assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
+    assert _to != ZERO_ADDRESS, "_to is the zero address"
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert _amount <= self._maxFundsInvestable(), "insufficient liquidity"
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_to, _amount):
-        raise "Error sending funds in LPCore"
-
-    if self.isPoolInvesting and not self._poolHasFundsToInvest():
+    if self.isPoolInvesting and not self._poolHasFundsToInvestAfterInvestment(_amount):
         self.isPoolInvesting = False
 
-    log FundsTransfer(_to, _amount, self.erc20TokenContract)
+    if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_to, _amount):
+        raise "error sending funds in LPCore"
 
-    return True
+    log FundsTransfer(_to, _to, _amount, self.erc20TokenContract)
 
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     # _amount and _rewardsAmount should be passed in wei
 
-    assert msg.sender == self.loansContract, "The sender address is not the loans contract address"
-    assert self._fundsAreAllowed(_borrower, self, _amount + _rewardsAmount), "Insufficient funds allowed to be transfered"
-    assert _amount + _rewardsAmount > 0, "The sent value should be higher than 0"
+    assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
+    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
+    assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     
-    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
-    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
-
-    if not IERC20Token(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount):
-        raise "Error transferring funds from borrower"
-    
-    if not IERC20Token(self.erc20TokenContract).transfer(self.protocolWallet, rewardsProtocol):
-        raise "Error transferring funds to protocol wallet"
-
-    if not self.isPoolInvesting and self._poolHasFundsToInvest():
-        self.isPoolInvesting = True
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_amount, rewardsPool):
-        raise "Error receiving funds in LPCore"
-
-    log FundsReceipt(msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
-
-    return True
+    self._receiveFunds(_borrower, _amount, _rewardsAmount)
 
 
 @external
-@payable
-def __default__():
-  if msg.value > 0:
-    send(msg.sender, msg.value)
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    # _amount and _rewardsAmount should be passed in wei
+
+    assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
+    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
+    assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
+    
+    self._receiveFunds(_borrower, _amount, _rewardsAmount)

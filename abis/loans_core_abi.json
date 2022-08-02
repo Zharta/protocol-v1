@@ -1,10 +1,108 @@
 [
   {
-    "stateMutability": "nonpayable",
-    "type": "constructor",
+    "name": "OwnerProposed",
     "inputs": [
       {
-        "name": "_loansPeripheral",
+        "name": "ownerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "proposedOwnerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "proposedOwner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "ownerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "proposedOwnerIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "proposedOwner",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LoansPeripheralAddressSet",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "proposeOwner",
+    "inputs": [
+      {
+        "name": "_address",
         "type": "address"
       }
     ],
@@ -13,36 +111,21 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "changeOwnership",
-    "inputs": [
-      {
-        "name": "_newOwner",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ]
+    "name": "claimOwnership",
+    "inputs": [],
+    "outputs": []
   },
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "changeLoansPeripheral",
+    "name": "setLoansPeripheral",
     "inputs": [
       {
-        "name": "_newLoansPeripheral",
+        "name": "_address",
         "type": "address"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ]
+    "outputs": []
   },
   {
     "stateMutability": "view",
@@ -166,7 +249,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "(address,uint256)[]"
+        "type": "(address,uint256,uint256)[]"
       }
     ]
   },
@@ -358,7 +441,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -429,7 +512,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -491,7 +574,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -553,7 +636,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -615,7 +698,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -677,7 +760,7 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256)[]"
+            "type": "(address,uint256,uint256)[]"
           },
           {
             "name": "paidAmount",
@@ -756,6 +839,10 @@
           {
             "name": "tokenId",
             "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
           }
         ]
       },
@@ -786,6 +873,10 @@
           {
             "name": "tokenId",
             "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
           }
         ]
       },
@@ -811,6 +902,10 @@
           },
           {
             "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
             "type": "uint256"
           }
         ]
@@ -845,7 +940,7 @@
       },
       {
         "name": "_collaterals",
-        "type": "(address,uint256)[]"
+        "type": "(address,uint256,uint256)[]"
       }
     ],
     "outputs": [
@@ -1020,13 +1115,21 @@
     "outputs": []
   },
   {
-    "stateMutability": "payable",
-    "type": "fallback"
+    "stateMutability": "view",
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
   },
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "owner",
+    "name": "proposedOwner",
     "inputs": [],
     "outputs": [
       {
@@ -1131,6 +1234,10 @@
           },
           {
             "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
             "type": "uint256"
           }
         ]

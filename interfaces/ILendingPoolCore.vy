@@ -7,12 +7,24 @@ struct InvestorFunds:
     sharesBasisPoints: uint256
     activeForRewards: bool
 
-
 # Events
 
-event Compound:
-    wallet: address
-    amount: uint256
+event OwnerProposed:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event OwnershipTransferred:
+    ownerIndexed: address
+    proposedOwnerIndexed: address
+    owner: address
+    proposedOwner: address
+    erc20TokenContract: address
+event LendingPoolPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
     erc20TokenContract: address
 
 # Functions
@@ -22,16 +34,25 @@ event Compound:
 def lendersArray() -> DynArray[address, 1125899906842624]:
     pass
 
+@view
 @external
-def changeOwnership(_newOwner: address) -> address:
+def computeWithdrawableAmount(_lender: address) -> uint256:
+    pass
+
+@external
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
+    pass
+
+@external
+def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
 def deposit(_lender: address, _amount: uint256) -> bool:
-    pass
-
-@external
-def withdrawUnpaidRewards() -> bool:
     pass
 
 @external
@@ -43,17 +64,21 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     pass
 
 @external
-def receiveFunds(_amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
     pass
 
-@payable
 @external
-def __default__():
+def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
     pass
 
 @view
 @external
 def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
     pass
 
 @view
@@ -110,3 +135,5 @@ def totalRewards() -> uint256:
 @external
 def totalSharesBasisPoints() -> uint256:
     pass
+
+
