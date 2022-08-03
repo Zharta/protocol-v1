@@ -326,7 +326,27 @@
         "indexed": false
       },
       {
-        "name": "buyNowPeriodPrice",
+        "name": "lenderPeriodPrice",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "gracePeriodMaturity",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "lenderPeriodMaturity",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "loansCoreAddress",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
         "type": "uint256",
         "indexed": false
       }
@@ -405,13 +425,18 @@
         "indexed": false
       },
       {
-        "name": "_from",
+        "name": "buyerAddress",
         "type": "address",
         "indexed": false
       },
       {
         "name": "erc20TokenContract",
         "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "method",
+        "type": "string",
         "indexed": false
       }
     ],
@@ -458,7 +483,7 @@
             "type": "uint256"
           },
           {
-            "name": "buyNowPeriodMaturity",
+            "name": "lenderPeriodMaturity",
             "type": "uint256"
           },
           {
@@ -478,7 +503,7 @@
             "type": "uint256"
           },
           {
-            "name": "buyNowPeriodPrice",
+            "name": "lenderPeriodPrice",
             "type": "uint256"
           },
           {
@@ -510,7 +535,7 @@
         "type": "uint256"
       },
       {
-        "name": "_buyNowPeriodDuration",
+        "name": "_lenderPeriodDuration",
         "type": "uint256"
       },
       {
@@ -742,7 +767,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "buyNFTBuyNowPeriod",
+    "name": "buyNFTLenderPeriod",
     "inputs": [
       {
         "name": "_collateralAddress",
@@ -817,7 +842,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "buyNowPeriodDuration",
+    "name": "lenderPeriodDuration",
     "inputs": [],
     "outputs": [
       {

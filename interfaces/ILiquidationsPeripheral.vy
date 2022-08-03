@@ -24,6 +24,7 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
     activeForRewards: bool
 
 struct Liquidation:
@@ -32,12 +33,12 @@ struct Liquidation:
     tokenId: uint256
     startTime: uint256
     gracePeriodMaturity: uint256
-    buyNowPeriodMaturity: uint256
+    lenderPeriodMaturity: uint256
     principal: uint256
     interestAmount: uint256
     apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     gracePeriodPrice: uint256
-    buyNowPeriodPrice: uint256
+    lenderPeriodPrice: uint256
     borrower: address
     erc20TokenContract: address
     inAuction: bool
@@ -104,7 +105,11 @@ event LiquidationAdded:
     tokenId: uint256
     erc20TokenContract: address
     gracePeriodPrice: uint256
-    buyNowPeriodPrice: uint256
+    lenderPeriodPrice: uint256
+    gracePeriodMaturity: uint256
+    lenderPeriodMaturity: uint256
+    loansCoreAddress: address
+    loanId: uint256
 event LiquidationRemoved:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
@@ -119,8 +124,9 @@ event NFTPurchased:
     collateralAddress: address
     tokenId: uint256
     amount: uint256
-    _from: address
+    buyerAddress: address
     erc20TokenContract: address
+    method: String[20]
 
 # Functions
 
@@ -194,7 +200,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
-def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
+def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
@@ -222,7 +228,7 @@ def gracePeriodDuration() -> uint256:
 
 @view
 @external
-def buyNowPeriodDuration() -> uint256:
+def lenderPeriodDuration() -> uint256:
     pass
 
 @view

@@ -6,7 +6,7 @@ import eth_abi
 
 
 GRACE_PERIOD_DURATION = 172800 # 2 days
-BUY_NOW_PERIOD_DURATION = 604800 # 15 days
+LENDER_PERIOD_DURATION = 604800 # 15 days
 AUCTION_DURATION = 604800 # 15 days
 
 PRINCIPAL = Web3.toWei(1, "ether")
@@ -208,7 +208,7 @@ def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_con
         0,
         start_time,
         start_time + GRACE_PERIOD_DURATION,
-        start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
+        start_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION,
         PRINCIPAL,
         INTEREST_AMOUNT,
         APR,
@@ -232,12 +232,12 @@ def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_con
     assert liquidation["lid"] == liquidation_id
     assert liquidation["startTime"] == start_time
     assert liquidation["gracePeriodMaturity"] == start_time + GRACE_PERIOD_DURATION
-    assert liquidation["buyNowPeriodMaturity"] == start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION
+    assert liquidation["lenderPeriodMaturity"] == start_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
     assert liquidation["principal"] == PRINCIPAL
     assert liquidation["interestAmount"] == INTEREST_AMOUNT
     assert liquidation["apr"] == APR
     assert liquidation["gracePeriodPrice"] == grace_period_price
-    assert liquidation["buyNowPeriodPrice"] == liquidations_period_price
+    assert liquidation["lenderPeriodPrice"] == liquidations_period_price
     assert liquidation["borrower"] == borrower
     assert liquidation["erc20TokenContract"] == erc20_contract
 
@@ -253,7 +253,7 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
         0,
         start_time,
         start_time + GRACE_PERIOD_DURATION,
-        start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
+        start_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION,
         PRINCIPAL,
         INTEREST_AMOUNT,
         APR,
@@ -270,7 +270,7 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
             0,
             start_time,
             start_time + GRACE_PERIOD_DURATION,
-            start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
+            start_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION,
             PRINCIPAL,
             INTEREST_AMOUNT,
             APR,
@@ -305,7 +305,7 @@ def test_remove_liquidation(liquidations_core_contract, liquidations_peripheral_
         0,
         start_time,
         start_time + GRACE_PERIOD_DURATION,
-        start_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION,
+        start_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION,
         PRINCIPAL,
         INTEREST_AMOUNT,
         APR,

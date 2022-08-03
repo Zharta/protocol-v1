@@ -18,12 +18,12 @@ struct Liquidation:
     tokenId: uint256
     startTime: uint256
     gracePeriodMaturity: uint256
-    buyNowPeriodMaturity: uint256
+    lenderPeriodMaturity: uint256
     principal: uint256
     interestAmount: uint256
     apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     gracePeriodPrice: uint256
-    buyNowPeriodPrice: uint256
+    lenderPeriodPrice: uint256
     borrower: address
     erc20TokenContract: address
     inAuction: bool
@@ -104,8 +104,8 @@ def getLiquidationGracePeriodMaturity(_collateralAddress: address, _tokenId: uin
 
 @view
 @external
-def getLiquidationBuyNowPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
-    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].buyNowPeriodMaturity
+def getLiquidationLenderPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].lenderPeriodMaturity
 
 @view
 @external
@@ -232,12 +232,12 @@ def addLiquidation(
     _tokenId: uint256,
     _startTime: uint256,
     _gracePeriodMaturity: uint256,
-    _buyNowPeriodMaturity: uint256,
+    _lenderPeriodMaturity: uint256,
     _principal: uint256,
     _interestAmount: uint256,
     _apr: uint256,
     _gracePeriodPrice: uint256,
-    _buyNowPeriodPrice: uint256,
+    _lenderPeriodPrice: uint256,
     _borrower: address,
     _erc20TokenContract: address
 ) -> bytes32:
@@ -254,12 +254,12 @@ def addLiquidation(
             tokenId: _tokenId,
             startTime: _startTime,
             gracePeriodMaturity: _gracePeriodMaturity,
-            buyNowPeriodMaturity: _buyNowPeriodMaturity,
+            lenderPeriodMaturity: _lenderPeriodMaturity,
             principal: _principal,
             interestAmount: _interestAmount,
             apr: _apr,
             gracePeriodPrice: _gracePeriodPrice,
-            buyNowPeriodPrice: _buyNowPeriodPrice,
+            lenderPeriodPrice: _lenderPeriodPrice,
             borrower: _borrower,
             erc20TokenContract: _erc20TokenContract,
             inAuction: False,
