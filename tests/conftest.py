@@ -58,6 +58,8 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_co
         PROTOCOL_FEES_SHARE,
         MAX_CAPITAL_EFFICIENCY,
         False,
+        False,
+        1500,
         {'from': contract_owner}
     )
 
@@ -71,6 +73,8 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
         PROTOCOL_FEES_SHARE,
         MAX_CAPITAL_EFFICIENCY,
         False,
+        False,
+        1500,
         {'from': contract_owner}
     )
 

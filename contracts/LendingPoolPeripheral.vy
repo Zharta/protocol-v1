@@ -78,6 +78,16 @@ event WhitelistAddressRemoved:
     value: address
     erc20TokenContract: address
 
+event MaxPoolShareFlagChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: bool
+    erc20TokenContract: address
+
+event MaxPoolShareChanged:
+    erc20TokenContractIndexed: indexed(address)
+    value: uint256
+    erc20TokenContract: address
+
 event ContractStatusChanged:
     erc20TokenContractIndexed: indexed(address)
     value: bool
@@ -140,8 +150,25 @@ isPoolInvesting: public(bool)
 whitelistEnabled: public(bool)
 whitelistedAddresses: public(HashMap[address, bool])
 
+maxPoolShare: public(uint256)
+maxPoolShareEnabled: public(bool)
+
 
 ##### INTERNAL METHODS - VIEW #####
+
+@view
+@internal
+def _userWithinPoolShareLimit(_lender: address, _amount: uint256) -> bool:
+    if not self.maxPoolShareEnabled:
+        return True
+
+    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
+    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+
+    lenderDepositedAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender).currentAmountDeposited
+
+    return (lenderDepositedAmount + _amount) * 10000 / (fundsAvailable + fundsInvested + _amount) <= self.maxPoolShare
+
 
 @view
 @internal
@@ -251,13 +278,16 @@ def __init__(
     _protocolWallet: address,
     _protocolFeesShare: uint256,
     _maxCapitalEfficienty: uint256,
-    _whitelistEnabled: bool
+    _whitelistEnabled: bool,
+    _maxPoolShareEnabled: bool,
+    _maxPoolShare: uint256
 ):
     assert _lendingPoolCoreContract != ZERO_ADDRESS, "address is the zero address"
     assert _erc20TokenContract != ZERO_ADDRESS, "address is the zero address"
     assert _protocolWallet != ZERO_ADDRESS, "address is the zero address"
     assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
     assert _maxCapitalEfficienty <= 10000, "capital eff exceeds 10000 bps"
+    assert _maxPoolShare <= 10000, "max pool share exceeds 10000 bps"
 
     self.owner = msg.sender
     self.lendingPoolCoreContract = _lendingPoolCoreContract
@@ -266,7 +296,13 @@ def __init__(
     self.protocolFeesShare = _protocolFeesShare
     self.maxCapitalEfficienty = _maxCapitalEfficienty
     self.isPoolActive = True
-    self.whitelistEnabled = _whitelistEnabled
+    
+    if _whitelistEnabled:
+        self.whitelistEnabled = _whitelistEnabled
+    
+    if _maxPoolShareEnabled:
+        self.maxPoolShareEnabled = _maxPoolShareEnabled
+        self.maxPoolShare = _maxPoolShare
 
 
 @external
@@ -432,6 +468,33 @@ def removeWhitelistedAddress(_address: address):
 
 
 @external
+def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert self.maxPoolShareEnabled != _flag, "new value is the same"
+    
+    if _flag:
+        if self.maxPoolShare != _value:
+            assert _value <= 10000, "max pool share exceeds 10000 bps"
+            self.maxPoolShare = _value
+
+            log MaxPoolShareChanged(
+                self.erc20TokenContract,
+                _value,
+                self.erc20TokenContract
+            )
+        else:
+            assert self.maxPoolShare != _value, "new value is the same"
+
+    self.maxPoolShareEnabled = _flag
+
+    log MaxPoolShareFlagChanged(
+        self.erc20TokenContract,
+        _flag,
+        self.erc20TokenContract
+    )
+
+
+@external
 def changePoolStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.isPoolActive != _flag, "new value is the same"
@@ -497,6 +560,7 @@ def deposit(_amount: uint256):
     assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
     assert self.isPoolActive, "pool is not active right now"
     assert _amount > 0, "_amount has to be higher than 0"
+    assert self._userWithinPoolShareLimit(msg.sender, _amount), "max pool share surpassed"
     assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
 
     if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
