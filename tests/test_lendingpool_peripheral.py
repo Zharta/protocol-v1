@@ -492,13 +492,6 @@ def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, e
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    
-    print(lending_pool_core_contract.funds(investor)["lockPeriodEnd"])
-    print(chain.time())
-    print(lending_pool_peripheral_contract.xpto({"from": investor}))
-    print(lending_pool_peripheral_contract.xpto2({"from": investor}))
-    print(lending_pool_peripheral_contract.xpto3({"from": investor}))
-    print(lending_pool_peripheral_contract.xpto4({"from": investor}))
 
     tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
     
@@ -509,9 +502,6 @@ def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, e
     assert investor_funds["totalAmountDeposited"] == Web3.toWei(1, "ether")
     assert investor_funds["totalAmountWithdrawn"] == 0
     assert investor_funds["sharesBasisPoints"] == Web3.toWei(1, "ether")
-
-    print(chain_time)
-    print(LOCK_PERIOD_DURATION)
 
     assert investor_funds["lockPeriodEnd"] == chain_time + LOCK_PERIOD_DURATION
     assert investor_funds["activeForRewards"] == True
