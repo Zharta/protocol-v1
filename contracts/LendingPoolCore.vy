@@ -13,6 +13,7 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
     activeForRewards: bool
 
 
@@ -162,12 +163,11 @@ def setLendingPoolPeripheralAddress(_address: address):
 
 
 @external
-def deposit(_lender: address, _amount: uint256) -> bool:
+def deposit(_lender: address, _amount: uint256, _lockPeriodEnd: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _lender != ZERO_ADDRESS, "The _address is the zero address"
-    assert _amount > 0, "_amount has to be higher than 0"
     assert self._fundsAreAllowed(_lender, self, _amount), "Not enough funds allowed"
 
     sharesAmount: uint256 = self._computeShares(_amount)
@@ -190,12 +190,15 @@ def deposit(_lender: address, _amount: uint256) -> bool:
                 totalAmountDeposited: _amount,
                 totalAmountWithdrawn: 0,
                 sharesBasisPoints: sharesAmount,
+                lockPeriodEnd: _lockPeriodEnd,
                 activeForRewards: True
             }
         )
         self.lenders.append(_lender)
         self.knownLenders[_lender] = True
         self.activeLenders += 1
+    
+    self.funds[_lender].lockPeriodEnd = _lockPeriodEnd
 
     self.fundsAvailable += _amount
     self.totalSharesBasisPoints += sharesAmount
@@ -208,7 +211,6 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _amount > 0, "_amount has to be higher than 0"
     assert _lender != ZERO_ADDRESS, "The _lender is the zero address"
     assert self._computeWithdrawableAmount(_lender) >= _amount, "_amount more than withdrawable"
     assert self.fundsAvailable >= _amount, "Available funds less than amount"
@@ -223,12 +225,14 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
             totalAmountDeposited: self.funds[_lender].totalAmountDeposited,
             totalAmountWithdrawn: self.funds[_lender].totalAmountWithdrawn + _amount,
             sharesBasisPoints: newLenderSharesAmount,
+            lockPeriodEnd: self.funds[_lender].lockPeriodEnd,
             activeForRewards: True
         }
     )
 
     if self.funds[_lender].currentAmountDeposited == 0:
         self.funds[_lender].activeForRewards = False
+        self.funds[_lender].lockPeriodEnd = 0
         self.activeLenders -= 1
 
     self.fundsAvailable -= _amount

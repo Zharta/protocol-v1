@@ -159,7 +159,7 @@
             "type": "uint256"
           },
           {
-            "name": "buyNowPeriodMaturity",
+            "name": "lenderPeriodMaturity",
             "type": "uint256"
           },
           {
@@ -179,7 +179,7 @@
             "type": "uint256"
           },
           {
-            "name": "buyNowPeriodPrice",
+            "name": "lenderPeriodPrice",
             "type": "uint256"
           },
           {
@@ -243,7 +243,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getLiquidationBuyNowPeriodMaturity",
+    "name": "getLiquidationLenderPeriodMaturity",
     "inputs": [
       {
         "name": "_collateralAddress",
@@ -474,7 +474,7 @@
         "type": "uint256"
       },
       {
-        "name": "_buyNowPeriodMaturity",
+        "name": "_lenderPeriodMaturity",
         "type": "uint256"
       },
       {
@@ -494,7 +494,7 @@
         "type": "uint256"
       },
       {
-        "name": "_buyNowPeriodPrice",
+        "name": "_lenderPeriodPrice",
         "type": "uint256"
       },
       {

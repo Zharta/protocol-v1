@@ -8,7 +8,7 @@ import eth_abi
 
 
 GRACE_PERIOD_DURATION = 5
-BUY_NOW_PERIOD_DURATION = 5
+LENDER_PERIOD_DURATION = 5
 AUCTION_DURATION = 5
 
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
@@ -21,7 +21,7 @@ def test_initial_state(liquidations_peripheral_contract, liquidations_core_contr
     assert liquidations_peripheral_contract.owner() == contract_owner
     assert liquidations_peripheral_contract.liquidationsCoreAddress() == liquidations_core_contract
     assert liquidations_peripheral_contract.gracePeriodDuration() == GRACE_PERIOD_DURATION
-    assert liquidations_peripheral_contract.buyNowPeriodDuration() == BUY_NOW_PERIOD_DURATION
+    assert liquidations_peripheral_contract.lenderPeriodDuration() == LENDER_PERIOD_DURATION
     assert liquidations_peripheral_contract.auctionPeriodDuration() == AUCTION_DURATION
 
 
@@ -116,20 +116,20 @@ def test_set_liquidations_period_duration_zero_value(liquidations_peripheral_con
 
 
 def test_set_liquidations_period_duration(liquidations_peripheral_contract, contract_owner):
-    assert liquidations_peripheral_contract.buyNowPeriodDuration() == BUY_NOW_PERIOD_DURATION
+    assert liquidations_peripheral_contract.lenderPeriodDuration() == LENDER_PERIOD_DURATION
     
-    tx = liquidations_peripheral_contract.setLiquidationsPeriodDuration(BUY_NOW_PERIOD_DURATION + 1, {"from": contract_owner})
+    tx = liquidations_peripheral_contract.setLiquidationsPeriodDuration(LENDER_PERIOD_DURATION + 1, {"from": contract_owner})
 
-    assert liquidations_peripheral_contract.buyNowPeriodDuration() == BUY_NOW_PERIOD_DURATION + 1
+    assert liquidations_peripheral_contract.lenderPeriodDuration() == LENDER_PERIOD_DURATION + 1
 
     event = tx.events["LiquidationsPeriodDurationChanged"]
-    assert event["currentValue"] == BUY_NOW_PERIOD_DURATION
-    assert event["newValue"] == BUY_NOW_PERIOD_DURATION + 1
+    assert event["currentValue"] == LENDER_PERIOD_DURATION
+    assert event["newValue"] == LENDER_PERIOD_DURATION + 1
 
 
 def test_set_liquidations_period_duration_same_value(liquidations_peripheral_contract, contract_owner):
     with brownie.reverts("new value is the same"):
-        liquidations_peripheral_contract.setLiquidationsPeriodDuration(BUY_NOW_PERIOD_DURATION, {"from": contract_owner})
+        liquidations_peripheral_contract.setLiquidationsPeriodDuration(LENDER_PERIOD_DURATION, {"from": contract_owner})
 
 
 def test_set_auction_period_duration_wrong_sender(liquidations_peripheral_contract, borrower):
@@ -422,7 +422,7 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
 
     assert liquidation["lid"] == liquidation_id
     assert liquidation["gracePeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION
-    assert liquidation["buyNowPeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION
+    assert liquidation["lenderPeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
     assert liquidation["principal"] == LOAN_AMOUNT
     assert liquidation["interestAmount"] == interest_amount
     assert liquidation["apr"] == apr
@@ -435,7 +435,11 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     assert event["tokenId"] == 0
     assert event["erc20TokenContract"] == erc20_contract
     assert event["gracePeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * GRACE_PERIOD_DURATION) / (Decimal(31536000) * Decimal(10000)))
-    assert event["buyNowPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * BUY_NOW_PERIOD_DURATION) / (Decimal(31536000) * Decimal(10000)))
+    assert event["lenderPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * LENDER_PERIOD_DURATION) / (Decimal(31536000) * Decimal(10000)))
+    assert event["gracePeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION
+    assert event["lenderPeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
+    assert event["loansCoreAddress"] == loans_core_contract
+    assert event["loanId"] == loan_id
 
 
 def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
@@ -637,11 +641,12 @@ def test_buy_nft_grace_period(liquidations_peripheral_contract, liquidations_cor
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["amount"] == grace_period_price
-    assert event["_from"] == borrower
+    assert event["buyerAddress"] == borrower
     assert event["erc20TokenContract"] == erc20_contract
+    assert event["method"] == "GRACE_PERIOD"
 
 
-# def test_buy_nft_buynow_period(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
+# def test_buy_nft_lender_period(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
 #     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 #     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
     
@@ -686,9 +691,9 @@ def test_buy_nft_grace_period(liquidations_peripheral_contract, liquidations_cor
 #         erc20_contract
 #     )
 
-#     buy_now_period_price = int(Decimal(PRINCIPAL) + Decimal(INTEREST_AMOUNT) + Decimal(PRINCIPAL * APR * 17) / Decimal(365))
-#     erc20_contract.mint(contract_owner, buy_now_period_price, {"from": contract_owner})
-#     erc20_contract.approve(lending_pool_core_contract, buy_now_period_price, {"from": contract_owner})
+#     lender_period_price = int(Decimal(PRINCIPAL) + Decimal(INTEREST_AMOUNT) + Decimal(PRINCIPAL * APR * 17) / Decimal(365))
+#     erc20_contract.mint(contract_owner, lender_period_price, {"from": contract_owner})
+#     erc20_contract.approve(lending_pool_core_contract, lender_period_price, {"from": contract_owner})
 
 #     chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION + 1)
 
@@ -712,6 +717,6 @@ def test_buy_nft_grace_period(liquidations_peripheral_contract, liquidations_cor
 #     event = tx.events["NFTPurchased"]
 #     assert event["collateralAddress"] == erc721_contract
 #     assert event["tokenId"] == 0
-#     assert event["amount"] == buy_now_period_price
+#     assert event["amount"] == lender_period_price
 #     assert event["_from"] == contract_owner
 #     assert event["erc20TokenContract"] == erc20_contract

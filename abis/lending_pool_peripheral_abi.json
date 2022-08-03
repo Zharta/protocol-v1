@@ -265,6 +265,94 @@
     "type": "event"
   },
   {
+    "name": "MaxPoolShareFlagChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "bool",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "MaxPoolShareChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LockPeriodFlagChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "bool",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LockPeriodDurationChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "name": "ContractStatusChanged",
     "inputs": [
       {
@@ -487,6 +575,10 @@
             "type": "uint256"
           },
           {
+            "name": "lockPeriodEnd",
+            "type": "uint256"
+          },
+          {
             "name": "activeForRewards",
             "type": "bool"
           }
@@ -521,6 +613,22 @@
       {
         "name": "_whitelistEnabled",
         "type": "bool"
+      },
+      {
+        "name": "_maxPoolShareEnabled",
+        "type": "bool"
+      },
+      {
+        "name": "_maxPoolShare",
+        "type": "uint256"
+      },
+      {
+        "name": "_lockPeriodEnabled",
+        "type": "bool"
+      },
+      {
+        "name": "_lockPeriodDuration",
+        "type": "uint256"
       }
     ],
     "outputs": []
@@ -643,6 +751,38 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
+    "name": "changeMaxPoolShareConditions",
+    "inputs": [
+      {
+        "name": "_flag",
+        "type": "bool"
+      },
+      {
+        "name": "_value",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "changeLockPeriodConditions",
+    "inputs": [
+      {
+        "name": "_flag",
+        "type": "bool"
+      },
+      {
+        "name": "_value",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
     "name": "changePoolStatus",
     "inputs": [
       {
@@ -658,6 +798,54 @@
     "name": "deprecate",
     "inputs": [],
     "outputs": []
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "xpto",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "xpto2",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "xpto3",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "xpto4",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
   },
   {
     "stateMutability": "nonpayable",
@@ -905,6 +1093,54 @@
         "type": "address"
       }
     ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "maxPoolShare",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "maxPoolShareEnabled",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "lockPeriodDuration",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "lockPeriodEnabled",
+    "inputs": [],
     "outputs": [
       {
         "name": "",
