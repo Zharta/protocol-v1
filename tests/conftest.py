@@ -15,9 +15,11 @@ MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+LOCK_PERIOD_DURATION = 10
 
 GRACE_PERIOD_DURATION = 5 # 2 days
-BUY_NOW_PERIOD_DURATION = 5 # 15 days
+LENDER_PERIOD_DURATION = 5 # 15 days
 AUCTION_DURATION = 5 # 15 days
 
 
@@ -59,7 +61,9 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_co
         MAX_CAPITAL_EFFICIENCY,
         False,
         False,
-        1500,
+        MAX_POOL_SHARE,
+        False,
+        LOCK_PERIOD_DURATION,
         {'from': contract_owner}
     )
 
@@ -74,7 +78,9 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
         MAX_CAPITAL_EFFICIENCY,
         False,
         False,
-        1500,
+        MAX_POOL_SHARE,
+        False,
+        LOCK_PERIOD_DURATION,
         {'from': contract_owner}
     )
 
@@ -117,7 +123,7 @@ def liquidations_peripheral_contract(LiquidationsPeripheral, liquidations_core_c
     yield LiquidationsPeripheral.deploy(
         liquidations_core_contract,
         GRACE_PERIOD_DURATION,
-        BUY_NOW_PERIOD_DURATION,
+        LENDER_PERIOD_DURATION,
         AUCTION_DURATION,
         erc20_contract,
         {"from": contract_owner}

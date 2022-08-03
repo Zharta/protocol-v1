@@ -173,6 +173,10 @@
       {
         "name": "_amount",
         "type": "uint256"
+      },
+      {
+        "name": "_lockPeriodEnd",
+        "type": "uint256"
       }
     ],
     "outputs": [
@@ -351,6 +355,10 @@
           },
           {
             "name": "sharesBasisPoints",
+            "type": "uint256"
+          },
+          {
+            "name": "lockPeriodEnd",
             "type": "uint256"
           },
           {

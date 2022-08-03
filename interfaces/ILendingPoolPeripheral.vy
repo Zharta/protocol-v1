@@ -5,6 +5,7 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
     activeForRewards: bool
 
 # Events
@@ -57,6 +58,22 @@ event WhitelistAddressAdded:
 event WhitelistAddressRemoved:
     erc20TokenContractIndexed: address
     value: address
+    erc20TokenContract: address
+event MaxPoolShareFlagChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event MaxPoolShareChanged:
+    erc20TokenContractIndexed: address
+    value: uint256
+    erc20TokenContract: address
+event LockPeriodFlagChanged:
+    erc20TokenContractIndexed: address
+    value: bool
+    erc20TokenContract: address
+event LockPeriodDurationChanged:
+    erc20TokenContractIndexed: address
+    value: uint256
     erc20TokenContract: address
 event ContractStatusChanged:
     erc20TokenContractIndexed: address
@@ -142,6 +159,14 @@ def addWhitelistedAddress(_address: address):
 
 @external
 def removeWhitelistedAddress(_address: address):
+    pass
+
+@external
+def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
+    pass
+
+@external
+def changeLockPeriodConditions(_flag: bool, _value: uint256):
     pass
 
 @external
@@ -240,6 +265,26 @@ def whitelistEnabled() -> bool:
 @view
 @external
 def whitelistedAddresses(arg0: address) -> bool:
+    pass
+
+@view
+@external
+def maxPoolShare() -> uint256:
+    pass
+
+@view
+@external
+def maxPoolShareEnabled() -> bool:
+    pass
+
+@view
+@external
+def lockPeriodDuration() -> uint256:
+    pass
+
+@view
+@external
+def lockPeriodEnabled() -> bool:
     pass
 
 
