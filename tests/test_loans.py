@@ -19,7 +19,7 @@ PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 GRACE_PERIOD_DURATION = 5
-BUY_NOW_PERIOD_DURATION = 5
+LENDER_PERIOD_DURATION = 5
 AUCTION_DURATION = 5
 
 
@@ -2089,7 +2089,7 @@ def test_set_default_loan_not_started(
         loans_peripheral_contract.settleDefault(borrower, 0, {"from": contract_owner})
 
 
-def test_set_default_buynow_zeroaddress(
+def test_set_default_lender_zeroaddress(
     loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
@@ -2212,12 +2212,12 @@ def test_set_default_loan(
         assert liquidation["collateralAddress"] == collateral[0]
         assert liquidation["tokenId"] == collateral[1]
         # assert liquidation["gracePeriodMaturity"] == default_time + GRACE_PERIOD_DURATION
-        # assert liquidation["buyNowPeriodMaturity"] == default_time + GRACE_PERIOD_DURATION + BUY_NOW_PERIOD_DURATION
+        # assert liquidation["lenderPeriodMaturity"] == default_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
         assert liquidation["principal"] == collateral[2]
         assert liquidation["interestAmount"] == interest_amount
         assert liquidation["apr"] == apr
         assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
-        assert liquidation["buyNowPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(BUY_NOW_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+        assert liquidation["lenderPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(LENDER_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
         assert liquidation["borrower"] == borrower
         assert liquidation["erc20TokenContract"] == erc20_contract
         assert not liquidation["inAuction"]
