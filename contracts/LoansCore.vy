@@ -69,6 +69,7 @@ proposedOwner: public(address)
 loansPeripheral: public(address)
 
 loans: HashMap[address, DynArray[Loan, 2**16]]
+borrowedAmount: public(HashMap[address, uint256])
 
 # key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
@@ -431,6 +432,8 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
     self.loans[_borrower][_loanId].startTime = block.timestamp
     self.loans[_borrower][_loanId].started = True
 
+    self.borrowedAmount[_borrower] += self.loans[_borrower][_loanId].amount
+
 
 @external
 def updateInvalidLoan(_borrower: address, _loanId: uint256):
@@ -459,6 +462,8 @@ def updatePaidLoan(_borrower: address, _loanId: uint256):
 
     self.loans[_borrower][_loanId].paid = True
 
+    self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
+
 
 @external
 def updateDefaultedLoan(_borrower: address, _loanId: uint256):
@@ -466,6 +471,8 @@ def updateDefaultedLoan(_borrower: address, _loanId: uint256):
     assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].defaulted = True
+
+    self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
 
 
 @external
