@@ -100,6 +100,48 @@ def computeWithdrawableAmount(_lender: address) -> uint256:
     return self._computeWithdrawableAmount(_lender)
 
 
+@view
+@external
+def fundsInPool() -> uint256:
+    return self.fundsAvailable + self.fundsInvested
+
+
+@view
+@external
+def currentAmountDeposited(_lender: address) -> uint256:
+    return self.funds[_lender].currentAmountDeposited
+
+
+@view
+@external
+def totalAmountDeposited(_lender: address) -> uint256:
+    return self.funds[_lender].totalAmountDeposited
+
+
+@view
+@external
+def totalAmountWithdrawn(_lender: address) -> uint256:
+    return self.funds[_lender].totalAmountWithdrawn
+
+
+@view
+@external
+def sharesBasisPoints(_lender: address) -> uint256:
+    return self.funds[_lender].sharesBasisPoints
+
+
+@view
+@external
+def lockPeriodEnd(_lender: address) -> uint256:
+    return self.funds[_lender].lockPeriodEnd
+
+
+@view
+@external
+def activeForRewards(_lender: address) -> bool:
+    return self.funds[_lender].activeForRewards
+
+
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external

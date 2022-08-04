@@ -15,12 +15,15 @@ MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-LOCK_PERIOD_DURATION = 10
 
 GRACE_PERIOD_DURATION = 5 # 2 days
 LENDER_PERIOD_DURATION = 5 # 15 days
 AUCTION_DURATION = 5 # 15 days
+
+MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+MAX_COLLATERALS_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
 contract_owner = conftest_base.contract_owner
@@ -60,10 +63,6 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_co
         PROTOCOL_FEES_SHARE,
         MAX_CAPITAL_EFFICIENCY,
         False,
-        False,
-        MAX_POOL_SHARE,
-        False,
-        LOCK_PERIOD_DURATION,
         {'from': contract_owner}
     )
 
@@ -77,10 +76,6 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
         PROTOCOL_FEES_SHARE,
         MAX_CAPITAL_EFFICIENCY,
         False,
-        False,
-        MAX_POOL_SHARE,
-        False,
-        LOCK_PERIOD_DURATION,
         {'from': contract_owner}
     )
 
@@ -126,6 +121,21 @@ def liquidations_peripheral_contract(LiquidationsPeripheral, liquidations_core_c
         LENDER_PERIOD_DURATION,
         AUCTION_DURATION,
         erc20_contract,
+        {"from": contract_owner}
+    )
+
+
+@pytest.fixture(scope="module", autouse=True)
+def liquidity_controls_contract(LiquidityControls, contract_owner):
+    yield LiquidityControls.deploy(
+        False,
+        MAX_POOL_SHARE,
+        False,
+        LOCK_PERIOD_DURATION,
+        False,
+        MAX_LOANS_POOL_SHARE,
+        False,
+        MAX_COLLATERALS_SHARE,
         {"from": contract_owner}
     )
 

@@ -4,7 +4,7 @@ from web3 import Web3
 import brownie
 
 
-LOCK_PERIOD_DURATION = 10
+LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
 def user_balance(token_contract, user):
@@ -192,8 +192,10 @@ def test_withdraw_insufficient_investment(lending_pool_core_contract, lending_po
         lending_pool_core_contract.withdraw(investor, deposit_amount * 1.5, {"from": lending_pool_peripheral_contract})
 
 
-def test_withdraw(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, contract_owner):
+def test_withdraw(lending_pool_core_contract, lending_pool_peripheral_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     deposit_amount = Web3.toWei(2, "ether")
     withdraw_amount = Web3.toWei(1, "ether")
@@ -226,8 +228,10 @@ def test_withdraw(lending_pool_core_contract, lending_pool_peripheral_contract, 
     assert lending_pool_core_contract.lendersArray() == [investor]
 
 
-def test_deposit_withdraw_deposit(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, contract_owner):
+def test_deposit_withdraw_deposit(lending_pool_core_contract, lending_pool_peripheral_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     initial_balance = user_balance(erc20_contract, investor)
     
@@ -295,12 +299,15 @@ def test_send_funds_zero_amount(lending_pool_core_contract, lending_pool_periphe
 def test_send_funds_insufficient_balance(
     lending_pool_core_contract,
     lending_pool_peripheral_contract,
+    liquidity_controls_contract,
     erc20_contract,
     contract_owner,
     investor,
     borrower
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -318,12 +325,15 @@ def test_send_funds_insufficient_balance(
 def test_send_funds(
     lending_pool_core_contract,
     lending_pool_peripheral_contract,
+    liquidity_controls_contract,
     erc20_contract,
     contract_owner,
     investor,
     borrower
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     initial_balance = user_balance(erc20_contract, borrower)
     
@@ -332,7 +342,7 @@ def test_send_funds(
 
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
     
-    tx_send = lending_pool_core_contract.sendFunds(
+    lending_pool_core_contract.sendFunds(
         borrower,
         Web3.toWei(0.2, "ether"),
         {"from": lending_pool_peripheral_contract}
@@ -407,8 +417,10 @@ def test_transfer_protocol_fees(lending_pool_core_contract, lending_pool_periphe
     assert user_balance(erc20_contract, contract_owner) == amount
 
 
-def test_receive_funds(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, borrower, contract_owner):
+def test_receive_funds(lending_pool_core_contract, lending_pool_peripheral_contract, liquidity_controls_contract, erc20_contract, investor, borrower, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     deposit_amount = Web3.toWei(1, "ether")
 

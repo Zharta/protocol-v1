@@ -121,6 +121,21 @@ def maxFundsInvestable() -> uint256:
 def lenderFunds(_lender: address) -> InvestorFunds:
     pass
 
+@view
+@external
+def fundsAvailable() -> uint256:
+    pass
+
+@view
+@external
+def fundsInvested() -> uint256:
+    pass
+
+@view
+@external
+def fundsInPool() -> uint256:
+    pass
+
 @external
 def proposeOwner(_address: address):
     pass

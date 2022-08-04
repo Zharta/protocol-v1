@@ -40,6 +40,41 @@ def lendersArray() -> DynArray[address, 1125899906842624]:
 def computeWithdrawableAmount(_lender: address) -> uint256:
     pass
 
+@view
+@external
+def fundsInPool() -> uint256:
+    pass
+
+@view
+@external
+def currentAmountDeposited(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def totalAmountDeposited(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def totalAmountWithdrawn(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def sharesBasisPoints(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def lockPeriodEnd(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def activeForRewards(_lender: address) -> bool:
+    pass
+
 @external
 def proposeOwner(_address: address):
     pass

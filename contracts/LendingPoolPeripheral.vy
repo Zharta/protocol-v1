@@ -5,6 +5,7 @@
 
 from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILendingPoolCore
+from interfaces import ILiquidityControls
 
 
 # Structs
@@ -64,6 +65,12 @@ event LiquidationsPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
+event LiquidityControlsAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
 event WhitelistStatusChanged:
     erc20TokenContractIndexed: indexed(address)
     value: bool
@@ -77,26 +84,6 @@ event WhitelistAddressAdded:
 event WhitelistAddressRemoved:
     erc20TokenContractIndexed: indexed(address)
     value: address
-    erc20TokenContract: address
-
-event MaxPoolShareFlagChanged:
-    erc20TokenContractIndexed: indexed(address)
-    value: bool
-    erc20TokenContract: address
-
-event MaxPoolShareChanged:
-    erc20TokenContractIndexed: indexed(address)
-    value: uint256
-    erc20TokenContract: address
-
-event LockPeriodFlagChanged:
-    erc20TokenContractIndexed: indexed(address)
-    value: bool
-    erc20TokenContract: address
-
-event LockPeriodDurationChanged:
-    erc20TokenContractIndexed: indexed(address)
-    value: uint256
     erc20TokenContract: address
 
 event ContractStatusChanged:
@@ -149,6 +136,7 @@ loansContract: public(address)
 lendingPoolCoreContract: public(address)
 erc20TokenContract: public(address)
 liquidationsPeripheralContract: public(address)
+liquidityControlsContract: public(address)
 
 protocolWallet: public(address)
 protocolFeesShare: public(uint256) # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
@@ -161,37 +149,8 @@ isPoolInvesting: public(bool)
 whitelistEnabled: public(bool)
 whitelistedAddresses: public(HashMap[address, bool])
 
-maxPoolShare: public(uint256)
-maxPoolShareEnabled: public(bool)
-
-lockPeriodDuration: public(uint256)
-lockPeriodEnabled: public(bool)
-
 
 ##### INTERNAL METHODS - VIEW #####
-
-@view
-@internal
-def _lenderWithinPoolShareLimit(_lender: address, _amount: uint256) -> bool:
-    if not self.maxPoolShareEnabled:
-        return True
-
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
-
-    lenderDepositedAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender).currentAmountDeposited
-
-    return (lenderDepositedAmount + _amount) * 10000 / (fundsAvailable + fundsInvested + _amount) <= self.maxPoolShare
-
-
-@view
-@internal
-def _lenderOutOfLockPeriod(_lender: address) -> bool:
-    if not self.lockPeriodEnabled:
-        return True
-    
-    return ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender).lockPeriodEnd <= block.timestamp
-
 
 @view
 @internal
@@ -259,6 +218,18 @@ def _maxFundsInvestable() -> uint256:
     return fundsAvailable - fundsBuffer
 
 
+@view
+@internal
+def _computeLockPeriodEnd(_lender: address) -> uint256:
+    lockPeriodEnd: uint256 = 0
+    if ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender).lockPeriodEnd <= block.timestamp:
+        lockPeriodEnd = block.timestamp + ILiquidityControls(self.liquidityControlsContract).lockPeriodDuration()
+    else:
+        lockPeriodEnd = ILendingPoolCore(self.lendingPoolCoreContract).funds(msg.sender).lockPeriodEnd
+    
+    return lockPeriodEnd
+
+
 ##### INTERNAL METHODS - WRITE #####
 
 @internal
@@ -301,18 +272,13 @@ def __init__(
     _protocolWallet: address,
     _protocolFeesShare: uint256,
     _maxCapitalEfficienty: uint256,
-    _whitelistEnabled: bool,
-    _maxPoolShareEnabled: bool,
-    _maxPoolShare: uint256,
-    _lockPeriodEnabled: bool,
-    _lockPeriodDuration: uint256
+    _whitelistEnabled: bool
 ):
     assert _lendingPoolCoreContract != ZERO_ADDRESS, "address is the zero address"
     assert _erc20TokenContract != ZERO_ADDRESS, "address is the zero address"
     assert _protocolWallet != ZERO_ADDRESS, "address is the zero address"
     assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
     assert _maxCapitalEfficienty <= 10000, "capital eff exceeds 10000 bps"
-    assert _maxPoolShare <= 10000, "max pool share exceeds 10000 bps"
 
     self.owner = msg.sender
     self.lendingPoolCoreContract = _lendingPoolCoreContract
@@ -324,14 +290,6 @@ def __init__(
     
     if _whitelistEnabled:
         self.whitelistEnabled = _whitelistEnabled
-    
-    if _maxPoolShareEnabled:
-        self.maxPoolShareEnabled = _maxPoolShareEnabled
-        self.maxPoolShare = _maxPoolShare
-    
-    if _lockPeriodEnabled:
-        self.lockPeriodEnabled = _lockPeriodEnabled
-    self.lockPeriodDuration = _lockPeriodDuration
 
 
 @external
@@ -451,6 +409,23 @@ def setLiquidationsPeripheralAddress(_address: address):
 
 
 @external
+def setLiquidityControlsAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
+    assert _address != self.liquidityControlsContract, "new value is the same"
+
+    log LiquidityControlsAddressSet(
+        self.erc20TokenContract,
+        self.liquidityControlsContract,
+        _address,
+        self.erc20TokenContract
+    )
+
+    self.liquidityControlsContract = _address
+
+
+@external
 def changeWhitelistStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.whitelistEnabled != _flag, "new value is the same"
@@ -492,59 +467,6 @@ def removeWhitelistedAddress(_address: address):
     log WhitelistAddressRemoved(
         self.erc20TokenContract,
         _address,
-        self.erc20TokenContract
-    )
-
-
-@external
-def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.maxPoolShareEnabled != _flag, "new value is the same"
-    
-    if _flag:
-        if self.maxPoolShare != _value:
-            assert _value <= 10000, "max pool share exceeds 10000 bps"
-            self.maxPoolShare = _value
-
-            log MaxPoolShareChanged(
-                self.erc20TokenContract,
-                _value,
-                self.erc20TokenContract
-            )
-        else:
-            raise "new value is the same"
-
-    self.maxPoolShareEnabled = _flag
-
-    log MaxPoolShareFlagChanged(
-        self.erc20TokenContract,
-        _flag,
-        self.erc20TokenContract
-    )
-
-
-@external
-def changeLockPeriodConditions(_flag: bool, _value: uint256):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.lockPeriodEnabled != _flag, "new value is the same"
-    
-    if _flag:
-        if self.lockPeriodDuration != _value:
-            self.lockPeriodDuration = _value
-
-            log LockPeriodDurationChanged(
-                self.erc20TokenContract,
-                _value,
-                self.erc20TokenContract
-            )
-        else:
-            raise "new value is the same"
-
-    self.lockPeriodEnabled = _flag
-
-    log LockPeriodFlagChanged(
-        self.erc20TokenContract,
-        _flag,
         self.erc20TokenContract
     )
 
@@ -615,7 +537,11 @@ def deposit(_amount: uint256):
     assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
     assert self.isPoolActive, "pool is not active right now"
     assert _amount > 0, "_amount has to be higher than 0"
-    assert self._lenderWithinPoolShareLimit(msg.sender, _amount), "max pool share surpassed"
+    assert ILiquidityControls(self.liquidityControlsContract).withinPoolShareLimit(
+        msg.sender,
+        _amount,
+        self.lendingPoolCoreContract
+    ), "max pool share surpassed"
     assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
 
     if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
@@ -624,13 +550,7 @@ def deposit(_amount: uint256):
     if not self.isPoolInvesting and self._poolHasFundsToInvestAfterDeposit(_amount):
         self.isPoolInvesting = True
 
-    lockPeriodEnd: uint256 = 0
-    if ILendingPoolCore(self.lendingPoolCoreContract).funds(msg.sender).lockPeriodEnd <= block.timestamp:
-        lockPeriodEnd = block.timestamp + self.lockPeriodDuration
-    else:
-        lockPeriodEnd = ILendingPoolCore(self.lendingPoolCoreContract).funds(msg.sender).lockPeriodEnd
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, lockPeriodEnd):
+    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, self._computeLockPeriodEnd(msg.sender)):
         raise "error creating deposit"
 
     log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
@@ -641,7 +561,7 @@ def withdraw(_amount: uint256):
     # _amount should be passed in wei
 
     assert _amount > 0, "_amount has to be higher than 0"
-    assert self._lenderOutOfLockPeriod(msg.sender), "msg.sender within lock period"
+    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, self.lendingPoolCoreContract), "msg.sender within lock period"
     assert ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender) >= _amount, "_amount more than withdrawable"
     assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
 
