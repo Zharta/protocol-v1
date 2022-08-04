@@ -220,6 +220,15 @@ def _maxFundsInvestable() -> uint256:
 
 @view
 @internal
+def _theoreticalMaxFundsInvestable(_amount: uint256) -> uint256:
+    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
+    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+
+    return (fundsAvailable + fundsInvested + _amount) * self.maxCapitalEfficienty / 10000
+
+
+@view
+@internal
 def _computeLockPeriodEnd(_lender: address) -> uint256:
     lockPeriodEnd: uint256 = 0
     if ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender).lockPeriodEnd <= block.timestamp:
@@ -255,6 +264,18 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256)
 @external
 def maxFundsInvestable() -> uint256:
     return self._maxFundsInvestable()
+
+
+@view
+@external
+def theoreticalMaxFundsInvestable() -> uint256:
+    return self._theoreticalMaxFundsInvestable(0)
+
+
+@view
+@external
+def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
+    return self._theoreticalMaxFundsInvestable(_amount)
 
 
 @view
@@ -540,7 +561,9 @@ def deposit(_amount: uint256):
     assert ILiquidityControls(self.liquidityControlsContract).withinPoolShareLimit(
         msg.sender,
         _amount,
-        self.lendingPoolCoreContract
+        self,
+        self.lendingPoolCoreContract,
+        self._theoreticalMaxFundsInvestable(_amount)
     ), "max pool share surpassed"
     assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
 

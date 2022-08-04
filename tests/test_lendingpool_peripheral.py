@@ -289,66 +289,6 @@ def test_remove_whitelisted_address(lending_pool_peripheral_contract, contract_o
     assert event["value"] == investor
 
 
-# def test_change_max_pool_share_conditions_wrong_sender(lending_pool_peripheral_contract, borrower):
-#     with brownie.reverts("msg.sender is not the owner"):
-#         lending_pool_peripheral_contract.changeMaxPoolShareConditions(False, 0, {"from": borrower})
-
-
-# def test_change_max_pool_share_conditions_same_status(lending_pool_peripheral_contract, contract_owner):
-#     with brownie.reverts("new value is the same"):
-#         lending_pool_peripheral_contract.changeMaxPoolShareConditions(False, 0, {"from": contract_owner})
-
-#     with brownie.reverts("new value is the same"):
-#         lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 0, {"from": contract_owner})
-
-
-# def test_change_max_pool_share_conditions_too_much(lending_pool_peripheral_contract, contract_owner):
-#     with brownie.reverts("max pool share exceeds 10000 bps"):
-#         lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 100000, {"from": contract_owner})
-
-
-# def test_change_max_pool_share_conditions(lending_pool_peripheral_contract, contract_owner):
-#     tx = lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 1000, {"from": contract_owner})
-
-#     assert lending_pool_peripheral_contract.maxPoolShareEnabled()
-#     assert lending_pool_peripheral_contract.maxPoolShare() == 1000
-
-#     assert tx.events["MaxPoolShareChanged"]["value"] == 1000
-#     assert tx.events["MaxPoolShareFlagChanged"]["value"]
-
-
-
-
-
-
-# def test_change_lock_period_conditions_wrong_sender(lending_pool_peripheral_contract, borrower):
-#     with brownie.reverts("msg.sender is not the owner"):
-#         lending_pool_peripheral_contract.changeLockPeriodConditions(False, 0, {"from": borrower})
-
-
-# def test_change_lock_period_conditions_same_status(lending_pool_peripheral_contract, contract_owner):
-#     with brownie.reverts("new value is the same"):
-#         lending_pool_peripheral_contract.changeLockPeriodConditions(False, 0, {"from": contract_owner})
-
-#     with brownie.reverts("new value is the same"):
-#         lending_pool_peripheral_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION, {"from": contract_owner})
-
-
-# def test_change_lock_period_conditions(lending_pool_peripheral_contract, contract_owner):
-#     tx = lending_pool_peripheral_contract.changeLockPeriodConditions(True, 1000, {"from": contract_owner})
-
-#     assert lending_pool_peripheral_contract.lockPeriodEnabled()
-#     assert lending_pool_peripheral_contract.lockPeriodDuration() == 1000
-
-#     assert tx.events["LockPeriodDurationChanged"]["value"] == 1000
-#     assert tx.events["LockPeriodFlagChanged"]["value"]
-
-
-
-
-
-
-
 def test_change_pool_status_wrong_sender(lending_pool_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changePoolStatus(False, {"from": borrower})
@@ -603,7 +543,7 @@ def test_deposit_max_pool_share_enabled(
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(3, "ether"), {"from": contract_owner})
 
-    liquidity_controls_contract.changeMaxPoolShareConditions(True, 2500, {"from": contract_owner})
+    liquidity_controls_contract.changeMaxPoolShareConditions(True, 4000, {"from": contract_owner})
 
     tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
