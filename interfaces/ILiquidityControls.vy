@@ -21,17 +21,17 @@ event LockPeriodDurationChanged:
 
 @view
 @external
-def withinPoolShareLimit(_lender: address, _amount: uint256, _lpContractAddress: address) -> bool:
+def withinPoolShareLimit(_lender: address, _amount: uint256, _lpPeripheralContractAddress: address, _lpCoreContractAddress: address, _fundsInPool: uint256) -> bool:
     pass
 
 @view
 @external
-def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreContractAddress: address, _lpContractAddress: address) -> bool:
+def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreContractAddress: address, _lpPeripheralContractAddress: address) -> bool:
     pass
 
 @view
 @external
-def outOfLockPeriod(_lender: address, _lpContractAddress: address) -> bool:
+def outOfLockPeriod(_lender: address, _lpCoreContractAddress: address) -> bool:
     pass
 
 @external

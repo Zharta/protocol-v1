@@ -4,9 +4,12 @@
 # Interfaces
 
 interface ILendingPoolCore:
-    def fundsInPool() -> uint256: view
     def currentAmountDeposited(_lender: address) -> uint256: view
     def lockPeriodEnd(_lender: address) -> uint256: view
+
+interface ILendingPoolPeripheral:
+    def theoreticalMaxFundsInvestable() -> uint256: view
+    def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256: view
 
 interface ILoansCore:
     def borrowedAmount(_borrower: address) -> uint256: view
@@ -67,27 +70,31 @@ maxCollateralsShareEnabled: public(bool)
 
 @view
 @external
-def withinPoolShareLimit(_lender: address, _amount: uint256, _lpCoreContractAddress: address) -> bool:
+def withinPoolShareLimit(_lender: address, _amount: uint256, _lpPeripheralContractAddress: address, _lpCoreContractAddress: address, _fundsInvestable: uint256 = 0) -> bool:
     if not self.maxPoolShareEnabled:
         return True
 
-    fundsInPool: uint256 = ILendingPoolCore(_lpCoreContractAddress).fundsInPool()
+    fundsInvestable: uint256 = _fundsInvestable
+    if _fundsInvestable == 0:
+        fundsInvestable = ILendingPoolPeripheral(_lpPeripheralContractAddress).theoreticalMaxFundsInvestableAfterDeposit(_amount)
+        if fundsInvestable == 0:
+            return False
 
     lenderDepositedAmount: uint256 = ILendingPoolCore(_lpCoreContractAddress).currentAmountDeposited(_lender)
 
-    return (lenderDepositedAmount + _amount) * 10000 / (fundsInPool + _amount) <= self.maxPoolShare
+    return (lenderDepositedAmount + _amount) * 10000 / fundsInvestable <= self.maxPoolShare
 
 
 @view
 @external
-def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool:
-    if not self.maxPoolShareEnabled:
+def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreContractAddress: address, _lpPeripheralContractAddress: address) -> bool:
+    if not self.maxLoansPoolShareEnabled:
         return True
 
     borrowedAmount: uint256 = ILoansCore(_loansCoreContractAddress).borrowedAmount(_borrower)
-    fundsInPool: uint256 = ILendingPoolCore(_lpCoreContractAddress).fundsInPool()
+    fundsInvestable: uint256 = ILendingPoolPeripheral(_lpPeripheralContractAddress).theoreticalMaxFundsInvestable()
 
-    return (borrowedAmount + _amount) * 10000 / fundsInPool <= self.maxLoansPoolShare
+    return (borrowedAmount + _amount) * 10000 / fundsInvestable <= self.maxLoansPoolShare
 
 
 @view
