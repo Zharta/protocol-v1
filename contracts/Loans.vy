@@ -221,6 +221,8 @@ liquidityControlsContract: public(address)
 walletWhitelistEnabled: public(bool)
 walletsWhitelisted: public(HashMap[address, bool])
 
+collectionsAmount: HashMap[address, uint256] # aux variable
+
 
 @external
 def __init__(
@@ -289,6 +291,34 @@ def _collateralsAmounts(_collaterals: DynArray[Collateral, 20]) -> uint256:
         sumAmount += collateral.amount
 
     return sumAmount
+
+
+@internal
+def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 20]) -> bool:
+    collections: DynArray[address, 20] = empty(DynArray[address, 20])
+
+    i: uint256 = 0
+    for collateral in _collaterals:
+        if collateral.contractAddress not in collections:
+            collections.append(collateral.contractAddress)
+
+        if i == 0:
+            self.collectionsAmount[collateral.contractAddress] = collateral.amount
+            i += 1
+        else:
+            self.collectionsAmount[collateral.contractAddress] += collateral.amount
+    
+    for collection in collections:
+        result: bool = ILiquidityControls(self.liquidityControlsContract).withinCollectionShareLimit(
+            self.collectionsAmount[collection],
+            collection,
+            self.loansCoreContract,
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
+        )
+        if not result:
+            return False
+    
+    return True
 
 
 @pure
@@ -617,6 +647,7 @@ def reserve(
         self.loansCoreContract,
         self.lendingPoolPeripheralContract
     ), "max loans pool share surpassed"
+    assert self._withinCollectionShareLimit(_collaterals), "max collection share surpassed"
 
     if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
         raise "msg.sender is not whitelisted"

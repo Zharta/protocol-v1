@@ -53,7 +53,6 @@ lenders: public(DynArray[address, 2**50])
 knownLenders: public(HashMap[address, bool])
 activeLenders: public(uint256)
 
-
 fundsAvailable: public(uint256)
 fundsInvested: public(uint256)
 totalFundsInvested: public(uint256)

@@ -6,6 +6,7 @@
 interface ILendingPoolCore:
     def currentAmountDeposited(_lender: address) -> uint256: view
     def lockPeriodEnd(_lender: address) -> uint256: view
+    def fundsInvested() -> uint256: view
 
 interface ILendingPoolPeripheral:
     def theoreticalMaxFundsInvestable() -> uint256: view
@@ -13,6 +14,7 @@ interface ILendingPoolPeripheral:
 
 interface ILoansCore:
     def borrowedAmount(_borrower: address) -> uint256: view
+    def collectionsBorrowedAmount(_collection: address) -> uint256: view
 
 
 # Structs
@@ -32,10 +34,10 @@ event MaxLoansPoolShareFlagChanged:
 event MaxLoansPoolShareChanged:
     value: uint256
 
-event MaxCollateralsShareFlagChanged:
+event MaxCollectionShareFlagChanged:
     value: bool
 
-event MaxCollateralsShareChanged:
+event MaxCollectionShareChanged:
     value: uint256
 
 event LockPeriodFlagChanged:
@@ -51,13 +53,13 @@ owner: public(address)
 
 maxPoolShare: public(uint256)
 maxLoansPoolShare: public(uint256)
-maxCollateralsShare: public(uint256)
+maxCollectionShare: public(uint256)
 lockPeriodDuration: public(uint256)
 
 maxPoolShareEnabled: public(bool)
 lockPeriodEnabled: public(bool)
 maxLoansPoolShareEnabled: public(bool)
-maxCollateralsShareEnabled: public(bool)
+maxCollectionShareEnabled: public(bool)
 
 
 ##### INTERNAL METHODS - VIEW #####
@@ -106,6 +108,18 @@ def outOfLockPeriod(_lender: address, _lpCoreContractAddress: address) -> bool:
     return ILendingPoolCore(_lpCoreContractAddress).lockPeriodEnd(_lender) <= block.timestamp
 
 
+@view
+@external
+def withinCollectionShareLimit(_collectionAmount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool:
+    if not self.maxCollectionShareEnabled:
+        return True
+    
+    fundsInvested: uint256 = ILendingPoolCore(_lpCoreContractAddress).fundsInvested()
+    collectionBorrowedAmount: uint256 = ILoansCore(_loansCoreContractAddress).collectionsBorrowedAmount(_collectionAddress)
+
+    return (collectionBorrowedAmount + _collectionAmount) * 10000 / (fundsInvested + _collectionAmount) <= self.maxCollectionShare
+
+
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
@@ -116,12 +130,12 @@ def __init__(
     _lockPeriodDuration: uint256,
     _maxLoansPoolShareEnabled: bool,
     _maxLoansPoolShare: uint256,
-    _maxCollateralsShareEnabled: bool,
-    _maxCollateralsShare: uint256
+    _maxCollectionShareEnabled: bool,
+    _maxCollectionShare: uint256
 ):
     assert _maxPoolShare <= 10000, "max pool share > 10000 bps"
     assert _maxLoansPoolShare <= 10000, "max loans pool share > 10000 bps"
-    assert _maxCollateralsShare <= 10000, "max collats share > 10000 bps"
+    assert _maxCollectionShare <= 10000, "max collats share > 10000 bps"
     
     self.owner = msg.sender
 
@@ -137,9 +151,9 @@ def __init__(
         self.maxLoansPoolShareEnabled = _maxLoansPoolShareEnabled
         self.maxLoansPoolShare = _maxLoansPoolShare
 
-    if _maxCollateralsShareEnabled:
-        self.maxCollateralsShareEnabled = _maxCollateralsShareEnabled
-        self.maxCollateralsShare = _maxCollateralsShare
+    if _maxCollectionShareEnabled:
+        self.maxCollectionShareEnabled = _maxCollectionShareEnabled
+        self.maxCollectionShare = _maxCollectionShare
 
 
 @external
@@ -175,17 +189,17 @@ def changeMaxLoansPoolShareConditions(_flag: bool, _value: uint256):
 
 
 @external
-def changeMaxCollateralsShareConditions(_flag: bool, _value: uint256):
+def changeMaxCollectionShareConditions(_flag: bool, _value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.maxCollateralsShareEnabled != _flag, "new value is the same"
+    assert self.maxCollectionShareEnabled != _flag, "new value is the same"
     
     if _flag:
         assert _value <= 10000, "max pool share exceeds 10000 bps"
-        self.maxCollateralsShare = _value
+        self.maxCollectionShare = _value
 
         log MaxLoansPoolShareChanged(_value)
 
-    self.maxCollateralsShareEnabled = _flag
+    self.maxCollectionShareEnabled = _flag
 
     log MaxLoansPoolShareFlagChanged(_flag)
 

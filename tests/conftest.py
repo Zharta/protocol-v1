@@ -22,7 +22,7 @@ AUCTION_DURATION = 5 # 15 days
 
 MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-MAX_COLLATERALS_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+MAX_COLLECTION_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
@@ -135,7 +135,7 @@ def liquidity_controls_contract(LiquidityControls, contract_owner):
         False,
         MAX_LOANS_POOL_SHARE,
         False,
-        MAX_COLLATERALS_SHARE,
+        MAX_COLLECTION_SHARE,
         {"from": contract_owner}
     )
 

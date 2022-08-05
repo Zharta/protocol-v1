@@ -183,7 +183,7 @@ def test_update_paid_loan_wrong_sender(loans_core_contract, loans_peripheral_con
         loans_core_contract.updatePaidLoan(borrower, 0, {"from": contract_owner})
 
 
-def test_update_paid_loan(loans_core_contract, loans_peripheral_contract, borrower, contract_owner, test_collaterals):
+def test_update_paid_loan(loans_core_contract, loans_peripheral_contract, erc721_contract, borrower, contract_owner, test_collaterals):
     loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     tx_add_loan = loans_core_contract.addLoan(
@@ -203,6 +203,7 @@ def test_update_paid_loan(loans_core_contract, loans_peripheral_contract, borrow
     assert loans_core_contract.getLoanPaid(borrower, loan_id)
 
     assert loans_core_contract.borrowedAmount(borrower) == 0
+    assert loans_core_contract.collectionsBorrowedAmount(erc721_contract) == 0
 
 
 def test_update_defaulted_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
@@ -212,7 +213,7 @@ def test_update_defaulted_loan_wrong_sender(loans_core_contract, loans_periphera
         loans_core_contract.updateDefaultedLoan(borrower, 0, {"from": contract_owner})
 
 
-def test_update_defaulted_loan(loans_core_contract, loans_peripheral_contract, borrower, contract_owner, test_collaterals):
+def test_update_defaulted_loan(loans_core_contract, loans_peripheral_contract, erc721_contract, borrower, contract_owner, test_collaterals):
     loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     tx_add_loan = loans_core_contract.addLoan(
@@ -232,6 +233,7 @@ def test_update_defaulted_loan(loans_core_contract, loans_peripheral_contract, b
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
 
     assert loans_core_contract.borrowedAmount(borrower) == 0
+    assert loans_core_contract.collectionsBorrowedAmount(erc721_contract) == 0
 
 
 def test_update_canceled_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
@@ -286,6 +288,7 @@ def test_update_loan_started_wrong_sender(
 def test_update_loan_started(
     loans_core_contract,
     loans_peripheral_contract,
+    erc721_contract,
     contract_owner,
     borrower,
     test_collaterals
@@ -314,6 +317,7 @@ def test_update_loan_started(
     assert loans_core_contract.getLoanCollaterals(borrower, loan_id) == test_collaterals
 
     assert loans_core_contract.borrowedAmount(borrower) == LOAN_AMOUNT
+    assert loans_core_contract.collectionsBorrowedAmount(erc721_contract) == LOAN_AMOUNT
 
 
 def test_update_paid_amount_wrong_sender(

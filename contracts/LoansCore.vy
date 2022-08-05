@@ -79,6 +79,8 @@ collateralsUsed: public(HashMap[bytes32, bool]) # given a collateral, is it bein
 collateralsData: public(HashMap[bytes32, Collateral]) # given a collateral key, what is its data
 collateralsIdsByAddress: public(HashMap[address, DynArray[uint256, 2**20]]) # given a collateral address, what are the token ids that were already in a loan
 
+collectionsBorrowedAmount: public(HashMap[address, uint256])
+
 # Stats
 topStats: TopStats
 
@@ -432,6 +434,9 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
 
     self.borrowedAmount[_borrower] += self.loans[_borrower][_loanId].amount
 
+    for collateral in self.loans[_borrower][_loanId].collaterals:
+        self.collectionsBorrowedAmount[collateral.contractAddress] += collateral.amount
+
 
 @external
 def updateInvalidLoan(_borrower: address, _loanId: uint256):
@@ -455,6 +460,9 @@ def updatePaidLoan(_borrower: address, _loanId: uint256):
 
     self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
 
+    for collateral in self.loans[_borrower][_loanId].collaterals:
+        self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
+
 
 @external
 def updateDefaultedLoan(_borrower: address, _loanId: uint256):
@@ -463,6 +471,9 @@ def updateDefaultedLoan(_borrower: address, _loanId: uint256):
     self.loans[_borrower][_loanId].defaulted = True
 
     self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
+
+    for collateral in self.loans[_borrower][_loanId].collaterals:
+        self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
 
 
 @external
