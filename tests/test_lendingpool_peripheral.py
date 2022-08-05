@@ -474,7 +474,7 @@ def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, l
     assert investor_funds["totalAmountWithdrawn"] == 0
     assert investor_funds["sharesBasisPoints"] == Web3.toWei(1, "ether")
 
-    assert investor_funds["lockPeriodEnd"] == chain_time + LOCK_PERIOD_DURATION
+    assert investor_funds["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
     assert investor_funds["activeForRewards"] == True
     
     assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1, "ether")
@@ -507,7 +507,7 @@ def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contr
     investor_funds = lending_pool_core_contract.funds(investor)
     assert investor_funds["currentAmountDeposited"] == Web3.toWei(1.5, "ether")
     assert investor_funds["totalAmountDeposited"] == Web3.toWei(1.5, "ether")
-    assert investor_funds["lockPeriodEnd"] == chain_time + LOCK_PERIOD_DURATION
+    assert investor_funds["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
 
     assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1.5, "ether")
     assert lending_pool_core_contract.fundsInvested() == 0

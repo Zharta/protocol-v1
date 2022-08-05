@@ -221,7 +221,7 @@ def test_withdraw(lending_pool_core_contract, lending_pool_peripheral_contract, 
     assert investor_funds["totalAmountDeposited"] == deposit_amount
     assert investor_funds["totalAmountWithdrawn"] == withdraw_amount
     assert investor_funds["activeForRewards"]
-    assert investor_funds["lockPeriodEnd"] == chain_time + LOCK_PERIOD_DURATION
+    assert investor_funds["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
 
     assert lending_pool_core_contract.activeLenders() == 1
     assert lending_pool_core_contract.knownLenders(investor)
@@ -245,7 +245,7 @@ def test_deposit_withdraw_deposit(lending_pool_core_contract, lending_pool_perip
     assert user_balance(erc20_contract, investor) == initial_balance + Web3.toWei(1, "ether")
     assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1, "ether")
 
-    assert lending_pool_core_contract.funds(investor)["lockPeriodEnd"] == chain_time + LOCK_PERIOD_DURATION
+    assert lending_pool_core_contract.funds(investor)["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
 
     lending_pool_core_contract.withdraw(investor, Web3.toWei(1, "ether"), {"from": lending_pool_peripheral_contract})
     assert user_balance(erc20_contract, investor) == initial_balance + Web3.toWei(2, "ether")
