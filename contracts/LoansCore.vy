@@ -4,7 +4,7 @@
 # Interfaces
 
 interface ILoansPeripheral:
-    def lendingPoolPeripheralAddress() -> address: view
+    def lendingPoolPeripheralContract() -> address: view
 
 interface ILendingPoolPeripheral:
     def erc20TokenContract() -> address: view
@@ -171,7 +171,7 @@ def proposeOwner(_address: address):
         self.owner,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -186,7 +186,7 @@ def claimOwnership():
         self.owner,
         self.proposedOwner,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -202,12 +202,12 @@ def setLoansPeripheral(_address: address):
 
     log LoansPeripheralAddressSet(
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralContract()
         ).erc20TokenContract(),
         self.loansPeripheral,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -426,8 +426,6 @@ def addLoan(
 @external
 def updateLoanStarted(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
-    assert not self._isLoanStarted(_borrower, _loanId), "loan already started"
 
     self.loans[_borrower][_loanId].startTime = block.timestamp
     self.loans[_borrower][_loanId].started = True
@@ -438,7 +436,6 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
 @external
 def updateInvalidLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].invalidated = True
 
@@ -446,11 +443,6 @@ def updateInvalidLoan(_borrower: address, _loanId: uint256):
 @external
 def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
-    assert self._isLoanStarted(_borrower, _loanId), "loan has not started yet"
-    maxPayment: uint256 = self.loans[_borrower][_loanId].amount * (10000 + self.loans[_borrower][_loanId].interest) / 10000
-    allowedPayment: uint256 = maxPayment - self.loans[_borrower][_loanId].paidAmount
-    assert _paidAmount <= allowedPayment, "amount paid higher than needed"
   
     self.loans[_borrower][_loanId].paidAmount += _paidAmount
 
@@ -458,7 +450,6 @@ def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint
 @external
 def updatePaidLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].paid = True
 
@@ -468,7 +459,6 @@ def updatePaidLoan(_borrower: address, _loanId: uint256):
 @external
 def updateDefaultedLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].defaulted = True
 
@@ -478,7 +468,6 @@ def updateDefaultedLoan(_borrower: address, _loanId: uint256):
 @external
 def updateCanceledLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].canceled = True
 
