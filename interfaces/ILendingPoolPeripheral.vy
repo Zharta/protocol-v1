@@ -47,6 +47,11 @@ event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
     erc20TokenContract: address
+event LiquidityControlsAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
 event WhitelistStatusChanged:
     erc20TokenContractIndexed: address
     value: bool
@@ -58,22 +63,6 @@ event WhitelistAddressAdded:
 event WhitelistAddressRemoved:
     erc20TokenContractIndexed: address
     value: address
-    erc20TokenContract: address
-event MaxPoolShareFlagChanged:
-    erc20TokenContractIndexed: address
-    value: bool
-    erc20TokenContract: address
-event MaxPoolShareChanged:
-    erc20TokenContractIndexed: address
-    value: uint256
-    erc20TokenContract: address
-event LockPeriodFlagChanged:
-    erc20TokenContractIndexed: address
-    value: bool
-    erc20TokenContract: address
-event LockPeriodDurationChanged:
-    erc20TokenContractIndexed: address
-    value: uint256
     erc20TokenContract: address
 event ContractStatusChanged:
     erc20TokenContractIndexed: address
@@ -118,6 +107,16 @@ def maxFundsInvestable() -> uint256:
 
 @view
 @external
+def theoreticalMaxFundsInvestable() -> uint256:
+    pass
+
+@view
+@external
+def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
+    pass
+
+@view
+@external
 def lenderFunds(_lender: address) -> InvestorFunds:
     pass
 
@@ -150,6 +149,10 @@ def setLiquidationsPeripheralAddress(_address: address):
     pass
 
 @external
+def setLiquidityControlsAddress(_address: address):
+    pass
+
+@external
 def changeWhitelistStatus(_flag: bool):
     pass
 
@@ -159,14 +162,6 @@ def addWhitelistedAddress(_address: address):
 
 @external
 def removeWhitelistedAddress(_address: address):
-    pass
-
-@external
-def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
-    pass
-
-@external
-def changeLockPeriodConditions(_flag: bool, _value: uint256):
     pass
 
 @external
@@ -229,6 +224,11 @@ def liquidationsPeripheralContract() -> address:
 
 @view
 @external
+def liquidityControlsContract() -> address:
+    pass
+
+@view
+@external
 def protocolWallet() -> address:
     pass
 
@@ -265,26 +265,6 @@ def whitelistEnabled() -> bool:
 @view
 @external
 def whitelistedAddresses(arg0: address) -> bool:
-    pass
-
-@view
-@external
-def maxPoolShare() -> uint256:
-    pass
-
-@view
-@external
-def maxPoolShareEnabled() -> bool:
-    pass
-
-@view
-@external
-def lockPeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def lockPeriodEnabled() -> bool:
     pass
 
 

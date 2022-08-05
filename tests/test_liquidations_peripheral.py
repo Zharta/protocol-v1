@@ -567,7 +567,21 @@ def test_buy_nft_grace_period_not_allowed(liquidations_peripheral_contract, liqu
         )
 
 
-def test_buy_nft_grace_period(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
+def test_buy_nft_grace_period(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
     
@@ -582,6 +596,7 @@ def test_buy_nft_grace_period(liquidations_peripheral_contract, liquidations_cor
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
 

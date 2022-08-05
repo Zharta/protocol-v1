@@ -4,7 +4,7 @@
 # Interfaces
 
 interface ILoansPeripheral:
-    def lendingPoolPeripheralAddress() -> address: view
+    def lendingPoolPeripheralContract() -> address: view
 
 interface ILendingPoolPeripheral:
     def erc20TokenContract() -> address: view
@@ -69,6 +69,7 @@ proposedOwner: public(address)
 loansPeripheral: public(address)
 
 loans: HashMap[address, DynArray[Loan, 2**16]]
+borrowedAmount: public(HashMap[address, uint256])
 
 # key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
@@ -77,6 +78,8 @@ collateralKeys: DynArray[bytes32, 2**20] # array of collaterals expressed by the
 collateralsUsed: public(HashMap[bytes32, bool]) # given a collateral, is it being used in a loan
 collateralsData: public(HashMap[bytes32, Collateral]) # given a collateral key, what is its data
 collateralsIdsByAddress: public(HashMap[address, DynArray[uint256, 2**20]]) # given a collateral address, what are the token ids that were already in a loan
+
+collectionsBorrowedAmount: public(HashMap[address, uint256])
 
 # Stats
 topStats: TopStats
@@ -170,7 +173,7 @@ def proposeOwner(_address: address):
         self.owner,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -185,7 +188,7 @@ def claimOwnership():
         self.owner,
         self.proposedOwner,
         ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralAddress()
+            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -201,12 +204,12 @@ def setLoansPeripheral(_address: address):
 
     log LoansPeripheralAddressSet(
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralContract()
         ).erc20TokenContract(),
         self.loansPeripheral,
         _address,
         ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolPeripheralAddress()
+            ILoansPeripheral(_address).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -425,17 +428,19 @@ def addLoan(
 @external
 def updateLoanStarted(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
-    assert not self._isLoanStarted(_borrower, _loanId), "loan already started"
 
     self.loans[_borrower][_loanId].startTime = block.timestamp
     self.loans[_borrower][_loanId].started = True
+
+    self.borrowedAmount[_borrower] += self.loans[_borrower][_loanId].amount
+
+    for collateral in self.loans[_borrower][_loanId].collaterals:
+        self.collectionsBorrowedAmount[collateral.contractAddress] += collateral.amount
 
 
 @external
 def updateInvalidLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].invalidated = True
 
@@ -443,11 +448,6 @@ def updateInvalidLoan(_borrower: address, _loanId: uint256):
 @external
 def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
-    assert self._isLoanStarted(_borrower, _loanId), "loan has not started yet"
-    maxPayment: uint256 = self.loans[_borrower][_loanId].amount * (10000 + self.loans[_borrower][_loanId].interest) / 10000
-    allowedPayment: uint256 = maxPayment - self.loans[_borrower][_loanId].paidAmount
-    assert _paidAmount <= allowedPayment, "amount paid higher than needed"
   
     self.loans[_borrower][_loanId].paidAmount += _paidAmount
 
@@ -455,23 +455,30 @@ def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint
 @external
 def updatePaidLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].paid = True
+
+    self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
+
+    for collateral in self.loans[_borrower][_loanId].collaterals:
+        self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
 
 
 @external
 def updateDefaultedLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].defaulted = True
+
+    self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
+
+    for collateral in self.loans[_borrower][_loanId].collaterals:
+        self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
 
 
 @external
 def updateCanceledLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-    assert self._isLoanCreated(_borrower, _loanId), "loan not found"
 
     self.loans[_borrower][_loanId].canceled = True
 

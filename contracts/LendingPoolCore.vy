@@ -53,7 +53,6 @@ lenders: public(DynArray[address, 2**50])
 knownLenders: public(HashMap[address, bool])
 activeLenders: public(uint256)
 
-
 fundsAvailable: public(uint256)
 fundsInvested: public(uint256)
 totalFundsInvested: public(uint256)
@@ -98,6 +97,48 @@ def lendersArray() -> DynArray[address, 2**50]:
 @external
 def computeWithdrawableAmount(_lender: address) -> uint256:
     return self._computeWithdrawableAmount(_lender)
+
+
+@view
+@external
+def fundsInPool() -> uint256:
+    return self.fundsAvailable + self.fundsInvested
+
+
+@view
+@external
+def currentAmountDeposited(_lender: address) -> uint256:
+    return self.funds[_lender].currentAmountDeposited
+
+
+@view
+@external
+def totalAmountDeposited(_lender: address) -> uint256:
+    return self.funds[_lender].totalAmountDeposited
+
+
+@view
+@external
+def totalAmountWithdrawn(_lender: address) -> uint256:
+    return self.funds[_lender].totalAmountWithdrawn
+
+
+@view
+@external
+def sharesBasisPoints(_lender: address) -> uint256:
+    return self.funds[_lender].sharesBasisPoints
+
+
+@view
+@external
+def lockPeriodEnd(_lender: address) -> uint256:
+    return self.funds[_lender].lockPeriodEnd
+
+
+@view
+@external
+def activeForRewards(_lender: address) -> bool:
+    return self.funds[_lender].activeForRewards
 
 
 ##### EXTERNAL METHODS - NON-VIEW #####

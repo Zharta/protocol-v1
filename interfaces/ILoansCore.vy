@@ -237,6 +237,11 @@ def loansPeripheral() -> address:
 
 @view
 @external
+def borrowedAmount(arg0: address) -> uint256:
+    pass
+
+@view
+@external
 def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
     pass
 
@@ -258,6 +263,11 @@ def collateralsData(arg0: bytes32) -> Collateral:
 @view
 @external
 def collateralsIdsByAddress(arg0: address, arg1: uint256) -> uint256:
+    pass
+
+@view
+@external
+def collectionsBorrowedAmount(arg0: address) -> uint256:
     pass
 
 
