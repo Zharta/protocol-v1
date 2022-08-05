@@ -81,6 +81,11 @@ event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
     erc20TokenContract: address
+event LiquidityControlsAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
 event WalletsWhitelistStatusChanged:
     erc20TokenContractIndexed: address
     value: bool
@@ -185,6 +190,10 @@ def setLiquidationsPeripheralAddress(_address: address):
     pass
 
 @external
+def setLiquidityControlsAddress(_address: address):
+    pass
+
+@external
 def changeWalletsWhitelistStatus(_flag: bool):
     pass
 
@@ -207,16 +216,6 @@ def deprecate():
 @view
 @external
 def erc20TokenSymbol() -> String[100]:
-    pass
-
-@view
-@external
-def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
-    pass
-
-@view
-@external
-def getLoan(_borrower: address, _loanId: uint256) -> Loan:
     pass
 
 @view
@@ -300,22 +299,27 @@ def whitelistedCollaterals(arg0: address) -> bool:
 
 @view
 @external
-def loansCoreAddress() -> address:
+def loansCoreContract() -> address:
     pass
 
 @view
 @external
-def lendingPoolPeripheralAddress() -> address:
+def lendingPoolPeripheralContract() -> address:
     pass
 
 @view
 @external
-def collateralVaultPeripheralAddress() -> address:
+def collateralVaultPeripheralContract() -> address:
     pass
 
 @view
 @external
-def liquidationsPeripheralAddress() -> address:
+def liquidationsPeripheralContract() -> address:
+    pass
+
+@view
+@external
+def liquidityControlsContract() -> address:
     pass
 
 @view
