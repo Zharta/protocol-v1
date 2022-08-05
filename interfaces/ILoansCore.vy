@@ -265,4 +265,9 @@ def collateralsData(arg0: bytes32) -> Collateral:
 def collateralsIdsByAddress(arg0: address, arg1: uint256) -> uint256:
     pass
 
+@view
+@external
+def collectionsBorrowedAmount(arg0: address) -> uint256:
+    pass
+
 

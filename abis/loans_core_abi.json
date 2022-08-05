@@ -1281,5 +1281,22 @@
         "type": "uint256"
       }
     ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "collectionsBorrowedAmount",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
   }
 ]

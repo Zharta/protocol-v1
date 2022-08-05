@@ -8,9 +8,9 @@ event MaxLoansPoolShareFlagChanged:
     value: bool
 event MaxLoansPoolShareChanged:
     value: uint256
-event MaxCollateralsShareFlagChanged:
+event MaxCollectionShareFlagChanged:
     value: bool
-event MaxCollateralsShareChanged:
+event MaxCollectionShareChanged:
     value: uint256
 event LockPeriodFlagChanged:
     value: bool
@@ -21,7 +21,7 @@ event LockPeriodDurationChanged:
 
 @view
 @external
-def withinPoolShareLimit(_lender: address, _amount: uint256, _lpPeripheralContractAddress: address, _lpCoreContractAddress: address, _fundsInPool: uint256) -> bool:
+def withinPoolShareLimit(_lender: address, _amount: uint256, _lpPeripheralContractAddress: address, _lpCoreContractAddress: address, _fundsInvestable: uint256) -> bool:
     pass
 
 @view
@@ -34,6 +34,11 @@ def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreCo
 def outOfLockPeriod(_lender: address, _lpCoreContractAddress: address) -> bool:
     pass
 
+@view
+@external
+def withinCollectionShareLimit(_collectionAmount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool:
+    pass
+
 @external
 def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
     pass
@@ -43,7 +48,7 @@ def changeMaxLoansPoolShareConditions(_flag: bool, _value: uint256):
     pass
 
 @external
-def changeMaxCollateralsShareConditions(_flag: bool, _value: uint256):
+def changeMaxCollectionShareConditions(_flag: bool, _value: uint256):
     pass
 
 @external
@@ -67,7 +72,7 @@ def maxLoansPoolShare() -> uint256:
 
 @view
 @external
-def maxCollateralsShare() -> uint256:
+def maxCollectionShare() -> uint256:
     pass
 
 @view
@@ -92,7 +97,7 @@ def maxLoansPoolShareEnabled() -> bool:
 
 @view
 @external
-def maxCollateralsShareEnabled() -> bool:
+def maxCollectionShareEnabled() -> bool:
     pass
 
 

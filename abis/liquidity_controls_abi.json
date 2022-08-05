@@ -48,7 +48,7 @@
     "type": "event"
   },
   {
-    "name": "MaxCollateralsShareFlagChanged",
+    "name": "MaxCollectionShareFlagChanged",
     "inputs": [
       {
         "name": "value",
@@ -60,7 +60,7 @@
     "type": "event"
   },
   {
-    "name": "MaxCollateralsShareChanged",
+    "name": "MaxCollectionShareChanged",
     "inputs": [
       {
         "name": "value",
@@ -208,6 +208,35 @@
     ]
   },
   {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "withinCollectionShareLimit",
+    "inputs": [
+      {
+        "name": "_collectionAmount",
+        "type": "uint256"
+      },
+      {
+        "name": "_collectionAddress",
+        "type": "address"
+      },
+      {
+        "name": "_loansCoreContractAddress",
+        "type": "address"
+      },
+      {
+        "name": "_lpCoreContractAddress",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
     "stateMutability": "nonpayable",
     "type": "constructor",
     "inputs": [
@@ -236,11 +265,11 @@
         "type": "uint256"
       },
       {
-        "name": "_maxCollateralsShareEnabled",
+        "name": "_maxCollectionShareEnabled",
         "type": "bool"
       },
       {
-        "name": "_maxCollateralsShare",
+        "name": "_maxCollectionShare",
         "type": "uint256"
       }
     ],
@@ -281,7 +310,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "changeMaxCollateralsShareConditions",
+    "name": "changeMaxCollectionShareConditions",
     "inputs": [
       {
         "name": "_flag",
@@ -349,7 +378,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "maxCollateralsShare",
+    "name": "maxCollectionShare",
     "inputs": [],
     "outputs": [
       {
@@ -409,7 +438,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "maxCollateralsShareEnabled",
+    "name": "maxCollectionShareEnabled",
     "inputs": [],
     "outputs": [
       {
