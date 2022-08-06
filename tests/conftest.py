@@ -12,6 +12,7 @@ LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
 MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
+INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
@@ -87,6 +88,7 @@ def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_periphera
         MAX_LOAN_DURATION,
         MIN_LOAN_AMOUNT,
         MAX_LOAN_AMOUNT,
+        INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
         lending_pool_peripheral_contract,
         collateral_vault_peripheral_contract,
@@ -101,6 +103,7 @@ def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contr
         1,
         0,
         1,
+        INTEREST_ACCRUAL_PERIOD,
         accounts[4],
         lending_pool_peripheral_contract,
         accounts[5],

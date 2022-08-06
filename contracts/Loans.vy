@@ -92,6 +92,12 @@ event MaxLoanAmountChanged:
     newValue: uint256
     erc20TokenContract: address
 
+event InterestAccrualPeriodChanged:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
 event CollateralToWhitelistAdded:
     erc20TokenContractIndexed: indexed(address)
     value: address
@@ -172,7 +178,8 @@ event LoanPayment:
     walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
-    amount: uint256
+    principal: uint256
+    interestAmount: uint256
     erc20TokenContract: address
 
 event LoanPaid:
@@ -204,6 +211,7 @@ maxAllowedLoans: public(uint256)
 maxAllowedLoanDuration: public(uint256)
 minLoanAmount: public(uint256)
 maxLoanAmount: public(uint256)
+interestAccrualPeriod: public(uint256)
 
 ongoingLoans: public(HashMap[address, uint256])
 
@@ -230,6 +238,7 @@ def __init__(
     _maxAllowedLoanDuration: uint256,
     _minLoanAmount: uint256,
     _maxLoanAmount: uint256,
+    _interestAccrualPeriod: uint256,
     _loansCoreContract: address,
     _lendingPoolPeripheralContract: address,
     _collateralVaultPeripheralContract: address
@@ -246,6 +255,7 @@ def __init__(
     self.maxAllowedLoanDuration = _maxAllowedLoanDuration
     self.minLoanAmount = _minLoanAmount
     self.maxLoanAmount = _maxLoanAmount
+    self.interestAccrualPeriod = _interestAccrualPeriod
     self.loansCoreContract = _loansCoreContract
     self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
     self.collateralVaultPeripheralContract = _collateralVaultPeripheralContract
@@ -323,14 +333,25 @@ def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 20]) -> bool:
 
 @pure
 @internal
-def _loanPayableAmount(_amount: uint256, _paidAmount: uint256, _interest: uint256, _maxLoanDuration: uint256, _timePassed: uint256) -> uint256:
-    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * _timePassed) / (10000 * _maxLoanDuration)
+def _loanPayableAmount(
+    _amount: uint256,
+    _paidAmount: uint256,
+    _interest: uint256,
+    _maxLoanDuration: uint256,
+    _timePassed: uint256,
+    _interestAccrualPeriod: uint256
+) -> uint256:
+    timePassed: uint256 = _timePassed
+    if _timePassed == 0:
+        timePassed = _interestAccrualPeriod
+    
+    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * timePassed) / (10000 * _maxLoanDuration)
 
 
 @pure
 @internal
-def _computeDaysPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint256) -> uint256:
-    return (_recentTimestamp - _olderTimestamp) - ((_recentTimestamp - _olderTimestamp) % 86400)
+def _computePeriodPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint256, _period: uint256) -> uint256:
+    return (_recentTimestamp - _olderTimestamp) - ((_recentTimestamp - _olderTimestamp) % _period)
 
 
 @external
@@ -429,6 +450,21 @@ def changeMaxLoanAmount(_value: uint256):
     )
 
     self.maxLoanAmount = _value
+
+
+@external
+def changeInterestAccrualPeriod(_value: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value != self.interestAccrualPeriod, "_value is the same"
+
+    log InterestAccrualPeriodChanged(
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        self.interestAccrualPeriod,
+        _value,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    )
+
+    self.interestAccrualPeriod = _value
 
 
 @external
@@ -615,9 +651,23 @@ def erc20TokenSymbol() -> String[100]:
 def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(_borrower, _loanId)
     
+    if loan.paid:
+        return 0
+
     if loan.started:
-        timePassed: uint256 = self._computeDaysPassedInSeconds(block.timestamp, loan.startTime)
-        return self._loanPayableAmount(loan.amount, loan.paidAmount, loan.interest, self.maxAllowedLoanDuration, timePassed)
+        timePassed: uint256 = self._computePeriodPassedInSeconds(
+            block.timestamp,
+            loan.startTime,
+            self.interestAccrualPeriod
+        )
+        return self._loanPayableAmount(
+            loan.amount,
+            loan.paidAmount,
+            loan.interest,
+            self.maxAllowedLoanDuration,
+            timePassed,
+            self.interestAccrualPeriod
+        )
     
     return MAX_UINT256
 
@@ -699,7 +749,10 @@ def validate(_borrower: address, _loanId: uint256):
     ILoansCore(self.loansCoreContract).updateHighestSingleCollateralLoan(_borrower, _loanId)
     ILoansCore(self.loansCoreContract).updateHighestCollateralBundleLoan(_borrower, _loanId)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFunds(_borrower, ILoansCore(self.loansCoreContract).getLoanAmount(_borrower, _loanId))
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFunds(
+        _borrower,
+        ILoansCore(self.loansCoreContract).getLoanAmount(_borrower, _loanId)
+    )
 
     log LoanValidated(
         _borrower,
@@ -746,22 +799,37 @@ def pay(_loanId: uint256, _amount: uint256):
     assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
     assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
     assert _amount > 0, "_amount has to be higher than 0"
-    assert IERC20(ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()).balanceOf(msg.sender) >=_amount, "insufficient balance"
-    assert IERC20(ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()).allowance(msg.sender, ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()) >= _amount, "insufficient allowance"
+    
+    erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    assert IERC20(erc20TokenContract).balanceOf(msg.sender) >=_amount, "insufficient balance"
+    assert IERC20(erc20TokenContract).allowance(
+        msg.sender,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
+    ) >= _amount, "insufficient allowance"
 
-    loanAmount: uint256 = ILoansCore(self.loansCoreContract).getLoanAmount(msg.sender, _loanId)
-    loanInterest: uint256 = ILoansCore(self.loansCoreContract).getLoanInterest(msg.sender, _loanId)
+    loan: Loan = ILoansCore(self.loansCoreContract).getLoan(msg.sender, _loanId)
 
     # compute days passed in seconds
-    timeDiff: uint256 = self._computeDaysPassedInSeconds(block.timestamp, ILoansCore(self.loansCoreContract).getLoanStartTime(msg.sender, _loanId))
+    timePassed: uint256 = self._computePeriodPassedInSeconds(
+        block.timestamp,
+        ILoansCore(self.loansCoreContract).getLoanStartTime(msg.sender, _loanId),
+        self.interestAccrualPeriod
+    )
 
     # pro-rata computation of max amount payable based on actual loan duration in days
-    maxPayment: uint256 = loanAmount * (10000 * self.maxAllowedLoanDuration + loanInterest * timeDiff) / (10000 * self.maxAllowedLoanDuration)
+    maxPayment: uint256 = self._loanPayableAmount(
+        loan.amount,
+        0,
+        loan.interest,
+        self.maxAllowedLoanDuration,
+        timePassed,
+        self.interestAccrualPeriod
+    )
     
-    allowedPayment: uint256 = maxPayment - ILoansCore(self.loansCoreContract).getLoanPaidAmount(msg.sender, _loanId)
+    allowedPayment: uint256 = maxPayment - loan.paidAmount
     assert _amount <= allowedPayment, "_amount is more than needed"
 
-    paidAmount: uint256 = _amount * 10000 / (10000 + ILoansCore(self.loansCoreContract).getLoanInterest(msg.sender, _loanId))
+    paidAmount: uint256 = _amount * 10000 / (10000 + loan.interest)
     paidAmountInterest: uint256 = _amount - paidAmount
 
     if _amount == allowedPayment:
@@ -769,14 +837,13 @@ def pay(_loanId: uint256, _amount: uint256):
 
         ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
 
-    ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, paidAmount + paidAmountInterest)
+    ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, _amount)
     ILoansCore(self.loansCoreContract).updateHighestRepayment(msg.sender, _loanId)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, paidAmount, paidAmountInterest)
 
     if _amount == allowedPayment:
-        collaterals: DynArray[Collateral, 20] = ILoansCore(self.loansCoreContract).getLoanCollaterals(msg.sender, _loanId)
-        for collateral in collaterals:
+        for collateral in loan.collaterals:
             ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
             ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
@@ -784,22 +851,23 @@ def pay(_loanId: uint256, _amount: uint256):
                 msg.sender,
                 collateral.contractAddress,
                 collateral.tokenId,
-                ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+                erc20TokenContract
             )
 
         log LoanPaid(
             msg.sender,
             msg.sender,
             _loanId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+            erc20TokenContract
         )
 
     log LoanPayment(
         msg.sender,
         msg.sender,
         _loanId,
-        _amount,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+        paidAmount,
+        paidAmountInterest,
+        erc20TokenContract
     )
 
 
