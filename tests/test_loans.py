@@ -14,6 +14,7 @@ LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
 MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
+INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
@@ -1621,7 +1622,8 @@ def test_validate_loan(
     assert tx_start_loan.events["LoanValidated"]["wallet"] == borrower
     assert tx_start_loan.events["LoanValidated"]["loanId"] == 0
 
-    assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == LOAN_AMOUNT
+    payable_amount_immediately = (Decimal(LOAN_AMOUNT) - Decimal(loan_details["paidAmount"])) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * Decimal(INTEREST_ACCRUAL_PERIOD)) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION))
+    assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == payable_amount_immediately
 
     chain.mine(blocks=1, timedelta=24 * 60 * 60)
     time_passed = (chain.time() - loan_details["startTime"]) - ((chain.time() - loan_details["startTime"]) % 86400)
@@ -2152,7 +2154,7 @@ def test_pay_loan(
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    tx_invest = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -2175,11 +2177,14 @@ def test_pay_loan(
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
     amount_payable = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)
-    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
-    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
+    if time_diff == 0:
+        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
+
+    amount_paid = int(Decimal(LOAN_AMOUNT) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
+
     assert amount_payable == amount_paid
 
-    borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
     erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
@@ -2194,18 +2199,21 @@ def test_pay_loan(
     assert loan_details["paidAmount"] == loans_core_contract.getLoanPaidAmount(borrower, loan_id) == amount_paid
     assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == 0
 
-    assert tx_pay_loan.events["LoanPaid"]["wallet"] == borrower
-    assert tx_pay_loan.events["LoanPaid"]["loanId"] == loan_id
-    assert tx_pay_loan.events["LoanPayment"]["wallet"] == borrower
-    assert tx_pay_loan.events["LoanPayment"]["loanId"] == loan_id
-    assert tx_pay_loan.events["LoanPayment"]["amount"] == amount_paid
+    loan_paid_event = tx_pay_loan.events["LoanPaid"]
+    assert loan_paid_event["wallet"] == borrower
+    assert loan_paid_event["loanId"] == loan_id
+    
+    loan_payment_event = tx_pay_loan.events["LoanPayment"]
+    assert loan_payment_event["wallet"] == borrower
+    assert loan_payment_event["loanId"] == loan_id
+    assert loan_payment_event["principal"] + loan_payment_event["interestAmount"] == amount_paid
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
     assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
-    assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - amount_paid
+    assert erc20_contract.balanceOf(borrower) == 0
 
 
 def test_pay_loan_multiple(
@@ -2260,11 +2268,14 @@ def test_pay_loan_multiple(
     loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
-    amount_paid = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
+    if time_diff == 0:
+        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
+
+    amount_paid = int(Decimal(LOAN_AMOUNT) / Decimal(2) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
 
     amount_payable = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)
-    assert amount_payable == amount_paid * 2
+    assert amount_payable == amount_paid * Decimal(2)
 
     borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
@@ -2278,14 +2289,18 @@ def test_pay_loan_multiple(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
     
-    assert tx_pay_loan1.events["LoanPayment"]["wallet"] == borrower
-    assert tx_pay_loan1.events["LoanPayment"]["loanId"] == loan_id
-    assert tx_pay_loan1.events["LoanPayment"]["amount"] == amount_paid
+    loan_payment_event = tx_pay_loan1.events["LoanPayment"]
+    assert loan_payment_event["wallet"] == borrower
+    assert loan_payment_event["loanId"] == loan_id
+    assert loan_payment_event["principal"] + loan_payment_event["interestAmount"] == amount_paid
 
     assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
-    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
-    amount_paid2 = int(Decimal(f"{LOAN_AMOUNT / 2.0}") * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
+    if time_diff == 0:
+        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
+
+    amount_paid2 = int(Decimal(LOAN_AMOUNT) / Decimal(2) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
     
     erc20_contract.approve(lending_pool_core_contract, amount_paid2, {"from": borrower})
     tx_pay_loan2 = loans_peripheral_contract.pay(loan_id, amount_paid2, {"from": borrower})
@@ -2301,11 +2316,14 @@ def test_pay_loan_multiple(
 
     assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
-    assert tx_pay_loan2.events["LoanPaid"]["wallet"] == borrower
-    assert tx_pay_loan2.events["LoanPaid"]["loanId"] == loan_id
-    assert tx_pay_loan2.events["LoanPayment"]["wallet"] == borrower
-    assert tx_pay_loan2.events["LoanPayment"]["loanId"] == loan_id
-    assert tx_pay_loan2.events["LoanPayment"]["amount"] == amount_paid2
+    loan_paid_event2 = tx_pay_loan2.events["LoanPaid"]
+    assert loan_paid_event2["wallet"] == borrower
+    assert loan_paid_event2["loanId"] == loan_id
+    
+    loan_payment_event2 = tx_pay_loan2.events["LoanPayment"]
+    assert loan_payment_event2["wallet"] == borrower
+    assert loan_payment_event2["loanId"] == loan_id
+    assert loan_payment_event2["principal"] + loan_payment_event2["interestAmount"] == amount_paid2
 
 
 def test_pay_loan_already_paid(
@@ -2355,8 +2373,11 @@ def test_pay_loan_already_paid(
     loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    time_diff = chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % 86400
-    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 * MAX_LOAN_DURATION + LOAN_INTEREST * time_diff) / (10000 * MAX_LOAN_DURATION)}"))
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
+    if time_diff == 0:
+        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
+
+    amount_paid = int(Decimal(LOAN_AMOUNT) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
 
     erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})

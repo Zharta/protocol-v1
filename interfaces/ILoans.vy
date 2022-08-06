@@ -58,6 +58,11 @@ event MaxLoanAmountChanged:
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
+event InterestAccrualPeriodChanged:
+    erc20TokenContractIndexed: address
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
 event CollateralToWhitelistAdded:
     erc20TokenContractIndexed: address
     value: address
@@ -124,7 +129,8 @@ event LoanPayment:
     walletIndexed: address
     wallet: address
     loanId: uint256
-    amount: uint256
+    principal: uint256
+    interestAmount: uint256
     erc20TokenContract: address
 event LoanPaid:
     walletIndexed: address
@@ -167,6 +173,10 @@ def changeMinLoanAmount(_value: uint256):
 
 @external
 def changeMaxLoanAmount(_value: uint256):
+    pass
+
+@external
+def changeInterestAccrualPeriod(_value: uint256):
     pass
 
 @external
@@ -275,6 +285,11 @@ def minLoanAmount() -> uint256:
 @view
 @external
 def maxLoanAmount() -> uint256:
+    pass
+
+@view
+@external
+def interestAccrualPeriod() -> uint256:
     pass
 
 @view

@@ -199,6 +199,33 @@
     "type": "event"
   },
   {
+    "name": "InterestAccrualPeriodChanged",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "name": "CollateralToWhitelistAdded",
     "inputs": [
       {
@@ -555,7 +582,12 @@
         "indexed": false
       },
       {
-        "name": "amount",
+        "name": "principal",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "interestAmount",
         "type": "uint256",
         "indexed": false
       },
@@ -675,6 +707,10 @@
         "type": "uint256"
       },
       {
+        "name": "_interestAccrualPeriod",
+        "type": "uint256"
+      },
+      {
         "name": "_loansCoreContract",
         "type": "address"
       },
@@ -748,6 +784,18 @@
     "stateMutability": "nonpayable",
     "type": "function",
     "name": "changeMaxLoanAmount",
+    "inputs": [
+      {
+        "name": "_value",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "changeInterestAccrualPeriod",
     "inputs": [
       {
         "name": "_value",
@@ -1085,6 +1133,18 @@
     "stateMutability": "view",
     "type": "function",
     "name": "maxLoanAmount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "interestAccrualPeriod",
     "inputs": [],
     "outputs": [
       {
