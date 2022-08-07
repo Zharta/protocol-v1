@@ -208,7 +208,7 @@ def deposit(_lender: address, _amount: uint256, _lockPeriodEnd: uint256) -> bool
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _lender != ZERO_ADDRESS, "The _address is the zero address"
+    assert _lender != empty(address), "The _address is the zero address"
     assert self._fundsAreAllowed(_lender, self, _amount), "Not enough funds allowed"
 
     sharesAmount: uint256 = self._computeShares(_amount)
@@ -252,7 +252,7 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _lender != ZERO_ADDRESS, "The _lender is the zero address"
+    assert _lender != empty(address), "The _lender is the zero address"
     assert self._computeWithdrawableAmount(_lender) >= _amount, "_amount more than withdrawable"
     assert self.fundsAvailable >= _amount, "Available funds less than amount"
 

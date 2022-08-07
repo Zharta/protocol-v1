@@ -270,7 +270,7 @@ def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidatio
 ##### EXTERNAL METHODS - WRITE #####
 @external
 def __init__(_liquidationsCoreAddress: address, _gracePeriodDuration: uint256, _lenderPeriodDuration: uint256, _auctionPeriodDuration: uint256, _wethAddress: address):
-    assert _liquidationsCoreAddress != ZERO_ADDRESS, "address is the zero address"
+    assert _liquidationsCoreAddress != empty(address), "address is the zero address"
     assert _liquidationsCoreAddress.is_contract, "address is not a contract"
     assert _wethAddress != empty(address), "address is the zero address"
     assert _wethAddress.is_contract, "address is not a contract"
