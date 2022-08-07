@@ -126,7 +126,7 @@ event LiquidationRemoved:
 event NFTPurchased:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
-    fromIndexed: address
+    buyerAddressIndexed: address
     collateralAddress: address
     tokenId: uint256
     amount: uint256

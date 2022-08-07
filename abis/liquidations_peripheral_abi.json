@@ -425,7 +425,7 @@
         "indexed": true
       },
       {
-        "name": "fromIndexed",
+        "name": "buyerAddressIndexed",
         "type": "address",
         "indexed": true
       },

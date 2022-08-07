@@ -170,7 +170,7 @@ event LiquidationRemoved:
 event NFTPurchased:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
-    fromIndexed: indexed(address)
+    buyerAddressIndexed: indexed(address)
     collateralAddress: address
     tokenId: uint256
     amount: uint256
