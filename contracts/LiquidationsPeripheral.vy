@@ -67,6 +67,8 @@ struct Liquidation:
     gracePeriodPrice: uint256
     lenderPeriodPrice: uint256
     borrower: address
+    loanId: uint256
+    loansCoreContract: address
     erc20TokenContract: address
     inAuction: bool
 
@@ -150,7 +152,7 @@ event LiquidationAdded:
     lenderPeriodPrice: uint256
     gracePeriodMaturity: uint256
     lenderPeriodMaturity: uint256
-    loansCoreAddress: address
+    loansCoreContract: address
     loanId: uint256
     borrower: address
 
@@ -161,6 +163,9 @@ event LiquidationRemoved:
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
+    loansCoreContract: address
+    loanId: uint256
+    borrower: address
 
 event NFTPurchased:
     erc20TokenContractIndexed: indexed(address)
@@ -538,6 +543,8 @@ def addLiquidation(
         gracePeriodPrice,
         lenderPeriodPrice,
         _borrower,
+        _loanId,
+        self.loansCoreAddresses[_erc20TokenContract],
         _erc20TokenContract
     )
 
@@ -575,7 +582,10 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.lid,
         liquidation.collateralAddress,
         liquidation.tokenId,
-        liquidation.erc20TokenContract
+        liquidation.erc20TokenContract,
+        liquidation.loansCoreContract,
+        liquidation.loanId,
+        liquidation.borrower
     )
 
     # IERC20(liquidation.erc20TokenContract).transferFrom(msg.sender, liquidation.gracePeriodPrice)
@@ -619,7 +629,10 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.lid,
         liquidation.collateralAddress,
         liquidation.tokenId,
-        liquidation.erc20TokenContract
+        liquidation.erc20TokenContract,
+        liquidation.loansCoreContract,
+        liquidation.loanId,
+        liquidation.borrower
     )
 
     fundsSender: address = msg.sender
@@ -681,7 +694,10 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         liquidation.lid,
         liquidation.collateralAddress,
         liquidation.tokenId,
-        liquidation.erc20TokenContract
+        liquidation.erc20TokenContract,
+        liquidation.loansCoreContract,
+        liquidation.loanId,
+        liquidation.borrower
     )
 
     autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)

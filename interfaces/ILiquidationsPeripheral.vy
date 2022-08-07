@@ -40,6 +40,8 @@ struct Liquidation:
     gracePeriodPrice: uint256
     lenderPeriodPrice: uint256
     borrower: address
+    loanId: uint256
+    loansCoreContract: address
     erc20TokenContract: address
     inAuction: bool
 
@@ -108,7 +110,7 @@ event LiquidationAdded:
     lenderPeriodPrice: uint256
     gracePeriodMaturity: uint256
     lenderPeriodMaturity: uint256
-    loansCoreAddress: address
+    loansCoreContract: address
     loanId: uint256
     borrower: address
 event LiquidationRemoved:
@@ -118,6 +120,9 @@ event LiquidationRemoved:
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
+    loansCoreContract: address
+    loanId: uint256
+    borrower: address
 event NFTPurchased:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address

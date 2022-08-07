@@ -401,7 +401,7 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
         erc721_contract,
         0,
         borrower,
-        0,
+        loan_id,
         erc20_contract
     )
 
@@ -427,6 +427,8 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     assert liquidation["interestAmount"] == interest_amount
     assert liquidation["apr"] == apr
     assert liquidation["borrower"] == borrower
+    assert liquidation["loanId"] == loan_id
+    assert liquidation["loansCoreContract"] == loans_core_contract
     assert liquidation["erc20TokenContract"] == erc20_contract
 
     event = tx.events["LiquidationAdded"]
@@ -438,8 +440,9 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     assert event["lenderPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * LENDER_PERIOD_DURATION) / (Decimal(31536000) * Decimal(10000)))
     assert event["gracePeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION
     assert event["lenderPeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
-    assert event["loansCoreAddress"] == loans_core_contract
+    assert event["loansCoreContract"] == loans_core_contract
     assert event["loanId"] == loan_id
+    assert event["borrower"] == borrower
 
 
 def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
@@ -470,7 +473,7 @@ def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, li
             erc721_contract,
             0,
             borrower,
-            0,
+            loan_id,
             erc20_contract
         )
 
@@ -506,7 +509,7 @@ def test_add_liquidation_collat_not_in_loan(liquidations_peripheral_contract, li
             erc721_contract,
             1,
             borrower,
-            0,
+            loan_id,
             erc20_contract
         )
 
@@ -555,7 +558,7 @@ def test_buy_nft_grace_period_not_allowed(liquidations_peripheral_contract, liqu
         erc721_contract,
         0,
         borrower,
-        0,
+        loan_id,
         erc20_contract
     )
 
@@ -621,7 +624,7 @@ def test_buy_nft_grace_period(
         erc721_contract,
         0,
         borrower,
-        0,
+        loan_id,
         erc20_contract
     )
 
@@ -651,6 +654,9 @@ def test_buy_nft_grace_period(
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["erc20TokenContract"] == erc20_contract
+    assert event["loansCoreContract"] == loans_core_contract
+    assert event["loanId"] == loan_id
+    assert event["borrower"] == borrower
 
     event = tx.events["NFTPurchased"]
     assert event["collateralAddress"] == erc721_contract

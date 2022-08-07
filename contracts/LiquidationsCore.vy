@@ -25,6 +25,8 @@ struct Liquidation:
     gracePeriodPrice: uint256
     lenderPeriodPrice: uint256
     borrower: address
+    loanId: uint256
+    loansCoreContract: address
     erc20TokenContract: address
     inAuction: bool
 
@@ -239,6 +241,8 @@ def addLiquidation(
     _gracePeriodPrice: uint256,
     _lenderPeriodPrice: uint256,
     _borrower: address,
+    _loanId: uint256,
+    _loansCoreContract: address,
     _erc20TokenContract: address
 ) -> bytes32:
     assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not BNPeriph addr"
@@ -261,6 +265,8 @@ def addLiquidation(
             gracePeriodPrice: _gracePeriodPrice,
             lenderPeriodPrice: _lenderPeriodPrice,
             borrower: _borrower,
+            loanId: _loanId,
+            loansCoreContract: _loansCoreContract,
             erc20TokenContract: _erc20TokenContract,
             inAuction: False,
         }

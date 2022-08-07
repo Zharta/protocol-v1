@@ -341,13 +341,18 @@
         "indexed": false
       },
       {
-        "name": "loansCoreAddress",
+        "name": "loansCoreContract",
         "type": "address",
         "indexed": false
       },
       {
         "name": "loanId",
         "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "borrower",
+        "type": "address",
         "indexed": false
       }
     ],
@@ -384,6 +389,21 @@
       },
       {
         "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loansCoreContract",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "borrower",
         "type": "address",
         "indexed": false
       }
@@ -508,6 +528,14 @@
           },
           {
             "name": "borrower",
+            "type": "address"
+          },
+          {
+            "name": "loanId",
+            "type": "uint256"
+          },
+          {
+            "name": "loansCoreContract",
             "type": "address"
           },
           {
