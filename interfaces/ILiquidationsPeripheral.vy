@@ -110,6 +110,7 @@ event LiquidationAdded:
     lenderPeriodMaturity: uint256
     loansCoreAddress: address
     loanId: uint256
+    borrower: address
 event LiquidationRemoved:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address

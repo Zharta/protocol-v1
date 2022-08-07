@@ -152,6 +152,7 @@ event LiquidationAdded:
     lenderPeriodMaturity: uint256
     loansCoreAddress: address
     loanId: uint256
+    borrower: address
 
 event LiquidationRemoved:
     erc20TokenContractIndexed: indexed(address)
@@ -552,7 +553,8 @@ def addLiquidation(
         block.timestamp + self.gracePeriodDuration,
         block.timestamp + self.gracePeriodDuration + self.lenderPeriodDuration,
         self.loansCoreAddresses[_erc20TokenContract],
-        _loanId
+        _loanId,
+        _borrower
     )
 
 
