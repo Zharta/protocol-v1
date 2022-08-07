@@ -1626,8 +1626,9 @@ def test_validate_loan(
     assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == payable_amount_immediately
 
     chain.mine(blocks=1, timedelta=24 * 60 * 60)
-    time_passed = (chain.time() - loan_details["startTime"]) - ((chain.time() - loan_details["startTime"]) % 86400)
-    payable_amount = (Decimal(LOAN_AMOUNT) - Decimal(loan_details["paidAmount"])) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * Decimal(time_passed)) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION))
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD + INTEREST_ACCRUAL_PERIOD)
+    
+    payable_amount = int(Decimal(LOAN_AMOUNT) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
     assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == payable_amount
 
     chain.mine(blocks=1, timedelta=12 * 60 * 60)
@@ -2177,10 +2178,8 @@ def test_pay_loan(
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
     amount_payable = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)
-    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
-    if time_diff == 0:
-        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
-
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD + INTEREST_ACCRUAL_PERIOD)
+    
     amount_paid = int(Decimal(LOAN_AMOUNT) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
 
     assert amount_payable == amount_paid
@@ -2268,9 +2267,7 @@ def test_pay_loan_multiple(
     loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
-    if time_diff == 0:
-        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD + INTEREST_ACCRUAL_PERIOD)
 
     amount_paid = int(Decimal(LOAN_AMOUNT) / Decimal(2) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
 
@@ -2296,9 +2293,7 @@ def test_pay_loan_multiple(
 
     assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
-    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
-    if time_diff == 0:
-        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD + INTEREST_ACCRUAL_PERIOD)
 
     amount_paid2 = int(Decimal(LOAN_AMOUNT) / Decimal(2) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
     
@@ -2373,9 +2368,7 @@ def test_pay_loan_already_paid(
     loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD)
-    if time_diff == 0:
-        time_diff = Decimal(INTEREST_ACCRUAL_PERIOD)
+    time_diff = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD + INTEREST_ACCRUAL_PERIOD)
 
     amount_paid = int(Decimal(LOAN_AMOUNT) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
 

@@ -340,12 +340,8 @@ def _loanPayableAmount(
     _maxLoanDuration: uint256,
     _timePassed: uint256,
     _interestAccrualPeriod: uint256
-) -> uint256:
-    timePassed: uint256 = _timePassed
-    if _timePassed == 0:
-        timePassed = _interestAccrualPeriod
-    
-    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * timePassed) / (10000 * _maxLoanDuration)
+) -> uint256:   
+    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (_timePassed + _interestAccrualPeriod)) / (10000 * _maxLoanDuration)
 
 
 @pure
