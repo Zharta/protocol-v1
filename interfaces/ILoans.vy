@@ -19,6 +19,12 @@ struct Loan:
     defaulted: bool
     canceled: bool
 
+struct TopStats:
+    highestSingleCollateralLoan: Loan
+    highestCollateralBundleLoan: Loan
+    highestRepayment: Loan
+    highestDefaultedLoan: Loan
+
 # Events
 
 event OwnershipTransferred:

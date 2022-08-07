@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.6
 
 
 # Interfaces
@@ -256,7 +256,7 @@ def _getCollateralAmount(_collaterals: DynArray[Collateral, 20], _collateralAddr
     for collateral in _collaterals:
         if collateral.contractAddress == _collateralAddress and collateral.tokenId == _tokenId:
             return collateral.amount
-    return MAX_UINT256
+    return max_value(uint256)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -270,9 +270,9 @@ def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidatio
 ##### EXTERNAL METHODS - WRITE #####
 @external
 def __init__(_liquidationsCoreAddress: address, _gracePeriodDuration: uint256, _lenderPeriodDuration: uint256, _auctionPeriodDuration: uint256, _wethAddress: address):
-    assert _liquidationsCoreAddress != ZERO_ADDRESS, "address is the zero address"
+    assert _liquidationsCoreAddress != empty(address), "address is the zero address"
     assert _liquidationsCoreAddress.is_contract, "address is not a contract"
-    assert _wethAddress != ZERO_ADDRESS, "address is the zero address"
+    assert _wethAddress != empty(address), "address is the zero address"
     assert _wethAddress.is_contract, "address is not a contract"
     assert _gracePeriodDuration > 0, "duration is 0"
     assert _lenderPeriodDuration > 0, "duration is 0"
@@ -289,7 +289,7 @@ def __init__(_liquidationsCoreAddress: address, _gracePeriodDuration: uint256, _
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address it the zero address"
+    assert _address != empty(address), "address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -315,7 +315,7 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
@@ -363,7 +363,7 @@ def setAuctionPeriodDuration(_duration: uint256):
 @external
 def setLiquidationsCoreAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
     assert self.liquidationsCoreAddress != _address, "new value is the same"
 
@@ -378,9 +378,9 @@ def setLiquidationsCoreAddress(_address: address):
 @external
 def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
-    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
     assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.loansCoreAddresses[_erc20TokenContract] != _address, "new value is the same"
 
@@ -397,9 +397,9 @@ def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
 @external
 def removeLoansCoreAddress(_erc20TokenContract: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
     assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
-    assert self.loansCoreAddresses[_erc20TokenContract] != ZERO_ADDRESS, "address not found"
+    assert self.loansCoreAddresses[_erc20TokenContract] != empty(address), "address not found"
 
     log LoansCoreAddressRemoved(
         _erc20TokenContract,
@@ -407,15 +407,15 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
         _erc20TokenContract
     )
 
-    self.loansCoreAddresses[_erc20TokenContract] = ZERO_ADDRESS
+    self.loansCoreAddresses[_erc20TokenContract] = empty(address)
 
 
 @external
 def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
-    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
     assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != _address, "new value is the same"
 
@@ -432,9 +432,9 @@ def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: addr
 @external
 def removeLendingPoolPeripheralAddress(_erc20TokenContract: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
     assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
-    assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != ZERO_ADDRESS, "address not found"
+    assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != empty(address), "address not found"
 
     log LendingPoolPeripheralAddressRemoved(
         _erc20TokenContract,
@@ -442,13 +442,13 @@ def removeLendingPoolPeripheralAddress(_erc20TokenContract: address):
         _erc20TokenContract
     )
 
-    self.lendingPoolPeripheralAddresses[_erc20TokenContract] = ZERO_ADDRESS
+    self.lendingPoolPeripheralAddresses[_erc20TokenContract] = empty(address)
 
 
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert self.collateralVaultPeripheralAddress != _address, "new value is the same"
 
     log CollateralVaultPeripheralAddressSet(
@@ -462,7 +462,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
 @external
 def setNFTXVaultFactoryAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert self.nftxVaultFactoryAddress != _address, "new value is the same"
 
     log NFTXVaultFactoryAddressSet(
@@ -476,7 +476,7 @@ def setNFTXVaultFactoryAddress(_address: address):
 @external
 def setNFTXMarketplaceZapAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert self.nftxMarketplaceZapAddress != _address, "new value is the same"
 
     log NFTXMarketplaceZapAddressSet(
@@ -490,7 +490,7 @@ def setNFTXMarketplaceZapAddress(_address: address):
 @external
 def setSushiRouterAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert self.sushiRouterAddress != _address, "new value is the same"
 
     log SushiRouterAddressSet(

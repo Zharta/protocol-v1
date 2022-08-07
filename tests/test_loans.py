@@ -12,7 +12,6 @@ MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
-MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
 MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
@@ -31,7 +30,6 @@ def test_initial_state(loans_peripheral_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
     assert loans_peripheral_contract.owner() == contract_owner
     assert loans_peripheral_contract.maxAllowedLoans() == MAX_NUMBER_OF_LOANS
-    assert loans_peripheral_contract.minLoanAmount() == MIN_LOAN_AMOUNT
     assert loans_peripheral_contract.maxLoanAmount() == MAX_LOAN_AMOUNT
     assert loans_peripheral_contract.isAcceptingLoans() == True
     assert loans_peripheral_contract.isDeprecated() == False
@@ -345,34 +343,9 @@ def test_remove_whitelisted_address(loans_peripheral_contract, contract_owner, i
     assert event["value"] == investor
 
 
-def test_change_min_loan_amount_wrong_sender(loans_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
-
-
-def test_change_min_loan_amount_wrong_amount(loans_peripheral_contract, contract_owner):
-    with brownie.reverts("min amount is > than max amount"):
-        loans_peripheral_contract.changeMinLoanAmount(MAX_LOAN_AMOUNT * 2, {"from": contract_owner})
-
-
-def test_change_min_loan_amount(loans_peripheral_contract, contract_owner):
-    tx = loans_peripheral_contract.changeMinLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": contract_owner})
-
-    assert loans_peripheral_contract.minLoanAmount() == MIN_LOAN_AMOUNT * 1.1
-
-    event = tx.events["MinLoanAmountChanged"]
-    assert event["currentValue"] == MIN_LOAN_AMOUNT
-    assert event["newValue"] == MIN_LOAN_AMOUNT * 1.1
-
-
 def test_change_max_loan_amount_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT * 1.1, {"from": borrower})
-
-
-def test_change_max_loan_amount_wrong_amount(loans_peripheral_contract, contract_owner):
-    with brownie.reverts("max amount is < than min amount"):
-        loans_peripheral_contract.changeMaxLoanAmount(MIN_LOAN_AMOUNT / 2, {"from": contract_owner})
+        loans_peripheral_contract.changeMaxLoanAmount(MAX_LOAN_AMOUNT * 1.1, {"from": borrower})
 
 
 def test_change_max_loan_amount(loans_peripheral_contract, contract_owner):
@@ -736,51 +709,6 @@ def test_create_max_loans_reached(
             LOAN_INTEREST,
             MATURITY,
             [(erc721_contract, MAX_NUMBER_OF_LOANS, LOAN_AMOUNT)],
-            {'from': borrower}
-        )
-
-
-def test_create_loan_min_amount(
-    loans_peripheral_contract,
-    loans_core_contract,
-    lending_pool_peripheral_contract,
-    lending_pool_core_contract,
-    collateral_vault_peripheral_contract,
-    collateral_vault_core_contract,
-    liquidity_controls_contract,
-    erc721_contract,
-    erc20_contract,
-    contract_owner,
-    investor,
-    borrower,
-    test_collaterals
-):
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
-
-    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
-
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    
-    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
-    
-    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
-
-    erc721_contract.mint(borrower, 0, {"from": contract_owner})
-
-    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
-
-    with brownie.reverts("loan amount < than the min value"):
-        loans_peripheral_contract.reserve(
-            Web3.toWei(0.01, "ether"),
-            LOAN_INTEREST,
-            MATURITY,
-            [(erc721_contract, 0, Web3.toWei(0.01, "ether"))],
             {'from': borrower}
         )
 

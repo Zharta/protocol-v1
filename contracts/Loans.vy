@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.6
 
 
 # Interfaces
@@ -75,12 +75,6 @@ event MaxLoansChanged:
     erc20TokenContract: address
 
 event MaxLoanDurationChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
-event MinLoanAmountChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
@@ -209,7 +203,6 @@ proposedOwner: public(address)
 
 maxAllowedLoans: public(uint256)
 maxAllowedLoanDuration: public(uint256)
-minLoanAmount: public(uint256)
 maxLoanAmount: public(uint256)
 interestAccrualPeriod: public(uint256)
 
@@ -236,7 +229,6 @@ collectionsAmount: HashMap[address, uint256] # aux variable
 def __init__(
     _maxAllowedLoans: uint256,
     _maxAllowedLoanDuration: uint256,
-    _minLoanAmount: uint256,
     _maxLoanAmount: uint256,
     _interestAccrualPeriod: uint256,
     _loansCoreContract: address,
@@ -245,15 +237,13 @@ def __init__(
 ):
     assert _maxAllowedLoans > 0, "value for max loans is 0"
     assert _maxAllowedLoanDuration > 0, "valor for max duration is 0"
-    assert _maxLoanAmount >= _minLoanAmount, "max amount is < than min amount"
-    assert _loansCoreContract != ZERO_ADDRESS, "address is the zero address"
-    assert _lendingPoolPeripheralContract != ZERO_ADDRESS, "address is the zero address"
-    assert _collateralVaultPeripheralContract != ZERO_ADDRESS, "address is the zero address"
+    assert _loansCoreContract != empty(address), "address is the zero address"
+    assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
+    assert _collateralVaultPeripheralContract != empty(address), "address is the zero address"
 
     self.owner = msg.sender
     self.maxAllowedLoans = _maxAllowedLoans
     self.maxAllowedLoanDuration = _maxAllowedLoanDuration
-    self.minLoanAmount = _minLoanAmount
     self.maxLoanAmount = _maxLoanAmount
     self.interestAccrualPeriod = _interestAccrualPeriod
     self.loansCoreContract = _loansCoreContract
@@ -317,7 +307,7 @@ def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 20]) -> bool:
             i += 1
         else:
             self.collectionsAmount[collateral.contractAddress] += collateral.amount
-    
+
     for collection in collections:
         result: bool = ILiquidityControls(self.liquidityControlsContract).withinCollectionShareLimit(
             self.collectionsAmount[collection],
@@ -353,7 +343,7 @@ def _computePeriodPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: ui
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -381,7 +371,7 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
@@ -417,26 +407,9 @@ def changeMaxAllowedLoanDuration(_value: uint256):
 
 
 @external
-def changeMinLoanAmount(_value: uint256):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _value != self.minLoanAmount, "new min loan amount is the same"
-    assert _value <= self.maxLoanAmount, "min amount is > than max amount"
-    
-    log MinLoanAmountChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        self.minLoanAmount,
-        _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-    self.minLoanAmount = _value
-
-
-@external
 def changeMaxLoanAmount(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value != self.maxLoanAmount, "new max loan amount is the same"
-    assert _value >= self.minLoanAmount, "max amount is < than min amount"
 
     log MaxLoanAmountChanged(
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
@@ -466,7 +439,7 @@ def changeInterestAccrualPeriod(_value: uint256):
 @external
 def addCollateralToWhitelist(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
     assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
@@ -497,7 +470,7 @@ def removeCollateralFromWhitelist(_address: address):
 @external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.lendingPoolPeripheralContract != _address, "new LPPeriph addr is the same"
 
@@ -514,7 +487,7 @@ def setLendingPoolPeripheralAddress(_address: address):
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.collateralVaultPeripheralContract != _address, "new LPCore addr is the same"
 
@@ -531,7 +504,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
 @external
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert self.liquidationsPeripheralContract != _address, "new LPCore addr is the same"
 
@@ -548,7 +521,7 @@ def setLiquidationsPeripheralAddress(_address: address):
 @external
 def setLiquidityControlsAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert _address != self.liquidityControlsContract, "new value is the same"
 
@@ -579,7 +552,7 @@ def changeWalletsWhitelistStatus(_flag: bool):
 @external
 def addWhitelistedWallet(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
     assert not self.walletsWhitelisted[_address], "address is already whitelisted"
 
@@ -595,7 +568,7 @@ def addWhitelistedWallet(_address: address):
 @external
 def removeWhitelistedWallet(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
     assert self.walletsWhitelisted[_address], "address is not whitelisted"
 
@@ -665,7 +638,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
             self.interestAccrualPeriod
         )
     
-    return MAX_UINT256
+    return max_value(uint256)
 
 
 @external
@@ -685,7 +658,6 @@ def reserve(
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
     assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "max loans already reached"
-    assert _amount >= self.minLoanAmount, "loan amount < than the min value"
     assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
     assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
         msg.sender,
@@ -872,7 +844,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan not found"
     assert block.timestamp > ILoansCore(self.loansCoreContract).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
-    assert self.liquidationsPeripheralContract != ZERO_ADDRESS, "BNPeriph is the zero address"
+    assert self.liquidationsPeripheralContract != empty(address), "BNPeriph is the zero address"
 
     self.ongoingLoans[_borrower] -= 1
 

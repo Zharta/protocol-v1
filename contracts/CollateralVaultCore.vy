@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.6
 
 
 # Interfaces
@@ -56,7 +56,7 @@ def __init__():
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address it the zero address"
+    assert _address != empty(address), "address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -82,13 +82,13 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
     assert self.collateralVaultPeripheralAddress != _address, "new value is the same"
 
