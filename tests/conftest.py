@@ -10,7 +10,6 @@ MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
-MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
 MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
@@ -86,7 +85,6 @@ def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_periphera
     yield Loans.deploy(
         MAX_NUMBER_OF_LOANS,
         MAX_LOAN_DURATION,
-        MIN_LOAN_AMOUNT,
         MAX_LOAN_AMOUNT,
         INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
@@ -101,7 +99,6 @@ def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contr
     yield Loans.deploy(
         1,
         1,
-        0,
         1,
         INTEREST_ACCRUAL_PERIOD,
         accounts[4],

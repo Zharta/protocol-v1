@@ -1,4 +1,4 @@
-# @version ^0.3.4
+# @version ^0.3.6
 
 
 # Interfaces
@@ -432,7 +432,7 @@ def setLiquidationsPeripheralAddress(_address: address):
 @external
 def setLiquidityControlsAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     assert _address != self.liquidityControlsContract, "new value is the same"
 
