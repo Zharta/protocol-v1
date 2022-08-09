@@ -4,7 +4,6 @@
 # Interfaces
 
 from vyper.interfaces import ERC20 as IERC20
-from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 from interfaces import ILiquidationsCore
 from interfaces import ILoansCore
@@ -39,7 +38,8 @@ struct Loan:
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool

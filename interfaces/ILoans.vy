@@ -12,18 +12,13 @@ struct Loan:
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
     defaulted: bool
     canceled: bool
-
-struct TopStats:
-    highestSingleCollateralLoan: Loan
-    highestCollateralBundleLoan: Loan
-    highestRepayment: Loan
-    highestDefaultedLoan: Loan
 
 # Events
 
@@ -50,11 +45,6 @@ event MaxLoansChanged:
     newValue: uint256
     erc20TokenContract: address
 event MaxLoanDurationChanged:
-    erc20TokenContractIndexed: address
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-event MinLoanAmountChanged:
     erc20TokenContractIndexed: address
     currentValue: uint256
     newValue: uint256
@@ -174,10 +164,6 @@ def changeMaxAllowedLoanDuration(_value: uint256):
     pass
 
 @external
-def changeMinLoanAmount(_value: uint256):
-    pass
-
-@external
 def changeMaxLoanAmount(_value: uint256):
     pass
 
@@ -281,11 +267,6 @@ def maxAllowedLoans() -> uint256:
 @view
 @external
 def maxAllowedLoanDuration() -> uint256:
-    pass
-
-@view
-@external
-def minLoanAmount() -> uint256:
     pass
 
 @view

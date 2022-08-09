@@ -12,7 +12,8 @@ struct Loan:
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
@@ -96,7 +97,12 @@ def getLoanStartTime(_borrower: address, _loanId: uint256) -> uint256:
 
 @view
 @external
-def getLoanPaidAmount(_borrower: address, _loanId: uint256) -> uint256:
+def getLoanPaidPrincipal(_borrower: address, _loanId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLoanPaidInterestAmount(_borrower: address, _loanId: uint256) -> uint256:
     pass
 
 @view
@@ -189,7 +195,7 @@ def updateInvalidLoan(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
+def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256):
     pass
 
 @external

@@ -145,33 +145,6 @@
     "type": "event"
   },
   {
-    "name": "MinLoanAmountChanged",
-    "inputs": [
-      {
-        "name": "erc20TokenContractIndexed",
-        "type": "address",
-        "indexed": true
-      },
-      {
-        "name": "currentValue",
-        "type": "uint256",
-        "indexed": false
-      },
-      {
-        "name": "newValue",
-        "type": "uint256",
-        "indexed": false
-      },
-      {
-        "name": "erc20TokenContract",
-        "type": "address",
-        "indexed": false
-      }
-    ],
-    "anonymous": false,
-    "type": "event"
-  },
-  {
     "name": "MaxLoanAmountChanged",
     "inputs": [
       {
@@ -699,10 +672,6 @@
         "type": "uint256"
       },
       {
-        "name": "_minLoanAmount",
-        "type": "uint256"
-      },
-      {
         "name": "_maxLoanAmount",
         "type": "uint256"
       },
@@ -760,18 +729,6 @@
     "stateMutability": "nonpayable",
     "type": "function",
     "name": "changeMaxAllowedLoanDuration",
-    "inputs": [
-      {
-        "name": "_value",
-        "type": "uint256"
-      }
-    ],
-    "outputs": []
-  },
-  {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "changeMinLoanAmount",
     "inputs": [
       {
         "name": "_value",
@@ -1123,18 +1080,6 @@
     "stateMutability": "view",
     "type": "function",
     "name": "maxAllowedLoanDuration",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "minLoanAmount",
     "inputs": [],
     "outputs": [
       {

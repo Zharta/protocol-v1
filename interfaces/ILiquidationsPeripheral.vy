@@ -12,7 +12,8 @@ struct Loan:
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool

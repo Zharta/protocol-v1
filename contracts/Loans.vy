@@ -38,7 +38,8 @@ struct Loan:
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
@@ -319,6 +320,18 @@ def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 20]) -> bool:
             return False
     
     return True
+
+
+@pure
+@internal
+def _amountFromProRataInterestRate(
+    _amount: uint256,
+    _interest: uint256,
+    _maxLoanDuration: uint256,
+    _timePassed: uint256,
+    _interestAccrualPeriod: uint256
+) -> uint256:
+    return _amount * 10000 * _maxLoanDuration / (10000 * _maxLoanDuration + _interest * (_timePassed + _interestAccrualPeriod))
 
 
 @pure
@@ -631,7 +644,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
         )
         return self._loanPayableAmount(
             loan.amount,
-            loan.paidAmount,
+            loan.paidPrincipal,
             loan.interest,
             self.maxAllowedLoanDuration,
             timePassed,
@@ -785,30 +798,34 @@ def pay(_loanId: uint256, _amount: uint256):
     )
 
     # pro-rata computation of max amount payable based on actual loan duration in days
-    maxPayment: uint256 = self._loanPayableAmount(
+    allowedPayment: uint256 = self._loanPayableAmount(
         loan.amount,
-        0,
+        loan.paidPrincipal,
         loan.interest,
         self.maxAllowedLoanDuration,
         timePassed,
         self.interestAccrualPeriod
     )
-    
-    allowedPayment: uint256 = maxPayment - loan.paidAmount
     assert _amount <= allowedPayment, "_amount is more than needed"
 
-    paidAmount: uint256 = _amount * 10000 / (10000 + loan.interest)
-    paidAmountInterest: uint256 = _amount - paidAmount
+    paidPrincipal: uint256 = self._amountFromProRataInterestRate(
+        _amount,
+        loan.interest,
+        self.maxAllowedLoanDuration,
+        timePassed,
+        self.interestAccrualPeriod
+    )
+    paidInterestAmount: uint256 = _amount - paidPrincipal
 
     if _amount == allowedPayment:
         self.ongoingLoans[msg.sender] -= 1
 
         ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
 
-    ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, _amount)
+    ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, paidPrincipal, paidInterestAmount)
     ILoansCore(self.loansCoreContract).updateHighestRepayment(msg.sender, _loanId)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, paidAmount, paidAmountInterest)
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, paidPrincipal, paidInterestAmount)
 
     if _amount == allowedPayment:
         for collateral in loan.collaterals:
@@ -833,8 +850,8 @@ def pay(_loanId: uint256, _amount: uint256):
         msg.sender,
         msg.sender,
         _loanId,
-        paidAmount,
-        paidAmountInterest,
+        paidPrincipal,
+        paidInterestAmount,
         erc20TokenContract
     )
 

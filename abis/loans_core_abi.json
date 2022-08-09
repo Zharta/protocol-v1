@@ -291,7 +291,28 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getLoanPaidAmount",
+    "name": "getLoanPaidPrincipal",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanPaidInterestAmount",
     "inputs": [
       {
         "name": "_borrower",
@@ -472,7 +493,11 @@
             ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -557,7 +582,11 @@
             ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -633,7 +662,11 @@
             ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -709,7 +742,11 @@
             ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -785,7 +822,11 @@
             ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -861,7 +902,11 @@
             ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -1108,7 +1153,11 @@
         "type": "uint256"
       },
       {
-        "name": "_paidAmount",
+        "name": "_paidPrincipal",
+        "type": "uint256"
+      },
+      {
+        "name": "_paidInterestAmount",
         "type": "uint256"
       }
     ],
