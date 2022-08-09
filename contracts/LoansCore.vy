@@ -24,7 +24,8 @@ struct Loan:
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
@@ -270,9 +271,17 @@ def getLoanStartTime(_borrower: address, _loanId: uint256) -> uint256:
 
 @view
 @external
-def getLoanPaidAmount(_borrower: address, _loanId: uint256) -> uint256:
+def getLoanPaidPrincipal(_borrower: address, _loanId: uint256) -> uint256:
     if _loanId < len(self.loans[_borrower]):
-        return self.loans[_borrower][_loanId].paidAmount
+        return self.loans[_borrower][_loanId].paidPrincipal
+    return 0
+
+
+@view
+@external
+def getLoanPaidInterestAmount(_borrower: address, _loanId: uint256) -> uint256:
+    if _loanId < len(self.loans[_borrower]):
+        return self.loans[_borrower][_loanId].paidInterestAmount
     return 0
 
 
@@ -409,7 +418,8 @@ def addLoan(
             maturity: _maturity,
             startTime: 0,
             collaterals: _collaterals,
-            paidAmount: 0,
+            paidPrincipal: 0,
+            paidInterestAmount: 0,
             started: False,
             invalidated: False,
             paid: False,
@@ -446,10 +456,11 @@ def updateInvalidLoan(_borrower: address, _loanId: uint256):
 
 
 @external
-def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
+def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
   
-    self.loans[_borrower][_loanId].paidAmount += _paidAmount
+    self.loans[_borrower][_loanId].paidPrincipal += _paidPrincipal
+    self.loans[_borrower][_loanId].paidInterestAmount += _paidInterestAmount
 
 
 @external
