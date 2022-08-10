@@ -780,7 +780,7 @@ def pay(_loanId: uint256, _amount: uint256):
     assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
     assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
     assert _amount > 0, "_amount has to be higher than 0"
-    
+
     erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     assert IERC20(erc20TokenContract).balanceOf(msg.sender) >=_amount, "insufficient balance"
     assert IERC20(erc20TokenContract).allowance(
@@ -806,43 +806,26 @@ def pay(_loanId: uint256, _amount: uint256):
         timePassed,
         self.interestAccrualPeriod
     )
-    assert _amount <= allowedPayment, "_amount is more than needed"
+    assert _amount == allowedPayment, "_amount != than payable amount"
 
-    paidPrincipal: uint256 = self._amountFromProRataInterestRate(
-        _amount,
-        loan.interest,
-        self.maxAllowedLoanDuration,
-        timePassed,
-        self.interestAccrualPeriod
-    )
-    paidInterestAmount: uint256 = _amount - paidPrincipal
+    self.ongoingLoans[msg.sender] -= 1
 
-    if _amount == allowedPayment:
-        self.ongoingLoans[msg.sender] -= 1
+    paidInterestAmount: uint256 = _amount - loan.amount
 
-        ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
-
-    ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, paidPrincipal, paidInterestAmount)
+    ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, loan.amount, paidInterestAmount)
+    ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
     ILoansCore(self.loansCoreContract).updateHighestRepayment(msg.sender, _loanId)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, paidPrincipal, paidInterestAmount)
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
 
-    if _amount == allowedPayment:
-        for collateral in loan.collaterals:
-            ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
-            ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
+    for collateral in loan.collaterals:
+        ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
+        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
-            ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).transferCollateralFromLoan(
-                msg.sender,
-                collateral.contractAddress,
-                collateral.tokenId,
-                erc20TokenContract
-            )
-
-        log LoanPaid(
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).transferCollateralFromLoan(
             msg.sender,
-            msg.sender,
-            _loanId,
+            collateral.contractAddress,
+            collateral.tokenId,
             erc20TokenContract
         )
 
@@ -850,8 +833,15 @@ def pay(_loanId: uint256, _amount: uint256):
         msg.sender,
         msg.sender,
         _loanId,
-        paidPrincipal,
+        loan.amount,
         paidInterestAmount,
+        erc20TokenContract
+    )
+    
+    log LoanPaid(
+        msg.sender,
+        msg.sender,
+        _loanId,
         erc20TokenContract
     )
 
