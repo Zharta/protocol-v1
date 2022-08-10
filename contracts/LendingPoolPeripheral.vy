@@ -249,6 +249,12 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256)
     if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, rewardsPool):
         self.isPoolInvesting = True
 
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            True,
+            self.erc20TokenContract
+        )
+
     if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, rewardsPool):
         raise "error receiving funds in LPCore"
     
@@ -573,6 +579,12 @@ def deposit(_amount: uint256):
     if not self.isPoolInvesting and self._poolHasFundsToInvestAfterDeposit(_amount):
         self.isPoolInvesting = True
 
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            True,
+            self.erc20TokenContract
+        )
+
     if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, self._computeLockPeriodEnd(msg.sender)):
         raise "error creating deposit"
 
@@ -590,6 +602,12 @@ def withdraw(_amount: uint256):
 
     if self.isPoolInvesting and not self._poolHasFundsToInvestAfterWithdraw(_amount):
         self.isPoolInvesting = False
+
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            False,
+            self.erc20TokenContract
+        )
 
     if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _amount):
         raise "error withdrawing funds"
@@ -611,6 +629,12 @@ def sendFunds(_to: address, _amount: uint256):
 
     if self.isPoolInvesting and not self._poolHasFundsToInvestAfterInvestment(_amount):
         self.isPoolInvesting = False
+
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            False,
+            self.erc20TokenContract
+        )
 
     if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_to, _amount):
         raise "error sending funds in LPCore"
