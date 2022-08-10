@@ -1824,7 +1824,7 @@ def test_pay_loan_no_value_sent(
         loans_peripheral_contract.pay(loan["id"], 0, {"from": borrower})
 
 
-def test_pay_loan_higher_value_than_needed(
+def test_pay_loan_different_value_than_payable(
     loans_peripheral_contract,
     loans_core_contract,
     lending_pool_peripheral_contract,
@@ -1869,16 +1869,18 @@ def test_pay_loan_higher_value_than_needed(
     )
     loan_id = tx_create_loan.return_value
 
-    tx_start_loan = loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
+    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
+
     loan = loans_core_contract.getLoan(borrower, loan_id)
 
-    amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
+    erc20_contract.mint(borrower, LOAN_AMOUNT * 10, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 10, {"from": borrower})
 
-    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
-    
-    with brownie.reverts("_amount is more than needed"):
-        loans_peripheral_contract.pay(loan["id"], amount_paid, {"from": borrower})
+    with brownie.reverts("_amount != than payable amount"):
+        loans_peripheral_contract.pay(loan["id"], LOAN_AMOUNT * 10, {"from": borrower})
+
+    with brownie.reverts("_amount != than payable amount"):
+        loans_peripheral_contract.pay(loan["id"], LOAN_AMOUNT / 10, {"from": borrower})
 
 
 def test_pay_loan_defaulted(
@@ -2150,109 +2152,6 @@ def test_pay_loan(
     assert erc20_contract.balanceOf(borrower) == 0
 
 
-def test_pay_loan_multiple(
-    loans_peripheral_contract,
-    loans_core_contract,
-    lending_pool_peripheral_contract,
-    lending_pool_core_contract,
-    collateral_vault_peripheral_contract,
-    collateral_vault_core_contract,
-    liquidity_controls_contract,
-    erc721_contract,
-    erc20_contract,
-    contract_owner,
-    investor,
-    borrower,
-    test_collaterals
-):
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
-    loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
-
-    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
-
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-
-    erc20_contract.mint(borrower, LOAN_AMOUNT * 2, {"from": contract_owner})
-    
-    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
-
-    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
-
-    for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
-
-    borrower_initial_balance = erc20_contract.balanceOf(borrower)
-
-    tx_create_loan = loans_peripheral_contract.reserve(
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        {'from': borrower}
-    )
-    loan_id = tx_create_loan.return_value
-
-    loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
-
-    loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    time_diff1 = Decimal(chain.time() - loan_details['startTime'] - (chain.time() - loan_details['startTime']) % INTEREST_ACCRUAL_PERIOD + INTEREST_ACCRUAL_PERIOD)
-
-    amount_paid = int(Decimal(LOAN_AMOUNT) / Decimal(2) * (Decimal(10000) * Decimal(MAX_LOAN_DURATION) + Decimal(LOAN_INTEREST) * time_diff1) / (Decimal(10000) * Decimal(MAX_LOAN_DURATION)))
-
-    amount_payable = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)
-    assert amount_payable == amount_paid * Decimal(2)
-
-    borrower_amount_after_loan_started = erc20_contract.balanceOf(borrower)
-    assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
-
-    erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
-    tx_pay_loan1 = loans_peripheral_contract.pay(loan_id, amount_paid, {"from": borrower})
-
-    assert not loans_core_contract.getLoanPaid(borrower, loan_id)
-    assert loans_core_contract.getLoanPaidPrincipal(borrower, loan_id) + loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id) == amount_paid
-
-    for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
-    
-    loan_payment_event = tx_pay_loan1.events["LoanPayment"]
-    assert loan_payment_event["wallet"] == borrower
-    assert loan_payment_event["loanId"] == loan_id
-    assert loan_payment_event["principal"] + loan_payment_event["interestAmount"] == amount_paid
-
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
-
-    amount_paid2 = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id)
-    erc20_contract.approve(lending_pool_core_contract, amount_paid2, {"from": borrower})
-    tx_pay_loan2 = loans_peripheral_contract.pay(loan_id, amount_paid2, {"from": borrower})
-
-    assert loans_core_contract.getLoanPaid(borrower, loan_id)
-    assert loans_core_contract.getLoanPaidPrincipal(borrower, loan_id) + loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id) == amount_paid + amount_paid2
-    assert loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id) == 0
-
-    for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == borrower
-
-    assert erc20_contract.balanceOf(borrower) == borrower_amount_after_loan_started - (amount_paid + amount_paid2)
-
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
-
-    loan_paid_event2 = tx_pay_loan2.events["LoanPaid"]
-    assert loan_paid_event2["wallet"] == borrower
-    assert loan_paid_event2["loanId"] == loan_id
-    
-    loan_payment_event2 = tx_pay_loan2.events["LoanPayment"]
-    assert loan_payment_event2["wallet"] == borrower
-    assert loan_payment_event2["loanId"] == loan_id
-    assert loan_payment_event2["principal"] + loan_payment_event2["interestAmount"] == amount_paid2
-
-
 def test_pay_loan_already_paid(
     loans_peripheral_contract,
     loans_core_contract,
@@ -2457,22 +2356,22 @@ def test_set_default_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
         
-        # liquidation = liquidations_core_contract.getLiquidation(collateral[0], collateral[1])
-        # interest_amount = int(Decimal(collateral[2]) * Decimal(LOAN_INTEREST) / Decimal(10000))
-        # apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
+        liquidation = liquidations_core_contract.getLiquidation(collateral[0], collateral[1])
+        interest_amount = int(Decimal(collateral[2]) * Decimal(LOAN_INTEREST) / Decimal(10000))
+        apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
-        # assert liquidation["collateralAddress"] == collateral[0]
-        # assert liquidation["tokenId"] == collateral[1]
-        # # assert liquidation["gracePeriodMaturity"] == default_time + GRACE_PERIOD_DURATION
-        # # assert liquidation["lenderPeriodMaturity"] == default_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
-        # assert liquidation["principal"] == collateral[2]
-        # assert liquidation["interestAmount"] == interest_amount
-        # assert liquidation["apr"] == apr
-        # assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
-        # assert liquidation["lenderPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(LENDER_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
-        # assert liquidation["borrower"] == borrower
-        # assert liquidation["erc20TokenContract"] == erc20_contract
-        # assert not liquidation["inAuction"]
+        assert liquidation["collateralAddress"] == collateral[0]
+        assert liquidation["tokenId"] == collateral[1]
+        # assert liquidation["gracePeriodMaturity"] == default_time + GRACE_PERIOD_DURATION
+        # assert liquidation["lenderPeriodMaturity"] == default_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
+        assert liquidation["principal"] == collateral[2]
+        assert liquidation["interestAmount"] == interest_amount
+        assert liquidation["apr"] == apr
+        assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+        assert liquidation["lenderPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(LENDER_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+        assert liquidation["borrower"] == borrower
+        assert liquidation["erc20TokenContract"] == erc20_contract
+        assert not liquidation["inAuction"]
 
 
 def test_cancel_pendingloan_not_created(
