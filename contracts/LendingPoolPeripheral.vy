@@ -261,7 +261,7 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256)
     if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, rewardsProtocol):
         raise "error transferring protocol fees"
 
-    log FundsReceipt(msg.sender, msg.sender, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
+    log FundsReceipt(_borrower, _borrower, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
 
 
 ##### EXTERNAL METHODS - VIEW #####
