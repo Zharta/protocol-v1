@@ -928,7 +928,7 @@ def test_receive_funds(
     assert user_balance(erc20_contract, protocol_wallet) == Web3.toWei(expectedProtocolFees, "ether")
     assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(1 + expectedPoolFees, "ether")
 
-    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_peripheral_contract
+    assert tx_receive.events["FundsReceipt"]["wallet"] == borrower
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
@@ -994,7 +994,7 @@ def test_receive_funds_multiple_lenders(
     assert user_balance(erc20_contract, protocol_wallet) == Web3.toWei(expectedProtocolFees, "ether")
     assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(4 + expectedPoolFees, "ether")
 
-    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_peripheral_contract
+    assert tx_receive.events["FundsReceipt"]["wallet"] == borrower
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")

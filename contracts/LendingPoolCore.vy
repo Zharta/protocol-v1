@@ -82,7 +82,14 @@ def _computeShares(_amount: uint256) -> uint256:
 def _computeWithdrawableAmount(_lender: address) -> uint256:
     if self.totalSharesBasisPoints == 0:
         return 0
-    return (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
+
+    withdrawable: uint256 = (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
+
+    # due to rounding errors
+    if self.funds[_lender].currentAmountDeposited > withdrawable:
+        return self.funds[_lender].currentAmountDeposited
+
+    return withdrawable
 
 
 ##### EXTERNAL METHODS - VIEW #####
