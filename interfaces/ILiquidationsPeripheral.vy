@@ -214,10 +214,6 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     pass
 
-@external
-def liquidateOpenSea():
-    pass
-
 @view
 @external
 def owner() -> address:

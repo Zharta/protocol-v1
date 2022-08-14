@@ -825,13 +825,6 @@
     "outputs": []
   },
   {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "liquidateOpenSea",
-    "inputs": [],
-    "outputs": []
-  },
-  {
     "stateMutability": "view",
     "type": "function",
     "name": "owner",

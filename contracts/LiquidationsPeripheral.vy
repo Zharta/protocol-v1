@@ -594,7 +594,8 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
         liquidation.borrower,
         liquidation.principal,
-        liquidation.gracePeriodPrice - liquidation.principal
+        liquidation.gracePeriodPrice - liquidation.principal,
+        True
     )
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
@@ -660,7 +661,8 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
         fundsSender,
         liquidation.principal,
-        lenderPeriodInterestAmount
+        lenderPeriodInterestAmount,
+        True
     )
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
@@ -719,22 +721,30 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     # TODO: swap WETH for liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
     # TODO: recompute "autoLiquidationPrice" to be in liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
 
+    lp_peripheral_address: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+
     IERC20(liquidation.erc20TokenContract).approve(
-        self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract],
+        lp_peripheral_address,
         autoLiquidationPrice
     )
 
     principal: uint256 = liquidation.principal
     interestAmount: uint256 = 0
-    if autoLiquidationPrice <= liquidation.principal:
-        principal = autoLiquidationPrice
-    else:
-        interestAmount = autoLiquidationPrice - liquidation.principal
+    distributeToProtocol: bool = True
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+    if autoLiquidationPrice < liquidation.principal: # LP loss scenario
+        principal = autoLiquidationPrice    
+    elif autoLiquidationPrice > liquidation.principal:
+        interestAmount = autoLiquidationPrice - liquidation.principal
+        protocolFeesShare: uint256 = ILendingPoolPeripheral(lp_peripheral_address).protocolFeesShare()
+        if interestAmount <= liquidation.interestAmount * (10000 - protocolFeesShare) / 10000: # LP interest less than expected and/or protocol interest loss
+            distributeToProtocol = False
+
+    ILendingPoolPeripheral(lp_peripheral_address).receiveFundsFromLiquidation(
         self,
         principal,
-        interestAmount
+        interestAmount,
+        distributeToProtocol
     )
 
     log NFTPurchased(
@@ -748,8 +758,3 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         liquidation.erc20TokenContract,
         "BACKSTOP_PERIOD_NFTX"
     )
-
-
-@external
-def liquidateOpenSea():
-    pass
