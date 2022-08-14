@@ -189,7 +189,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
 @external
-def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool):
     pass
 
 @view

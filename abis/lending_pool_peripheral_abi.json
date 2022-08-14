@@ -807,6 +807,10 @@
       {
         "name": "_rewardsAmount",
         "type": "uint256"
+      },
+      {
+        "name": "_distributeToProtocol",
+        "type": "bool"
       }
     ],
     "outputs": []

@@ -242,11 +242,8 @@ def _computeLockPeriodEnd(_lender: address) -> uint256:
 ##### INTERNAL METHODS - WRITE #####
 
 @internal
-def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
-    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
-    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
-
-    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, rewardsPool):
+def _transferReceivedFunds(_borrower: address, _amount: uint256, _rewardsPool: uint256, _rewardsProtocol: uint256):
+    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, _rewardsPool):
         self.isPoolInvesting = True
 
         log InvestingStatusChanged(
@@ -255,13 +252,42 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256)
             self.erc20TokenContract
         )
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, rewardsPool):
+    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, _rewardsPool):
         raise "error receiving funds in LPCore"
     
-    if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, rewardsProtocol):
-        raise "error transferring protocol fees"
+    if _rewardsProtocol > 0:
+        if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, _rewardsProtocol):
+            raise "error transferring protocol fees"
 
-    log FundsReceipt(_borrower, _borrower, _amount, rewardsPool, rewardsProtocol, self.erc20TokenContract)
+    log FundsReceipt(
+        _borrower,
+        _borrower,
+        _amount,
+        _rewardsPool,
+        _rewardsProtocol,
+        self.erc20TokenContract
+    )
+
+
+@internal
+def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
+
+    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol)
+
+
+@internal
+def _receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool):
+    rewardsProtocol: uint256 = 0
+    rewardsPool: uint256 = 0
+    if _distributeToProtocol:
+        rewardsProtocol = _rewardsAmount * self.protocolFeesShare / 10000
+        rewardsPool = _rewardsAmount - rewardsProtocol
+    else:
+        rewardsPool = _rewardsAmount
+
+    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -655,7 +681,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
 
 
 @external
-def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool):
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
@@ -663,4 +689,4 @@ def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAm
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     
-    self._receiveFunds(_borrower, _amount, _rewardsAmount)
+    self._receiveFundsFromLiquidation(_borrower, _amount, _rewardsAmount, _distributeToProtocol)
