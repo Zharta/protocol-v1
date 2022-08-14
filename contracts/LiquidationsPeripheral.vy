@@ -176,7 +176,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
-    method: String[20] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD
+    method: String[20] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX
 
 
 # Global variables
@@ -746,7 +746,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         autoLiquidationPrice,
         self.nftxMarketplaceZapAddress,
         liquidation.erc20TokenContract,
-        "BACKSTOP_PERIOD"
+        "BACKSTOP_PERIOD_NFTX"
     )
 
 
