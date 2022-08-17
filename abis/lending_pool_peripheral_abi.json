@@ -465,6 +465,11 @@
         "name": "erc20TokenContract",
         "type": "address",
         "indexed": false
+      },
+      {
+        "name": "fundsOrigin",
+        "type": "string",
+        "indexed": false
       }
     ],
     "anonymous": false,

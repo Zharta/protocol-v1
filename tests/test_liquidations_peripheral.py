@@ -649,22 +649,25 @@ def test_buy_nft_grace_period(
     assert liquidation["borrower"] == brownie.ZERO_ADDRESS
     assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
 
-    event = tx.events["LiquidationRemoved"]
-    assert event["liquidationId"] == liquidation_id
-    assert event["collateralAddress"] == erc721_contract
-    assert event["tokenId"] == 0
-    assert event["erc20TokenContract"] == erc20_contract
-    assert event["loansCoreContract"] == loans_core_contract
-    assert event["loanId"] == loan_id
-    assert event["borrower"] == borrower
+    event_liquidation_removed = tx.events["LiquidationRemoved"]
+    assert event_liquidation_removed["liquidationId"] == liquidation_id
+    assert event_liquidation_removed["collateralAddress"] == erc721_contract
+    assert event_liquidation_removed["tokenId"] == 0
+    assert event_liquidation_removed["erc20TokenContract"] == erc20_contract
+    assert event_liquidation_removed["loansCoreContract"] == loans_core_contract
+    assert event_liquidation_removed["loanId"] == loan_id
+    assert event_liquidation_removed["borrower"] == borrower
 
-    event = tx.events["NFTPurchased"]
-    assert event["collateralAddress"] == erc721_contract
-    assert event["tokenId"] == 0
-    assert event["amount"] == grace_period_price
-    assert event["buyerAddress"] == borrower
-    assert event["erc20TokenContract"] == erc20_contract
-    assert event["method"] == "GRACE_PERIOD"
+    event_nft_purchased = tx.events["NFTPurchased"]
+    assert event_nft_purchased["collateralAddress"] == erc721_contract
+    assert event_nft_purchased["tokenId"] == 0
+    assert event_nft_purchased["amount"] == grace_period_price
+    assert event_nft_purchased["buyerAddress"] == borrower
+    assert event_nft_purchased["erc20TokenContract"] == erc20_contract
+    assert event_nft_purchased["method"] == "GRACE_PERIOD"
+
+    event_funds_receipt = tx.events["FundsReceipt"]
+    assert event_funds_receipt["fundsOrigin"] == "liquidation"
 
 
 # def test_buy_nft_lender_period(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):

@@ -125,6 +125,7 @@ event FundsReceipt:
     rewardsPool: uint256
     rewardsProtocol: uint256
     erc20TokenContract: address
+    fundsOrigin: String[15]
 
 
 # Global variables
@@ -242,7 +243,7 @@ def _computeLockPeriodEnd(_lender: address) -> uint256:
 ##### INTERNAL METHODS - WRITE #####
 
 @internal
-def _transferReceivedFunds(_borrower: address, _amount: uint256, _rewardsPool: uint256, _rewardsProtocol: uint256):
+def _transferReceivedFunds(_borrower: address, _amount: uint256, _rewardsPool: uint256, _rewardsProtocol: uint256, _origin: String[15]):
     if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, _rewardsPool):
         self.isPoolInvesting = True
 
@@ -265,7 +266,8 @@ def _transferReceivedFunds(_borrower: address, _amount: uint256, _rewardsPool: u
         _amount,
         _rewardsPool,
         _rewardsProtocol,
-        self.erc20TokenContract
+        self.erc20TokenContract,
+        _origin
     )
 
 
@@ -274,7 +276,7 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256)
     rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol)
+    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, "loan")
 
 
 @internal
@@ -287,7 +289,7 @@ def _receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsA
     else:
         rewardsPool = _rewardsAmount
 
-    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol)
+    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, "liquidation")
 
 
 ##### EXTERNAL METHODS - VIEW #####

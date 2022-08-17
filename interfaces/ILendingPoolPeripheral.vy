@@ -97,6 +97,7 @@ event FundsReceipt:
     rewardsPool: uint256
     rewardsProtocol: uint256
     erc20TokenContract: address
+    fundsOrigin: String[15]
 
 # Functions
 
