@@ -36,7 +36,7 @@ In addition, V1 is designed such that for each ERC20 token that the lenders can 
 
 As for the CV, Liquidations and Liquidity Controls domains, they are not specific to each ERC20 token and serve all the deployed ILMs.
 
-# Liquidity Controls
+## Liquidity Controls
 
 The liquidity controls contract exists as the first and simple layer of automated risk management. The table below outlines the current implemented controls.
 
@@ -51,10 +51,48 @@ The liquidity controls contract exists as the first and simple layer of automate
 | Funds withdrawals | Lenders | 7 days lock period | This represents the lock period applicable for deposits in lending pools, i.e. for each new deposit, it can’t be withdrawn before the lock period finishes. If the lender already has an ongoing lock period, a new deposit won’t extend the lock period. |
 |  | Borrowers | _NA_ | _NA_ |
 
+# Protocol Diagrams
 
+In the diagrams below, the coloured boxes (i.e. boxes that don’t have a white background) represent smart contracts.
 
-
+## Loan creation
 
 ![Loan Creation](loan_creation.jpg)
 
+## Loan validation/invalidation
 
+![Loan Validation/Invalidation](loan_validation_invalidation.jpg)
+
+## Loan payment
+
+![Loan Payment](loan_payment.jpg)
+
+## Loan default
+
+![Loan Default](loan_default.jpg)
+
+### Collateral Liquidation
+
+#### During liquidation periods
+
+The liquidation periods are periods where only certain actors can take part in the liquidation of the collateral:
+* the grace period: only for the borrower
+* the lenders period: only for the lenders
+
+![Liquidation Periods](collateral_liquidation_liquidationperiods.jpg)
+
+#### When liquidation periods end
+
+![Auto Liquidation](collateral_liquidation_autoliquidation.jpg)
+
+## LP Deposit
+
+![LP Deposit](lp_deposits.jpg)
+
+## LP Withdrawals
+
+![LP Withdrawals](lp_withdrawals.jpg)
+
+# Deployment Diagram
+
+![Deployment Flow](deployment_flow.jpg)
