@@ -26,6 +26,13 @@ Zharta V1 is divided into the following domains:
 * Liquidations
 * Liquidity Controls (LC)
 
+# General considerations
+
+Zharta will launch the V1 of the protocol with the following restrictions:
+* maturity-based loans with at most 30 days
+* one single lending pool of WETH
+* no liquidations before a loan's maturity date
+
 # Architecture
 
 ![Architecture](architecture.jpg)
@@ -51,6 +58,16 @@ The liquidity controls contract exists as the first and simple layer of automate
 | Funds withdrawals | Lenders | 7 days lock period | This represents the lock period applicable for deposits in lending pools, i.e. for each new deposit, it can’t be withdrawn before the lock period finishes. If the lender already has an ongoing lock period, a new deposit won’t extend the lock period. |
 |  | Borrowers | _NA_ | _NA_ |
 
+## Loan creation flow - a mix between on-chain and off-chain processes
+
+The loan creation flow has two steps:
+1. The loan is created on chain by the borrower
+    - the borrower should call Zharta's APIs to get the conditions for the loan given the NFTs chosen to be used as collateral
+    - Zharta's portal simplifies this for now
+2. After the loan is created, Zharta's indexer reacts to it and either validates or invalidated the loan, depending on the conditions that were set
+
+![Loan Creation Flow](loan_creation_flow.jpg)
+
 # Protocol Diagrams
 
 In the diagrams below, the coloured boxes (i.e. boxes that don’t have a white background) represent smart contracts.
@@ -69,6 +86,10 @@ In the diagrams below, the coloured boxes (i.e. boxes that don’t have a white 
 
 ## Loan default
 
+The loans can only be defaulted if and only if the borrower didn't repay the loan by the end of the maturity date.
+
+Although this may change in the future, as of the first iteration of the protocol, the loan defaults can only be triggered by Zharta.
+
 ![Loan Default](loan_default.jpg)
 
 ### Collateral Liquidation
@@ -76,8 +97,8 @@ In the diagrams below, the coloured boxes (i.e. boxes that don’t have a white 
 #### During liquidation periods
 
 The liquidation periods are periods where only certain actors can take part in the liquidation of the collateral:
-* the grace period: only for the borrower
-* the lenders period: only for the lenders
+* Grace period: only for the borrower
+* Lenders period: only for the lenders
 
 ![Liquidation Periods](collateral_liquidation_liquidationperiods.jpg)
 
@@ -85,11 +106,11 @@ The liquidation periods are periods where only certain actors can take part in t
 
 ![Auto Liquidation](collateral_liquidation_autoliquidation.jpg)
 
-## LP Deposit
+## LP deposit
 
 ![LP Deposit](lp_deposits.jpg)
 
-## LP Withdrawals
+## LP withdrawals
 
 ![LP Withdrawals](lp_withdrawals.jpg)
 
