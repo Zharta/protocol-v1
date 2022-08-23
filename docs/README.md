@@ -61,10 +61,10 @@ The liquidity controls contract exists as the first and simple layer of automate
 ## Loan creation flow - a mix between on-chain and off-chain processes
 
 The loan creation flow has two steps:
-1. The loan is created on chain by the borrower
-    - the borrower should call Zharta's APIs to get the conditions for the loan given the NFTs chosen to be used as collateral
+1. The loan is created on-chain by the borrower
+    - the borrower should call Zharta's APIs beforehand to get the conditions for the loan given the NFTs chosen to be used as collateral
     - Zharta's portal simplifies this for now
-2. After the loan is created, Zharta's indexer reacts to it and either validates or invalidated the loan, depending on the conditions that were set
+2. After the loan is created, Zharta's off-chain indexer reacts to it and either validates or invalidated the loan, depending on the conditions that were set
 
 ![Loan Creation Flow](loan_creation_flow.jpg)
 
