@@ -11,7 +11,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 20]
+    collaterals: DynArray[Collateral, 100]
     paidPrincipal: uint256
     paidInterestAmount: uint256
     started: bool
@@ -226,7 +226,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
     pass
 
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 20]) -> uint256:
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
     pass
 
 @external

@@ -11,7 +11,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 20]
+    collaterals: DynArray[Collateral, 100]
     paidPrincipal: uint256
     paidInterestAmount: uint256
     started: bool

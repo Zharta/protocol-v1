@@ -37,7 +37,7 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 20]
+    collaterals: DynArray[Collateral, 100]
     paidPrincipal: uint256
     paidInterestAmount: uint256
     started: bool
@@ -243,7 +243,7 @@ def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> 
 
 @pure
 @internal
-def _isCollateralInArray(_collaterals: DynArray[Collateral, 20], _collateralAddress: address, _tokenId: uint256) -> bool:
+def _isCollateralInArray(_collaterals: DynArray[Collateral, 100], _collateralAddress: address, _tokenId: uint256) -> bool:
     for collateral in _collaterals:
         if collateral.contractAddress == _collateralAddress and collateral.tokenId == _tokenId:
             return True
@@ -252,7 +252,7 @@ def _isCollateralInArray(_collaterals: DynArray[Collateral, 20], _collateralAddr
 
 @pure
 @internal
-def _getCollateralAmount(_collaterals: DynArray[Collateral, 20], _collateralAddress: address, _tokenId: uint256) -> uint256:
+def _getCollateralAmount(_collaterals: DynArray[Collateral, 100], _collateralAddress: address, _tokenId: uint256) -> uint256:
     for collateral in _collaterals:
         if collateral.contractAddress == _collateralAddress and collateral.tokenId == _tokenId:
             return collateral.amount
