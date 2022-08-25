@@ -659,6 +659,7 @@ def test_buy_nft_grace_period(
     assert event_liquidation_removed["borrower"] == borrower
 
     event_nft_purchased = tx.events["NFTPurchased"]
+    assert event_nft_purchased["liquidationId"] == liquidation_id
     assert event_nft_purchased["collateralAddress"] == erc721_contract
     assert event_nft_purchased["tokenId"] == 0
     assert event_nft_purchased["amount"] == grace_period_price

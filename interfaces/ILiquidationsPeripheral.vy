@@ -128,6 +128,7 @@ event NFTPurchased:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
     buyerAddressIndexed: address
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     amount: uint256

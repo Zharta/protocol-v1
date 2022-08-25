@@ -171,6 +171,7 @@ event NFTPurchased:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
     buyerAddressIndexed: indexed(address)
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     amount: uint256
@@ -604,6 +605,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.erc20TokenContract,
         _collateralAddress,
         msg.sender,
+        liquidation.lid,
         _collateralAddress,
         _tokenId,
         liquidation.gracePeriodPrice,
@@ -671,6 +673,7 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.erc20TokenContract,
         _collateralAddress,
         msg.sender,
+        liquidation.lid,
         _collateralAddress,
         _tokenId,
         liquidation.lenderPeriodPrice,
@@ -751,6 +754,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         liquidation.erc20TokenContract,
         _collateralAddress,
         self.nftxMarketplaceZapAddress,
+        liquidation.lid,
         _collateralAddress,
         _tokenId,
         autoLiquidationPrice,

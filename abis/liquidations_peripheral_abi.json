@@ -430,6 +430,11 @@
         "indexed": true
       },
       {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
+      },
+      {
         "name": "collateralAddress",
         "type": "address",
         "indexed": false
