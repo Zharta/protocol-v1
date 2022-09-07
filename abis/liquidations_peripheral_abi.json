@@ -71,7 +71,7 @@
     "type": "event"
   },
   {
-    "name": "LiquidationsPeriodDurationChanged",
+    "name": "LendersPeriodDurationChanged",
     "inputs": [
       {
         "name": "currentValue",
@@ -616,7 +616,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setLiquidationsPeriodDuration",
+    "name": "setLendersPeriodDuration",
     "inputs": [
       {
         "name": "_duration",
@@ -770,6 +770,22 @@
         "name": "_borrower",
         "type": "address"
       },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      },
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "payLoanLiquidationsGracePeriod",
+    "inputs": [
       {
         "name": "_loanId",
         "type": "uint256"
