@@ -91,7 +91,7 @@ event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 
-event LiquidationsPeriodDurationChanged:
+event LendersPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 
@@ -334,12 +334,12 @@ def setGracePeriodDuration(_duration: uint256):
 
 
 @external
-def setLiquidationsPeriodDuration(_duration: uint256):
+def setLendersPeriodDuration(_duration: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _duration > 0, "duration is 0"
     assert _duration != self.lenderPeriodDuration, "new value is the same"
 
-    log LiquidationsPeriodDurationChanged(
+    log LendersPeriodDurationChanged(
         self.lenderPeriodDuration,
         _duration
     )
@@ -564,6 +564,56 @@ def addLiquidation(
         _loanId,
         _borrower
     )
+
+
+@external
+def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: address):
+    loan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(msg.sender, _loanId)
+
+    assert loan.defaulted, "loan is not defaulted"
+
+    for collateral in loan.collaterals:
+        liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(collateral.contractAddress, collateral.tokenId)
+
+        ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(collateral.contractAddress, collateral.tokenId)
+
+        log LiquidationRemoved(
+            liquidation.erc20TokenContract,
+            liquidation.collateralAddress,
+            liquidation.lid,
+            liquidation.collateralAddress,
+            liquidation.tokenId,
+            liquidation.erc20TokenContract,
+            liquidation.loansCoreContract,
+            liquidation.loanId,
+            liquidation.borrower
+        )
+
+        ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+            liquidation.borrower,
+            liquidation.principal,
+            liquidation.gracePeriodPrice - liquidation.principal,
+            True
+        )
+
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(
+            msg.sender,
+            collateral.contractAddress,
+            collateral.tokenId
+        )
+
+        log NFTPurchased(
+            liquidation.erc20TokenContract,
+            collateral.contractAddress,
+            msg.sender,
+            liquidation.lid,
+            collateral.contractAddress,
+            collateral.tokenId,
+            liquidation.gracePeriodPrice,
+            msg.sender,
+            liquidation.erc20TokenContract,
+            "GRACE_PERIOD"
+        )
 
 
 @external
