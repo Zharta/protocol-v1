@@ -222,7 +222,7 @@ def erc20TokenSymbol() -> String[100]:
 
 @view
 @external
-def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
+def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint256) -> uint256:
     pass
 
 @external
@@ -238,7 +238,7 @@ def invalidate(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def pay(_loanId: uint256, _amount: uint256):
+def pay(_loanId: uint256):
     pass
 
 @external

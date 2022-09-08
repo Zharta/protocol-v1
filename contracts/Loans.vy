@@ -630,15 +630,18 @@ def erc20TokenSymbol() -> String[100]:
 
 @view
 @external
-def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
+def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint256) -> uint256:
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(_borrower, _loanId)
     
     if loan.paid:
         return 0
 
+    if loan.startTime > _timestamp:
+        return max_value(uint256)
+
     if loan.started:
         timePassed: uint256 = self._computePeriodPassedInSeconds(
-            block.timestamp,
+            _timestamp,
             loan.startTime,
             self.interestAccrualPeriod
         )
@@ -775,18 +778,10 @@ def invalidate(_borrower: address, _loanId: uint256):
 
 
 @external
-def pay(_loanId: uint256, _amount: uint256):
+def pay(_loanId: uint256):
     assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
     assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
     assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
-    assert _amount > 0, "_amount has to be higher than 0"
-
-    erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    assert IERC20(erc20TokenContract).balanceOf(msg.sender) >=_amount, "insufficient balance"
-    assert IERC20(erc20TokenContract).allowance(
-        msg.sender,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
-    ) >= _amount, "insufficient allowance"
 
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(msg.sender, _loanId)
 
@@ -798,7 +793,7 @@ def pay(_loanId: uint256, _amount: uint256):
     )
 
     # pro-rata computation of max amount payable based on actual loan duration in days
-    allowedPayment: uint256 = self._loanPayableAmount(
+    paymentAmount: uint256 = self._loanPayableAmount(
         loan.amount,
         loan.paidPrincipal,
         loan.interest,
@@ -806,11 +801,17 @@ def pay(_loanId: uint256, _amount: uint256):
         timePassed,
         self.interestAccrualPeriod
     )
-    assert _amount == allowedPayment, "_amount != than payable amount"
+
+    erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    assert IERC20(erc20TokenContract).balanceOf(msg.sender) >= paymentAmount, "insufficient balance"
+    assert IERC20(erc20TokenContract).allowance(
+        msg.sender,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
+    ) >= paymentAmount, "insufficient allowance"
 
     self.ongoingLoans[msg.sender] -= 1
 
-    paidInterestAmount: uint256 = _amount - loan.amount
+    paidInterestAmount: uint256 = paymentAmount - loan.amount
 
     ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, loan.amount, paidInterestAmount)
     ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)

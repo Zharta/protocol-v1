@@ -912,6 +912,10 @@
       {
         "name": "_loanId",
         "type": "uint256"
+      },
+      {
+        "name": "_timestamp",
+        "type": "uint256"
       }
     ],
     "outputs": [
@@ -1003,10 +1007,6 @@
     "inputs": [
       {
         "name": "_loanId",
-        "type": "uint256"
-      },
-      {
-        "name": "_amount",
         "type": "uint256"
       }
     ],
