@@ -700,6 +700,7 @@ def test_create_max_loans_reached(
             [(erc721_contract, k, LOAN_AMOUNT)],
             {'from': borrower}
         )
+        assert loans_core_contract.ongoingLoans(borrower) == k + 1
         time.sleep(0.2)
 
     with brownie.reverts("max loans already reached"):
