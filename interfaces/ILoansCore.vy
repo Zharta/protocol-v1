@@ -248,6 +248,11 @@ def borrowedAmount(arg0: address) -> uint256:
 
 @view
 @external
+def ongoingLoans(arg0: address) -> uint256:
+    pass
+
+@view
+@external
 def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
     pass
 
