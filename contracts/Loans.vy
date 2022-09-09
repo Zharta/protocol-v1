@@ -207,8 +207,6 @@ maxAllowedLoanDuration: public(uint256)
 maxLoanAmount: public(uint256)
 interestAccrualPeriod: public(uint256)
 
-ongoingLoans: public(HashMap[address, uint256])
-
 isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
@@ -673,7 +671,7 @@ def reserve(
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
-    assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "max loans already reached"
+    assert ILoansCore(self.loansCoreContract).ongoingLoans(msg.sender) < self.maxAllowedLoans, "max loans already reached"
     assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
     assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
         msg.sender,
@@ -685,8 +683,6 @@ def reserve(
 
     if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
         raise "msg.sender is not whitelisted"
-
-    self.ongoingLoans[msg.sender] += 1
 
     newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
         msg.sender,
@@ -752,8 +748,6 @@ def invalidate(_borrower: address, _loanId: uint256):
     assert ILoansCore(self.loansCoreContract).isLoanCreated(_borrower, _loanId), "loan not found"
     assert not ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan already validated"
     assert not ILoansCore(self.loansCoreContract).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
-
-    self.ongoingLoans[_borrower] -= 1
     
     ILoansCore(self.loansCoreContract).updateInvalidLoan(_borrower, _loanId)
 
@@ -809,8 +803,6 @@ def pay(_loanId: uint256):
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
     ) >= paymentAmount, "insufficient allowance"
 
-    self.ongoingLoans[msg.sender] -= 1
-
     paidInterestAmount: uint256 = paymentAmount - loan.amount
 
     ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, loan.amount, paidInterestAmount)
@@ -854,8 +846,6 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert block.timestamp > ILoansCore(self.loansCoreContract).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
     assert self.liquidationsPeripheralContract != empty(address), "BNPeriph is the zero address"
 
-    self.ongoingLoans[_borrower] -= 1
-
     ILoansCore(self.loansCoreContract).updateDefaultedLoan(_borrower, _loanId)
     ILoansCore(self.loansCoreContract).updateHighestDefaultedLoan(_borrower, _loanId)
 
@@ -886,8 +876,6 @@ def cancelPendingLoan(_loanId: uint256):
     assert ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _loanId), "loan not found"
     assert not ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan already validated"
     assert not ILoansCore(self.loansCoreContract).getLoanInvalidated(msg.sender, _loanId), "loan already invalidated"
-
-    self.ongoingLoans[msg.sender] -= 1
 
     ILoansCore(self.loansCoreContract).updateCanceledLoan(msg.sender, _loanId)
 

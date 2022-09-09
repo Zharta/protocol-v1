@@ -1115,23 +1115,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "ongoingLoans",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "isAcceptingLoans",
     "inputs": [],
     "outputs": [

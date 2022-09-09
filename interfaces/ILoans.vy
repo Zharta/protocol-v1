@@ -281,11 +281,6 @@ def interestAccrualPeriod() -> uint256:
 
 @view
 @external
-def ongoingLoans(arg0: address) -> uint256:
-    pass
-
-@view
-@external
 def isAcceptingLoans() -> bool:
     pass
 

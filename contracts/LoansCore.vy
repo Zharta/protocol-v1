@@ -71,6 +71,7 @@ loansPeripheral: public(address)
 
 loans: HashMap[address, DynArray[Loan, 2**16]]
 borrowedAmount: public(HashMap[address, uint256])
+ongoingLoans: public(HashMap[address, uint256])
 
 # key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
@@ -148,6 +149,7 @@ def _updateCollaterals(_collateral: Collateral, _toRemove: bool):
 def _addLoan(_borrower: address, _loan: Loan) -> bool:
     if _loan.id == len(self.loans[_borrower]):
         self.loans[_borrower].append(_loan)
+        self.ongoingLoans[_borrower] += 1
         return True
     return False
 
@@ -454,6 +456,8 @@ def updateInvalidLoan(_borrower: address, _loanId: uint256):
 
     self.loans[_borrower][_loanId].invalidated = True
 
+    self.ongoingLoans[_borrower] -= 1
+
 
 @external
 def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256):
@@ -471,6 +475,8 @@ def updatePaidLoan(_borrower: address, _loanId: uint256):
 
     self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
 
+    self.ongoingLoans[_borrower] -= 1
+
     for collateral in self.loans[_borrower][_loanId].collaterals:
         self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
 
@@ -483,6 +489,8 @@ def updateDefaultedLoan(_borrower: address, _loanId: uint256):
 
     self.borrowedAmount[_borrower] -= self.loans[_borrower][_loanId].amount
 
+    self.ongoingLoans[_borrower] -= 1
+
     for collateral in self.loans[_borrower][_loanId].collaterals:
         self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
 
@@ -492,6 +500,8 @@ def updateCanceledLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
 
     self.loans[_borrower][_loanId].canceled = True
+
+    self.ongoingLoans[_borrower] -= 1
 
 
 @external

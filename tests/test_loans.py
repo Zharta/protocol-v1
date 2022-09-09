@@ -700,7 +700,6 @@ def test_create_max_loans_reached(
             [(erc721_contract, k, LOAN_AMOUNT)],
             {'from': borrower}
         )
-        assert loans_peripheral_contract.ongoingLoans(borrower) == k + 1
         time.sleep(0.2)
 
     with brownie.reverts("max loans already reached"):
@@ -961,8 +960,6 @@ def test_create_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
-
     event = tx_create_loan.events["LoanCreated"]
     assert event["wallet"] == borrower
     assert event["loanId"] == 0
@@ -1032,8 +1029,6 @@ def test_create_loan_within_pool_share(
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
-
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
     event = tx_create_loan.events["LoanCreated"]
     assert event["wallet"] == borrower
@@ -1105,8 +1100,6 @@ def test_create_loan_within_collection_share(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
 
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
-
     event = tx_create_loan.events["LoanCreated"]
     assert event["wallet"] == borrower
     assert event["loanId"] == 0
@@ -1177,8 +1170,6 @@ def test_create_loan_wallet_whitelist_enabled(
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
-
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
     event = tx_create_loan.events["LoanCreated"]
     assert event["wallet"] == borrower
@@ -1761,8 +1752,6 @@ def test_invalidate_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
-
     assert tx_invalidate_loan.events[-1]["wallet"] == borrower
     assert tx_invalidate_loan.events[-1]["loanId"] == 0
 
@@ -2031,8 +2020,6 @@ def test_pay_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
-
     assert erc20_contract.balanceOf(borrower) == 0
 
 
@@ -2235,8 +2222,6 @@ def test_set_default_loan(
 
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
 
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
-
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
         
@@ -2310,8 +2295,6 @@ def test_cancel_pendingloan_already_started(
         {'from': borrower}
     )
 
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
-
     loan_id = tx_create_loan.return_value
 
     loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
@@ -2363,8 +2346,6 @@ def test_cancel_pendingloan_invalidated(
         test_collaterals,
         {'from': borrower}
     )
-
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
 
     loan_id = tx_create_loan.return_value
 
@@ -2418,15 +2399,11 @@ def test_cancel_pending(
         {'from': borrower}
     )
 
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 1
-
     loan_id = tx_create_loan.return_value
 
     tx_cancel_loan = loans_peripheral_contract.cancelPendingLoan(loan_id, {"from": borrower})
 
     assert loans_core_contract.getLoanCanceled(borrower, loan_id)
-
-    assert loans_peripheral_contract.ongoingLoans(borrower) == 0
 
     assert tx_cancel_loan.events[-1]["wallet"] == borrower
     assert tx_cancel_loan.events[-1]["loanId"] == loan_id
