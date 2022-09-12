@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.6
 
 
 # Interfaces
@@ -8,6 +8,7 @@ from vyper.interfaces import ERC721 as IERC721
 from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILoansCore
 from interfaces import ICollateralVaultPeripheral
+from interfaces import ILiquidityControls
 
 interface IERC20Symbol:
     def symbol() -> String[100]: view
@@ -36,8 +37,9 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    collaterals: DynArray[Collateral, 100]
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
@@ -79,13 +81,13 @@ event MaxLoanDurationChanged:
     newValue: uint256
     erc20TokenContract: address
 
-event MinLoanAmountChanged:
+event MaxLoanAmountChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
 
-event MaxLoanAmountChanged:
+event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
@@ -114,6 +116,12 @@ event CollateralVaultPeripheralAddressSet:
     erc20TokenContract: address
 
 event LiquidationsPeripheralAddressSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+
+event LiquidityControlsAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
@@ -165,7 +173,8 @@ event LoanPayment:
     walletIndexed: indexed(address)
     wallet: address
     loanId: uint256
-    amount: uint256
+    principal: uint256
+    interestAmount: uint256
     erc20TokenContract: address
 
 event LoanPaid:
@@ -195,55 +204,55 @@ proposedOwner: public(address)
 
 maxAllowedLoans: public(uint256)
 maxAllowedLoanDuration: public(uint256)
-minLoanAmount: public(uint256)
 maxLoanAmount: public(uint256)
-
-ongoingLoans: public(HashMap[address, uint256])
+interestAccrualPeriod: public(uint256)
 
 isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
 whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral address, is the collection whitelisted
 
-loansCoreAddress: public(address)
-lendingPoolPeripheralAddress: public(address)
-collateralVaultPeripheralAddress: public(address)
-liquidationsPeripheralAddress: public(address)
+loansCoreContract: public(address)
+lendingPoolPeripheralContract: public(address)
+collateralVaultPeripheralContract: public(address)
+liquidationsPeripheralContract: public(address)
+liquidityControlsContract: public(address)
 
 walletWhitelistEnabled: public(bool)
 walletsWhitelisted: public(HashMap[address, bool])
+
+collectionsAmount: HashMap[address, uint256] # aux variable
 
 
 @external
 def __init__(
     _maxAllowedLoans: uint256,
     _maxAllowedLoanDuration: uint256,
-    _minLoanAmount: uint256,
     _maxLoanAmount: uint256,
-    _loansCoreAddress: address,
-    _lendingPoolPeripheralAddress: address,
-    _collateralVaultPeripheralAddress: address
+    _interestAccrualPeriod: uint256,
+    _loansCoreContract: address,
+    _lendingPoolPeripheralContract: address,
+    _collateralVaultPeripheralContract: address
 ):
     assert _maxAllowedLoans > 0, "value for max loans is 0"
     assert _maxAllowedLoanDuration > 0, "valor for max duration is 0"
-    assert _maxLoanAmount >= _minLoanAmount, "max amount is < than min amount"
-    assert _loansCoreAddress != ZERO_ADDRESS, "address is the zero address"
-    assert _lendingPoolPeripheralAddress != ZERO_ADDRESS, "address is the zero address"
-    assert _collateralVaultPeripheralAddress != ZERO_ADDRESS, "address is the zero address"
+    assert _loansCoreContract != empty(address), "address is the zero address"
+    assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
+    assert _collateralVaultPeripheralContract != empty(address), "address is the zero address"
 
     self.owner = msg.sender
     self.maxAllowedLoans = _maxAllowedLoans
     self.maxAllowedLoanDuration = _maxAllowedLoanDuration
-    self.minLoanAmount = _minLoanAmount
     self.maxLoanAmount = _maxLoanAmount
-    self.loansCoreAddress = _loansCoreAddress
-    self.lendingPoolPeripheralAddress = _lendingPoolPeripheralAddress
-    self.collateralVaultPeripheralAddress = _collateralVaultPeripheralAddress
+    self.interestAccrualPeriod = _interestAccrualPeriod
+    self.loansCoreContract = _loansCoreContract
+    self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
+    self.collateralVaultPeripheralContract = _collateralVaultPeripheralContract
     self.isAcceptingLoans = True
 
 
 @internal
-def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 20]) -> bool:
+def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
         if not self.whitelistedCollaterals[collateral.contractAddress]:
             return False
@@ -251,7 +260,7 @@ def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 20]) -> bool:
 
 
 @internal
-def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 20]) -> bool:
+def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
         if IERC721(collateral.contractAddress).ownerOf(collateral.tokenId) != _borrower:
             return False
@@ -266,16 +275,16 @@ def _isCollateralApproved(_borrower: address, _operator: address, _contractAddre
 
 @view
 @internal
-def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collateral, 20]) -> bool:
+def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
-        if not self._isCollateralApproved(_borrower, ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), collateral.contractAddress):
+        if not self._isCollateralApproved(_borrower, ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).collateralVaultCoreAddress(), collateral.contractAddress):
             return False
     return True
 
 
 @pure
 @internal
-def _collateralsAmounts(_collaterals: DynArray[Collateral, 20]) -> uint256:
+def _collateralsAmounts(_collaterals: DynArray[Collateral, 100]) -> uint256:
     sumAmount: uint256 = 0
     for collateral in _collaterals:
         sumAmount += collateral.amount
@@ -283,22 +292,69 @@ def _collateralsAmounts(_collaterals: DynArray[Collateral, 20]) -> uint256:
     return sumAmount
 
 
-@pure
 @internal
-def _loanPayableAmount(_amount: uint256, _paidAmount: uint256, _interest: uint256, _maxLoanDuration: uint256, _timePassed: uint256) -> uint256:
-    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * _timePassed) / (10000 * _maxLoanDuration)
+def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 100]) -> bool:
+    collections: DynArray[address, 100] = empty(DynArray[address, 100])
+
+    i: uint256 = 0
+    for collateral in _collaterals:
+        if collateral.contractAddress not in collections:
+            collections.append(collateral.contractAddress)
+
+        if i == 0:
+            self.collectionsAmount[collateral.contractAddress] = collateral.amount
+            i += 1
+        else:
+            self.collectionsAmount[collateral.contractAddress] += collateral.amount
+
+    for collection in collections:
+        result: bool = ILiquidityControls(self.liquidityControlsContract).withinCollectionShareLimit(
+            self.collectionsAmount[collection],
+            collection,
+            self.loansCoreContract,
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
+        )
+        if not result:
+            return False
+    
+    return True
 
 
 @pure
 @internal
-def _computeDaysPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint256) -> uint256:
-    return (_recentTimestamp - _olderTimestamp) - ((_recentTimestamp - _olderTimestamp) % 86400)
+def _amountFromProRataInterestRate(
+    _amount: uint256,
+    _interest: uint256,
+    _maxLoanDuration: uint256,
+    _timePassed: uint256,
+    _interestAccrualPeriod: uint256
+) -> uint256:
+    return _amount * 10000 * _maxLoanDuration / (10000 * _maxLoanDuration + _interest * (_timePassed + _interestAccrualPeriod))
+
+
+@pure
+@internal
+def _loanPayableAmount(
+    _amount: uint256,
+    _paidAmount: uint256,
+    _interest: uint256,
+    _maxLoanDuration: uint256,
+    _timePassed: uint256,
+    _interestAccrualPeriod: uint256
+) -> uint256:   
+    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (_timePassed + _interestAccrualPeriod)) / (10000 * _maxLoanDuration)
+
+
+@pure
+@internal
+def _computePeriodPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint256, _period: uint256) -> uint256:
+    return (_recentTimestamp - _olderTimestamp) - ((_recentTimestamp - _olderTimestamp) % _period)
 
 
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -309,7 +365,7 @@ def proposeOwner(_address: address):
         _address,
         self.owner,
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
@@ -322,11 +378,11 @@ def claimOwnership():
         self.proposedOwner,
         self.owner,
         self.proposedOwner,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
@@ -336,10 +392,10 @@ def changeMaxAllowedLoans(_value: uint256):
     assert _value != self.maxAllowedLoans, "new max loans value is the same"
 
     log MaxLoansChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         self.maxAllowedLoans,
         _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
     self.maxAllowedLoans = _value
@@ -352,51 +408,49 @@ def changeMaxAllowedLoanDuration(_value: uint256):
     assert _value != self.maxAllowedLoanDuration, "new max duration value is the same"
 
     log MaxLoanDurationChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         self.maxAllowedLoanDuration,
         _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
     self.maxAllowedLoanDuration = _value
 
 
 @external
-def changeMinLoanAmount(_value: uint256):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _value != self.minLoanAmount, "new min loan amount is the same"
-    assert _value <= self.maxLoanAmount, "min amount is > than max amount"
-    
-    log MinLoanAmountChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
-        self.minLoanAmount,
-        _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
-    )
-
-    self.minLoanAmount = _value
-
-
-@external
 def changeMaxLoanAmount(_value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value != self.maxLoanAmount, "new max loan amount is the same"
-    assert _value >= self.minLoanAmount, "max amount is < than min amount"
 
     log MaxLoanAmountChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         self.maxLoanAmount,
         _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
     self.maxLoanAmount = _value
 
 
 @external
+def changeInterestAccrualPeriod(_value: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _value != self.interestAccrualPeriod, "_value is the same"
+
+    log InterestAccrualPeriodChanged(
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        self.interestAccrualPeriod,
+        _value,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    )
+
+    self.interestAccrualPeriod = _value
+
+
+@external
 def addCollateralToWhitelist(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
     assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
@@ -404,9 +458,9 @@ def addCollateralToWhitelist(_address: address):
     self.whitelistedCollaterals[_address] = True
 
     log CollateralToWhitelistAdded(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
@@ -418,61 +472,78 @@ def removeCollateralFromWhitelist(_address: address):
     self.whitelistedCollaterals[_address] = False
 
     log CollateralToWhitelistRemoved(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
 @external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
-    assert self.lendingPoolPeripheralAddress != _address, "new LPPeriph addr is the same"
+    assert self.lendingPoolPeripheralContract != _address, "new LPPeriph addr is the same"
 
     log LendingPoolPeripheralAddressSet(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
-        self.lendingPoolPeripheralAddress,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        self.lendingPoolPeripheralContract,
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
-    self.lendingPoolPeripheralAddress = _address
+    self.lendingPoolPeripheralContract = _address
 
 
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
-    assert self.collateralVaultPeripheralAddress != _address, "new LPCore addr is the same"
+    assert self.collateralVaultPeripheralContract != _address, "new LPCore addr is the same"
 
     log CollateralVaultPeripheralAddressSet(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
-        self.collateralVaultPeripheralAddress,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        self.collateralVaultPeripheralContract,
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
-    self.collateralVaultPeripheralAddress = _address
+    self.collateralVaultPeripheralContract = _address
 
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
-    assert self.liquidationsPeripheralAddress != _address, "new LPCore addr is the same"
+    assert self.liquidationsPeripheralContract != _address, "new LPCore addr is the same"
 
     log LiquidationsPeripheralAddressSet(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
-        self.liquidationsPeripheralAddress,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        self.liquidationsPeripheralContract,
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
-    self.liquidationsPeripheralAddress = _address
+    self.liquidationsPeripheralContract = _address
+
+
+@external
+def setLiquidityControlsAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != empty(address), "_address is the zero address"
+    assert _address.is_contract, "_address is not a contract"
+    assert _address != self.liquidityControlsContract, "new value is the same"
+
+    log LiquidityControlsAddressSet(
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        self.liquidityControlsContract,
+        _address,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    )
+
+    self.liquidityControlsContract = _address
 
 
 @external
@@ -483,41 +554,41 @@ def changeWalletsWhitelistStatus(_flag: bool):
     self.walletWhitelistEnabled = _flag
 
     log WalletsWhitelistStatusChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         _flag,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
 @external
 def addWhitelistedWallet(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
     assert not self.walletsWhitelisted[_address], "address is already whitelisted"
 
     self.walletsWhitelisted[_address] = True
 
     log WhitelistedWalletAdded(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
 @external
 def removeWhitelistedWallet(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address is the zero address"
+    assert _address != empty(address), "_address is the zero address"
     assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
     assert self.walletsWhitelisted[_address], "address is not whitelisted"
 
     self.walletsWhitelisted[_address] = False
 
     log WhitelistedWalletRemoved(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
@@ -529,9 +600,9 @@ def changeContractStatus(_flag: bool):
     self.isAcceptingLoans = _flag
 
     log ContractStatusChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
         _flag,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
@@ -544,39 +615,44 @@ def deprecate():
     self.isAcceptingLoans = False
 
     log ContractDeprecated(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract(),
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
 @view
 @external
 def erc20TokenSymbol() -> String[100]:
-    return IERC20Symbol(ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()).symbol()
+    return IERC20Symbol(ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()).symbol()
 
 
 @view
 @external
-def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
-    return ILoansCore(self.loansCoreAddress).getPendingLoan(_borrower, _loanId)
-
-
-@view
-@external
-def getLoan(_borrower: address, _loanId: uint256) -> Loan:
-    return ILoansCore(self.loansCoreAddress).getLoan(_borrower, _loanId)
-
-
-@view
-@external
-def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
-    loan: Loan = ILoansCore(self.loansCoreAddress).getLoan(_borrower, _loanId)
+def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint256) -> uint256:
+    loan: Loan = ILoansCore(self.loansCoreContract).getLoan(_borrower, _loanId)
     
+    if loan.paid:
+        return 0
+
+    if loan.startTime > _timestamp:
+        return max_value(uint256)
+
     if loan.started:
-        timePassed: uint256 = self._computeDaysPassedInSeconds(block.timestamp, loan.startTime)
-        return self._loanPayableAmount(loan.amount, loan.paidAmount, loan.interest, self.maxAllowedLoanDuration, timePassed)
+        timePassed: uint256 = self._computePeriodPassedInSeconds(
+            _timestamp,
+            loan.startTime,
+            self.interestAccrualPeriod
+        )
+        return self._loanPayableAmount(
+            loan.amount,
+            loan.paidPrincipal,
+            loan.interest,
+            self.maxAllowedLoanDuration,
+            timePassed,
+            self.interestAccrualPeriod
+        )
     
-    return MAX_UINT256
+    return max_value(uint256)
 
 
 @external
@@ -584,7 +660,7 @@ def reserve(
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
-    _collaterals: DynArray[Collateral, 20]
+    _collaterals: DynArray[Collateral, 100]
 ) -> uint256:
     assert not self.isDeprecated, "contract is deprecated"
     assert self.isAcceptingLoans, "contract is not accepting loans"
@@ -594,17 +670,21 @@ def reserve(
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
-    assert ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).maxFundsInvestable() >= _amount, "insufficient liquidity"
-    assert self.ongoingLoans[msg.sender] < self.maxAllowedLoans, "max loans already reached"
-    assert _amount >= self.minLoanAmount, "loan amount < than the min value"
+    assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
+    assert ILoansCore(self.loansCoreContract).ongoingLoans(msg.sender) < self.maxAllowedLoans, "max loans already reached"
     assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
+    assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
+        msg.sender,
+        _amount,
+        self.loansCoreContract,
+        self.lendingPoolPeripheralContract
+    ), "max loans pool share surpassed"
+    assert self._withinCollectionShareLimit(_collaterals), "max collection share surpassed"
 
     if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
         raise "msg.sender is not whitelisted"
 
-    self.ongoingLoans[msg.sender] += 1
-
-    newLoanId: uint256 = ILoansCore(self.loansCoreAddress).addLoan(
+    newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
         msg.sender,
         _amount,
         _interest,
@@ -613,21 +693,21 @@ def reserve(
     )
 
     for collateral in _collaterals:
-        ILoansCore(self.loansCoreAddress).addCollateralToLoan(msg.sender, collateral, newLoanId)
-        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, False)
+        ILoansCore(self.loansCoreContract).addCollateralToLoan(msg.sender, collateral, newLoanId)
+        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, False)
 
-        ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).storeCollateral(
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).storeCollateral(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
         )
 
     log LoanCreated(
         msg.sender,
         msg.sender,
         newLoanId,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
     return newLoanId
@@ -638,187 +718,182 @@ def validate(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert not self.isDeprecated, "contract is deprecated"
     assert self.isAcceptingLoans, "contract is not accepting loans"
-    assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "loan not found"
-    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan already validated"
-    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
-    assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "maturity is in the past"
-    assert self._areCollateralsWhitelisted(ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)), "not all NFTs are accepted"
-    assert ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).maxFundsInvestable() >= ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId), "insufficient liquidity"
+    assert ILoansCore(self.loansCoreContract).isLoanCreated(_borrower, _loanId), "loan not found"
+    assert not ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan already validated"
+    assert not ILoansCore(self.loansCoreContract).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
+    assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(_borrower, _loanId), "maturity is in the past"
+    assert self._areCollateralsWhitelisted(ILoansCore(self.loansCoreContract).getLoanCollaterals(_borrower, _loanId)), "not all NFTs are accepted"
+    assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= ILoansCore(self.loansCoreContract).getLoanAmount(_borrower, _loanId), "insufficient liquidity"
 
-    ILoansCore(self.loansCoreAddress).updateLoanStarted(_borrower, _loanId)
-    ILoansCore(self.loansCoreAddress).updateHighestSingleCollateralLoan(_borrower, _loanId)
-    ILoansCore(self.loansCoreAddress).updateHighestCollateralBundleLoan(_borrower, _loanId)
+    ILoansCore(self.loansCoreContract).updateLoanStarted(_borrower, _loanId)
+    ILoansCore(self.loansCoreContract).updateHighestSingleCollateralLoan(_borrower, _loanId)
+    ILoansCore(self.loansCoreContract).updateHighestCollateralBundleLoan(_borrower, _loanId)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).sendFunds(_borrower, ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId))
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFunds(
+        _borrower,
+        ILoansCore(self.loansCoreContract).getLoanAmount(_borrower, _loanId)
+    )
 
     log LoanValidated(
         _borrower,
         _borrower,
         _loanId,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
 @external
 def invalidate(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert ILoansCore(self.loansCoreAddress).isLoanCreated(_borrower, _loanId), "loan not found"
-    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan already validated"
-    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
-
-    self.ongoingLoans[_borrower] -= 1
+    assert ILoansCore(self.loansCoreContract).isLoanCreated(_borrower, _loanId), "loan not found"
+    assert not ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan already validated"
+    assert not ILoansCore(self.loansCoreContract).getLoanInvalidated(_borrower, _loanId), "loan already invalidated"
     
-    ILoansCore(self.loansCoreAddress).updateInvalidLoan(_borrower, _loanId)
+    ILoansCore(self.loansCoreContract).updateInvalidLoan(_borrower, _loanId)
 
-    collaterals: DynArray[Collateral, 20] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreContract).getLoanCollaterals(_borrower, _loanId)
     for collateral in collaterals:
-        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
-        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+        ILoansCore(self.loansCoreContract).removeCollateralFromLoan(_borrower, collateral, _loanId)
+        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
-        ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).transferCollateralFromLoan(
             _borrower,
             collateral.contractAddress,
             collateral.tokenId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
         )
 
     log LoanInvalidated(
         _borrower,
         _borrower,
         _loanId,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
 @external
-def pay(_loanId: uint256, _amount: uint256):
-    assert ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "loan not found"
-    assert block.timestamp <= ILoansCore(self.loansCoreAddress).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
-    assert not ILoansCore(self.loansCoreAddress).getLoanPaid(msg.sender, _loanId), "loan already paid"
-    assert _amount > 0, "_amount has to be higher than 0"
-    assert IERC20(ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()).balanceOf(msg.sender) >=_amount, "insufficient balance"
-    assert IERC20(ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()).allowance(msg.sender, ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).lendingPoolCoreContract()) >= _amount, "insufficient allowance"
+def pay(_loanId: uint256):
+    assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
+    assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
+    assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
 
-    loanAmount: uint256 = ILoansCore(self.loansCoreAddress).getLoanAmount(msg.sender, _loanId)
-    loanInterest: uint256 = ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId)
+    loan: Loan = ILoansCore(self.loansCoreContract).getLoan(msg.sender, _loanId)
 
     # compute days passed in seconds
-    timeDiff: uint256 = self._computeDaysPassedInSeconds(block.timestamp, ILoansCore(self.loansCoreAddress).getLoanStartTime(msg.sender, _loanId))
+    timePassed: uint256 = self._computePeriodPassedInSeconds(
+        block.timestamp,
+        ILoansCore(self.loansCoreContract).getLoanStartTime(msg.sender, _loanId),
+        self.interestAccrualPeriod
+    )
 
     # pro-rata computation of max amount payable based on actual loan duration in days
-    maxPayment: uint256 = loanAmount * (10000 * self.maxAllowedLoanDuration + loanInterest * timeDiff) / (10000 * self.maxAllowedLoanDuration)
-    
-    allowedPayment: uint256 = maxPayment - ILoansCore(self.loansCoreAddress).getLoanPaidAmount(msg.sender, _loanId)
-    assert _amount <= allowedPayment, "_amount is more than needed"
+    paymentAmount: uint256 = self._loanPayableAmount(
+        loan.amount,
+        loan.paidPrincipal,
+        loan.interest,
+        self.maxAllowedLoanDuration,
+        timePassed,
+        self.interestAccrualPeriod
+    )
 
-    paidAmount: uint256 = _amount * 10000 / (10000 + ILoansCore(self.loansCoreAddress).getLoanInterest(msg.sender, _loanId))
-    paidAmountInterest: uint256 = _amount - paidAmount
+    erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    assert IERC20(erc20TokenContract).balanceOf(msg.sender) >= paymentAmount, "insufficient balance"
+    assert IERC20(erc20TokenContract).allowance(
+        msg.sender,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
+    ) >= paymentAmount, "insufficient allowance"
 
-    if _amount == allowedPayment:
-        self.ongoingLoans[msg.sender] -= 1
+    paidInterestAmount: uint256 = paymentAmount - loan.amount
 
-        ILoansCore(self.loansCoreAddress).updatePaidLoan(msg.sender, _loanId)
+    ILoansCore(self.loansCoreContract).updateLoanPaidAmount(msg.sender, _loanId, loan.amount, paidInterestAmount)
+    ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
+    ILoansCore(self.loansCoreContract).updateHighestRepayment(msg.sender, _loanId)
 
-    ILoansCore(self.loansCoreAddress).updateLoanPaidAmount(msg.sender, _loanId, paidAmount + paidAmountInterest)
-    ILoansCore(self.loansCoreAddress).updateHighestRepayment(msg.sender, _loanId)
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).receiveFunds(msg.sender, paidAmount, paidAmountInterest)
+    for collateral in loan.collaterals:
+        ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
+        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
-    if _amount == allowedPayment:
-        collaterals: DynArray[Collateral, 20] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
-        for collateral in collaterals:
-            ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
-            ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
-
-            ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
-                msg.sender,
-                collateral.contractAddress,
-                collateral.tokenId,
-                ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
-            )
-
-        log LoanPaid(
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).transferCollateralFromLoan(
             msg.sender,
-            msg.sender,
-            _loanId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+            collateral.contractAddress,
+            collateral.tokenId,
+            erc20TokenContract
         )
 
     log LoanPayment(
         msg.sender,
         msg.sender,
         _loanId,
-        _amount,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        loan.amount,
+        paidInterestAmount,
+        erc20TokenContract
+    )
+    
+    log LoanPaid(
+        msg.sender,
+        msg.sender,
+        _loanId,
+        erc20TokenContract
     )
 
 
 @external
 def settleDefault(_borrower: address, _loanId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert ILoansCore(self.loansCoreAddress).isLoanStarted(_borrower, _loanId), "loan not found"
-    assert block.timestamp > ILoansCore(self.loansCoreAddress).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
-    assert self.liquidationsPeripheralAddress != ZERO_ADDRESS, "BNPeriph is the zero address"
+    assert ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan not found"
+    assert block.timestamp > ILoansCore(self.loansCoreContract).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
+    assert self.liquidationsPeripheralContract != empty(address), "BNPeriph is the zero address"
 
-    self.ongoingLoans[_borrower] -= 1
+    ILoansCore(self.loansCoreContract).updateDefaultedLoan(_borrower, _loanId)
+    ILoansCore(self.loansCoreContract).updateHighestDefaultedLoan(_borrower, _loanId)
 
-    ILoansCore(self.loansCoreAddress).updateDefaultedLoan(_borrower, _loanId)
-    ILoansCore(self.loansCoreAddress).updateHighestDefaultedLoan(_borrower, _loanId)
-
-    collaterals: DynArray[Collateral, 20] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(_borrower, _loanId)
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreContract).getLoanCollaterals(_borrower, _loanId)
     for collateral in collaterals:
-        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(_borrower, collateral, _loanId)
-        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+        ILoansCore(self.loansCoreContract).removeCollateralFromLoan(_borrower, collateral, _loanId)
+        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
-        # TODO: integrate Liquidations liquidation process       
-        # ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
-        #     self.owner,
-        #     collateral.contractAddress,
-        #     collateral.tokenId,
-        #     ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
-        # )
-        ILiquidationsPeripheral(self.liquidationsPeripheralAddress).addLiquidation(
+        ILiquidationsPeripheral(self.liquidationsPeripheralContract).addLiquidation(
             collateral.contractAddress,
             collateral.tokenId,
             _borrower,
             _loanId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
         )
 
     log LoanDefaulted(
         _borrower,
         _borrower,
         _loanId,
-        ILoansCore(self.loansCoreAddress).getLoanAmount(_borrower, _loanId),
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILoansCore(self.loansCoreContract).getLoanAmount(_borrower, _loanId),
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
 
 @external
 def cancelPendingLoan(_loanId: uint256):
-    assert ILoansCore(self.loansCoreAddress).isLoanCreated(msg.sender, _loanId), "loan not found"
-    assert not ILoansCore(self.loansCoreAddress).isLoanStarted(msg.sender, _loanId), "loan already validated"
-    assert not ILoansCore(self.loansCoreAddress).getLoanInvalidated(msg.sender, _loanId), "loan already invalidated"
+    assert ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _loanId), "loan not found"
+    assert not ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan already validated"
+    assert not ILoansCore(self.loansCoreContract).getLoanInvalidated(msg.sender, _loanId), "loan already invalidated"
 
-    self.ongoingLoans[msg.sender] -= 1
+    ILoansCore(self.loansCoreContract).updateCanceledLoan(msg.sender, _loanId)
 
-    ILoansCore(self.loansCoreAddress).updateCanceledLoan(msg.sender, _loanId)
-
-    collaterals: DynArray[Collateral, 20] = ILoansCore(self.loansCoreAddress).getLoanCollaterals(msg.sender, _loanId)
+    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreContract).getLoanCollaterals(msg.sender, _loanId)
     for collateral in collaterals:
-        ILoansCore(self.loansCoreAddress).removeCollateralFromLoan(msg.sender, collateral, _loanId)
-        ILoansCore(self.loansCoreAddress).updateCollaterals(collateral, True)
+        ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
+        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
-        ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLoan(
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).transferCollateralFromLoan(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
         )
 
     log PendingLoanCanceled(
         msg.sender,
         msg.sender,
         _loanId,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddress).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )

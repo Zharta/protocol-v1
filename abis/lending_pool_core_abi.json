@@ -120,6 +120,120 @@
     ]
   },
   {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "fundsInPool",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "currentAmountDeposited",
+    "inputs": [
+      {
+        "name": "_lender",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "totalAmountDeposited",
+    "inputs": [
+      {
+        "name": "_lender",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "totalAmountWithdrawn",
+    "inputs": [
+      {
+        "name": "_lender",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "sharesBasisPoints",
+    "inputs": [
+      {
+        "name": "_lender",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "lockPeriodEnd",
+    "inputs": [
+      {
+        "name": "_lender",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "activeForRewards",
+    "inputs": [
+      {
+        "name": "_lender",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
+  {
     "stateMutability": "nonpayable",
     "type": "constructor",
     "inputs": [
@@ -172,6 +286,10 @@
       },
       {
         "name": "_amount",
+        "type": "uint256"
+      },
+      {
+        "name": "_lockPeriodEnd",
         "type": "uint256"
       }
     ],
@@ -354,27 +472,14 @@
             "type": "uint256"
           },
           {
+            "name": "lockPeriodEnd",
+            "type": "uint256"
+          },
+          {
             "name": "activeForRewards",
             "type": "bool"
           }
         ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "lenders",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
       }
     ]
   },

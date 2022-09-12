@@ -6,13 +6,15 @@ struct Liquidation:
     tokenId: uint256
     startTime: uint256
     gracePeriodMaturity: uint256
-    buyNowPeriodMaturity: uint256
+    lenderPeriodMaturity: uint256
     principal: uint256
     interestAmount: uint256
     apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     gracePeriodPrice: uint256
-    buyNowPeriodPrice: uint256
+    lenderPeriodPrice: uint256
     borrower: address
+    loanId: uint256
+    loansCoreContract: address
     erc20TokenContract: address
     inAuction: bool
 
@@ -60,7 +62,7 @@ def getLiquidationGracePeriodMaturity(_collateralAddress: address, _tokenId: uin
 
 @view
 @external
-def getLiquidationBuyNowPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+def getLiquidationLenderPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
     pass
 
 @view
@@ -114,7 +116,7 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
     pass
 
 @external
-def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _buyNowPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _buyNowPeriodPrice: uint256, _borrower: address, _erc20TokenContract: address) -> bytes32:
+def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _lenderPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _lenderPeriodPrice: uint256, _borrower: address, _loanId: uint256, _loansCoreContract: address, _erc20TokenContract: address) -> bytes32:
     pass
 
 @external

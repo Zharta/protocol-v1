@@ -5,6 +5,7 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
     activeForRewards: bool
 
 # Events
@@ -39,6 +40,41 @@ def lendersArray() -> DynArray[address, 1125899906842624]:
 def computeWithdrawableAmount(_lender: address) -> uint256:
     pass
 
+@view
+@external
+def fundsInPool() -> uint256:
+    pass
+
+@view
+@external
+def currentAmountDeposited(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def totalAmountDeposited(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def totalAmountWithdrawn(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def sharesBasisPoints(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def lockPeriodEnd(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def activeForRewards(_lender: address) -> bool:
+    pass
+
 @external
 def proposeOwner(_address: address):
     pass
@@ -52,7 +88,7 @@ def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
-def deposit(_lender: address, _amount: uint256) -> bool:
+def deposit(_lender: address, _amount: uint256, _lockPeriodEnd: uint256) -> bool:
     pass
 
 @external
@@ -94,11 +130,6 @@ def erc20TokenContract() -> address:
 @view
 @external
 def funds(arg0: address) -> InvestorFunds:
-    pass
-
-@view
-@external
-def lenders(arg0: uint256) -> address:
     pass
 
 @view

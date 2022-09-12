@@ -71,7 +71,7 @@
     "type": "event"
   },
   {
-    "name": "LiquidationsPeriodDurationChanged",
+    "name": "LendersPeriodDurationChanged",
     "inputs": [
       {
         "name": "currentValue",
@@ -326,8 +326,33 @@
         "indexed": false
       },
       {
-        "name": "buyNowPeriodPrice",
+        "name": "lenderPeriodPrice",
         "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "gracePeriodMaturity",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "lenderPeriodMaturity",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "loansCoreContract",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "borrower",
+        "type": "address",
         "indexed": false
       }
     ],
@@ -366,6 +391,21 @@
         "name": "erc20TokenContract",
         "type": "address",
         "indexed": false
+      },
+      {
+        "name": "loansCoreContract",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": false
       }
     ],
     "anonymous": false,
@@ -385,9 +425,14 @@
         "indexed": true
       },
       {
-        "name": "fromIndexed",
+        "name": "buyerAddressIndexed",
         "type": "address",
         "indexed": true
+      },
+      {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
       },
       {
         "name": "collateralAddress",
@@ -405,13 +450,18 @@
         "indexed": false
       },
       {
-        "name": "_from",
+        "name": "buyerAddress",
         "type": "address",
         "indexed": false
       },
       {
         "name": "erc20TokenContract",
         "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "method",
+        "type": "string",
         "indexed": false
       }
     ],
@@ -458,7 +508,7 @@
             "type": "uint256"
           },
           {
-            "name": "buyNowPeriodMaturity",
+            "name": "lenderPeriodMaturity",
             "type": "uint256"
           },
           {
@@ -478,11 +528,19 @@
             "type": "uint256"
           },
           {
-            "name": "buyNowPeriodPrice",
+            "name": "lenderPeriodPrice",
             "type": "uint256"
           },
           {
             "name": "borrower",
+            "type": "address"
+          },
+          {
+            "name": "loanId",
+            "type": "uint256"
+          },
+          {
+            "name": "loansCoreContract",
             "type": "address"
           },
           {
@@ -510,7 +568,7 @@
         "type": "uint256"
       },
       {
-        "name": "_buyNowPeriodDuration",
+        "name": "_lenderPeriodDuration",
         "type": "uint256"
       },
       {
@@ -558,7 +616,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setLiquidationsPeriodDuration",
+    "name": "setLendersPeriodDuration",
     "inputs": [
       {
         "name": "_duration",
@@ -726,6 +784,22 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
+    "name": "payLoanLiquidationsGracePeriod",
+    "inputs": [
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      },
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
     "name": "buyNFTGracePeriod",
     "inputs": [
       {
@@ -742,7 +816,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "buyNFTBuyNowPeriod",
+    "name": "buyNFTLenderPeriod",
     "inputs": [
       {
         "name": "_collateralAddress",
@@ -769,13 +843,6 @@
         "type": "uint256"
       }
     ],
-    "outputs": []
-  },
-  {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "liquidateOpenSea",
-    "inputs": [],
     "outputs": []
   },
   {
@@ -817,7 +884,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "buyNowPeriodDuration",
+    "name": "lenderPeriodDuration",
     "inputs": [],
     "outputs": [
       {

@@ -11,8 +11,9 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    collaterals: DynArray[Collateral, 100]
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
@@ -48,12 +49,12 @@ event MaxLoanDurationChanged:
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
-event MinLoanAmountChanged:
+event MaxLoanAmountChanged:
     erc20TokenContractIndexed: address
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
-event MaxLoanAmountChanged:
+event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: address
     currentValue: uint256
     newValue: uint256
@@ -77,6 +78,11 @@ event CollateralVaultPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 event LiquidationsPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event LiquidityControlsAddressSet:
     erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
@@ -119,7 +125,8 @@ event LoanPayment:
     walletIndexed: address
     wallet: address
     loanId: uint256
-    amount: uint256
+    principal: uint256
+    interestAmount: uint256
     erc20TokenContract: address
 event LoanPaid:
     walletIndexed: address
@@ -157,11 +164,11 @@ def changeMaxAllowedLoanDuration(_value: uint256):
     pass
 
 @external
-def changeMinLoanAmount(_value: uint256):
+def changeMaxLoanAmount(_value: uint256):
     pass
 
 @external
-def changeMaxLoanAmount(_value: uint256):
+def changeInterestAccrualPeriod(_value: uint256):
     pass
 
 @external
@@ -182,6 +189,10 @@ def setCollateralVaultPeripheralAddress(_address: address):
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
+    pass
+
+@external
+def setLiquidityControlsAddress(_address: address):
     pass
 
 @external
@@ -211,21 +222,11 @@ def erc20TokenSymbol() -> String[100]:
 
 @view
 @external
-def getPendingLoan(_borrower: address, _loanId: uint256) -> Loan:
-    pass
-
-@view
-@external
-def getLoan(_borrower: address, _loanId: uint256) -> Loan:
-    pass
-
-@view
-@external
-def getLoanPayableAmount(_borrower: address, _loanId: uint256) -> uint256:
+def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint256) -> uint256:
     pass
 
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 20]) -> uint256:
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
     pass
 
 @external
@@ -237,7 +238,7 @@ def invalidate(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def pay(_loanId: uint256, _amount: uint256):
+def pay(_loanId: uint256):
     pass
 
 @external
@@ -270,17 +271,12 @@ def maxAllowedLoanDuration() -> uint256:
 
 @view
 @external
-def minLoanAmount() -> uint256:
-    pass
-
-@view
-@external
 def maxLoanAmount() -> uint256:
     pass
 
 @view
 @external
-def ongoingLoans(arg0: address) -> uint256:
+def interestAccrualPeriod() -> uint256:
     pass
 
 @view
@@ -300,22 +296,27 @@ def whitelistedCollaterals(arg0: address) -> bool:
 
 @view
 @external
-def loansCoreAddress() -> address:
+def loansCoreContract() -> address:
     pass
 
 @view
 @external
-def lendingPoolPeripheralAddress() -> address:
+def lendingPoolPeripheralContract() -> address:
     pass
 
 @view
 @external
-def collateralVaultPeripheralAddress() -> address:
+def collateralVaultPeripheralContract() -> address:
     pass
 
 @view
 @external
-def liquidationsPeripheralAddress() -> address:
+def liquidationsPeripheralContract() -> address:
+    pass
+
+@view
+@external
+def liquidityControlsContract() -> address:
     pass
 
 @view

@@ -145,7 +145,7 @@
     "type": "event"
   },
   {
-    "name": "MinLoanAmountChanged",
+    "name": "MaxLoanAmountChanged",
     "inputs": [
       {
         "name": "erc20TokenContractIndexed",
@@ -172,7 +172,7 @@
     "type": "event"
   },
   {
-    "name": "MaxLoanAmountChanged",
+    "name": "InterestAccrualPeriodChanged",
     "inputs": [
       {
         "name": "erc20TokenContractIndexed",
@@ -298,6 +298,33 @@
   },
   {
     "name": "LiquidationsPeripheralAddressSet",
+    "inputs": [
+      {
+        "name": "erc20TokenContractIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "currentValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "newValue",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "erc20TokenContract",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
+    "name": "LiquidityControlsAddressSet",
     "inputs": [
       {
         "name": "erc20TokenContractIndexed",
@@ -528,7 +555,12 @@
         "indexed": false
       },
       {
-        "name": "amount",
+        "name": "principal",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "interestAmount",
         "type": "uint256",
         "indexed": false
       },
@@ -640,23 +672,23 @@
         "type": "uint256"
       },
       {
-        "name": "_minLoanAmount",
-        "type": "uint256"
-      },
-      {
         "name": "_maxLoanAmount",
         "type": "uint256"
       },
       {
-        "name": "_loansCoreAddress",
+        "name": "_interestAccrualPeriod",
+        "type": "uint256"
+      },
+      {
+        "name": "_loansCoreContract",
         "type": "address"
       },
       {
-        "name": "_lendingPoolPeripheralAddress",
+        "name": "_lendingPoolPeripheralContract",
         "type": "address"
       },
       {
-        "name": "_collateralVaultPeripheralAddress",
+        "name": "_collateralVaultPeripheralContract",
         "type": "address"
       }
     ],
@@ -708,7 +740,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "changeMinLoanAmount",
+    "name": "changeMaxLoanAmount",
     "inputs": [
       {
         "name": "_value",
@@ -720,7 +752,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "changeMaxLoanAmount",
+    "name": "changeInterestAccrualPeriod",
     "inputs": [
       {
         "name": "_value",
@@ -781,6 +813,18 @@
     "stateMutability": "nonpayable",
     "type": "function",
     "name": "setLiquidationsPeripheralAddress",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "setLiquidityControlsAddress",
     "inputs": [
       {
         "name": "_address",
@@ -859,148 +903,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getPendingLoan",
-    "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      },
-      {
-        "name": "_loanId",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "name": "interest",
-            "type": "uint256"
-          },
-          {
-            "name": "maturity",
-            "type": "uint256"
-          },
-          {
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
-          },
-          {
-            "name": "paidAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "started",
-            "type": "bool"
-          },
-          {
-            "name": "invalidated",
-            "type": "bool"
-          },
-          {
-            "name": "paid",
-            "type": "bool"
-          },
-          {
-            "name": "defaulted",
-            "type": "bool"
-          },
-          {
-            "name": "canceled",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
-    "name": "getLoan",
-    "inputs": [
-      {
-        "name": "_borrower",
-        "type": "address"
-      },
-      {
-        "name": "_loanId",
-        "type": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "components": [
-          {
-            "name": "id",
-            "type": "uint256"
-          },
-          {
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "name": "interest",
-            "type": "uint256"
-          },
-          {
-            "name": "maturity",
-            "type": "uint256"
-          },
-          {
-            "name": "startTime",
-            "type": "uint256"
-          },
-          {
-            "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
-          },
-          {
-            "name": "paidAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "started",
-            "type": "bool"
-          },
-          {
-            "name": "invalidated",
-            "type": "bool"
-          },
-          {
-            "name": "paid",
-            "type": "bool"
-          },
-          {
-            "name": "defaulted",
-            "type": "bool"
-          },
-          {
-            "name": "canceled",
-            "type": "bool"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "getLoanPayableAmount",
     "inputs": [
       {
@@ -1009,6 +911,10 @@
       },
       {
         "name": "_loanId",
+        "type": "uint256"
+      },
+      {
+        "name": "_timestamp",
         "type": "uint256"
       }
     ],
@@ -1038,7 +944,21 @@
       },
       {
         "name": "_collaterals",
-        "type": "(address,uint256,uint256)[]"
+        "type": "tuple[]",
+        "components": [
+          {
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          }
+        ]
       }
     ],
     "outputs": [
@@ -1087,10 +1007,6 @@
     "inputs": [
       {
         "name": "_loanId",
-        "type": "uint256"
-      },
-      {
-        "name": "_amount",
         "type": "uint256"
       }
     ],
@@ -1175,18 +1091,6 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "minLoanAmount",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ]
-  },
-  {
-    "stateMutability": "view",
-    "type": "function",
     "name": "maxLoanAmount",
     "inputs": [],
     "outputs": [
@@ -1199,13 +1103,8 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "ongoingLoans",
-    "inputs": [
-      {
-        "name": "arg0",
-        "type": "address"
-      }
-    ],
+    "name": "interestAccrualPeriod",
+    "inputs": [],
     "outputs": [
       {
         "name": "",
@@ -1257,7 +1156,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "loansCoreAddress",
+    "name": "loansCoreContract",
     "inputs": [],
     "outputs": [
       {
@@ -1269,7 +1168,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "lendingPoolPeripheralAddress",
+    "name": "lendingPoolPeripheralContract",
     "inputs": [],
     "outputs": [
       {
@@ -1281,7 +1180,7 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "collateralVaultPeripheralAddress",
+    "name": "collateralVaultPeripheralContract",
     "inputs": [],
     "outputs": [
       {
@@ -1293,7 +1192,19 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "liquidationsPeripheralAddress",
+    "name": "liquidationsPeripheralContract",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "liquidityControlsContract",
     "inputs": [],
     "outputs": [
       {

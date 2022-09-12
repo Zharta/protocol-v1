@@ -10,15 +10,20 @@ MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
-MIN_LOAN_AMOUNT = Web3.toWei(0.05, "ether")
 MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
+INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 GRACE_PERIOD_DURATION = 5 # 2 days
-BUY_NOW_PERIOD_DURATION = 5 # 15 days
+LENDER_PERIOD_DURATION = 5 # 15 days
 AUCTION_DURATION = 5 # 15 days
+
+MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+MAX_COLLECTION_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
 contract_owner = conftest_base.contract_owner
@@ -80,8 +85,8 @@ def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_periphera
     yield Loans.deploy(
         MAX_NUMBER_OF_LOANS,
         MAX_LOAN_DURATION,
-        MIN_LOAN_AMOUNT,
         MAX_LOAN_AMOUNT,
+        INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
         lending_pool_peripheral_contract,
         collateral_vault_peripheral_contract,
@@ -94,8 +99,8 @@ def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contr
     yield Loans.deploy(
         1,
         1,
-        0,
         1,
+        INTEREST_ACCRUAL_PERIOD,
         accounts[4],
         lending_pool_peripheral_contract,
         accounts[5],
@@ -113,9 +118,24 @@ def liquidations_peripheral_contract(LiquidationsPeripheral, liquidations_core_c
     yield LiquidationsPeripheral.deploy(
         liquidations_core_contract,
         GRACE_PERIOD_DURATION,
-        BUY_NOW_PERIOD_DURATION,
+        LENDER_PERIOD_DURATION,
         AUCTION_DURATION,
         erc20_contract,
+        {"from": contract_owner}
+    )
+
+
+@pytest.fixture(scope="module", autouse=True)
+def liquidity_controls_contract(LiquidityControls, contract_owner):
+    yield LiquidityControls.deploy(
+        False,
+        MAX_POOL_SHARE,
+        False,
+        LOCK_PERIOD_DURATION,
+        False,
+        MAX_LOANS_POOL_SHARE,
+        False,
+        MAX_COLLECTION_SHARE,
         {"from": contract_owner}
     )
 

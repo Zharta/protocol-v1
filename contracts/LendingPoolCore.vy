@@ -1,4 +1,4 @@
-# @version ^0.3.3
+# @version ^0.3.6
 
 
 # Interfaces
@@ -13,6 +13,7 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
     activeForRewards: bool
 
 
@@ -48,10 +49,9 @@ lendingPoolPeripheral: public(address)
 erc20TokenContract: public(address)
 
 funds: public(HashMap[address, InvestorFunds])
-lenders: public(DynArray[address, 2**50])
+lenders: DynArray[address, 2**50]
 knownLenders: public(HashMap[address, bool])
 activeLenders: public(uint256)
-
 
 fundsAvailable: public(uint256)
 fundsInvested: public(uint256)
@@ -82,7 +82,14 @@ def _computeShares(_amount: uint256) -> uint256:
 def _computeWithdrawableAmount(_lender: address) -> uint256:
     if self.totalSharesBasisPoints == 0:
         return 0
-    return (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
+
+    withdrawable: uint256 = (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
+
+    # due to rounding errors
+    if self.funds[_lender].currentAmountDeposited > withdrawable:
+        return self.funds[_lender].currentAmountDeposited
+
+    return withdrawable
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -99,13 +106,55 @@ def computeWithdrawableAmount(_lender: address) -> uint256:
     return self._computeWithdrawableAmount(_lender)
 
 
+@view
+@external
+def fundsInPool() -> uint256:
+    return self.fundsAvailable + self.fundsInvested
+
+
+@view
+@external
+def currentAmountDeposited(_lender: address) -> uint256:
+    return self.funds[_lender].currentAmountDeposited
+
+
+@view
+@external
+def totalAmountDeposited(_lender: address) -> uint256:
+    return self.funds[_lender].totalAmountDeposited
+
+
+@view
+@external
+def totalAmountWithdrawn(_lender: address) -> uint256:
+    return self.funds[_lender].totalAmountWithdrawn
+
+
+@view
+@external
+def sharesBasisPoints(_lender: address) -> uint256:
+    return self.funds[_lender].sharesBasisPoints
+
+
+@view
+@external
+def lockPeriodEnd(_lender: address) -> uint256:
+    return self.funds[_lender].lockPeriodEnd
+
+
+@view
+@external
+def activeForRewards(_lender: address) -> bool:
+    return self.funds[_lender].activeForRewards
+
+
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
 def __init__(
     _erc20TokenContract: address
 ):
-    assert _erc20TokenContract != ZERO_ADDRESS, "The address is the zero address"
+    assert _erc20TokenContract != empty(address), "The address is the zero address"
 
     self.owner = msg.sender
     self.erc20TokenContract = _erc20TokenContract
@@ -114,7 +163,7 @@ def __init__(
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "_address it the zero address"
+    assert _address != empty(address), "_address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -142,13 +191,13 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero address"
+    assert _address != empty(address), "address is the zero address"
     assert _address != self.lendingPoolPeripheral, "new value is the same"
 
     log LendingPoolPeripheralAddressSet(
@@ -162,12 +211,11 @@ def setLendingPoolPeripheralAddress(_address: address):
 
 
 @external
-def deposit(_lender: address, _amount: uint256) -> bool:
+def deposit(_lender: address, _amount: uint256, _lockPeriodEnd: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _lender != ZERO_ADDRESS, "The _address is the zero address"
-    assert _amount > 0, "_amount has to be higher than 0"
+    assert _lender != empty(address), "The _address is the zero address"
     assert self._fundsAreAllowed(_lender, self, _amount), "Not enough funds allowed"
 
     sharesAmount: uint256 = self._computeShares(_amount)
@@ -190,12 +238,15 @@ def deposit(_lender: address, _amount: uint256) -> bool:
                 totalAmountDeposited: _amount,
                 totalAmountWithdrawn: 0,
                 sharesBasisPoints: sharesAmount,
+                lockPeriodEnd: _lockPeriodEnd,
                 activeForRewards: True
             }
         )
         self.lenders.append(_lender)
         self.knownLenders[_lender] = True
         self.activeLenders += 1
+    
+    self.funds[_lender].lockPeriodEnd = _lockPeriodEnd
 
     self.fundsAvailable += _amount
     self.totalSharesBasisPoints += sharesAmount
@@ -208,8 +259,7 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _amount > 0, "_amount has to be higher than 0"
-    assert _lender != ZERO_ADDRESS, "The _lender is the zero address"
+    assert _lender != empty(address), "The _lender is the zero address"
     assert self._computeWithdrawableAmount(_lender) >= _amount, "_amount more than withdrawable"
     assert self.fundsAvailable >= _amount, "Available funds less than amount"
 
@@ -223,12 +273,14 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
             totalAmountDeposited: self.funds[_lender].totalAmountDeposited,
             totalAmountWithdrawn: self.funds[_lender].totalAmountWithdrawn + _amount,
             sharesBasisPoints: newLenderSharesAmount,
+            lockPeriodEnd: self.funds[_lender].lockPeriodEnd,
             activeForRewards: True
         }
     )
 
     if self.funds[_lender].currentAmountDeposited == 0:
         self.funds[_lender].activeForRewards = False
+        self.funds[_lender].lockPeriodEnd = 0
         self.activeLenders -= 1
 
     self.fundsAvailable -= _amount
@@ -241,7 +293,7 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
   # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _to != ZERO_ADDRESS, "_to is the zero address"
+    assert _to != empty(address), "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
     assert IERC20(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
@@ -257,7 +309,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) 
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
 
     self.fundsAvailable += _amount + _rewardsAmount
@@ -272,8 +324,8 @@ def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: 
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
-    assert _protocolWallet != ZERO_ADDRESS, "_protocolWallet is the zero address"
-    assert _borrower != ZERO_ADDRESS, "_borrower is the zero address"
+    assert _protocolWallet != empty(address), "_protocolWallet is the zero address"
+    assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount > 0, "_amount should be higher than 0"
 
     return IERC20(self.erc20TokenContract).transferFrom(_borrower, _protocolWallet, _amount)

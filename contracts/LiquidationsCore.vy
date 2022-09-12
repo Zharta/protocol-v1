@@ -1,9 +1,8 @@
-# @version ^0.3.3
+# @version ^0.3.6
 
 
 # Interfaces
 
-from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 
 interface ILoansCore:
@@ -18,13 +17,15 @@ struct Liquidation:
     tokenId: uint256
     startTime: uint256
     gracePeriodMaturity: uint256
-    buyNowPeriodMaturity: uint256
+    lenderPeriodMaturity: uint256
     principal: uint256
     interestAmount: uint256
     apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     gracePeriodPrice: uint256
-    buyNowPeriodPrice: uint256
+    lenderPeriodPrice: uint256
     borrower: address
+    loanId: uint256
+    loansCoreContract: address
     erc20TokenContract: address
     inAuction: bool
 
@@ -104,8 +105,8 @@ def getLiquidationGracePeriodMaturity(_collateralAddress: address, _tokenId: uin
 
 @view
 @external
-def getLiquidationBuyNowPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
-    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].buyNowPeriodMaturity
+def getLiquidationLenderPeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].lenderPeriodMaturity
 
 @view
 @external
@@ -147,7 +148,7 @@ def __init__():
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address it the zero address"
+    assert _address != empty(address), "address it the zero address"
     assert self.owner != _address, "proposed owner addr is the owner"
     assert self.proposedOwner != _address, "proposed owner addr is the same"
 
@@ -173,13 +174,13 @@ def claimOwnership():
     )
 
     self.owner = self.proposedOwner
-    self.proposedOwner = ZERO_ADDRESS
+    self.proposedOwner = empty(address)
 
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
     assert self.liquidationsPeripheralAddress != _address, "new value is the same"
 
@@ -194,9 +195,9 @@ def setLiquidationsPeripheralAddress(_address: address):
 @external
 def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != ZERO_ADDRESS, "address is the zero addr"
+    assert _address != empty(address), "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
-    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
     assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.loansCoreAddresses[_erc20TokenContract] != _address, "new value is the same"
 
@@ -213,9 +214,9 @@ def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
 @external
 def removeLoansCoreAddress(_erc20TokenContract: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _erc20TokenContract != ZERO_ADDRESS, "erc20TokenAddr is the zero addr"
+    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
     assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
-    assert self.loansCoreAddresses[_erc20TokenContract] != ZERO_ADDRESS, "address not found"
+    assert self.loansCoreAddresses[_erc20TokenContract] != empty(address), "address not found"
 
     log LoansCoreAddressRemoved(
         _erc20TokenContract,
@@ -223,7 +224,7 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
         _erc20TokenContract
     )
     
-    self.loansCoreAddresses[_erc20TokenContract] = ZERO_ADDRESS
+    self.loansCoreAddresses[_erc20TokenContract] = empty(address)
 
 
 @external
@@ -232,13 +233,15 @@ def addLiquidation(
     _tokenId: uint256,
     _startTime: uint256,
     _gracePeriodMaturity: uint256,
-    _buyNowPeriodMaturity: uint256,
+    _lenderPeriodMaturity: uint256,
     _principal: uint256,
     _interestAmount: uint256,
     _apr: uint256,
     _gracePeriodPrice: uint256,
-    _buyNowPeriodPrice: uint256,
+    _lenderPeriodPrice: uint256,
     _borrower: address,
+    _loanId: uint256,
+    _loansCoreContract: address,
     _erc20TokenContract: address
 ) -> bytes32:
     assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not BNPeriph addr"
@@ -254,13 +257,15 @@ def addLiquidation(
             tokenId: _tokenId,
             startTime: _startTime,
             gracePeriodMaturity: _gracePeriodMaturity,
-            buyNowPeriodMaturity: _buyNowPeriodMaturity,
+            lenderPeriodMaturity: _lenderPeriodMaturity,
             principal: _principal,
             interestAmount: _interestAmount,
             apr: _apr,
             gracePeriodPrice: _gracePeriodPrice,
-            buyNowPeriodPrice: _buyNowPeriodPrice,
+            lenderPeriodPrice: _lenderPeriodPrice,
             borrower: _borrower,
+            loanId: _loanId,
+            loansCoreContract: _loansCoreContract,
             erc20TokenContract: _erc20TokenContract,
             inAuction: False,
         }

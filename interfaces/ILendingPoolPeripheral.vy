@@ -5,6 +5,7 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
     activeForRewards: bool
 
 # Events
@@ -42,6 +43,11 @@ event LoansPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 event LiquidationsPeripheralAddressSet:
+    erc20TokenContractIndexed: address
+    currentValue: address
+    newValue: address
+    erc20TokenContract: address
+event LiquidityControlsAddressSet:
     erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
@@ -91,12 +97,23 @@ event FundsReceipt:
     rewardsPool: uint256
     rewardsProtocol: uint256
     erc20TokenContract: address
+    fundsOrigin: String[15]
 
 # Functions
 
 @view
 @external
 def maxFundsInvestable() -> uint256:
+    pass
+
+@view
+@external
+def theoreticalMaxFundsInvestable() -> uint256:
+    pass
+
+@view
+@external
+def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
     pass
 
 @view
@@ -130,6 +147,10 @@ def setLoansPeripheralAddress(_address: address):
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
+    pass
+
+@external
+def setLiquidityControlsAddress(_address: address):
     pass
 
 @external
@@ -169,7 +190,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
 @external
-def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool):
     pass
 
 @view
@@ -200,6 +221,11 @@ def erc20TokenContract() -> address:
 @view
 @external
 def liquidationsPeripheralContract() -> address:
+    pass
+
+@view
+@external
+def liquidityControlsContract() -> address:
     pass
 
 @view

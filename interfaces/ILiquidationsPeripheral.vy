@@ -1,47 +1,3 @@
-# Structs
-
-struct Collateral:
-    contractAddress: address
-    tokenId: uint256
-    amount: uint256
-
-struct Loan:
-    id: uint256
-    amount: uint256
-    interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
-    maturity: uint256
-    startTime: uint256
-    collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
-    started: bool
-    invalidated: bool
-    paid: bool
-    defaulted: bool
-    canceled: bool
-
-struct InvestorFunds:
-    currentAmountDeposited: uint256
-    totalAmountDeposited: uint256
-    totalAmountWithdrawn: uint256
-    sharesBasisPoints: uint256
-    activeForRewards: bool
-
-struct Liquidation:
-    lid: bytes32
-    collateralAddress: address
-    tokenId: uint256
-    startTime: uint256
-    gracePeriodMaturity: uint256
-    buyNowPeriodMaturity: uint256
-    principal: uint256
-    interestAmount: uint256
-    apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
-    gracePeriodPrice: uint256
-    buyNowPeriodPrice: uint256
-    borrower: address
-    erc20TokenContract: address
-    inAuction: bool
-
 # Events
 
 event OwnershipTransferred:
@@ -57,7 +13,7 @@ event OwnerProposed:
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-event LiquidationsPeriodDurationChanged:
+event LendersPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 event AuctionPeriodDurationChanged:
@@ -104,7 +60,12 @@ event LiquidationAdded:
     tokenId: uint256
     erc20TokenContract: address
     gracePeriodPrice: uint256
-    buyNowPeriodPrice: uint256
+    lenderPeriodPrice: uint256
+    gracePeriodMaturity: uint256
+    lenderPeriodMaturity: uint256
+    loansCoreContract: address
+    loanId: uint256
+    borrower: address
 event LiquidationRemoved:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
@@ -112,15 +73,20 @@ event LiquidationRemoved:
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
+    loansCoreContract: address
+    loanId: uint256
+    borrower: address
 event NFTPurchased:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
-    fromIndexed: address
+    buyerAddressIndexed: address
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     amount: uint256
-    _from: address
+    buyerAddress: address
     erc20TokenContract: address
+    method: String[20]
 
 # Functions
 
@@ -142,7 +108,7 @@ def setGracePeriodDuration(_duration: uint256):
     pass
 
 @external
-def setLiquidationsPeriodDuration(_duration: uint256):
+def setLendersPeriodDuration(_duration: uint256):
     pass
 
 @external
@@ -190,19 +156,19 @@ def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: ad
     pass
 
 @external
+def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: address):
+    pass
+
+@external
 def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
-def buyNFTBuyNowPeriod(_collateralAddress: address, _tokenId: uint256):
+def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
-    pass
-
-@external
-def liquidateOpenSea():
     pass
 
 @view
@@ -222,7 +188,7 @@ def gracePeriodDuration() -> uint256:
 
 @view
 @external
-def buyNowPeriodDuration() -> uint256:
+def lenderPeriodDuration() -> uint256:
     pass
 
 @view
