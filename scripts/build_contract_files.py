@@ -1,5 +1,4 @@
 from vyper.cli.vyper_compile import compile_files
-from vyper import compile_codes
 from pathlib import Path
 from botocore.exceptions import ClientError
 from click.exceptions import BadParameter
