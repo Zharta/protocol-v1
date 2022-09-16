@@ -83,7 +83,7 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
         abi_python = list(
             compile_files(
                 [project_path / f"{contract}.vy"],
-                output_formats=["abi_python"],
+                output_formats=["abi"],
                 root_folder=".",
             ).values()
         )
