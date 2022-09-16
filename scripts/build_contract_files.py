@@ -10,10 +10,11 @@ import json
 import boto3
 import os
 import logging
-
+import hashlib
 
 env = os.environ.get("ENV", "dev")
-bucket_name = f"zharta-contracts-{env}"
+prefix = hashlib.sha256("zharta".encode()).hexdigest()[-5:]
+bucket_name = f"{prefix}-zharta-contracts-{env}"
 s3 = boto3.resource("s3")
 
 logging.basicConfig()
