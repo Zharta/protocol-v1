@@ -45,7 +45,7 @@ def write_content_to_s3(key: Path, data: str):
     try:
         s3.Bucket(bucket_name).put_object(Key=key.as_posix(), Body=data)
     except ClientError as e:
-        print("Error writing to S3: ", e)
+        logger.error(f"Error writing to S3: {e}")
 
 
 @click.command()
