@@ -1,4 +1,3 @@
-from doctest import ELLIPSIS_MARKER
 from vyper.cli.vyper_compile import compile_files
 from vyper import compile_codes
 from pathlib import Path
