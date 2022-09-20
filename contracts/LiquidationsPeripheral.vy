@@ -523,8 +523,8 @@ def addLiquidation(
 
     gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.gracePeriodDuration)
     protocolPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.lenderPeriodDuration)
-    # autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
-    autoLiquidationPrice: uint256 = 0
+    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
+    # autoLiquidationPrice: uint256 = 0
     lenderPeriodPrice: uint256 = 0
     
     if protocolPrice > autoLiquidationPrice:
@@ -638,9 +638,6 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.loanId,
         liquidation.borrower
     )
-
-    # IERC20(liquidation.erc20TokenContract).transferFrom(msg.sender, liquidation.gracePeriodPrice)
-    # IERC20(liquidation.erc20TokenContract).approve(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract], liquidation.gracePeriodPrice)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
         liquidation.borrower,

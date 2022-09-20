@@ -1,3 +1,51 @@
+# Structs
+
+struct Collateral:
+    contractAddress: address
+    tokenId: uint256
+    amount: uint256
+
+struct Loan:
+    id: uint256
+    amount: uint256
+    interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    maturity: uint256
+    startTime: uint256
+    collaterals: DynArray[Collateral, 100]
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
+    started: bool
+    invalidated: bool
+    paid: bool
+    defaulted: bool
+    canceled: bool
+
+struct InvestorFunds:
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
+    activeForRewards: bool
+
+struct Liquidation:
+    lid: bytes32
+    collateralAddress: address
+    tokenId: uint256
+    startTime: uint256
+    gracePeriodMaturity: uint256
+    lenderPeriodMaturity: uint256
+    principal: uint256
+    interestAmount: uint256
+    apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    gracePeriodPrice: uint256
+    lenderPeriodPrice: uint256
+    borrower: address
+    loanId: uint256
+    loansCoreContract: address
+    erc20TokenContract: address
+    inAuction: bool
+
 # Events
 
 event OwnershipTransferred:
