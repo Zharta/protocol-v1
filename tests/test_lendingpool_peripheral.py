@@ -7,7 +7,9 @@ import brownie
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-LOCK_PERIOD_DURATION = 10
+
+MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
+LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
 def user_balance(token_contract, user):
@@ -26,9 +28,6 @@ def test_initial_state(lending_pool_peripheral_contract, lending_pool_core_contr
     assert not lending_pool_peripheral_contract.isPoolDeprecated()
     assert not lending_pool_peripheral_contract.isPoolInvesting()
     assert not lending_pool_peripheral_contract.whitelistEnabled()
-    assert not lending_pool_peripheral_contract.maxPoolShareEnabled()
-    assert not lending_pool_peripheral_contract.lockPeriodEnabled()
-    assert lending_pool_peripheral_contract.lockPeriodDuration() == LOCK_PERIOD_DURATION
 
 
 def test_propose_owner_wrong_sender(lending_pool_peripheral_contract, borrower):
@@ -290,66 +289,6 @@ def test_remove_whitelisted_address(lending_pool_peripheral_contract, contract_o
     assert event["value"] == investor
 
 
-def test_change_max_pool_share_conditions_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        lending_pool_peripheral_contract.changeMaxPoolShareConditions(False, 0, {"from": borrower})
-
-
-def test_change_max_pool_share_conditions_same_status(lending_pool_peripheral_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
-        lending_pool_peripheral_contract.changeMaxPoolShareConditions(False, 0, {"from": contract_owner})
-
-    with brownie.reverts("new value is the same"):
-        lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 0, {"from": contract_owner})
-
-
-def test_change_max_pool_share_conditions_too_much(lending_pool_peripheral_contract, contract_owner):
-    with brownie.reverts("max pool share exceeds 10000 bps"):
-        lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 100000, {"from": contract_owner})
-
-
-def test_change_max_pool_share_conditions(lending_pool_peripheral_contract, contract_owner):
-    tx = lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 1000, {"from": contract_owner})
-
-    assert lending_pool_peripheral_contract.maxPoolShareEnabled()
-    assert lending_pool_peripheral_contract.maxPoolShare() == 1000
-
-    assert tx.events["MaxPoolShareChanged"]["value"] == 1000
-    assert tx.events["MaxPoolShareFlagChanged"]["value"]
-
-
-
-
-
-
-def test_change_lock_period_conditions_wrong_sender(lending_pool_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        lending_pool_peripheral_contract.changeLockPeriodConditions(False, 0, {"from": borrower})
-
-
-def test_change_lock_period_conditions_same_status(lending_pool_peripheral_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
-        lending_pool_peripheral_contract.changeLockPeriodConditions(False, 0, {"from": contract_owner})
-
-    with brownie.reverts("new value is the same"):
-        lending_pool_peripheral_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION, {"from": contract_owner})
-
-
-def test_change_lock_period_conditions(lending_pool_peripheral_contract, contract_owner):
-    tx = lending_pool_peripheral_contract.changeLockPeriodConditions(True, 1000, {"from": contract_owner})
-
-    assert lending_pool_peripheral_contract.lockPeriodEnabled()
-    assert lending_pool_peripheral_contract.lockPeriodDuration() == 1000
-
-    assert tx.events["LockPeriodDurationChanged"]["value"] == 1000
-    assert tx.events["LockPeriodFlagChanged"]["value"]
-
-
-
-
-
-
-
 def test_change_pool_status_wrong_sender(lending_pool_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
         lending_pool_peripheral_contract.changePoolStatus(False, {"from": borrower})
@@ -427,14 +366,25 @@ def test_deposit_zero_investment(lending_pool_peripheral_contract, investor):
         lending_pool_peripheral_contract.deposit(0, {"from": investor})
 
 
-def test_deposit_pool_share_surpassed(lending_pool_peripheral_contract, investor, contract_owner):
-    lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 1000, {"from": contract_owner})
+def test_deposit_pool_share_surpassed(lending_pool_peripheral_contract, liquidity_controls_contract, investor, contract_owner):
+    liquidity_controls_contract.changeMaxPoolShareConditions(True, MAX_POOL_SHARE, {"from": contract_owner})
     
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
     with brownie.reverts("max pool share surpassed"):
         lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
 
-def test_deposit_insufficient_amount_allowed(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_deposit_insufficient_amount_allowed(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
     erc20_contract.mint(investor, Web3.toWei(0.5, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(0.5, "ether"), {"from": investor})
     
@@ -442,8 +392,18 @@ def test_deposit_insufficient_amount_allowed(lending_pool_peripheral_contract, l
         lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
 
-def test_deposit_not_whitelisted(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_deposit_not_whitelisted(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
     lending_pool_peripheral_contract.changeWhitelistStatus(True, {"from": contract_owner})
     assert lending_pool_peripheral_contract.whitelistEnabled()
 
@@ -456,8 +416,17 @@ def test_deposit_not_whitelisted(lending_pool_peripheral_contract, lending_pool_
         lending_pool_peripheral_contract.deposit(deposit_amount, {"from": investor})
 
 
-def test_deposit_whitelisted(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_deposit_whitelisted(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     lending_pool_peripheral_contract.changeWhitelistStatus(True, {"from": contract_owner})
     assert lending_pool_peripheral_contract.whitelistEnabled()
@@ -487,8 +456,10 @@ def test_deposit_whitelisted(lending_pool_peripheral_contract, lending_pool_core
     assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
-def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -503,7 +474,7 @@ def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, e
     assert investor_funds["totalAmountWithdrawn"] == 0
     assert investor_funds["sharesBasisPoints"] == Web3.toWei(1, "ether")
 
-    assert investor_funds["lockPeriodEnd"] == chain_time + LOCK_PERIOD_DURATION
+    assert investor_funds["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
     assert investor_funds["activeForRewards"] == True
     
     assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1, "ether")
@@ -516,8 +487,10 @@ def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, e
     assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
-def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -534,7 +507,7 @@ def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contr
     investor_funds = lending_pool_core_contract.funds(investor)
     assert investor_funds["currentAmountDeposited"] == Web3.toWei(1.5, "ether")
     assert investor_funds["totalAmountDeposited"] == Web3.toWei(1.5, "ether")
-    assert investor_funds["lockPeriodEnd"] == chain_time + LOCK_PERIOD_DURATION
+    assert investor_funds["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
 
     assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1.5, "ether")
     assert lending_pool_core_contract.fundsInvested() == 0
@@ -550,8 +523,17 @@ def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contr
     assert tx_deposit_twice.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
-def test_deposit_max_pool_share_enabled(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_deposit_max_pool_share_enabled(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(contract_owner, Web3.toWei(3, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(3, "ether"), {"from": contract_owner})
@@ -561,7 +543,7 @@ def test_deposit_max_pool_share_enabled(lending_pool_peripheral_contract, lendin
     
     lending_pool_peripheral_contract.deposit(Web3.toWei(3, "ether"), {"from": contract_owner})
 
-    lending_pool_peripheral_contract.changeMaxPoolShareConditions(True, 2500, {"from": contract_owner})
+    liquidity_controls_contract.changeMaxPoolShareConditions(True, 4000, {"from": contract_owner})
 
     tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
@@ -587,15 +569,26 @@ def test_withdraw_zero_amount(lending_pool_peripheral_contract, investor):
         lending_pool_peripheral_contract.withdraw(0, {"from": investor})
 
 
-def test_withdraw_noinvestment(lending_pool_peripheral_contract, lending_pool_core_contract, investor, contract_owner):
+def test_withdraw_noinvestment(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, investor, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
     with brownie.reverts("_amount more than withdrawable"):
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
 
 
-def test_withdraw_insufficient_investment(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_withdraw_insufficient_investment(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -605,8 +598,10 @@ def test_withdraw_insufficient_investment(lending_pool_peripheral_contract, lend
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1.5, "ether"), {"from": investor})
 
 
-def test_withdraw(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_withdraw(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     initial_balance = user_balance(erc20_contract, investor)
     
@@ -634,13 +629,22 @@ def test_withdraw(lending_pool_peripheral_contract, lending_pool_core_contract, 
     assert tx_withdraw.events["Withdrawal"]["erc20TokenContract"] == erc20_contract
 
 
-def test_withdraw_within_lock_period(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_withdraw_within_lock_period(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
     
     erc20_contract.mint(investor, Web3.toWei(2, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(2, "ether"), {"from": investor})
 
-    lending_pool_peripheral_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION*2, {"from": contract_owner})
+    liquidity_controls_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION*2, {"from": contract_owner})
 
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
@@ -648,13 +652,22 @@ def test_withdraw_within_lock_period(lending_pool_peripheral_contract, lending_p
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
 
 
-def test_withdraw_out_of_lock_period(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, investor, contract_owner):
+def test_withdraw_out_of_lock_period(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
     erc20_contract.mint(investor, Web3.toWei(2, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(2, "ether"), {"from": investor})
 
-    lending_pool_peripheral_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION*2, {"from": contract_owner})
+    liquidity_controls_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION*2, {"from": contract_owner})
 
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
@@ -666,8 +679,10 @@ def test_withdraw_out_of_lock_period(lending_pool_peripheral_contract, lending_p
     assert investor_funds["lockPeriodEnd"] == 0
 
 
-def test_send_funds_deprecated(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_deprecated(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -680,8 +695,10 @@ def test_send_funds_deprecated(lending_pool_peripheral_contract, lending_pool_co
         lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
 
 
-def test_send_funds_inactive(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_inactive(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -694,8 +711,10 @@ def test_send_funds_inactive(lending_pool_peripheral_contract, lending_pool_core
         lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
 
 
-def test_send_funds_wrong_sender(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_wrong_sender(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -706,9 +725,19 @@ def test_send_funds_wrong_sender(lending_pool_peripheral_contract, lending_pool_
         lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": investor})
 
 
-def test_send_funds_zero_amount(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_zero_amount(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    loans_peripheral_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -723,9 +752,19 @@ def test_send_funds_zero_amount(lending_pool_peripheral_contract, lending_pool_c
         )
 
 
-def test_send_funds_wrong_amount(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_wrong_amount(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    loans_peripheral_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -740,9 +779,19 @@ def test_send_funds_wrong_amount(lending_pool_peripheral_contract, lending_pool_
         )
 
 
-def test_send_funds_insufficient_funds_to_lend(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower):
+def test_send_funds_insufficient_funds_to_lend(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    loans_peripheral_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -757,9 +806,19 @@ def test_send_funds_insufficient_funds_to_lend(lending_pool_peripheral_contract,
         )
 
 
-def test_send_funds(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, loans_peripheral_contract, contract_owner, investor, borrower):
+def test_send_funds(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    loans_peripheral_contract,
+    contract_owner,
+    investor,
+    borrower
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     initial_balance = user_balance(erc20_contract, borrower)
     
@@ -819,9 +878,20 @@ def test_receive_funds_zero_value(lending_pool_peripheral_contract, loans_periph
         )
 
 
-def test_receive_funds(lending_pool_peripheral_contract, lending_pool_core_contract, erc20_contract, loans_peripheral_contract, contract_owner, investor, borrower, protocol_wallet):
+def test_receive_funds(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    erc20_contract,
+    loans_peripheral_contract,
+    liquidity_controls_contract,
+    contract_owner,
+    investor,
+    borrower,
+    protocol_wallet
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -858,16 +928,28 @@ def test_receive_funds(lending_pool_peripheral_contract, lending_pool_core_contr
     assert user_balance(erc20_contract, protocol_wallet) == Web3.toWei(expectedProtocolFees, "ether")
     assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(1 + expectedPoolFees, "ether")
 
-    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_peripheral_contract
+    assert tx_receive.events["FundsReceipt"]["wallet"] == borrower
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
+    assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"
 
 
-def test_receive_funds_multiple_lenders(lending_pool_peripheral_contract, lending_pool_core_contract, loans_peripheral_contract, erc20_contract, contract_owner, investor, borrower, protocol_wallet):
+def test_receive_funds_multiple_lenders(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    loans_peripheral_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    protocol_wallet
+):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
@@ -913,8 +995,9 @@ def test_receive_funds_multiple_lenders(lending_pool_peripheral_contract, lendin
     assert user_balance(erc20_contract, protocol_wallet) == Web3.toWei(expectedProtocolFees, "ether")
     assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(4 + expectedPoolFees, "ether")
 
-    assert tx_receive.events["FundsReceipt"]["wallet"] == loans_peripheral_contract
+    assert tx_receive.events["FundsReceipt"]["wallet"] == borrower
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
+    assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"

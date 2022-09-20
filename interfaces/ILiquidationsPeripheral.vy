@@ -11,8 +11,9 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    collaterals: DynArray[Collateral, 100]
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
@@ -40,6 +41,8 @@ struct Liquidation:
     gracePeriodPrice: uint256
     lenderPeriodPrice: uint256
     borrower: address
+    loanId: uint256
+    loansCoreContract: address
     erc20TokenContract: address
     inAuction: bool
 
@@ -58,7 +61,7 @@ event OwnerProposed:
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-event LiquidationsPeriodDurationChanged:
+event LendersPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 event AuctionPeriodDurationChanged:
@@ -108,8 +111,9 @@ event LiquidationAdded:
     lenderPeriodPrice: uint256
     gracePeriodMaturity: uint256
     lenderPeriodMaturity: uint256
-    loansCoreAddress: address
+    loansCoreContract: address
     loanId: uint256
+    borrower: address
 event LiquidationRemoved:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
@@ -117,10 +121,14 @@ event LiquidationRemoved:
     collateralAddress: address
     tokenId: uint256
     erc20TokenContract: address
+    loansCoreContract: address
+    loanId: uint256
+    borrower: address
 event NFTPurchased:
     erc20TokenContractIndexed: address
     collateralAddressIndexed: address
-    fromIndexed: address
+    buyerAddressIndexed: address
+    liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     amount: uint256
@@ -148,7 +156,7 @@ def setGracePeriodDuration(_duration: uint256):
     pass
 
 @external
-def setLiquidationsPeriodDuration(_duration: uint256):
+def setLendersPeriodDuration(_duration: uint256):
     pass
 
 @external
@@ -196,6 +204,10 @@ def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: ad
     pass
 
 @external
+def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: address):
+    pass
+
+@external
 def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
@@ -205,10 +217,6 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
-    pass
-
-@external
-def liquidateOpenSea():
     pass
 
 @view

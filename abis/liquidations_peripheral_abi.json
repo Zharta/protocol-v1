@@ -71,7 +71,7 @@
     "type": "event"
   },
   {
-    "name": "LiquidationsPeriodDurationChanged",
+    "name": "LendersPeriodDurationChanged",
     "inputs": [
       {
         "name": "currentValue",
@@ -341,13 +341,18 @@
         "indexed": false
       },
       {
-        "name": "loansCoreAddress",
+        "name": "loansCoreContract",
         "type": "address",
         "indexed": false
       },
       {
         "name": "loanId",
         "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "borrower",
+        "type": "address",
         "indexed": false
       }
     ],
@@ -386,6 +391,21 @@
         "name": "erc20TokenContract",
         "type": "address",
         "indexed": false
+      },
+      {
+        "name": "loansCoreContract",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "loanId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "borrower",
+        "type": "address",
+        "indexed": false
       }
     ],
     "anonymous": false,
@@ -405,9 +425,14 @@
         "indexed": true
       },
       {
-        "name": "fromIndexed",
+        "name": "buyerAddressIndexed",
         "type": "address",
         "indexed": true
+      },
+      {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
       },
       {
         "name": "collateralAddress",
@@ -511,6 +536,14 @@
             "type": "address"
           },
           {
+            "name": "loanId",
+            "type": "uint256"
+          },
+          {
+            "name": "loansCoreContract",
+            "type": "address"
+          },
+          {
             "name": "erc20TokenContract",
             "type": "address"
           },
@@ -583,7 +616,7 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
-    "name": "setLiquidationsPeriodDuration",
+    "name": "setLendersPeriodDuration",
     "inputs": [
       {
         "name": "_duration",
@@ -751,6 +784,22 @@
   {
     "stateMutability": "nonpayable",
     "type": "function",
+    "name": "payLoanLiquidationsGracePeriod",
+    "inputs": [
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      },
+      {
+        "name": "_erc20TokenContract",
+        "type": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
     "name": "buyNFTGracePeriod",
     "inputs": [
       {
@@ -794,13 +843,6 @@
         "type": "uint256"
       }
     ],
-    "outputs": []
-  },
-  {
-    "stateMutability": "nonpayable",
-    "type": "function",
-    "name": "liquidateOpenSea",
-    "inputs": [],
     "outputs": []
   },
   {
