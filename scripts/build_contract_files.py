@@ -33,6 +33,26 @@ contracts = [
     "auxiliary/token/ERC721",
 ]
 
+# A map between the contract name on the contracts addresses configuration file and 
+# the contract vyper file name
+contracts_mapped = {
+    "CollateralVaultCore": "collateral_vault_core",
+    "CollateralVaultPeripheral": "collateral_vault_peripheral",
+    "LendingPoolCore": "lending_pool_core",
+    "LendingPoolPeripheral": "lending_pool",
+    "LiquidationsCore": "liquidations_core",
+    "LiquidationsPeripheral": "liquidations_peripheral",
+    "LiquidityControls": "liquidity_controls",
+    "Loans": "loans",
+    "LoansCore": "loans_core",
+    "auxiliary/token/ERC20": "token",
+    # "auxiliary/token/ERC721": "ERC721",
+}
+
+def read_file(filename: Path):
+    """Read file content."""
+    with open(filename, "r") as f:
+        return f.read()
 
 def write_content_to_file(filename: Path, data: str):
     """Write content to file."""
@@ -63,7 +83,13 @@ def write_content_to_s3(key: Path, data: str):
 )
 def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
     """Build contract (abi and bytecode) files and write to S3 or local directory"""
+
+    # vyper contracts base location
     project_path = Path.cwd() / "contracts"
+
+    # get contract addresses config file
+    config_file = Path.cwd() / "configs" / f"contracts_{env}.json"
+    config = json.loads(read_file(config_file))
 
     if output_directory and not write_to_s3:
         # Check if directory exists and if not create it
@@ -83,10 +109,15 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
         abi_python = list(
             compile_files(
                 [project_path / f"{contract}.vy"],
-                output_formats=["abi"],
+                output_formats=["abi_python"],
                 root_folder=".",
             ).values()
-        )
+        )[0].get("abi")
+
+        # Update contracts config with abi content
+        mapped_contract = contracts_mapped.get(contract, None)
+        if mapped_contract:
+            config["tokens"]["WETH"][mapped_contract]["abi"] = abi_python
 
         # Extract bytecode from compiled contract
         logger.info(f"Compiling {contract} binary file")
@@ -98,16 +129,19 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
             ).values()
         )[0].get("bytecode")
 
+        config_file = Path(output_directory) / "contracts.json"
         abi_path = Path(output_directory) / "abi" / f"{contract_output_name}.abi"
         binary_path = Path(output_directory) / "bytecode" / f"{contract_output_name}.bin"
 
         if write_to_s3:
             write_content_to_s3(abi_path, json.dumps(abi_python))
             write_content_to_s3(binary_path, bytecode)
+            write_content_to_s3(config_file, json.dumps(config))
 
         elif not write_to_s3 and output_directory:
             write_content_to_file(abi_path, json.dumps(abi_python))
             write_content_to_file(binary_path, bytecode)
+            write_content_to_file(config_file, json.dumps(config))
 
         else:
             raise BadParameter("Invalid combination of parameters")
