@@ -130,7 +130,7 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
         )[0].get("bytecode")
 
         config_file = Path(output_directory) / "contracts.json"
-        abi_path = Path(output_directory) / "abi" / f"{contract_output_name}.abi"
+        abi_path = Path(output_directory) / "abi" / f"{contract_output_name}.json"
         binary_path = Path(output_directory) / "bytecode" / f"{contract_output_name}.bin"
 
         if write_to_s3:
