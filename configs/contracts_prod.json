@@ -2,7 +2,7 @@
     "tokens": {
         "WETH": {
             "collateral_vault_core": {
-                "contract": ""
+                "contract": "0xc9eb983357B88921A89844D7047589a37B563108"
             },
             "collateral_vault_peripheral": {
                 "contract": ""
@@ -14,7 +14,7 @@
                 "contract": "0x5732291D337d6A2476f0BFaF9fC91fd9438829cf"
             },
             "liquidations_peripheral": {
-                "contract": ""
+                "contract": "0xe62F721C8607784b0e029d39f74F5E74dF42F2bb"
             },
             "liquidations_core": {
                 "contract": ""
