@@ -46,7 +46,7 @@ contracts_mapped = {
     "Loans": "loans",
     "LoansCore": "loans_core",
     "auxiliary/token/ERC20": "token",
-    # "auxiliary/token/ERC721": "ERC721",
+    "auxiliary/token/ERC721": "ERC721",
 }
 
 def read_file(filename: Path):
@@ -88,8 +88,11 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
     project_path = Path.cwd() / "contracts"
 
     # get contract addresses config file
-    config_file = Path.cwd() / "configs" / f"contracts_{env}.json"
+    config_file = Path.cwd() / "configs" / env / f"contracts.json"
     config = json.loads(read_file(config_file))
+
+    nfts_file = Path.cwd() / "configs" / env / f"nfts.json"
+    nfts = json.loads(read_file(nfts_file))
 
     if output_directory and not write_to_s3:
         # Check if directory exists and if not create it
@@ -117,7 +120,18 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
         # Update contracts config with abi content
         mapped_contract = contracts_mapped.get(contract, None)
         if mapped_contract:
-            config["tokens"]["WETH"][mapped_contract]["abi"] = abi_python
+            try:
+                config["tokens"]["WETH"][mapped_contract]["abi"] = abi_python
+            except KeyError:
+                pass
+                
+        # Update nfts config with abi content but only for ERC721 contract
+        if contract == "auxiliary/token/ERC721":
+            nfts_final = []
+
+            for nft in nfts:
+                nft["abi"] = abi_python
+                nfts_final.append(nft)
 
         # Extract bytecode from compiled contract
         logger.info(f"Compiling {contract} binary file")
@@ -129,23 +143,30 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
             ).values()
         )[0].get("bytecode")
 
-        config_file = Path(output_directory) / "contracts.json"
         abi_path = Path(output_directory) / "abi" / f"{contract_output_name}.json"
         binary_path = Path(output_directory) / "bytecode" / f"{contract_output_name}.bin"
 
         if write_to_s3:
             write_content_to_s3(abi_path, json.dumps(abi_python))
             write_content_to_s3(binary_path, bytecode)
-            write_content_to_s3(config_file, json.dumps(config))
 
         elif not write_to_s3 and output_directory:
             write_content_to_file(abi_path, json.dumps(abi_python))
             write_content_to_file(binary_path, bytecode)
-            write_content_to_file(config_file, json.dumps(config))
-
+    
         else:
             raise BadParameter("Invalid combination of parameters")
 
+    config_file = Path(output_directory) / "contracts.json"
+    nfts_file = Path(output_directory) / "nfts.json"
+    
+    if write_to_s3:
+        write_content_to_s3(config_file, json.dumps(config))
+        write_content_to_s3(nfts_file, json.dumps(nfts_final))
+    
+    elif not write_to_s3 and output_directory:
+        write_content_to_file(config_file, json.dumps(config))
+        write_content_to_file(config_file, json.dumps(nfts_final))
 
 if __name__ == "__main__":
     build_contract_files()
