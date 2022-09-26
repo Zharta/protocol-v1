@@ -81,7 +81,7 @@ def write_content_to_s3(key: Path, data: str):
     "output_directory",
     help="Default output directory for files",
 )
-def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
+def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     """Build contract (abi and bytecode) files and write to S3 or local directory"""
 
     # vyper contracts base location
@@ -166,7 +166,7 @@ def build_contract_files(write_to_s3: bool = True, output_directory: str = ""):
     
     elif not write_to_s3 and output_directory:
         write_content_to_file(config_file, json.dumps(config))
-        write_content_to_file(config_file, json.dumps(nfts_final))
+        write_content_to_file(nfts_file, json.dumps(nfts_final))
 
 if __name__ == "__main__":
     build_contract_files()
