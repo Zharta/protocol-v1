@@ -9,7 +9,7 @@ This script will:
 
 - dump all contract `abi` files into a subdirectory named `abi`
 - dump all contract `bytecode` files into a subdirectory named `bytecode`
-- create a `config.json` with the contract addresses and their respective `abi` configurations. This file is created from the [`contracts.json`](../configs/local/contracts.json) template file - there are several sub-directories for each environment (local, dev, int or prod).
+- create a `contracts.json` with the contract addresses and their respective `abi` configurations. This file is created from the [`contracts.json`](../configs/local/contracts.json) template file - there are several sub-directories for each environment (local, dev, int or prod).
 - create a `nfts.json` with the contract addresses and their respective `abi` configurations for the nfts. This file is created from the [`nfts.json`](../configs/local/nfts.json) template file - there are several sub-directories for each environment (local, dev, int or prod).
 
 Usage:
