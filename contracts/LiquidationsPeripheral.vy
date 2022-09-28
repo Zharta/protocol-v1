@@ -546,8 +546,8 @@ def addLiquidation(
 
     gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.gracePeriodDuration)
     protocolPrice: uint256 = self._computeNFTPrice(principal, interestAmount, apr, self.gracePeriodDuration + self.lenderPeriodDuration)
-    # autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
-    autoLiquidationPrice: uint256 = 0
+    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
+    # autoLiquidationPrice: uint256 = 0
     lenderPeriodPrice: uint256 = 0
 
     if protocolPrice > autoLiquidationPrice:
