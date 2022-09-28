@@ -294,11 +294,6 @@ def test_change_pool_status_wrong_sender(lending_pool_peripheral_contract, borro
         lending_pool_peripheral_contract.changePoolStatus(False, {"from": borrower})
 
 
-def test_change_pool_status_same_status(lending_pool_peripheral_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
-        lending_pool_peripheral_contract.changePoolStatus(True, {"from": contract_owner})
-
-
 def test_change_pool_status(lending_pool_peripheral_contract, contract_owner):
     tx = lending_pool_peripheral_contract.changePoolStatus(False, {"from": contract_owner})
 

@@ -3,7 +3,6 @@ from brownie import (
     ERC20,
     LendingPoolCore,
     LendingPoolPeripheral,
-    CollateralVaultCore,
     CollateralVaultPeripheral,
     LoansCore,
     Loans,

@@ -598,6 +598,8 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
     for collateral in loan.collaterals:
         liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(collateral.contractAddress, collateral.tokenId)
 
+        assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
+
         ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(collateral.contractAddress, collateral.tokenId)
 
         log LiquidationRemoved(

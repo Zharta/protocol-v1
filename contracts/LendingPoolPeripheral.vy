@@ -535,7 +535,6 @@ def removeWhitelistedAddress(_address: address):
 @external
 def changePoolStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.isPoolActive != _flag, "new value is the same"
 
     self.isPoolActive = _flag
   
