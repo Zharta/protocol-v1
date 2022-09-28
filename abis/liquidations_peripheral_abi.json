@@ -469,6 +469,38 @@
     "type": "event"
   },
   {
+    "name": "AdminWithdrawal",
+    "inputs": [
+      {
+        "name": "collateralAddressIndexed",
+        "type": "address",
+        "indexed": true
+      },
+      {
+        "name": "liquidationId",
+        "type": "bytes32",
+        "indexed": false
+      },
+      {
+        "name": "collateralAddress",
+        "type": "address",
+        "indexed": false
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "wallet",
+        "type": "address",
+        "indexed": false
+      }
+    ],
+    "anonymous": false,
+    "type": "event"
+  },
+  {
     "stateMutability": "view",
     "type": "function",
     "name": "getLiquidation",
@@ -834,6 +866,26 @@
     "type": "function",
     "name": "liquidateNFTX",
     "inputs": [
+      {
+        "name": "_collateralAddress",
+        "type": "address"
+      },
+      {
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "stateMutability": "nonpayable",
+    "type": "function",
+    "name": "adminWithdrawal",
+    "inputs": [
+      {
+        "name": "_walletAddress",
+        "type": "address"
+      },
       {
         "name": "_collateralAddress",
         "type": "address"

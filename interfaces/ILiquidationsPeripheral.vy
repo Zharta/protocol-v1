@@ -135,6 +135,12 @@ event NFTPurchased:
     buyerAddress: address
     erc20TokenContract: address
     method: String[20]
+event AdminWithdrawal:
+    collateralAddressIndexed: address
+    liquidationId: bytes32
+    collateralAddress: address
+    tokenId: uint256
+    wallet: address
 
 # Functions
 
@@ -217,6 +223,10 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
+    pass
+
+@external
+def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
 @view

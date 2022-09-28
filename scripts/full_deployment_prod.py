@@ -55,7 +55,7 @@ def main():
     
     loans_peripheral_weth = Loans.deploy(
         1000000,
-        2592000,
+        2678400,
         web3.toWei(10000, "ether"),
         24 * 60 * 60,
         loans_core_weth,

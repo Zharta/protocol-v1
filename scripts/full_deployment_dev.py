@@ -16,7 +16,7 @@ from brownie import (
 
 
 def main():
-    owner = accounts.load('ropstenminingacc')
+    owner = accounts.load('goerliacc')
 
     ### TEST NFT CONTRACTS ###
     cool_cats_instance = ERC721.deploy({"from": owner})

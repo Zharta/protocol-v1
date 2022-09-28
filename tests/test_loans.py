@@ -2211,6 +2211,8 @@ def test_set_default_loan(
 
     loans_peripheral_contract.validate(borrower, loan_id, {'from': contract_owner})
 
+    loan = loans_core_contract.getLoan(borrower, loan_id)
+
     chain.mine(blocks=1, timedelta=15)
 
     print(loans_core_contract.getLoanMaturity(borrower, loan_id))
@@ -2227,7 +2229,8 @@ def test_set_default_loan(
         assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
         
         liquidation = liquidations_core_contract.getLiquidation(collateral[0], collateral[1])
-        interest_amount = int(Decimal(collateral[2]) * Decimal(LOAN_INTEREST) / Decimal(10000))
+
+        interest_amount = int(Decimal(collateral[2]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
         apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
         assert liquidation["collateralAddress"] == collateral[0]
@@ -2238,7 +2241,7 @@ def test_set_default_loan(
         assert liquidation["interestAmount"] == interest_amount
         assert liquidation["apr"] == apr
         assert liquidation["gracePeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
-        assert liquidation["lenderPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * Decimal(LENDER_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+        assert liquidation["lenderPeriodPrice"] == int(Decimal(collateral[2]) + Decimal(interest_amount) + (Decimal(collateral[2]) * Decimal(apr) * (Decimal(GRACE_PERIOD_DURATION) + Decimal(LENDER_PERIOD_DURATION))) / (Decimal(31536000) * Decimal(10000)))
         assert liquidation["borrower"] == borrower
         assert liquidation["erc20TokenContract"] == erc20_contract
         assert not liquidation["inAuction"]

@@ -125,7 +125,7 @@ event FundsReceipt:
     rewardsPool: uint256
     rewardsProtocol: uint256
     erc20TokenContract: address
-    fundsOrigin: String[15]
+    fundsOrigin: String[30]
 
 
 # Global variables
@@ -243,7 +243,7 @@ def _computeLockPeriodEnd(_lender: address) -> uint256:
 ##### INTERNAL METHODS - WRITE #####
 
 @internal
-def _transferReceivedFunds(_borrower: address, _amount: uint256, _rewardsPool: uint256, _rewardsProtocol: uint256, _origin: String[15]):
+def _transferReceivedFunds(_borrower: address, _amount: uint256, _rewardsPool: uint256, _rewardsProtocol: uint256, _origin: String[30]):
     if not self.isPoolInvesting and self._poolHasFundsToInvestAfterPayment(_amount, _rewardsPool):
         self.isPoolInvesting = True
 
@@ -280,7 +280,13 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256)
 
 
 @internal
-def _receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool):
+def _receiveFundsFromLiquidation(
+    _borrower: address,
+    _amount: uint256,
+    _rewardsAmount: uint256,
+    _distributeToProtocol: bool,
+    _origin: String[30]
+):
     rewardsProtocol: uint256 = 0
     rewardsPool: uint256 = 0
     if _distributeToProtocol:
@@ -289,7 +295,7 @@ def _receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsA
     else:
         rewardsPool = _rewardsAmount
 
-    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, "liquidation")
+    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _origin)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -683,7 +689,13 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
 
 
 @external
-def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool):
+def receiveFundsFromLiquidation(
+    _borrower: address,
+    _amount: uint256,
+    _rewardsAmount: uint256,
+    _distributeToProtocol: bool,
+    _origin: String[30]
+):
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
@@ -691,4 +703,4 @@ def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAm
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     
-    self._receiveFundsFromLiquidation(_borrower, _amount, _rewardsAmount, _distributeToProtocol)
+    self._receiveFundsFromLiquidation(_borrower, _amount, _rewardsAmount, _distributeToProtocol, _origin)
