@@ -8,7 +8,7 @@ from brownie import (
     Loans,
     LiquidationsCore,
     LiquidationsPeripheral,
-    LiquidityControls,
+    LiquidityControls
 )
 
 
@@ -95,5 +95,17 @@ def main():
     )
     liquidations_peripheral.setCollateralVaultPeripheralAddress(
         collateral_vault_peripheral,
+        {"from": owner}
+    )
+    liquidations_peripheral.setNFTXVaultFactoryAddress(
+        "0xBE86f647b167567525cCAAfcd6f881F1Ee558216",
+        {"from": owner}
+    )
+    liquidations_peripheral.setNFTXMarketplaceZapAddress(
+        "0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d",
+        {"from": owner}
+    )
+    liquidations_peripheral.setSushiRouterAddress(
+        "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
         {"from": owner}
     )

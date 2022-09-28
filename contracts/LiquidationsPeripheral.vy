@@ -783,8 +783,19 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     assert autoLiquidationPrice > 0, "NFTX liq price is 0 or none"
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).approveBackstopBuyer(
-        self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress),
+        self,
         _collateralAddress,
+        _tokenId
+    )
+
+    IERC721(_collateralAddress).transferFrom(
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(),
+        self,
+        _tokenId
+    )
+
+    IERC721(_collateralAddress).approve(
+        self.nftxMarketplaceZapAddress,
         _tokenId
     )
 
@@ -792,7 +803,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         self._getNFTXVaultIdFromCollateralAddr(_collateralAddress),
         [_tokenId],
         autoLiquidationPrice,
-        [wethAddress, self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)],
+        [self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress), wethAddress],
         self
     )
 
@@ -800,9 +811,10 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     # TODO: recompute "autoLiquidationPrice" to be in liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
 
     lp_peripheral_address: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+    lp_core_address: address = ILendingPoolPeripheral(lp_peripheral_address).lendingPoolCoreContract()
 
     IERC20(liquidation.erc20TokenContract).approve(
-        lp_peripheral_address,
+        lp_core_address,
         autoLiquidationPrice
     )
 

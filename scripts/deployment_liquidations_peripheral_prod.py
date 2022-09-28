@@ -6,14 +6,14 @@ from brownie import (
     LoansCore,
     Loans,
     LiquidationsCore,
-    LiquidationsPeripheral,
+    LiquidationsPeripheral
 )
 
 def main():
     owner = accounts.load('prodacc')
 
     weth = ERC20.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
-    lending_pool_peripheral_weth = LendingPoolPeripheral.at("0x5732291D337d6A2476f0BFaF9fC91fd9438829cf")
+    lending_pool_peripheral_weth = LendingPoolPeripheral.at("0x0b2D6a2106be311D6d9c9EC8c0971f554691cC45")
     liquidations_core = LiquidationsCore.at("0x3E02654FbD6580f0D3F2E7999E53b0428bC88373")
     collateral_vault_peripheral = CollateralVaultPeripheral.at("0x44D2f0F514BF0ea91d9B19dcC7b1D8247A349FE1")
     loans_peripheral_weth = Loans.at("0x6781884f919B3533B4de87715e0E4564E62912fE")
