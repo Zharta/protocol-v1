@@ -18,7 +18,7 @@ install-dev: venv install
 	${PIP} install -r requirements-dev.txt
 
 test: venv install-dev
-	${VENV}/bin/brownie test
+	${VENV}/bin/brownie test -n auto
 
 clean:
 	rm -rf ${VENV}
