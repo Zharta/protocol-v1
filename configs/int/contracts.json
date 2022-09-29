@@ -1,0 +1,36 @@
+{
+    "tokens": {
+        "WETH": {
+            "collateral_vault_core": {
+                "contract": "0x08b794EF37C32e1643a25876f552d6a615F95c7b"
+            },
+            "collateral_vault_peripheral": {
+                "contract": ""
+            },
+            "lending_pool_core" : {
+                "contract": "0x9B0422E0B83ab29bF4A6c641C00110721866b6Ef"
+            },
+            "lending_pool": {
+                "contract": "0x2ff78AEDf27c571969B32A57e6649EE673694CA6"
+            },
+            "liquidations_peripheral": {
+                "contract": "0x64E0D74906927885a6dd089AcbBb28918D18Ea49"
+            },
+            "liquidations_core": {
+                "contract": ""
+            },
+            "liquidity_controls": {
+                "contract": ""
+            },
+            "loans": {
+                "contract": "0x8DAcA4b057969D74FEFef4FF7D684F78c6209175"
+            },
+            "loans_core": {
+                "contract": "0x3f7A66724Fb6e79fE52C85413d0d40980641b74b"
+            },
+            "token": {
+                "contract": "0x67AF5e6EEC776151cE2af6f4aC450A59FaA01eF8"
+            }
+        }
+    }
+}
