@@ -30,13 +30,5 @@ jobs:
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
     
     - name: Run project unit tests 
-      env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USERNAME: zharta_dev 
-          DB_PASSWORD: postgres
-          DB_NAME: zharta
-          AWS_DEFAULT_REGION: eu-central-1
-          WHITELIST_ENABLED: True
       run: |
         brownie test -n auto
