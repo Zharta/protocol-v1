@@ -1,0 +1,42 @@
+name: Python application
+
+on:
+  push:
+    branches: [ "dev", "rc", "prod" ]
+  pull_request:
+    branches: [ "dev", "rc", "prod" ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:    
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+    
+    - name: Run project unit tests 
+      env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: zharta_dev 
+          DB_PASSWORD: postgres
+          DB_NAME: zharta
+          AWS_DEFAULT_REGION: eu-central-1
+          WHITELIST_ENABLED: True
+      run: |
+        brownie test -n auto
