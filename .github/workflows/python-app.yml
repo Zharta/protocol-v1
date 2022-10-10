@@ -31,4 +31,4 @@ jobs:
     
     - name: Run project unit tests 
       run: |
-        brownie test -n auto
+        brownie test
