@@ -2,34 +2,34 @@
     "tokens": {
         "WETH": {
             "collateral_vault_core": {
-                "contract": "0x08b794EF37C32e1643a25876f552d6a615F95c7b"
+                "contract": "0x170a934DB411912D2D557F28B3866b994e246b83"
             },
             "collateral_vault_peripheral": {
-                "contract": ""
+                "contract": "0xEedfDfC9F79391Fd09FFAE0720B77c4E2149e414"
             },
             "lending_pool_core" : {
-                "contract": "0x9B0422E0B83ab29bF4A6c641C00110721866b6Ef"
+                "contract": "0x423bb9CC3746b936F46785aEfDbb28F35D65b10b"
             },
             "lending_pool": {
-                "contract": "0x2ff78AEDf27c571969B32A57e6649EE673694CA6"
+                "contract": "0x5A4b9aeFcEd0BBAf2a5cf81852b2Acb666ADEF45"
             },
             "liquidations_peripheral": {
-                "contract": "0x64E0D74906927885a6dd089AcbBb28918D18Ea49"
+                "contract": "0xB2A55966026085CdfB33F518765f9488D770174E"
             },
             "liquidations_core": {
-                "contract": ""
+                "contract": "0xC576a9Db2f307dA4C6C332913E860C839280C561"
             },
             "liquidity_controls": {
-                "contract": ""
+                "contract": "0x4c59ab2e0F8B875b2Af9b7Cebb2822DBDB791bDf"
             },
             "loans": {
-                "contract": "0x8DAcA4b057969D74FEFef4FF7D684F78c6209175"
+                "contract": "0x90E88f5F08CB4BA08FDC91379e4cdb97E540F37D"
             },
             "loans_core": {
-                "contract": "0x3f7A66724Fb6e79fE52C85413d0d40980641b74b"
+                "contract": "0x9917771853d4aB45e2132E4942E570d4A1d84cCb"
             },
             "token": {
-                "contract": "0x67AF5e6EEC776151cE2af6f4aC450A59FaA01eF8"
+                "contract": "0x96D1000886E9F504184068DE3cd1270f0e00b286"
             }
         }
     }
