@@ -29,7 +29,7 @@ def main():
     pudgypenguins_instance = ERC721.deploy({"from": owner})
 
     ### TEST WETH CONTRACT ###
-    weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {'from': owner}, publish_source=True)
+    weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {'from': owner})
 
     ### PROTOCOL CONTRACTS ###
     lending_pool_core_weth = LendingPoolCore.deploy(weth, {"from": owner})
