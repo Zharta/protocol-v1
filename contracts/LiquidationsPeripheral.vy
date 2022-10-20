@@ -230,6 +230,7 @@ def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint25
 @view
 @internal
 def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
+    assert self.nftxVaultFactoryAddress != empty(address), "nftx vault address not defined"
     vault_addrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
     
     if len(vault_addrs) == 0:

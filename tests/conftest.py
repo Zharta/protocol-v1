@@ -27,6 +27,7 @@ LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
 contract_owner = conftest_base.contract_owner
+not_contract_owner = conftest_base.not_contract_owner
 investor = conftest_base.investor
 borrower = conftest_base.borrower
 protocol_wallet = conftest_base.protocol_wallet
