@@ -331,7 +331,7 @@ def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 100]) -> bool
         )
         if not result:
             return False
-    
+
     return True
 
 
@@ -364,6 +364,39 @@ def _loanPayableAmount(
 @internal
 def _computePeriodPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint256, _period: uint256) -> uint256:
     return (_recentTimestamp - _olderTimestamp) - ((_recentTimestamp - _olderTimestamp) % _period)
+
+
+@internal
+def _recoverReserveSigner(
+    _amount: uint256,
+    _interest: uint256,
+    _maturity: uint256,
+    _collaterals: DynArray[Collateral, 100],
+    _deadline: uint256,
+    _v: uint256,
+    _r: uint256,
+    _s: uint256
+) -> address:
+    """
+        @notice recovers the sender address of the signed reserve function call
+    """
+    collaterals_data_hash: DynArray[bytes32, 100] = []
+    for c in _collaterals:
+        collaterals_data_hash.append(keccak256(_abi_encode(COLLATERAL_TYPE_HASH, c.contractAddress, c.tokenId, c.amount)))
+
+    data_hash: bytes32 = keccak256(_abi_encode(
+                RESERVE_TYPE_HASH,
+                _amount,
+                _interest,
+                _maturity,
+                keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))),
+                _deadline,
+                ))
+
+    sig_hash: bytes32 = keccak256(concat(convert("\x19\x01", Bytes[2]), _abi_encode(self.reserve_sig_domain_separator, data_hash)))
+    signer: address = ecrecover(sig_hash, _v, _r, _s)
+
+    return signer
 
 
 @external
@@ -645,7 +678,7 @@ def erc20TokenSymbol() -> String[100]:
 @external
 def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint256) -> uint256:
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(_borrower, _loanId)
-    
+
     if loan.paid:
         return 0
 
@@ -666,7 +699,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
             timePassed,
             self.interestAccrualPeriod
         )
-    
+
     return max_value(uint256)
 
 
@@ -705,22 +738,7 @@ def reserve(
     if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
         raise "msg.sender is not whitelisted"
 
-    # signature validation
-    collaterals_data_hash: DynArray[bytes32, 100] = []
-    for c in _collaterals:
-        collaterals_data_hash.append(keccak256(_abi_encode(COLLATERAL_TYPE_HASH, c.contractAddress, c.tokenId, c.amount)))
-
-    data_hash: bytes32 = keccak256(_abi_encode(
-                RESERVE_TYPE_HASH,
-                _amount,
-                _interest,
-                _maturity,
-                keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))),
-                _deadline,
-                ))
-
-    sig_hash: bytes32 = keccak256(concat(convert("\x19\x01", Bytes[2]), _abi_encode(self.reserve_sig_domain_separator, data_hash)))
-    signer: address = ecrecover(sig_hash, _v, _r, _s)
+    signer: address = self._recoverReserveSigner(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
     assert signer == self.owner, "invalid message signature"
 
     newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
