@@ -192,12 +192,6 @@ event LoanDefaulted:
     amount: uint256
     erc20TokenContract: address
 
-event PendingLoanCanceled:
-    walletIndexed: indexed(address)
-    wallet: address
-    loanId: uint256
-    erc20TokenContract: address
-
 
 # Global variables
 

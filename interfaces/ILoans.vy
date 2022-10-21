@@ -129,11 +129,6 @@ event LoanDefaulted:
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
-event PendingLoanCanceled:
-    walletIndexed: address
-    wallet: address
-    loanId: uint256
-    erc20TokenContract: address
 
 # Functions
 
