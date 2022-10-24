@@ -111,16 +111,6 @@ event LoanCreated:
     wallet: address
     loanId: uint256
     erc20TokenContract: address
-event LoanValidated:
-    walletIndexed: address
-    wallet: address
-    loanId: uint256
-    erc20TokenContract: address
-event LoanInvalidated:
-    walletIndexed: address
-    wallet: address
-    loanId: uint256
-    erc20TokenContract: address
 event LoanPayment:
     walletIndexed: address
     wallet: address
@@ -138,11 +128,6 @@ event LoanDefaulted:
     wallet: address
     loanId: uint256
     amount: uint256
-    erc20TokenContract: address
-event PendingLoanCanceled:
-    walletIndexed: address
-    wallet: address
-    loanId: uint256
     erc20TokenContract: address
 
 # Functions
@@ -226,15 +211,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
     pass
 
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
-    pass
-
-@external
-def validate(_borrower: address, _loanId: uint256):
-    pass
-
-@external
-def invalidate(_borrower: address, _loanId: uint256):
+def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
     pass
 
 @external
@@ -243,10 +220,6 @@ def pay(_loanId: uint256):
 
 @external
 def settleDefault(_borrower: address, _loanId: uint256):
-    pass
-
-@external
-def cancelPendingLoan(_loanId: uint256):
     pass
 
 @view
