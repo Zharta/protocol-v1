@@ -19,6 +19,7 @@ interface INFTXVaultFactory:
 interface INFTXVault:
     def vaultId() -> uint256: view
     def allValidNFTs(tokenIds: DynArray[uint256, 1]) -> bool: view
+    def mintFee() -> uint256: view
 
 interface INFTXMarketplaceZap:
     def mintAndSell721WETH(vaultId: uint256, ids: DynArray[uint256, 1], minWethOut: uint256, path: DynArray[address, 2], to: address): nonpayable
@@ -231,33 +232,40 @@ def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint25
 @internal
 def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
     assert self.nftxVaultFactoryAddress != empty(address), "nftx vault address not defined"
-    vault_addrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
+    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
     
-    if len(vault_addrs) == 0:
+    if len(vaultAddrs) == 0:
         return empty(address)
     
-    return vault_addrs[len(vault_addrs) - 1]
+    return vaultAddrs[len(vaultAddrs) - 1]
 
 
 @view
 @internal
 def _getNFTXVaultIdFromCollateralAddr(_collateralAddress: address) -> uint256:
-    vault_addr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
-    return INFTXVault(vault_addr).vaultId()
+    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
+    return INFTXVault(vaultAddr).vaultId()
+
+
+@view
+@internal
+def _getNFTXVaultMintFee(vaultAddr: address) -> uint256:
+    return INFTXVault(vaultAddr).mintFee()
 
 
 @view
 @internal
 def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> uint256:
-    vault_addr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
+    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
 
-    if vault_addr == empty(address):
+    if vaultAddr == empty(address):
         return 0
 
-    if not INFTXVault(vault_addr).allValidNFTs([_tokenId]):
+    if not INFTXVault(vaultAddr).allValidNFTs([_tokenId]):
         return 0
 
-    amountsOut: DynArray[uint256, 2] = ISushiRouter(self.sushiRouterAddress).getAmountsOut(as_wei_value(0.9, "ether"), [vault_addr, wethAddress])
+    mintFee: uint256 = self._getNFTXVaultMintFee(vaultAddr)
+    amountsOut: DynArray[uint256, 2] = ISushiRouter(self.sushiRouterAddress).getAmountsOut(as_wei_value(1, "ether") - mintFee, [vaultAddr, wethAddress])
 
     return amountsOut[1]
 
