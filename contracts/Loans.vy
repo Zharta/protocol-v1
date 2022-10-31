@@ -337,18 +337,6 @@ def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 100]) -> bool
 
 @pure
 @internal
-def _amountFromProRataInterestRate(
-    _amount: uint256,
-    _interest: uint256,
-    _maxLoanDuration: uint256,
-    _timePassed: uint256,
-    _interestAccrualPeriod: uint256
-) -> uint256:
-    return _amount * 10000 * _maxLoanDuration / (10000 * _maxLoanDuration + _interest * (_timePassed + _interestAccrualPeriod))
-
-
-@pure
-@internal
 def _loanPayableAmount(
     _amount: uint256,
     _paidAmount: uint256,
