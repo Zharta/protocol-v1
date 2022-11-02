@@ -262,7 +262,7 @@ def __init__(
                 DOMAIN_TYPE_HASH,
                 keccak256(ZHARTA_DOMAIN_NAME),
                 keccak256(ZHARTA_DOMAIN_VERSION),
-                convert(1, uint256),
+                chain.id,
                 self,
                 ))
 
