@@ -726,7 +726,7 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
             liquidation.lenderPeriodPrice
         )
         IERC20(liquidation.erc20TokenContract).approve(
-            self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract],
+            ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).lendingPoolCoreContract(),
             liquidation.principal + lenderPeriodInterestAmount
         )
         IERC20(liquidation.erc20TokenContract).transfer(
