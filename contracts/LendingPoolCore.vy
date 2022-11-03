@@ -39,11 +39,18 @@ event LendingPoolPeripheralAddressSet:
     newValue: address
     erc20TokenContract: address
 
+event DepositMigration:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+    erc20TokenContract: address
+
 
 # Global variables
 
 owner: public(address)
 proposedOwner: public(address)
+migrator: public(address)
 
 lendingPoolPeripheral: public(address)
 erc20TokenContract: public(address)
@@ -152,12 +159,14 @@ def activeForRewards(_lender: address) -> bool:
 
 @external
 def __init__(
-    _erc20TokenContract: address
+    _erc20TokenContract: address,
+    _migrator: address
 ):
     assert _erc20TokenContract != empty(address), "The address is the zero address"
 
     self.owner = msg.sender
     self.erc20TokenContract = _erc20TokenContract
+    self.migrator = _migrator
 
 
 @external
@@ -208,6 +217,52 @@ def setLendingPoolPeripheralAddress(_address: address):
     )
 
     self.lendingPoolPeripheral = _address
+
+@external
+def finish_migration():
+    assert self.migrator != empty(address), "migrator is already the zero address"
+    self.migrator = empty(address)
+
+
+@external
+def migrate_deposit(_lender: address, _payer: address, _amount: uint256, _lockPeriodEnd: uint256) -> bool:
+    # _amount should be passed in wei
+
+    assert msg.sender == self.migrator, "msg.sender is not the configured migrator"
+    assert self.migrator != empty(address), "migrator is the zero address"
+    assert _lender != empty(address), "The _address is the zero address"
+    assert _payer != empty(address), "The _payer is the zero address"
+    assert self._fundsAreAllowed(_payer, self, _amount), "Not enough funds allowed"
+
+    assert not self.knownLenders[_lender], "lender already migrated"
+
+    sharesAmount: uint256 = self._computeShares(_amount)
+
+    self.funds[_lender] = InvestorFunds(
+        {
+            currentAmountDeposited: _amount,
+            totalAmountDeposited: _amount,
+            totalAmountWithdrawn: 0,
+            sharesBasisPoints: sharesAmount,
+            lockPeriodEnd: _lockPeriodEnd,
+            activeForRewards: True
+        }
+    )
+    self.lenders.append(_lender)
+    self.knownLenders[_lender] = True
+    self.activeLenders += 1
+
+    self.fundsAvailable += _amount
+    self.totalSharesBasisPoints += sharesAmount
+
+    log DepositMigration(
+        _lender,
+        _lender,
+        _amount,
+        self.erc20TokenContract
+    )
+
+    return IERC20(self.erc20TokenContract).transferFrom(_lender, self, _amount)
 
 
 @external
