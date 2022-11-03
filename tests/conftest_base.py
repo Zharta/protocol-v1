@@ -3,7 +3,7 @@ import pytest
 
 @pytest.fixture(scope="module", autouse=True)
 def contract_owner(accounts):
-    yield accounts[0]
+    return accounts.add('0xbb4b8e7e4375d27f27518ac7f8c6db473fdc3a10a42389cf984c87bc7a1fce1b')
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -20,6 +20,9 @@ def borrower(accounts):
 def protocol_wallet(accounts):
     yield accounts[3]
 
+@pytest.fixture(scope="module", autouse=True)
+def not_contract_owner(accounts):
+    return accounts.add()
 
 @pytest.fixture(scope="module", autouse=True)
 def erc20_contract(ERC20, contract_owner):

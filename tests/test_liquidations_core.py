@@ -189,12 +189,14 @@ def test_add_liquidation_wrong_sender(liquidations_core_contract, borrower):
             0,
             0,
             brownie.ZERO_ADDRESS,
+            0,
+            brownie.ZERO_ADDRESS,
             brownie.ZERO_ADDRESS,
             {"from": borrower}
         )
 
 
-def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_contract, collateral_vault_peripheral_contract, erc721_contract, erc20_contract, contract_owner, borrower):
+def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_contract, collateral_vault_peripheral_contract, loans_core_contract, erc721_contract, erc20_contract, contract_owner, borrower):
     liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
     erc721_contract.mint(collateral_vault_peripheral_contract, 0, {"from": contract_owner})
@@ -215,6 +217,8 @@ def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_con
         grace_period_price,
         liquidations_period_price,
         borrower,
+        0,
+        loans_core_contract,
         erc20_contract,
         {"from": liquidations_peripheral_contract}
     )
@@ -239,10 +243,12 @@ def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_con
     assert liquidation["gracePeriodPrice"] == grace_period_price
     assert liquidation["lenderPeriodPrice"] == liquidations_period_price
     assert liquidation["borrower"] == borrower
+    assert liquidation["loanId"] == 0
+    assert liquidation["loansCoreContract"] == loans_core_contract
     assert liquidation["erc20TokenContract"] == erc20_contract
 
 
-def test_add_liquidation_already_exists(liquidations_core_contract, liquidations_peripheral_contract, collateral_vault_peripheral_contract, erc721_contract, erc20_contract, contract_owner, borrower):
+def test_add_liquidation_already_exists(liquidations_core_contract, liquidations_peripheral_contract, collateral_vault_peripheral_contract, loans_core_contract, erc721_contract, erc20_contract, contract_owner, borrower):
     liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
     erc721_contract.mint(collateral_vault_peripheral_contract, 0, {"from": contract_owner})
@@ -260,6 +266,8 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
         PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365,
         PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365,
         borrower,
+        0,
+        loans_core_contract,
         erc20_contract,
         {"from": liquidations_peripheral_contract}
     )
@@ -277,6 +285,8 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
             PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365,
             PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365,
             borrower,
+            0,
+            loans_core_contract,
             erc20_contract,
             {"from": liquidations_peripheral_contract}
         )
@@ -294,7 +304,7 @@ def test_remove_liquidation_not_found(liquidations_core_contract, liquidations_p
         liquidations_core_contract.removeLiquidation(erc721_contract, 0, {"from": liquidations_peripheral_contract})
 
 
-def test_remove_liquidation(liquidations_core_contract, liquidations_peripheral_contract, collateral_vault_peripheral_contract, erc721_contract, erc20_contract, contract_owner, borrower):
+def test_remove_liquidation(liquidations_core_contract, liquidations_peripheral_contract, collateral_vault_peripheral_contract, loans_core_contract, erc721_contract, erc20_contract, contract_owner, borrower):
     liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
     erc721_contract.mint(collateral_vault_peripheral_contract, 0, {"from": contract_owner})
@@ -312,6 +322,8 @@ def test_remove_liquidation(liquidations_core_contract, liquidations_peripheral_
         PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365,
         PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365,
         borrower,
+        0,
+        loans_core_contract,
         erc20_contract,
         {"from": liquidations_peripheral_contract}
     )

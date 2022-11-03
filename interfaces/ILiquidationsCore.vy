@@ -13,6 +13,8 @@ struct Liquidation:
     gracePeriodPrice: uint256
     lenderPeriodPrice: uint256
     borrower: address
+    loanId: uint256
+    loansCoreContract: address
     erc20TokenContract: address
     inAuction: bool
 
@@ -114,7 +116,7 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
     pass
 
 @external
-def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _lenderPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _lenderPeriodPrice: uint256, _borrower: address, _erc20TokenContract: address) -> bytes32:
+def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _lenderPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _lenderPeriodPrice: uint256, _borrower: address, _loanId: uint256, _loansCoreContract: address, _erc20TokenContract: address) -> bytes32:
     pass
 
 @external

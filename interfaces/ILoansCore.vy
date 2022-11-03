@@ -11,8 +11,9 @@ struct Loan:
     interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
     maturity: uint256
     startTime: uint256
-    collaterals: DynArray[Collateral, 20]
-    paidAmount: uint256
+    collaterals: DynArray[Collateral, 100]
+    paidPrincipal: uint256
+    paidInterestAmount: uint256
     started: bool
     invalidated: bool
     paid: bool
@@ -86,7 +87,7 @@ def getLoanInterest(_borrower: address, _loanId: uint256) -> uint256:
 
 @view
 @external
-def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 20]:
+def getLoanCollaterals(_borrower: address, _loanId: uint256) -> DynArray[Collateral, 100]:
     pass
 
 @view
@@ -96,7 +97,12 @@ def getLoanStartTime(_borrower: address, _loanId: uint256) -> uint256:
 
 @view
 @external
-def getLoanPaidAmount(_borrower: address, _loanId: uint256) -> uint256:
+def getLoanPaidPrincipal(_borrower: address, _loanId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLoanPaidInterestAmount(_borrower: address, _loanId: uint256) -> uint256:
     pass
 
 @view
@@ -177,7 +183,7 @@ def updateCollaterals(_collateral: Collateral, _toRemove: bool):
     pass
 
 @external
-def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 20]) -> uint256:
+def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256:
     pass
 
 @external
@@ -189,7 +195,7 @@ def updateInvalidLoan(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidAmount: uint256):
+def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256):
     pass
 
 @external
@@ -237,6 +243,16 @@ def loansPeripheral() -> address:
 
 @view
 @external
+def borrowedAmount(arg0: address) -> uint256:
+    pass
+
+@view
+@external
+def ongoingLoans(arg0: address) -> uint256:
+    pass
+
+@view
+@external
 def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
     pass
 
@@ -257,7 +273,7 @@ def collateralsData(arg0: bytes32) -> Collateral:
 
 @view
 @external
-def collateralsIdsByAddress(arg0: address, arg1: uint256) -> uint256:
+def collectionsBorrowedAmount(arg0: address) -> uint256:
     pass
 
 

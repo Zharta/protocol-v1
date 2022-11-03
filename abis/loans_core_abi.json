@@ -249,7 +249,21 @@
     "outputs": [
       {
         "name": "",
-        "type": "(address,uint256,uint256)[]"
+        "type": "tuple[]",
+        "components": [
+          {
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          }
+        ]
       }
     ]
   },
@@ -277,7 +291,28 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "getLoanPaidAmount",
+    "name": "getLoanPaidPrincipal",
+    "inputs": [
+      {
+        "name": "_borrower",
+        "type": "address"
+      },
+      {
+        "name": "_loanId",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "getLoanPaidInterestAmount",
     "inputs": [
       {
         "name": "_borrower",
@@ -441,10 +476,28 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -512,10 +565,28 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -574,10 +645,28 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -636,10 +725,28 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -698,10 +805,28 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -760,10 +885,28 @@
           },
           {
             "name": "collaterals",
-            "type": "(address,uint256,uint256)[]"
+            "type": "tuple[]",
+            "components": [
+              {
+                "name": "contractAddress",
+                "type": "address"
+              },
+              {
+                "name": "tokenId",
+                "type": "uint256"
+              },
+              {
+                "name": "amount",
+                "type": "uint256"
+              }
+            ]
           },
           {
-            "name": "paidAmount",
+            "name": "paidPrincipal",
+            "type": "uint256"
+          },
+          {
+            "name": "paidInterestAmount",
             "type": "uint256"
           },
           {
@@ -940,7 +1083,21 @@
       },
       {
         "name": "_collaterals",
-        "type": "(address,uint256,uint256)[]"
+        "type": "tuple[]",
+        "components": [
+          {
+            "name": "contractAddress",
+            "type": "address"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "name": "amount",
+            "type": "uint256"
+          }
+        ]
       }
     ],
     "outputs": [
@@ -996,7 +1153,11 @@
         "type": "uint256"
       },
       {
-        "name": "_paidAmount",
+        "name": "_paidPrincipal",
+        "type": "uint256"
+      },
+      {
+        "name": "_paidInterestAmount",
         "type": "uint256"
       }
     ],
@@ -1153,6 +1314,40 @@
   {
     "stateMutability": "view",
     "type": "function",
+    "name": "borrowedAmount",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "ongoingLoans",
+    "inputs": [
+      {
+        "name": "arg0",
+        "type": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
     "name": "collateralsInLoans",
     "inputs": [
       {
@@ -1247,15 +1442,11 @@
   {
     "stateMutability": "view",
     "type": "function",
-    "name": "collateralsIdsByAddress",
+    "name": "collectionsBorrowedAmount",
     "inputs": [
       {
         "name": "arg0",
         "type": "address"
-      },
-      {
-        "name": "arg1",
-        "type": "uint256"
       }
     ],
     "outputs": [
