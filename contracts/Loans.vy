@@ -258,13 +258,15 @@ def __init__(
     self.collateralVaultPeripheralContract = _collateralVaultPeripheralContract
     self.isAcceptingLoans = True
 
-    self.reserve_sig_domain_separator = keccak256(_abi_encode(
-                DOMAIN_TYPE_HASH,
-                keccak256(ZHARTA_DOMAIN_NAME),
-                keccak256(ZHARTA_DOMAIN_VERSION),
-                chain.id,
-                self,
-                ))
+    self.reserve_sig_domain_separator = keccak256(
+        _abi_encode(
+            DOMAIN_TYPE_HASH,
+            keccak256(ZHARTA_DOMAIN_NAME),
+            keccak256(ZHARTA_DOMAIN_VERSION),
+            chain.id,
+            self
+        )
+    )
 
 @internal
 def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 100]) -> bool:
