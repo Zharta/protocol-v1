@@ -27,6 +27,7 @@ def main():
     mutant_instance = ERC721.at("0x60E4d786628Fea6478F785A6d7e704777c86a7c6")
     veefriends_instance = ERC721.at("0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB")
     pudgypenguins_instance = ERC721.at("0xBd3531dA5CF5857e7CfAA92426877b022e612cf8")
+    bayc_instance = ERC721.at('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d')
 
     ### TEST WETH CONTRACT ###
     weth = ERC20.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
@@ -180,4 +181,5 @@ def main():
     loans_peripheral_weth.addCollateralToWhitelist(mutant_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(veefriends_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
 
