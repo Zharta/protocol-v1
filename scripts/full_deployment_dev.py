@@ -28,6 +28,7 @@ def main():
     veefriends_instance = ERC721.deploy({"from": owner})
     pudgypenguins_instance = ERC721.deploy({"from": owner})
     bayc_instance = ERC721.deploy({"from": owner})
+    wpunks_instance = ERC721.deploy({"from": owner})
 
     ### TEST WETH CONTRACT ###
     weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {'from': owner}, publish_source=True)
@@ -170,4 +171,4 @@ def main():
     loans_peripheral_weth.addCollateralToWhitelist(veefriends_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
-
+    loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
