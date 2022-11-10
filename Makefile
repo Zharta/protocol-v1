@@ -19,8 +19,7 @@ install-dev: venv install
 
 test: venv install-dev
 	patch contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
-	${VENV}/bin/brownie test -n auto
-	patch -R contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
+	${VENV}/bin/brownie test ; patch -R contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
 
 clean:
 	rm -rf ${VENV}
