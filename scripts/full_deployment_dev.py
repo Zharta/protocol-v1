@@ -172,4 +172,3 @@ def main():
     loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
-
