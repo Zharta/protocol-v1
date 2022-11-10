@@ -178,7 +178,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
-    method: String[20] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX, BACKSTOP_PERIOD_ADMN
+    method: String[30] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX, BACKSTOP_PERIOD_ADMIN
 
 event AdminWithdrawal:
     collateralAddressIndexed: indexed(address)
@@ -867,7 +867,7 @@ def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _token
     assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
-    assert block.timestamp > liquidation.lenderPeriodMaturity + self.auctionPeriodDuration, "liq not out of auction period"
+    assert block.timestamp > liquidation.lenderPeriodMaturity, "liq not out of lenders period"
 
     ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 
@@ -904,8 +904,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _collateralA
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert liquidation.lid != empty(bytes32), 'collateral not in liquidation'
-    assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
-    assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation within lender period"
+    assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation not out of lender period"
 
     ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 
@@ -939,5 +938,5 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _collateralA
         _principal + _interestAmount,
         msg.sender,
         liquidation.erc20TokenContract,
-        "BACKSTOP_PERIOD_ADMN"
+        "BACKSTOP_PERIOD_ADMIN"
     )
