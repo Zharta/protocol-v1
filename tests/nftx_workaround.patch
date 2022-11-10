@@ -1,0 +1,12 @@
+diff --git a/contracts/LiquidationsPeripheral.vy b/contracts/LiquidationsPeripheral.vy
+index 83b0779..b344fe7 100644
+--- a/contracts/LiquidationsPeripheral.vy
++++ b/contracts/LiquidationsPeripheral.vy
+@@ -231,6 +231,7 @@ def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint25
+ @view
+ @internal
+ def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
++    if 1 > 0: return empty(address)
+     assert self.nftxVaultFactoryAddress != empty(address), "nftx vault address not defined"
+     vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
+     

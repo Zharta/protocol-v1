@@ -178,7 +178,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
-    method: String[20] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX
+    method: String[20] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX, BACKSTOP_PERIOD_ADMN
 
 event AdminWithdrawal:
     collateralAddressIndexed: indexed(address)
@@ -895,4 +895,49 @@ def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _token
         _collateralAddress,
         _tokenId,
         _walletAddress
+    )
+
+@external
+def adminLiquidation(_principal: uint256, _interestAmount: uint256, _collateralAddress: address, _tokenId: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert IERC721(_collateralAddress).ownerOf(_tokenId) != ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral still owned by vault"
+
+    liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
+    assert liquidation.lid != empty(bytes32), 'collateral not in liquidation'
+    assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
+    assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation within lender period"
+
+    ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
+
+    log LiquidationRemoved(
+        liquidation.erc20TokenContract,
+        liquidation.collateralAddress,
+        liquidation.lid,
+        liquidation.collateralAddress,
+        liquidation.tokenId,
+        liquidation.erc20TokenContract,
+        liquidation.loansCoreContract,
+        liquidation.loanId,
+        liquidation.borrower
+    )
+
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+        msg.sender,
+        _principal,
+        _interestAmount,
+        True,
+        "admin_liquidation"
+    )
+
+    log NFTPurchased(
+        liquidation.erc20TokenContract,
+        _collateralAddress,
+        msg.sender,
+        liquidation.lid,
+        _collateralAddress,
+        _tokenId,
+        _principal + _interestAmount,
+        msg.sender,
+        liquidation.erc20TokenContract,
+        "BACKSTOP_PERIOD_ADMN"
     )
