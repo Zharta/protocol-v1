@@ -898,29 +898,14 @@ def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _token
     )
 
 @external
-def adminLiquidation(_principal: uint256, _interestAmount: uint256, _collateralAddress: address, _tokenId: uint256):
+def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert IERC721(_collateralAddress).ownerOf(_tokenId) != ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral still owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
-    assert liquidation.lid != empty(bytes32), 'collateral not in liquidation'
-    assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation not out of lender period"
+    assert liquidation.lid == empty(bytes32), 'collateral still in liquidation'
 
-    ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
-
-    log LiquidationRemoved(
-        liquidation.erc20TokenContract,
-        liquidation.collateralAddress,
-        liquidation.lid,
-        liquidation.collateralAddress,
-        liquidation.tokenId,
-        liquidation.erc20TokenContract,
-        liquidation.loansCoreContract,
-        liquidation.loanId,
-        liquidation.borrower
-    )
-
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[_erc20TokenContract]).receiveFundsFromLiquidation(
         msg.sender,
         _principal,
         _interestAmount,
@@ -929,14 +914,14 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _collateralA
     )
 
     log NFTPurchased(
-        liquidation.erc20TokenContract,
+        _erc20TokenContract,
         _collateralAddress,
         msg.sender,
-        liquidation.lid,
+        _liquidationId,
         _collateralAddress,
         _tokenId,
         _principal + _interestAmount,
         msg.sender,
-        liquidation.erc20TokenContract,
+        _erc20TokenContract,
         "BACKSTOP_PERIOD_ADMIN"
     )

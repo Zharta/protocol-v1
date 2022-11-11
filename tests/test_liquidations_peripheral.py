@@ -1247,13 +1247,15 @@ def test_admin_liquidation(
     token_id = liquidation['tokenId']
     loan_id = loan['id']
 
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT, {"from": contract_owner})
-    collateral_vault_peripheral_contract.transferCollateralFromLiquidation(contract_owner, collateral_address, token_id, {"from": liquidations_peripheral_contract})
     chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION+1)
+    liquidations_peripheral_contract.adminWithdrawal(contract_owner, collateral_address, token_id, {"from": contract_owner})
 
+    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT, {"from": contract_owner})
     tx = liquidations_peripheral_contract.adminLiquidation(
         LOAN_AMOUNT*7//10,
         LOAN_AMOUNT*1//10,
+        liquidation_id,
+        liquidation['erc20TokenContract'],
         collateral_address,
         token_id,
         {"from": contract_owner}
@@ -1266,14 +1268,7 @@ def test_admin_liquidation(
     assert liquidation["borrower"] == brownie.ZERO_ADDRESS
     assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
 
-    event_liquidation_removed = tx.events["LiquidationRemoved"]
-    assert event_liquidation_removed["liquidationId"] == liquidation_id
-    assert event_liquidation_removed["collateralAddress"] == erc721_contract
-    assert event_liquidation_removed["tokenId"] == 0
-    assert event_liquidation_removed["erc20TokenContract"] == erc20_contract
-    assert event_liquidation_removed["loansCoreContract"] == loans_core_contract
-    assert event_liquidation_removed["loanId"] == loan_id
-    assert event_liquidation_removed["borrower"] == borrower
+    assert "LiquidationRemoved" not in tx.events
 
     event_nft_purchased = tx.events["NFTPurchased"]
     assert event_nft_purchased["liquidationId"] == liquidation_id
@@ -1327,60 +1322,11 @@ def test_admin_liquidation_fail_on_message_not_from_owner(
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
+            liquidation['lid'],
+            liquidation['erc20TokenContract'],
             collateral_address,
             token_id,
             {"from": borrower}
-        )
-
-    liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-    assert liquidation["lid"] != brownie.ZERO_ADDRESS
-
-
-def test_admin_liquidation_fail_if_not_out_of_lender_period(
-    liquidations_peripheral_contract,
-    liquidations_core_contract,
-    loans_peripheral_contract,
-    loans_core_contract,
-    lending_pool_peripheral_contract,
-    lending_pool_core_contract,
-    collateral_vault_peripheral_contract,
-    collateral_vault_core_contract,
-    liquidity_controls_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
-):
-
-    (liquidation, loan) = _create_liquidation(
-        liquidations_peripheral_contract,
-        liquidations_core_contract,
-        loans_peripheral_contract,
-        loans_core_contract,
-        lending_pool_peripheral_contract,
-        lending_pool_core_contract,
-        collateral_vault_peripheral_contract,
-        collateral_vault_core_contract,
-        liquidity_controls_contract,
-        erc721_contract,
-        erc20_contract,
-        borrower,
-        contract_owner
-    )
-
-    collateral_address = liquidation['collateralAddress']
-    token_id = liquidation['tokenId']
-
-    collateral_vault_peripheral_contract.transferCollateralFromLiquidation(contract_owner, collateral_address, token_id, {"from": liquidations_peripheral_contract})
-    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION-1)
-
-    with brownie.reverts("liquidation not out of lender period"):
-        tx = liquidations_peripheral_contract.adminLiquidation(
-            LOAN_AMOUNT*7//10,
-            LOAN_AMOUNT*1//10,
-            collateral_address,
-            token_id,
-            {"from": contract_owner}
         )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
@@ -1428,6 +1374,8 @@ def test_admin_liquidation_fail_on_collateral_in_vault(
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
+            liquidation['lid'],
+            liquidation['erc20TokenContract'],
             collateral_address,
             token_id,
             {"from": contract_owner}
@@ -1437,7 +1385,7 @@ def test_admin_liquidation_fail_on_collateral_in_vault(
     assert liquidation["lid"] != brownie.ZERO_ADDRESS
 
 
-def test_admin_liquidation_fail_on_collateral_not_in_liquidation(
+def test_admin_liquidation_fail_on_collateral_in_liquidation(
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -1472,16 +1420,15 @@ def test_admin_liquidation_fail_on_collateral_not_in_liquidation(
     collateral_address = liquidation['collateralAddress']
     token_id = liquidation['tokenId']
 
-    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION-1)
-
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION)
     collateral_vault_peripheral_contract.transferCollateralFromLiquidation(contract_owner, collateral_address, token_id, {"from": liquidations_peripheral_contract})
-    liquidations_core_contract.removeLiquidation(collateral_address, token_id, {"from": liquidations_peripheral_contract})
 
-
-    with brownie.reverts("collateral not in liquidation"):
+    with brownie.reverts("collateral still in liquidation"):
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
+            liquidation['lid'],
+            liquidation['erc20TokenContract'],
             collateral_address,
             token_id,
             {"from": contract_owner}
