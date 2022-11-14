@@ -40,7 +40,7 @@ def create_signature_fixture(test_collaterals, loans_peripheral_contract, contra
     # https://github.com/ethereum/eth-account/blob/v0.5.9/eth_account/_utils/structured_data/hashing.py#L236
     # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be used when brownie allows eth-account==0.7.0
 
-    def _create_signature(collaterals=test_collaterals, amount=LOAN_AMOUNT, interest=LOAN_INTEREST, maturity=MATURITY, deadline=VALIDATION_DEADLINE, signer=contract_owner, verifier=loans_peripheral_contract, domain_name="Zharta", domain_version="1", chain_id=1):
+    def _create_signature(collaterals=test_collaterals, amount=LOAN_AMOUNT, interest=LOAN_INTEREST, maturity=MATURITY, deadline=VALIDATION_DEADLINE, signer=contract_owner, verifier=loans_peripheral_contract, domain_name="Zharta", domain_version="1", chain_id=1337):
 
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         reserve_type_def = "ReserveMessageContent(uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)"

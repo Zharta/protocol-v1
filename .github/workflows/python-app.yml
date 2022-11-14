@@ -37,4 +37,5 @@ jobs:
     
     - name: Run project unit tests 
       run: |
-        brownie test -n auto
+        patch contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
+        brownie test
