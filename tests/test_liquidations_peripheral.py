@@ -409,7 +409,6 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     loan = loans_core_contract.getLoan(borrower, loan_id)
 
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
-    print(interest_amount)
     
     apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
@@ -438,8 +437,8 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["erc20TokenContract"] == erc20_contract
-    assert event["gracePeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * GRACE_PERIOD_DURATION) / (Decimal(31536000) * Decimal(10000)))
-    assert event["lenderPeriodPrice"] == int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + Decimal(LOAN_AMOUNT * apr * (GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+    assert event["gracePeriodPrice"] == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
+    assert event["lenderPeriodPrice"] == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     assert event["gracePeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION
     assert event["lenderPeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
     assert event["loansCoreContract"] == loans_core_contract
@@ -587,9 +586,8 @@ def test_pay_loan_liquidations_grace_period(
     liquidation_id2 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 1)["lid"]
 
     interest_amount = int(Decimal(LOAN_AMOUNT) / Decimal(2) * Decimal(LOAN_INTEREST * (MATURITY - int(dt.now().timestamp()))) / Decimal(25920000000))
-    apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
-    grace_period_price = int(Decimal(LOAN_AMOUNT) / Decimal(2) + Decimal(interest_amount) + (Decimal(LOAN_AMOUNT) / Decimal(2) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+    grace_period_price = int(Decimal(LOAN_AMOUNT) / Decimal(2)) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     erc20_contract.mint(borrower, grace_period_price * 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, grace_period_price * 2, {"from": borrower})
 
@@ -755,9 +753,8 @@ def test_buy_nft_grace_period(
     loan = loans_core_contract.getLoan(borrower, loan_id)
 
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
-    apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
-    grace_period_price = int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + (Decimal(LOAN_AMOUNT) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+    grace_period_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     erc20_contract.mint(borrower, grace_period_price, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, grace_period_price, {"from": borrower})
 
@@ -993,9 +990,8 @@ def test_buy_nft_lender_period(
     loan = loans_core_contract.getLoan(borrower, loan_id)
 
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
-    apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
-    liquidation_price = int(Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + (Decimal(LOAN_AMOUNT) * Decimal(apr) * Decimal(GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION)) / (Decimal(31536000) * Decimal(10000)))
+    liquidation_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     erc20_contract.mint(borrower, liquidation_price, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, liquidation_price, {"from": borrower})
 
@@ -1142,3 +1138,294 @@ def test_admin_withdrawal_wrong_sender(
 #     assert event_admin_withdrawal["collateralAddress"] == erc721_contract
 #     assert event_admin_withdrawal["tokenId"] == 0
 #     assert event_admin_withdrawal["wallet"] == contract_owner
+
+
+def _create_liquidation(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+    ):
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+
+    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+
+    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+    liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+
+    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
+
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract, 0, LOAN_AMOUNT)],
+        {"from": loans_peripheral_contract}
+    )
+    loan_id = tx_add_loan.return_value
+    loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
+
+    liquidations_peripheral_contract.addLiquidation(
+        erc721_contract,
+        0,
+        borrower,
+        loan_id,
+        erc20_contract
+    )
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+    loan = loans_core_contract.getLoan(borrower, loan_id)
+
+    return (liquidation, loan)
+
+
+def test_admin_liquidation(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+
+    (liquidation, loan) = _create_liquidation(
+        liquidations_peripheral_contract,
+        liquidations_core_contract,
+        loans_peripheral_contract,
+        loans_core_contract,
+        lending_pool_peripheral_contract,
+        lending_pool_core_contract,
+        collateral_vault_peripheral_contract,
+        collateral_vault_core_contract,
+        liquidity_controls_contract,
+        erc721_contract,
+        erc20_contract,
+        borrower,
+        contract_owner
+    )
+
+    liquidation_id = liquidation['lid']
+    collateral_address = liquidation['collateralAddress']
+    token_id = liquidation['tokenId']
+    loan_id = loan['id']
+
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION+1)
+    liquidations_peripheral_contract.adminWithdrawal(contract_owner, collateral_address, token_id, {"from": contract_owner})
+
+    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT, {"from": contract_owner})
+    tx = liquidations_peripheral_contract.adminLiquidation(
+        LOAN_AMOUNT*7//10,
+        LOAN_AMOUNT*1//10,
+        liquidation_id,
+        liquidation['erc20TokenContract'],
+        collateral_address,
+        token_id,
+        {"from": contract_owner}
+    )
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+    assert liquidation["lid"] == brownie.ZERO_ADDRESS
+    assert liquidation["collateralAddress"] == brownie.ZERO_ADDRESS
+    assert liquidation["startTime"] == 0
+    assert liquidation["borrower"] == brownie.ZERO_ADDRESS
+    assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
+
+    assert "LiquidationRemoved" not in tx.events
+
+    event_nft_purchased = tx.events["NFTPurchased"]
+    assert event_nft_purchased["liquidationId"] == liquidation_id
+    assert event_nft_purchased["collateralAddress"] == erc721_contract
+    assert event_nft_purchased["tokenId"] == 0
+    assert event_nft_purchased["amount"] == LOAN_AMOUNT * 8 // 10
+    assert event_nft_purchased["buyerAddress"] == contract_owner
+    assert event_nft_purchased["erc20TokenContract"] == erc20_contract
+    assert event_nft_purchased["method"] == "BACKSTOP_PERIOD_ADMIN"
+
+    event_funds_receipt = tx.events["FundsReceipt"]
+    assert event_funds_receipt["fundsOrigin"] == "admin_liquidation"
+
+
+def test_admin_liquidation_fail_on_message_not_from_owner(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+
+    (liquidation, loan) = _create_liquidation(
+        liquidations_peripheral_contract,
+        liquidations_core_contract,
+        loans_peripheral_contract,
+        loans_core_contract,
+        lending_pool_peripheral_contract,
+        lending_pool_core_contract,
+        collateral_vault_peripheral_contract,
+        collateral_vault_core_contract,
+        liquidity_controls_contract,
+        erc721_contract,
+        erc20_contract,
+        borrower,
+        contract_owner
+    )
+
+    collateral_address = liquidation['collateralAddress']
+    token_id = liquidation['tokenId']
+
+    with brownie.reverts("msg.sender is not the owner"):
+        tx = liquidations_peripheral_contract.adminLiquidation(
+            LOAN_AMOUNT*7//10,
+            LOAN_AMOUNT*1//10,
+            liquidation['lid'],
+            liquidation['erc20TokenContract'],
+            collateral_address,
+            token_id,
+            {"from": borrower}
+        )
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+    assert liquidation["lid"] != brownie.ZERO_ADDRESS
+
+
+def test_admin_liquidation_fail_on_collateral_in_vault(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+
+    (liquidation, loan) = _create_liquidation(
+        liquidations_peripheral_contract,
+        liquidations_core_contract,
+        loans_peripheral_contract,
+        loans_core_contract,
+        lending_pool_peripheral_contract,
+        lending_pool_core_contract,
+        collateral_vault_peripheral_contract,
+        collateral_vault_core_contract,
+        liquidity_controls_contract,
+        erc721_contract,
+        erc20_contract,
+        borrower,
+        contract_owner
+    )
+
+    collateral_address = liquidation['collateralAddress']
+    token_id = liquidation['tokenId']
+
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION-1)
+
+    with brownie.reverts("collateral still owned by vault"):
+        tx = liquidations_peripheral_contract.adminLiquidation(
+            LOAN_AMOUNT*7//10,
+            LOAN_AMOUNT*1//10,
+            liquidation['lid'],
+            liquidation['erc20TokenContract'],
+            collateral_address,
+            token_id,
+            {"from": contract_owner}
+        )
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+    assert liquidation["lid"] != brownie.ZERO_ADDRESS
+
+
+def test_admin_liquidation_fail_on_collateral_in_liquidation(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+
+    (liquidation, loan) = _create_liquidation(
+        liquidations_peripheral_contract,
+        liquidations_core_contract,
+        loans_peripheral_contract,
+        loans_core_contract,
+        lending_pool_peripheral_contract,
+        lending_pool_core_contract,
+        collateral_vault_peripheral_contract,
+        collateral_vault_core_contract,
+        liquidity_controls_contract,
+        erc721_contract,
+        erc20_contract,
+        borrower,
+        contract_owner
+    )
+
+    collateral_address = liquidation['collateralAddress']
+    token_id = liquidation['tokenId']
+
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION)
+    collateral_vault_peripheral_contract.transferCollateralFromLiquidation(contract_owner, collateral_address, token_id, {"from": liquidations_peripheral_contract})
+
+    with brownie.reverts("collateral still in liquidation"):
+        tx = liquidations_peripheral_contract.adminLiquidation(
+            LOAN_AMOUNT*7//10,
+            LOAN_AMOUNT*1//10,
+            liquidation['lid'],
+            liquidation['erc20TokenContract'],
+            collateral_address,
+            token_id,
+            {"from": contract_owner}
+        )
