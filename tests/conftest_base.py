@@ -4,7 +4,7 @@ from web3 import Web3
 
 
 @pytest.fixture(scope="module", autouse=True)
-def contract_owner(accounts, gas):
+def contract_owner(accounts):
     owner = accounts.add('0xbb4b8e7e4375d27f27518ac7f8c6db473fdc3a10a42389cf984c87bc7a1fce1b')
     accounts[0].transfer(owner, Web3.toWei(800, "ether"))
     return owner
