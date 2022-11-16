@@ -1,4 +1,4 @@
-name: Python application
+name: Other tests
 
 on:
   push:
@@ -41,4 +41,6 @@ jobs:
     - name: Run project unit tests 
       run: |
         brownie networks add development ganache-mainnet-fork cmd=ganache-cli host=http://127.0.0.1 fork="https://eth-mainnet.g.alchemy.com/v2/$ALCHEMY_KEY" accounts=10 mnemonic=brownie port=8545
-        brownie test --durations=20 --network ganache-mainnet-fork
+        brownie test tests/test_collateral_* tests/test_lendingpool_* tests/test_liquidations_* tests/test_loans_core.py --durations=20 --network ganache-mainnet-fork
+
+
