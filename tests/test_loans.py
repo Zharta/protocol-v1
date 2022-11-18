@@ -247,7 +247,7 @@ def test_add_address_to_whitelist_zero_address(loans_peripheral_contract, contra
 def test_add_address_to_whitelist_not_contract_address(loans_peripheral_contract, contract_owner):
     with brownie.reverts("_address is not a contract"):
         loans_peripheral_contract.addCollateralToWhitelist(
-            "0xa3aee8bce55beea1951ef834b99f3ac60d1abeeb",
+            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
             {"from": contract_owner}
         )
 

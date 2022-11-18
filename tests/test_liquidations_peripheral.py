@@ -7,9 +7,9 @@ import brownie
 import eth_abi
 
 
-GRACE_PERIOD_DURATION = 5
-LENDER_PERIOD_DURATION = 5
-AUCTION_DURATION = 5
+GRACE_PERIOD_DURATION = 50
+LENDER_PERIOD_DURATION = 50
+AUCTION_DURATION = 50
 
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
@@ -396,7 +396,6 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     loan_id = tx_add_loan.return_value
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
-
     tx = liquidations_peripheral_contract.addLiquidation(
         erc721_contract,
         0,
@@ -563,6 +562,7 @@ def test_pay_loan_liquidations_grace_period(
         {"from": loans_peripheral_contract}
     )
     loan_id = tx_add_loan.return_value
+
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
@@ -584,8 +584,9 @@ def test_pay_loan_liquidations_grace_period(
 
     liquidation_id1 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)["lid"]
     liquidation_id2 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 1)["lid"]
+    loan = loans_core_contract.getLoan(borrower, loan_id)
 
-    interest_amount = int(Decimal(LOAN_AMOUNT) / Decimal(2) * Decimal(LOAN_INTEREST * (MATURITY - int(dt.now().timestamp()))) / Decimal(25920000000))
+    interest_amount = int(Decimal(LOAN_AMOUNT) / Decimal(2) * Decimal(LOAN_INTEREST * (loan['maturity'] - loan['startTime'])) / Decimal(25920000000))
 
     grace_period_price = int(Decimal(LOAN_AMOUNT) / Decimal(2)) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     erc20_contract.mint(borrower, grace_period_price * 2, {"from": contract_owner})
@@ -1186,7 +1187,7 @@ def _create_liquidation(
         LOAN_INTEREST,
         MATURITY,
         [(erc721_contract, 0, LOAN_AMOUNT)],
-        {"from": loans_peripheral_contract}
+        {"from": loans_peripheral_contract, 'gas_price': 0}
     )
     loan_id = tx_add_loan.return_value
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
