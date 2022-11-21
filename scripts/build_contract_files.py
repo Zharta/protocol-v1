@@ -104,6 +104,9 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         colls_test_file = Path.cwd() / "configs" / env / f"collaterals_test.json"
         colls_test = json.loads(read_file(colls_test_file))
 
+        colls_whitelist_prod_file = Path.cwd() / "configs/prod/collaterals_whitelist.json"
+        colls_whitelist_prod = json.loads(read_file(colls_whitelist_prod_file))
+
     if output_directory and not write_to_s3:
         # Check if directory exists and if not create it
         Path(f"{output_directory}/abi").mkdir(parents=True, exist_ok=True)
@@ -170,6 +173,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     config_file = Path(output_directory) / "contracts.json"
     nfts_file = Path(output_directory) / "nfts.json"
     colls_whitelist_file = Path(output_directory) / "collaterals_whitelist.json"
+    colls_whitelist_prod_file = Path(output_directory) / "collaterals_whitelist_prod.json"
     colls_test_file = Path(output_directory) / "collaterals_test.json"
     collection_names_file = Path(output_directory) / "collection_names.json"
 
@@ -180,6 +184,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         write_content_to_s3(collection_names_file, json.dumps(collection_names))
         if env != "prod":
             write_content_to_s3(colls_test_file, json.dumps(colls_test))
+            write_content_to_s3(colls_whitelist_prod_file, json.dumps(colls_whitelist_prod))
     
     elif not write_to_s3 and output_directory:
         write_content_to_file(config_file, json.dumps(config))
@@ -188,6 +193,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         write_content_to_file(collection_names_file, json.dumps(collection_names))
         if env != "prod":
             write_content_to_file(colls_test_file, json.dumps(colls_test))
+            write_content_to_file(colls_whitelist_prod_file, json.dumps(colls_whitelist_prod))
 
 if __name__ == "__main__":
     build_contract_files()
