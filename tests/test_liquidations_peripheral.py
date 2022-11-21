@@ -582,21 +582,18 @@ def test_pay_loan_liquidations_grace_period(
         erc20_contract
     )
 
-    liquidation_id1 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)["lid"]
-    liquidation_id2 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 1)["lid"]
-    loan = loans_core_contract.getLoan(borrower, loan_id)
+    liquidation1 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+    liquidation2 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 1)
 
-    interest_amount = int(Decimal(LOAN_AMOUNT) / Decimal(2) * Decimal(LOAN_INTEREST * (loan['maturity'] - loan['startTime'])) / Decimal(25920000000))
-
-    grace_period_price = int(Decimal(LOAN_AMOUNT) / Decimal(2)) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
-    erc20_contract.mint(borrower, grace_period_price * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, grace_period_price * 2, {"from": borrower})
+    erc20_contract.mint(borrower, liquidation1["gracePeriodPrice"], {"from": contract_owner})
+    erc20_contract.mint(borrower, liquidation2["gracePeriodPrice"], {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, liquidation1["gracePeriodPrice"] + liquidation2["gracePeriodPrice"], {"from": borrower})
 
     tx = liquidations_peripheral_contract.payLoanLiquidationsGracePeriod(loan_id, erc20_contract, {"from": borrower})
 
     # LIQUIDATION 1
     event_liquidation_removed1 = tx.events["LiquidationRemoved"][0]
-    assert event_liquidation_removed1["liquidationId"] == liquidation_id1
+    assert event_liquidation_removed1["liquidationId"] == liquidation1["lid"]
     assert event_liquidation_removed1["collateralAddress"] == erc721_contract
     assert event_liquidation_removed1["tokenId"] == 0
     assert event_liquidation_removed1["erc20TokenContract"] == erc20_contract
@@ -605,17 +602,17 @@ def test_pay_loan_liquidations_grace_period(
     assert event_liquidation_removed1["borrower"] == borrower
 
     event_nft_purchased1 = tx.events["NFTPurchased"][0]
-    assert event_nft_purchased1["liquidationId"] == liquidation_id1
+    assert event_nft_purchased1["liquidationId"] == liquidation1["lid"]
     assert event_nft_purchased1["collateralAddress"] == erc721_contract
     assert event_nft_purchased1["tokenId"] == 0
-    assert event_nft_purchased1["amount"] == grace_period_price
+    assert event_nft_purchased1["amount"] == liquidation1["gracePeriodPrice"]
     assert event_nft_purchased1["buyerAddress"] == borrower
     assert event_nft_purchased1["erc20TokenContract"] == erc20_contract
     assert event_nft_purchased1["method"] == "GRACE_PERIOD"
 
     # LIQUIDATION 2
     event_liquidation_removed2 = tx.events["LiquidationRemoved"][1]
-    assert event_liquidation_removed2["liquidationId"] == liquidation_id2
+    assert event_liquidation_removed2["liquidationId"] == liquidation2["lid"]
     assert event_liquidation_removed2["collateralAddress"] == erc721_contract
     assert event_liquidation_removed2["tokenId"] == 1
     assert event_liquidation_removed2["erc20TokenContract"] == erc20_contract
@@ -624,10 +621,10 @@ def test_pay_loan_liquidations_grace_period(
     assert event_liquidation_removed2["borrower"] == borrower
 
     event_nft_purchased2 = tx.events["NFTPurchased"][1]
-    assert event_nft_purchased2["liquidationId"] == liquidation_id2
+    assert event_nft_purchased2["liquidationId"] == liquidation2["lid"]
     assert event_nft_purchased2["collateralAddress"] == erc721_contract
     assert event_nft_purchased2["tokenId"] == 1
-    assert event_nft_purchased2["amount"] == grace_period_price
+    assert event_nft_purchased2["amount"] == liquidation2["gracePeriodPrice"]
     assert event_nft_purchased2["buyerAddress"] == borrower
     assert event_nft_purchased2["erc20TokenContract"] == erc20_contract
     assert event_nft_purchased2["method"] == "GRACE_PERIOD"
