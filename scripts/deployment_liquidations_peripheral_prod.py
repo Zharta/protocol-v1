@@ -21,9 +21,9 @@ def main():
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
-        180 * 86400,
-        180 * 86400,
-        180 * 86400,
+        2 * 86400,
+        2 * 86400,
+        2 * 86400,
         weth,
         {"from": owner},
     )
