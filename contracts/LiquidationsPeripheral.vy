@@ -211,7 +211,7 @@ wethAddress: immutable(address)
 @pure
 @internal
 def _penaltyFee(_principal: uint256) -> uint256:
-    return max(250 * _principal / 10000, as_wei_value(0.2, "ether"))
+    return min(250 * _principal / 10000, as_wei_value(0.2, "ether"))
 
 
 @pure
