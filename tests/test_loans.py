@@ -1996,8 +1996,8 @@ def test_set_default_loan(
         assert liquidation["principal"] == collateral[2]
         assert liquidation["interestAmount"] == interest_amount
         assert liquidation["apr"] == apr
-        assert liquidation["gracePeriodPrice"] == Decimal(collateral[2]) + Decimal(interest_amount) + int(max(0.025 * collateral[2], Web3.toWei(0.2, "ether")))
-        assert liquidation["lenderPeriodPrice"] == Decimal(collateral[2]) + Decimal(interest_amount) + int(max(0.025 * collateral[2], Web3.toWei(0.2, "ether")))
+        assert liquidation["gracePeriodPrice"] == Decimal(collateral[2]) + Decimal(interest_amount) + int(min(0.025 * collateral[2], Web3.toWei(0.2, "ether")))
+        assert liquidation["lenderPeriodPrice"] == Decimal(collateral[2]) + Decimal(interest_amount) + int(min(0.025 * collateral[2], Web3.toWei(0.2, "ether")))
         assert liquidation["borrower"] == borrower
         assert liquidation["erc20TokenContract"] == erc20_contract
         assert not liquidation["inAuction"]

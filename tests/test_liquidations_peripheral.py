@@ -436,8 +436,8 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     assert event["collateralAddress"] == erc721_contract
     assert event["tokenId"] == 0
     assert event["erc20TokenContract"] == erc20_contract
-    assert event["gracePeriodPrice"] == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
-    assert event["lenderPeriodPrice"] == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
+    assert event["gracePeriodPrice"] == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
+    assert event["lenderPeriodPrice"] == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     assert event["gracePeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION
     assert event["lenderPeriodMaturity"] == liquidation["startTime"] + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
     assert event["loansCoreContract"] == loans_core_contract
@@ -588,7 +588,7 @@ def test_pay_loan_liquidations_grace_period(
 
     interest_amount = int(Decimal(LOAN_AMOUNT) / Decimal(2) * Decimal(LOAN_INTEREST * (loan['maturity'] - loan['startTime'])) / Decimal(25920000000))
 
-    grace_period_price = int(Decimal(LOAN_AMOUNT) / Decimal(2)) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
+    grace_period_price = int(Decimal(LOAN_AMOUNT) / Decimal(2)) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     erc20_contract.mint(borrower, grace_period_price * 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, grace_period_price * 2, {"from": borrower})
 
@@ -755,7 +755,7 @@ def test_buy_nft_grace_period(
 
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
 
-    grace_period_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
+    grace_period_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     erc20_contract.mint(borrower, grace_period_price, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, grace_period_price, {"from": borrower})
 
@@ -992,7 +992,7 @@ def test_buy_nft_lender_period(
 
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
 
-    liquidation_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(max(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
+    liquidation_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
     erc20_contract.mint(borrower, liquidation_price, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, liquidation_price, {"from": borrower})
 
