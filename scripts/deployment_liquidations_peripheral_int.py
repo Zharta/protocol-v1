@@ -10,14 +10,14 @@ from brownie import (
 )
 
 def main():
-    owner = accounts.load('prodacc')
+    owner = accounts.load('goerliacc')
 
-    weth = ERC20.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
-    lending_pool_peripheral_weth = LendingPoolPeripheral.at("0x0b2D6a2106be311D6d9c9EC8c0971f554691cC45")
-    liquidations_core = LiquidationsCore.at("0x3E02654FbD6580f0D3F2E7999E53b0428bC88373")
-    collateral_vault_peripheral = CollateralVaultPeripheral.at("0x44D2f0F514BF0ea91d9B19dcC7b1D8247A349FE1")
-    loans_peripheral_weth = Loans.at("0x6781884f919B3533B4de87715e0E4564E62912fE")
-    loans_core_weth = LoansCore.at("0x7767A2b2F490622c7625eb236ACa221859418B20")
+    weth = ERC20.at("0x96D1000886E9F504184068DE3cd1270f0e00b286")
+    lending_pool_peripheral_weth = LendingPoolPeripheral.at("0x5A4b9aeFcEd0BBAf2a5cf81852b2Acb666ADEF45")
+    liquidations_core = LiquidationsCore.at("0xC576a9Db2f307dA4C6C332913E860C839280C561")
+    collateral_vault_peripheral = CollateralVaultPeripheral.at("0xEedfDfC9F79391Fd09FFAE0720B77c4E2149e414")
+    loans_peripheral_weth = Loans.at("0xD4986462b26e4a63D1c380f9C43776fC4C9e7f41")
+    loans_core_weth = LoansCore.at("0x9917771853d4aB45e2132E4942E570d4A1d84cCb")
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,

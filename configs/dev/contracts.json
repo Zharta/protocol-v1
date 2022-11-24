@@ -14,7 +14,7 @@
                 "contract": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92"
             },
             "liquidations_peripheral": {
-                "contract": "0xFbD588c72B438faD4Cf7cD879c8F730Faa213Da0"
+                "contract": "0x6480aAd90Ada6788195548e60D6738bF8D22f5b5"
             },
             "liquidations_core": {
                 "contract": "0x26f15335BB1C6a4C0B660eDd694a0555A9F1cce3"

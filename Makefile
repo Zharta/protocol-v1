@@ -18,7 +18,11 @@ install-dev: venv install
 	${PIP} install -r requirements-dev.txt
 
 test: venv install-dev
-	${VENV}/bin/brownie test -n auto
+	patch contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
+	${VENV}/bin/brownie test ; patch -R contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
+
+full-test: venv install-dev
+	${VENV}/bin/brownie test --durations=20 --gas --network ganache-mainnet-fork
 
 clean:
 	rm -rf ${VENV}

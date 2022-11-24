@@ -16,9 +16,9 @@ INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_CAPITAL_EFFICIENCY = 7000 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
-GRACE_PERIOD_DURATION = 5 # 2 days
-LENDER_PERIOD_DURATION = 5 # 15 days
-AUCTION_DURATION = 5 # 15 days
+GRACE_PERIOD_DURATION = 50 # 2 days
+LENDER_PERIOD_DURATION = 50 # 15 days
+AUCTION_DURATION = 50 # 15 days
 
 MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
@@ -116,7 +116,7 @@ def liquidations_core_contract(LiquidationsCore, contract_owner):
 
 @pytest.fixture(scope="module", autouse=True)
 def liquidations_peripheral_contract(LiquidationsPeripheral, liquidations_core_contract, erc20_contract, contract_owner):
-    yield LiquidationsPeripheral.deploy(
+    liquidations_peripheral_contract = LiquidationsPeripheral.deploy(
         liquidations_core_contract,
         GRACE_PERIOD_DURATION,
         LENDER_PERIOD_DURATION,
@@ -124,6 +124,10 @@ def liquidations_peripheral_contract(LiquidationsPeripheral, liquidations_core_c
         erc20_contract,
         {"from": contract_owner}
     )
+    liquidations_peripheral_contract.setNFTXVaultFactoryAddress("0xBE86f647b167567525cCAAfcd6f881F1Ee558216", {"from": contract_owner})
+    liquidations_peripheral_contract.setNFTXMarketplaceZapAddress("0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d", {"from": contract_owner})
+    liquidations_peripheral_contract.setSushiRouterAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F", {"from": contract_owner})
+    return liquidations_peripheral_contract
 
 
 @pytest.fixture(scope="module", autouse=True)
