@@ -31,9 +31,10 @@ contracts = [
     "LoansCore",
     "auxiliary/token/ERC20",
     "auxiliary/token/ERC721",
+    "debug/SignatureDebug",
 ]
 
-# A map between the contract name on the contracts addresses configuration file and 
+# A map between the contract name on the contracts addresses configuration file and
 # the contract vyper file name
 contracts_mapped = {
     "CollateralVaultCore": "collateral_vault_core",
@@ -47,12 +48,15 @@ contracts_mapped = {
     "LoansCore": "loans_core",
     "auxiliary/token/ERC20": "token",
     "auxiliary/token/ERC721": "ERC721",
+    "debug/SignatureDebug": "signature_debug",
 }
+
 
 def read_file(filename: Path):
     """Read file content."""
     with open(filename, "r") as f:
         return f.read()
+
 
 def write_content_to_file(filename: Path, data: str):
     """Write content to file."""
@@ -96,7 +100,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
 
     colls_whitelist_file = Path.cwd() / "configs" / env / f"collaterals_whitelist.json"
     colls_whitelist = json.loads(read_file(colls_whitelist_file))
-    
+
     collection_names_file = Path.cwd() / "configs" / env / f"collection_names.json"
     collection_names = json.loads(read_file(collection_names_file))
 
@@ -115,10 +119,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         output_directory = Path("")
 
     for contract in contracts:
-        if contract.startswith("auxiliary"):
-            contract_output_name = contract.split("/")[-1]
-        else:
-            contract_output_name = contract
+        contract_output_name = contract.split("/")[-1]
 
         # Extract abi from compiled contract
         logger.info(f"Compiling {contract} abi file")
@@ -137,7 +138,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
                 config["tokens"]["WETH"][mapped_contract]["abi"] = abi_python
             except KeyError:
                 pass
-                
+
         # Update nfts config with abi content but only for ERC721 contract
         if contract == "auxiliary/token/ERC721":
             nfts_final = []
@@ -166,7 +167,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         elif not write_to_s3 and output_directory:
             write_content_to_file(abi_path, json.dumps(abi_python))
             write_content_to_file(binary_path, bytecode)
-    
+
         else:
             raise BadParameter("Invalid combination of parameters")
 
@@ -185,7 +186,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         if env != "prod":
             write_content_to_s3(colls_test_file, json.dumps(colls_test))
             write_content_to_s3(colls_whitelist_prod_file, json.dumps(colls_whitelist_prod))
-    
+
     elif not write_to_s3 and output_directory:
         write_content_to_file(config_file, json.dumps(config))
         write_content_to_file(nfts_file, json.dumps(nfts_final))
@@ -194,6 +195,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         if env != "prod":
             write_content_to_file(colls_test_file, json.dumps(colls_test))
             write_content_to_file(colls_whitelist_prod_file, json.dumps(colls_whitelist_prod))
+
 
 if __name__ == "__main__":
     build_contract_files()
