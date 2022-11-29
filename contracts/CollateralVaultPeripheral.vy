@@ -129,7 +129,7 @@ def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool:
     if vault == self.collateralVaultCoreDefaultAddress:
         return IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultCoreDefaultAddress
     else:
-        return INonERC721Vault(vault).collateralOwner(_tokenId) == self.collateralVaultCoreDefaultAddress
+        return INonERC721Vault(vault).collateralOwner(_tokenId) == vault
 
 
 ##### EXTERNAL METHODS - WRITE #####
@@ -275,7 +275,7 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
         assert IERC721(_collateralAddress).getApproved(_tokenId) == self.collateralVaultCoreDefaultAddress or IERC721(_collateralAddress).isApprovedForAll(_wallet, self.collateralVaultCoreDefaultAddress), "transfer is not approved"
     else:
         assert INonERC721Vault(vault).collateralOwner(_tokenId) == _wallet, "collateral not owned by wallet"
-        assert INonERC721Vault(vault).isApproved(_tokenId, self.collateralVaultCoreDefaultAddress), "transfer is not approved"
+        assert INonERC721Vault(vault).isApproved(_tokenId, vault), "transfer is not approved"
 
     IVault(vault).storeCollateral(_wallet, _collateralAddress, _tokenId)
 
@@ -303,7 +303,7 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
         assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
         assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
     else:
-        assert INonERC721Vault(vault).collateralOwner(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
+        assert INonERC721Vault(vault).collateralOwner(_tokenId) == vault, "collateral not owned by CVCore"
 
     IVault(vault).transferCollateral(_wallet, _collateralAddress, _tokenId)
 
@@ -328,7 +328,7 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
         assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
         assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
     else:
-        assert INonERC721Vault(vault).collateralOwner(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
+        assert INonERC721Vault(vault).collateralOwner(_tokenId) == vault, "collateral not owned by CVCore"
 
     IVault(vault).transferCollateral(_wallet, _collateralAddress, _tokenId)
 
@@ -353,7 +353,7 @@ def approveBackstopBuyer(_address: address, _collateralAddress: address, _tokenI
         assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
         assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
     else:
-        assert INonERC721Vault(vault).collateralOwner(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
+        assert INonERC721Vault(vault).collateralOwner(_tokenId) == vault, "collateral not owned by CVCore"
 
     IVault(vault).approveOperator(_address, _collateralAddress, _tokenId)
 

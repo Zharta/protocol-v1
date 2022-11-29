@@ -1,8 +1,12 @@
 from datetime import datetime as dt
 from web3 import Web3
+import brownie
+from brownie import Contract
+from brownie.exceptions import ContractNotFound
 
 import conftest_base
 import pytest
+import json
 
 
 MAX_NUMBER_OF_LOANS = 10
@@ -38,6 +42,29 @@ erc721_contract = conftest_base.erc721_contract
 @pytest.fixture(scope="module", autouse=True)
 def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
     yield CollateralVaultCore.deploy({"from": contract_owner})
+
+@pytest.fixture(scope="module", autouse=True)
+def cryptopunks_market_contract(contract_owner):
+    abi = """ [
+        {"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"punkIndexToAddress","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},
+        {"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"punkIndex","type":"uint256"}],"name":"transferPunk","outputs":[],"payable":false,"type":"function"},
+        {"constant":false,"inputs":[{"name":"punkIndex","type":"uint256"},{"name":"minSalePriceInWei","type":"uint256"},{"name":"toAddress","type":"address"}],"name":"offerPunkForSaleToAddress","outputs":[],"payable":false,"type":"function"}
+    ] """
+    try:
+        return Contract.from_abi(
+            "Cryptopunks",
+            "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
+            json.loads(abi),
+            owner=contract_owner
+        )
+    except ContractNotFound:
+        return None
+
+@pytest.fixture(scope="module", autouse=True)
+def cryptopunks_vault_core_contract(CryptoPunksVaultCore, cryptopunks_market_contract, contract_owner):
+    cryptopunks_address = cryptopunks_market_contract.address if cryptopunks_market_contract else brownie.ZERO_ADDRESS
+    return CryptoPunksVaultCore.deploy(cryptopunks_address, {"from": contract_owner})
+
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -152,6 +179,23 @@ def test_collaterals(erc721_contract):
         result.append((erc721_contract.address, k, LOAN_AMOUNT / 5))
     yield result
 
+
+@pytest.fixture(scope="module", autouse=True)
+def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
+    result = []
+    if cryptopunks_market_contract is None:
+        return result
+    for k in range(5):
+        owner = cryptopunks_market_contract.punkIndexToAddress(k)
+        brownie.network.rpc.unlock_account(owner)
+        cryptopunks_market_contract.transferPunk(borrower, k, {'from': owner})
+        result.append((cryptopunks_market_contract, k, LOAN_AMOUNT // 5))
+    return result
+
+
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
 
 @pytest.fixture(autouse=True)
 def isolation(fn_isolation):

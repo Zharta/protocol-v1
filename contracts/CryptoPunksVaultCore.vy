@@ -48,7 +48,7 @@ proposedOwner: public(address)
 
 vaultName: constant(String[30]) = "cryptopunks"
 collateralVaultPeripheralAddress: public(address)
-cryptoPunksMarketAddress: address
+cryptoPunksMarketAddress: public(address)
 
 ##### INTERNAL METHODS #####
 
