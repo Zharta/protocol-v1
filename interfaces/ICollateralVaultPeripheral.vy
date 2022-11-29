@@ -100,7 +100,12 @@ def proposedOwner() -> address:
 
 @view
 @external
-def collateralVaultCoreAddress() -> address:
+def collateralVaultCoreDefaultAddress() -> address:
+    pass
+
+@view
+@external
+def collateralVaultCoreAddresses(_collateralAddress: address) -> address:
     pass
 
 @view
@@ -113,4 +118,12 @@ def loansPeripheralAddresses(arg0: address) -> address:
 def liquidationsPeripheralAddress() -> address:
     pass
 
+@view
+@external
+def vaultAddress(_collateralAddress: address) -> address:
+    pass
 
+@view
+@external
+def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool:
+    pass
