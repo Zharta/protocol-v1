@@ -34,10 +34,11 @@ event MaxLoansPoolShareFlagChanged:
 event MaxLoansPoolShareChanged:
     value: uint256
 
-event MaxCollectionShareFlagChanged:
+event MaxCollectionBorrowableAmountFlagChanged:
     value: bool
 
-event MaxCollectionShareChanged:
+event MaxCollectionBorrowableAmountChanged:
+    collection: address
     value: uint256
 
 event LockPeriodFlagChanged:
@@ -53,13 +54,13 @@ owner: public(address)
 
 maxPoolShare: public(uint256)
 maxLoansPoolShare: public(uint256)
-maxCollectionShare: public(uint256)
 lockPeriodDuration: public(uint256)
+maxCollectionBorrowableAmount: public(HashMap[address, uint256])
 
 maxPoolShareEnabled: public(bool)
 lockPeriodEnabled: public(bool)
 maxLoansPoolShareEnabled: public(bool)
-maxCollectionShareEnabled: public(bool)
+maxCollectionBorrowableAmountEnabled: public(bool)
 
 
 ##### INTERNAL METHODS - VIEW #####
@@ -110,14 +111,16 @@ def outOfLockPeriod(_lender: address, _lpCoreContractAddress: address) -> bool:
 
 @view
 @external
-def withinCollectionShareLimit(_collectionAmount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool:
-    if not self.maxCollectionShareEnabled:
+def withinCollectionShareLimit(_amount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool:
+    if not self.maxCollectionBorrowableAmountEnabled:
         return True
     
-    fundsInvested: uint256 = ILendingPoolCore(_lpCoreContractAddress).fundsInvested()
+    if self.maxCollectionBorrowableAmount[_collectionAddress] == 0:
+        return True
+
     collectionBorrowedAmount: uint256 = ILoansCore(_loansCoreContractAddress).collectionsBorrowedAmount(_collectionAddress)
 
-    return (collectionBorrowedAmount + _collectionAmount) * 10000 / (fundsInvested + _collectionAmount) <= self.maxCollectionShare
+    return collectionBorrowedAmount + _amount <= self.maxCollectionBorrowableAmount[_collectionAddress]
 
 
 ##### EXTERNAL METHODS - NON-VIEW #####
@@ -130,42 +133,33 @@ def __init__(
     _lockPeriodDuration: uint256,
     _maxLoansPoolShareEnabled: bool,
     _maxLoansPoolShare: uint256,
-    _maxCollectionShareEnabled: bool,
-    _maxCollectionShare: uint256
+    _maxCollectionBorrowableAmountEnabled: bool
 ):
     assert _maxPoolShare <= 10000, "max pool share > 10000 bps"
     assert _maxLoansPoolShare <= 10000, "max loans pool share > 10000 bps"
-    assert _maxCollectionShare <= 10000, "max collats share > 10000 bps"
-    
+
     self.owner = msg.sender
 
-    if _maxPoolShareEnabled:
-        self.maxPoolShareEnabled = _maxPoolShareEnabled
-        self.maxPoolShare = _maxPoolShare
+    self.maxPoolShareEnabled = _maxPoolShareEnabled
+    self.maxPoolShare = _maxPoolShare
 
-    if _lockPeriodEnabled:
-        self.lockPeriodEnabled = _lockPeriodEnabled
+    self.lockPeriodEnabled = _lockPeriodEnabled
     self.lockPeriodDuration = _lockPeriodDuration
 
-    if _maxLoansPoolShareEnabled:
-        self.maxLoansPoolShareEnabled = _maxLoansPoolShareEnabled
-        self.maxLoansPoolShare = _maxLoansPoolShare
+    self.maxLoansPoolShareEnabled = _maxLoansPoolShareEnabled
+    self.maxLoansPoolShare = _maxLoansPoolShare
 
-    if _maxCollectionShareEnabled:
-        self.maxCollectionShareEnabled = _maxCollectionShareEnabled
-        self.maxCollectionShare = _maxCollectionShare
+    self.maxCollectionBorrowableAmountEnabled = _maxCollectionBorrowableAmountEnabled
 
 
 @external
 def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.maxPoolShareEnabled != _flag, "new value is the same"
-    
-    if _flag:
-        assert _value <= 10000, "max pool share exceeds 10000 bps"
-        self.maxPoolShare = _value
+    assert _value <= 10000, "max pool share exceeds 10000 bps"
+        
+    self.maxPoolShare = _value
 
-        log MaxPoolShareChanged(_value)
+    log MaxPoolShareChanged(_value)
 
     self.maxPoolShareEnabled = _flag
 
@@ -175,13 +169,11 @@ def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
 @external
 def changeMaxLoansPoolShareConditions(_flag: bool, _value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.maxLoansPoolShareEnabled != _flag, "new value is the same"
-    
-    if _flag:
-        assert _value <= 10000, "max pool share exceeds 10000 bps"
-        self.maxLoansPoolShare = _value
+    assert _value <= 10000, "max pool share exceeds 10000 bps"
+        
+    self.maxLoansPoolShare = _value
 
-        log MaxLoansPoolShareChanged(_value)
+    log MaxLoansPoolShareChanged(_value)
 
     self.maxLoansPoolShareEnabled = _flag
 
@@ -189,33 +181,26 @@ def changeMaxLoansPoolShareConditions(_flag: bool, _value: uint256):
 
 
 @external
-def changeMaxCollectionShareConditions(_flag: bool, _value: uint256):
+def changeMaxCollectionBorrowableAmount(_flag: bool, _collectionAddress: address, _value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.maxCollectionShareEnabled != _flag, "new value is the same"
-    
-    if _flag:
-        assert _value <= 10000, "max pool share exceeds 10000 bps"
-        self.maxCollectionShare = _value
+    assert _collectionAddress != empty(address), "collection addr is empty addr"
+        
+    self.maxCollectionBorrowableAmount[_collectionAddress] = _value
 
-        log MaxLoansPoolShareChanged(_value)
+    log MaxCollectionBorrowableAmountChanged(_collectionAddress, _value)
 
-    self.maxCollectionShareEnabled = _flag
+    self.maxCollectionBorrowableAmountEnabled = _flag
 
-    log MaxLoansPoolShareFlagChanged(_flag)
+    log MaxCollectionBorrowableAmountFlagChanged(_flag)
 
 
 @external
 def changeLockPeriodConditions(_flag: bool, _value: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.lockPeriodEnabled != _flag, "new value is the same"
     
-    if _flag:
-        if self.lockPeriodDuration != _value:
-            self.lockPeriodDuration = _value
+    self.lockPeriodDuration = _value
 
-            log LockPeriodDurationChanged(_value)
-        else:
-            raise "new value is the same"
+    log LockPeriodDurationChanged(_value)
 
     self.lockPeriodEnabled = _flag
 
