@@ -1598,12 +1598,18 @@ def test_pay_loan_insufficient_balance(
     )
     loan_id = tx_create_loan.return_value
 
+    initial_borrower_amount = erc20_contract.balanceOf(borrower)
+    transfer_amount = initial_borrower_amount - LOAN_AMOUNT
+    erc20_contract.transfer(contract_owner, transfer_amount, {"from": borrower})
+
     assert erc20_contract.balanceOf(borrower) == LOAN_AMOUNT
-    
+
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
-    
+
     with brownie.reverts("insufficient balance"):
         loans_peripheral_contract.pay(loan_id, {"from": borrower})
+
+    erc20_contract.transfer(borrower, transfer_amount, {"from": contract_owner})
 
 
 def test_pay_loan_insufficient_allowance(
@@ -1737,7 +1743,8 @@ def test_pay_loan(
 
     assert erc20_contract.balanceOf(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
-    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
+    erc20_contract.mint(contract_owner, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
+    erc20_contract.transfer(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
     
     tx_pay_loan = loans_peripheral_contract.pay(loan_id, {"from": borrower})
@@ -1762,7 +1769,7 @@ def test_pay_loan(
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert erc20_contract.balanceOf(borrower) == 0
+    assert erc20_contract.balanceOf(borrower) == borrower_initial_balance
 
 
 def test_pay_loan_already_paid(

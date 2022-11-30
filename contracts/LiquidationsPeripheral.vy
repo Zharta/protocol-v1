@@ -24,9 +24,6 @@ interface INFTXVault:
 interface INFTXMarketplaceZap:
     def mintAndSell721WETH(vaultId: uint256, ids: DynArray[uint256, 1], minWethOut: uint256, path: DynArray[address, 2], to: address): nonpayable
 
-interface IVault:
-    def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256): nonpayable
-
 interface INonERC721Vault:
     def vaultName() -> String[30]: view
     def collateralOwner(_tokenId: uint256) -> address: view
@@ -808,21 +805,16 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         _tokenId
     )
 
+    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(self, _collateralAddress, _tokenId)
     vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
-    if vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
-        IERC721(_collateralAddress).transferFrom(
-            ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress(),
-            self,
-            _tokenId
-        )
 
+    if vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
         IERC721(_collateralAddress).approve(
             self.nftxMarketplaceZapAddress,
             _tokenId
         )
-    elif INonERC721Vault(vault).vaultName() == "cryptoopunks":
-        IVault(vault).transferCollateral(self, _collateralAddress, _tokenId)
-        CryptoPunksMarket(_collateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress) 
+    elif INonERC721Vault(vault).vaultName() == "cryptopunks":
+        CryptoPunksMarket(_collateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
     else:
         raise "Unsupported collateral"
 

@@ -5,6 +5,8 @@ from web3 import Web3
 
 import brownie
 import eth_abi
+import os
+import pytest
 
 
 GRACE_PERIOD_DURATION = 50
@@ -1427,3 +1429,102 @@ def test_admin_liquidation_fail_on_collateral_in_liquidation(
             token_id,
             {"from": contract_owner}
         )
+
+
+@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+def test_cryptopunks_nftx_buy(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    cryptopunks_vault_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    cryptopunks_market_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+
+    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract, {"from": contract_owner})
+
+    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+
+    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+    liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
+    cryptopunks_market_contract.transferPunk(cryptopunks_vault_core_contract, 0, {'from': borrower})
+
+    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+
+    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
+
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(cryptopunks_market_contract, 0, LOAN_AMOUNT)],
+        {"from": loans_peripheral_contract, 'gas_price': 0}
+    )
+    loan_id = tx_add_loan.return_value
+    loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
+
+    liquidations_peripheral_contract.addLiquidation(
+        cryptopunks_market_contract,
+        0,
+        borrower,
+        loan_id,
+        erc20_contract
+    )
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(cryptopunks_market_contract, 0)
+    loan = loans_core_contract.getLoan(borrower, loan_id)
+
+    liquidation_id = liquidation['lid']
+    collateral_address = liquidation['collateralAddress']
+    token_id = liquidation['tokenId']
+    loan_id = loan['id']
+
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION+1)
+
+    tx = liquidations_peripheral_contract.liquidateNFTX(collateral_address, token_id, {"from": contract_owner})
+
+    event_liquidation_removed = tx.events["LiquidationRemoved"]
+    assert event_liquidation_removed["liquidationId"] == liquidation_id
+    assert event_liquidation_removed["collateralAddress"] == cryptopunks_market_contract
+    assert event_liquidation_removed["tokenId"] == 0
+    assert event_liquidation_removed["erc20TokenContract"] == erc20_contract
+    assert event_liquidation_removed["loansCoreContract"] == loans_core_contract
+    assert event_liquidation_removed["loanId"] == loan_id
+    assert event_liquidation_removed["borrower"] == borrower
+
+    event_nft_purchased = tx.events["NFTPurchased"]
+    assert event_nft_purchased["liquidationId"] == liquidation_id
+    assert event_nft_purchased["collateralAddress"] == cryptopunks_market_contract
+    assert event_nft_purchased["tokenId"] == 0
+    assert event_nft_purchased["buyerAddress"] == liquidations_peripheral_contract.nftxMarketplaceZapAddress()
+    assert event_nft_purchased["erc20TokenContract"] == erc20_contract
+    assert event_nft_purchased["method"] == "BACKSTOP_PERIOD_NFTX"
+
+    event_funds_receipt = tx.events["FundsReceipt"]
+    assert event_funds_receipt["fundsOrigin"] == "liquidation_nftx"
+
+

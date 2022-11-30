@@ -5,6 +5,7 @@ from brownie import (
     LendingPoolCore,
     LendingPoolPeripheral,
     CollateralVaultCore,
+    CryptoPunksVaultCore,
     CollateralVaultPeripheral,
     LoansCore,
     Loans,
@@ -29,6 +30,7 @@ def main():
     pudgypenguins_instance = ERC721.deploy({"from": owner})
     bayc_instance = ERC721.deploy({"from": owner})
     wpunks_instance = ERC721.deploy({"from": owner})
+    cryptopunks_instance = ERC721.deploy({"from": owner})
 
     ### TEST WETH CONTRACT ###
     weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {'from': owner}, publish_source=True)
@@ -45,16 +47,19 @@ def main():
         False,
         {"from": owner}
     )
-    
+
     collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
-    
+
+    cryptopunks_vault_core = CryptoPunksVaultCore.deploy(cryptopunks_instance, {"from": owner})
+
     collateral_vault_peripheral = CollateralVaultPeripheral.deploy(
         collateral_vault_core,
         {"from": owner}
     )
-    
+    collateral_vault_peripheral.addVault(cryptopunks_instance, cryptopunks_vault_core, {"from": owner})
+
     loans_core_weth = LoansCore.deploy({"from": owner})
-    
+
     loans_peripheral_weth = Loans.deploy(
         1000000,
         31 * 86400,
@@ -172,3 +177,4 @@ def main():
     loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(cryptopunks_instance, {"from": owner})

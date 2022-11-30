@@ -599,8 +599,9 @@ def test_withdraw(lending_pool_peripheral_contract, lending_pool_core_contract, 
     lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     initial_balance = user_balance(erc20_contract, investor)
-    
-    erc20_contract.mint(investor, Web3.toWei(2, "ether"), {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, Web3.toWei(2, "ether"), {"from": contract_owner})
+    erc20_contract.transfer(investor, Web3.toWei(2, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(2, "ether"), {"from": investor})
     assert user_balance(erc20_contract, investor) == initial_balance + Web3.toWei(2, "ether")
 
