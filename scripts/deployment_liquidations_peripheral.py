@@ -2,33 +2,40 @@ import json
 
 from brownie import (
     accounts,
-    ERC20,
-    LendingPoolPeripheral,
+    CollateralVaultCore,
     CollateralVaultPeripheral,
+    LendingPoolCore,
+    LendingPoolPeripheral,
+    LiquidationsPeripheral,
+    LiquidationsCore,
+    LiquidityControls,
     LoansCore,
     Loans,
-    LiquidationsCore,
-    LiquidationsPeripheral
+    ERC20
 )
 from pathlib import Path
 
 
-CONFIG_FILE_DIR = f"{Path.cwd()}/configs"
+NAME_TO_CONTRACT = {
+    "collateral_vault_core": CollateralVaultCore,
+    "collateral_vault_peripheral": CollateralVaultPeripheral,
+    "lending_pool_core": LendingPoolCore,
+    "lending_pool": LendingPoolPeripheral,
+    "liquidations_peripheral": LiquidationsPeripheral,
+    "liquidations_core": LiquidationsCore,
+    "liquidity_controls": LiquidityControls,
+    "loans": Loans,
+    "loans_core": LoansCore,
+    "token": ERC20
+}
 
 
 def load_contracts(env: str) -> dict:
-    config_file = f"{CONFIG_FILE_DIR}/{env}/contracts.json"
+    config_file = f"{Path.cwd()}/configs/{env}/contracts.json"
     with open(config_file, "r") as f:
         contracts = json.load(f)["tokens"]["WETH"]
 
-    return {
-        "weth": ERC20.at(contracts["token"]["contract"]),
-        "lending_pool_peripheral_weth": LendingPoolPeripheral.at(contracts["lending_pool"]["contract"]),
-        "liquidations_core": LiquidationsCore.at(contracts["liquidations_core"]["contract"]),
-        "collateral_vault_peripheral": CollateralVaultPeripheral.at(contracts["collateral_vault_peripheral"]["contract"]),
-        "loans_peripheral_weth": Loans.at(contracts["loans"]["contract"]),
-        "loans_core_weth": LoansCore.at(contracts["loans_core"]["contract"])
-    }
+    return {key: NAME_TO_CONTRACT[key].at(contracts[key]["contract"]) for key in contracts}
 
 
 def dev():
@@ -37,11 +44,11 @@ def dev():
     contracts = load_contracts("dev")
 
     weth = contracts["weth"]
-    lending_pool_peripheral_weth = contracts["lending_pool_peripheral_weth"]
+    lending_pool_peripheral_weth = contracts["lending_pool"]
     liquidations_core = contracts["liquidations_core"]
     collateral_vault_peripheral = contracts["collateral_vault_peripheral"]
-    loans_peripheral_weth = contracts["loans_peripheral_weth"]
-    loans_core_weth = contracts["loans_core_weth"]
+    loans_peripheral_weth = contracts["loans"]
+    loans_core_weth = contracts["loans_core"]
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
@@ -94,11 +101,11 @@ def int():
     contracts = load_contracts("int")
 
     weth = contracts["weth"]
-    lending_pool_peripheral_weth = contracts["lending_pool_peripheral_weth"]
+    lending_pool_peripheral_weth = contracts["lending_pool"]
     liquidations_core = contracts["liquidations_core"]
     collateral_vault_peripheral = contracts["collateral_vault_peripheral"]
-    loans_peripheral_weth = contracts["loans_peripheral_weth"]
-    loans_core_weth = contracts["loans_core_weth"]
+    loans_peripheral_weth = contracts["loans"]
+    loans_core_weth = contracts["loans_core"]
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
@@ -151,11 +158,11 @@ def prod():
     contracts = load_contracts("int")
 
     weth = contracts["weth"]
-    lending_pool_peripheral_weth = contracts["lending_pool_peripheral_weth"]
+    lending_pool_peripheral_weth = contracts["lending_pool"]
     liquidations_core = contracts["liquidations_core"]
     collateral_vault_peripheral = contracts["collateral_vault_peripheral"]
-    loans_peripheral_weth = contracts["loans_peripheral_weth"]
-    loans_core_weth = contracts["loans_core_weth"]
+    loans_peripheral_weth = contracts["loans"]
+    loans_core_weth = contracts["loans_core"]
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
@@ -216,4 +223,5 @@ def prod():
 
 def main():
     # dev()
+    print(load_contracts("int"))
     pass
