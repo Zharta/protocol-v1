@@ -58,8 +58,6 @@ def main():
 
     loans_core_weth = LoansCore.deploy({"from": owner})
 
-    collateral_vault_peripheral.addVault(cryptopunks_instance, cryptopunks_vault_core, {"from": owner})
-
     loans_peripheral_weth = Loans.deploy(
         1000000,
         31 * 86400,
@@ -113,6 +111,17 @@ def main():
         {"from": owner}
     )
     
+    collateral_vault_peripheral.addVault(
+        cryptopunks_instance,
+        cryptopunks_vault_core,
+        {"from": owner}
+    )
+
+    cryptopunks_vault_core.setCollateralVaultPeripheralAddress(
+        collateral_vault_peripheral,
+        {"from": owner}
+    )
+
     collateral_vault_core.setCollateralVaultPeripheralAddress(
         collateral_vault_peripheral,
         {"from": owner}
