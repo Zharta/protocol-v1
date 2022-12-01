@@ -80,15 +80,6 @@ def test_set_collateral_vault_peripheral_address(cryptopunks_vault_core_contract
     assert event["newValue"] == collateral_vault_peripheral_contract
 
 
-def test_set_collateral_vault_address_peripheral_same_address(cryptopunks_vault_core_contract, collateral_vault_peripheral_contract, contract_owner):
-    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-
-    assert cryptopunks_vault_core_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
-
-    with brownie.reverts("new value is the same"):
-        cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-
-
 def test_store_collateral_wrong_sender(cryptopunks_vault_core_contract, contract_owner):
     with brownie.reverts("msg.sender is not authorised"):
         cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": contract_owner})
@@ -101,7 +92,7 @@ def test_store_collateral_invalid_contract(cryptopunks_vault_core_contract, coll
 
     cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
-    with brownie.reverts("collateral address not supported by vault"):
+    with brownie.reverts("address not supported by vault"):
         cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": collateral_vault_peripheral_contract})
 
 
