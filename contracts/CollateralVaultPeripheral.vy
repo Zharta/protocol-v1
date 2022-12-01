@@ -5,7 +5,6 @@
 
 from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
-from interfaces import ICollateralVaultCore
 
 interface IVault:
     def setCollateralVaultPeripheralAddress(_address: address): nonpayable
@@ -149,7 +148,6 @@ def addVault(_collateral_address: address, _vault_address: address):
     assert _vault_address != empty(address), "vault address is the zero addr"
     assert _collateral_address.is_contract, "contract addr is not a contract"
     assert _vault_address.is_contract, "vault address is not a contract"
-    assert self.collateralVaultCoreAddresses[_collateral_address] != _vault_address, "new value is the same"
 
     log CollateralVaultAdded(
         _collateral_address,

@@ -799,12 +799,6 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
     assert autoLiquidationPrice > 0, "NFTX liq price is 0 or none"
 
-    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).approveBackstopBuyer(
-        self,
-        _collateralAddress,
-        _tokenId
-    )
-
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(self, _collateralAddress, _tokenId)
     vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
 

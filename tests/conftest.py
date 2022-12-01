@@ -196,7 +196,3 @@ def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
 @pytest.fixture(autouse=True)
 def isolation(fn_isolation):
     pass
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
