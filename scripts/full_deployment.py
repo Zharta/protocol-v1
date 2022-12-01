@@ -404,7 +404,7 @@ def prod():
     lending_pool_peripheral_weth = LendingPoolPeripheral.deploy(
         lending_pool_core_weth,
         weth,
-        owner,
+        "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6",
         2500,
         7000,
         False,
