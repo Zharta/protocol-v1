@@ -145,9 +145,9 @@ def __init__(_collerateralVaultCoreAddress: address):
 @external
 def addVault(_collateral_address: address, _vault_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _collateral_address != empty(address), "contract address is the zero addr"
+    assert _collateral_address != empty(address), "contract addr is the zero addr"
     assert _vault_address != empty(address), "vault address is the zero addr"
-    assert _collateral_address.is_contract, "contract address is not a contract"
+    assert _collateral_address.is_contract, "contract addr is not a contract"
     assert _vault_address.is_contract, "vault address is not a contract"
     assert self.collateralVaultCoreAddresses[_collateral_address] != _vault_address, "new value is the same"
 
@@ -164,8 +164,8 @@ def addVault(_collateral_address: address, _vault_address: address):
 @external
 def removeVault(_collateral_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _collateral_address != empty(address), "contract address is the zero addr"
-    assert _collateral_address.is_contract, "contract address is not a contract"
+    assert _collateral_address != empty(address), "contract addr is the zero addr"
+    assert _collateral_address.is_contract, "contract addr is not a contract"
     assert self.collateralVaultCoreAddresses[_collateral_address] != empty(address), "address not found"
 
     log CollateralVaultRemoved(

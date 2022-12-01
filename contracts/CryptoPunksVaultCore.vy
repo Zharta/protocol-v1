@@ -121,7 +121,6 @@ def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "address is the zero addr"
     assert _address.is_contract, "address is not a contract"
-    assert self.collateralVaultPeripheralAddress != _address, "new value is the same"
 
     log CollateralVaultPeripheralAddressSet(
         self.collateralVaultPeripheralAddress,
@@ -134,14 +133,14 @@ def setCollateralVaultPeripheralAddress(_address: address):
 @external
 def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
-    assert _collateralAddress == self.cryptoPunksMarketAddress, "collateral address not supported by vault"
+    assert _collateralAddress == self.cryptoPunksMarketAddress, "address not supported by vault"
 
     offer: Offer = CryptoPunksMarket(_collateralAddress).punksOfferedForSale(_tokenId)
 
     assert offer.isForSale, "collateral not for sale"
     assert offer.punkIndex == _tokenId, "collateral with wrong punkIndex"
     assert offer.seller == _wallet, "collateral now owned by wallet"
-    assert offer.minValue == 0, "collateral offer value is not zero"
+    assert offer.minValue == 0, "collateral offer is not zero"
     assert offer.onlySellTo == empty(address) or offer.onlySellTo == self, "collateral buying not authorized"
 
     CryptoPunksMarket(_collateralAddress).buyPunk(_tokenId)
@@ -150,8 +149,8 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
 @external
 def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
-    assert _collateralAddress == self.cryptoPunksMarketAddress, "collateral address not supported by vault"
-    assert CryptoPunksMarket(_collateralAddress).punkIndexToAddress(_tokenId) == self, "collateral now owned by vault"
+    assert _collateralAddress == self.cryptoPunksMarketAddress, "address not supported by vault"
+    assert CryptoPunksMarket(_collateralAddress).punkIndexToAddress(_tokenId) == self, "collateral not owned by vault"
 
     CryptoPunksMarket(_collateralAddress).transferPunk(_wallet, _tokenId)
 
@@ -159,5 +158,5 @@ def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: 
 @external
 def approveOperator(_address: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
-    assert _collateralAddress == self.cryptoPunksMarketAddress, "collateral address not supported by vault"
+    assert _collateralAddress == self.cryptoPunksMarketAddress, "address not supported by vault"
     CryptoPunksMarket(_collateralAddress).offerPunkForSaleToAddress(_tokenId, 0, _address) 

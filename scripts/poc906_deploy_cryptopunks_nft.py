@@ -63,8 +63,8 @@ def dev():
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
         172800,
-        1296000,
-        1296000,
+        172800,
+        172800,
         weth,
         {"from": owner}
     )
@@ -149,8 +149,8 @@ def int():
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
         172800,
-        1296000,
-        1296000,
+        172800,
+        172800,
         weth,
         {"from": owner}
     )
@@ -234,8 +234,8 @@ def prod():
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
         172800,
-        1296000,
-        1296000,
+        172800,
+        172800,
         weth,
         {"from": owner}
     )
