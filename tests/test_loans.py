@@ -29,7 +29,6 @@ LENDER_PERIOD_DURATION = 5
 AUCTION_DURATION = 5
 
 MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
-MAX_COLLECTION_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
 @pytest.fixture(name="create_signature", scope="module", autouse=True)
@@ -955,7 +954,7 @@ def test_create_loan_outside_collection_share(
     lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
     loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
-    liquidity_controls_contract.changeMaxCollectionShareConditions(True, MAX_COLLECTION_SHARE, {"from": contract_owner})
+    liquidity_controls_contract.changeMaxCollectionBorrowableAmount(True, erc721_contract, LOAN_AMOUNT / 10, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
@@ -1341,7 +1340,7 @@ def test_create_loan_within_collection_share(
     lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
     loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
-    liquidity_controls_contract.changeMaxCollectionShareConditions(True, 10000, {"from": contract_owner})
+    liquidity_controls_contract.changeMaxCollectionBorrowableAmount(True, erc721_contract, LOAN_AMOUNT, {"from": contract_owner})
 
     loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
