@@ -28,15 +28,15 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
 NAME_TO_CONTRACT = {
-    "collateral_vault_core": CollateralVaultCore,
-    "collateral_vault_peripheral": CollateralVaultPeripheral,
     "lending_pool_core": LendingPoolCore,
     "lending_pool": LendingPoolPeripheral,
-    "liquidations_peripheral": LiquidationsPeripheral,
-    "liquidations_core": LiquidationsCore,
-    "liquidity_controls": LiquidityControls,
-    "loans": Loans,
+    "collateral_vault_core": CollateralVaultCore,
+    "collateral_vault_peripheral": CollateralVaultPeripheral,
     "loans_core": LoansCore,
+    "loans": Loans,
+    "liquidations_core": LiquidationsCore,
+    "liquidations_peripheral": LiquidationsPeripheral,
+    "liquidity_controls": LiquidityControls,
     "token": ERC20,
 }
 
@@ -332,23 +332,86 @@ class DeploymentManager:
 
         dependency_tx(*args)
 
-    def deploy(self):
-        contracts = load_contracts(self.env)
-        nft_contracts = load_nft_contracts(self.env)
+    def _deploy_test_assets(self):
+        if self.env == "prod":
+            raise ValueError("'env' can not be prod to deploy test assets")
+
+        ### TEST NFT CONTRACTS ###
+        cool_cats_instance = ERC721.deploy({"from": self.owner})
+        hashmasks_instance = ERC721.deploy({"from": self.owner})
+        kennel_instance = ERC721.deploy({"from": self.owner})
+        doodles_instance = ERC721.deploy({"from": self.owner})
+        wow_instance = ERC721.deploy({"from": self.owner})
+        mutant_instance = ERC721.deploy({"from": self.owner})
+        veefriends_instance = ERC721.deploy({"from": self.owner})
+        pudgypenguins_instance = ERC721.deploy({"from": self.owner})
+        bayc_instance = ERC721.deploy({"from": self.owner})
+        wpunks_instance = ERC721.deploy({"from": self.owner})
+
+        ### TEST WETH CONTRACT ###
+        weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": self.owner})
+
+        return (
+            cool_cats_instance,
+            hashmasks_instance,
+            kennel_instance,
+            doodles_instance,
+            wow_instance,
+            mutant_instance,
+            veefriends_instance,
+            pudgypenguins_instance,
+            bayc_instance,
+            wpunks_instance,
+            weth,
+        )
+
+    def _get_contracts(self, full_deployment=False):
+        contracts = {}
+
+        if self.env == "prod" or not full_deployment:
+            nft_contracts = load_nft_contracts(self.env)
+        elif self.env != "prod" and full_deployment:
+            (
+                cool_cats_instance,
+                hashmasks_instance,
+                kennel_instance,
+                doodles_instance,
+                wow_instance,
+                mutant_instance,
+                veefriends_instance,
+                pudgypenguins_instance,
+                bayc_instance,
+                wpunks_instance,
+                weth,
+            ) = self._deploy_test_assets()
+
+            nft_contracts = {}
+            nft_contracts["cool_cats"] = cool_cats_instance
+            nft_contracts["hashmasks"] = hashmasks_instance
+            nft_contracts["bakc"] = kennel_instance
+            nft_contracts["doodles"] = doodles_instance
+            nft_contracts["wow"] = wow_instance
+            nft_contracts["mayc"] = mutant_instance
+            nft_contracts["veefriends"] = veefriends_instance
+            nft_contracts["pudgy_penguins"] = pudgypenguins_instance
+            nft_contracts["bayc"] = bayc_instance
+            nft_contracts["wpunks"] = wpunks_instance
+
+            contracts["token"] = weth
+
+        if full_deployment:
+            for name in NAME_TO_CONTRACT:
+                if name == "token":
+                    continue
+                contracts[name] = self._deploy_contract(name, contracts)
+        else:
+            contracts = load_contracts(self.env)
+
+        return contracts, nft_contracts
+
+    def deploy(self, full_deployment=False):
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
-
-        cool_cats_instance = nft_contracts["cool_cats"]
-        hashmasks_instance = nft_contracts["hashmasks"]
-        kennel_instance = nft_contracts["bakc"]
-        doodles_instance = nft_contracts["doodles"]
-        wow_instance = nft_contracts["wow"]
-        mutant_instance = nft_contracts["mayc"]
-        veefriends_instance = nft_contracts["veefriends"]
-        pudgypenguins_instance = nft_contracts["pudgy_penguins"]
-        bayc_instance = nft_contracts["bayc"]
-        wpunks_instance = nft_contracts["wpunks"]
-
-        weth = contracts["token"]
+        contracts, nft_contracts = self._get_contracts(full_deployment)
 
         dependency_manager = DependencyManager(self.contract_names)
         dependencies_tx = dependency_manager.build_transaction_set()
@@ -369,9 +432,7 @@ class DeploymentManager:
                 dependency_tx, contracts, nft_contract_addresses, borrowable_amounts
             )
 
-        # TODO: find way to handle new contracts deployment
-
 
 def main():
-    DeploymentManager(["loans"], ENV).deploy()
+    # DeploymentManager(["loans"], ENV).deploy(full_deployment=True)
     pass
