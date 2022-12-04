@@ -59,25 +59,181 @@ def load_nft_contracts(env: str) -> dict:
     }
 
 
+def local():
+    owner = accounts[0]
+
+    ### TEST NFT CONTRACTS ###
+    cool_cats_instance = ERC721.deploy({"from": owner})
+    hashmasks_instance = ERC721.deploy({"from": owner})
+    kennel_instance = ERC721.deploy({"from": owner})
+    doodles_instance = ERC721.deploy({"from": owner})
+    wow_instance = ERC721.deploy({"from": owner})
+    mutant_instance = ERC721.deploy({"from": owner})
+    veefriends_instance = ERC721.deploy({"from": owner})
+    pudgypenguins_instance = ERC721.deploy({"from": owner})
+    bayc_instance = ERC721.deploy({"from": owner})
+    wpunks_instance = ERC721.deploy({"from": owner})
+
+    ### TEST WETH CONTRACT ###
+    weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {'from': owner})
+
+    ### PROTOCOL CONTRACTS ###
+    lending_pool_core_weth = LendingPoolCore.deploy(weth, {"from": owner})
+
+    lending_pool_peripheral_weth = LendingPoolPeripheral.deploy(
+        lending_pool_core_weth,
+        weth,
+        owner,
+        2500,
+        7000,
+        False,
+        {"from": owner}
+    )
+    
+    collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
+    
+    collateral_vault_peripheral = CollateralVaultPeripheral.deploy(
+        collateral_vault_core,
+        {"from": owner}
+    )
+    
+    loans_core_weth = LoansCore.deploy({"from": owner})
+    
+    loans_peripheral_weth = Loans.deploy(
+        1000000,
+        31 * 86400,
+        web3.toWei(10000, "ether"),
+        24 * 60 * 60,
+        loans_core_weth,
+        lending_pool_peripheral_weth,
+        collateral_vault_peripheral,
+        {"from": owner}
+    )
+
+    liquidations_core = LiquidationsCore.deploy({"from": owner})
+
+    liquidations_peripheral = LiquidationsPeripheral.deploy(
+        liquidations_core,
+        2 * 86400,
+        2 * 86400,
+        2 * 86400,
+        weth,
+        {"from": owner},
+    )
+
+    liquidity_controls = LiquidityControls.deploy(
+        False,
+        1500,
+        False,
+        7 * 24 * 60 * 60,
+        False,
+        1500,
+        False,
+        {"from": owner}
+    )
+
+    ### PROTOCOL CONFIGURATIONS ###
+    lending_pool_core_weth.setLendingPoolPeripheralAddress(
+        lending_pool_peripheral_weth,
+        {"from": owner}
+    )
+    
+    lending_pool_peripheral_weth.setLoansPeripheralAddress(
+        loans_peripheral_weth,
+        {"from": owner}
+    )
+    lending_pool_peripheral_weth.setLiquidationsPeripheralAddress(
+        liquidations_peripheral,
+        {"from": owner}
+    )
+    lending_pool_peripheral_weth.setLiquidityControlsAddress(
+        liquidity_controls,
+        {"from": owner}
+    )
+    
+    collateral_vault_core.setCollateralVaultPeripheralAddress(
+        collateral_vault_peripheral,
+        {"from": owner}
+    )
+    
+    collateral_vault_peripheral.addLoansPeripheralAddress(
+        weth,
+        loans_peripheral_weth,
+        {"from": owner}
+    )
+    collateral_vault_peripheral.setLiquidationsPeripheralAddress(
+        liquidations_peripheral,
+        {"from": owner}
+    )
+    
+    loans_core_weth.setLoansPeripheral(
+        loans_peripheral_weth,
+        {"from": owner}
+    )
+    
+    loans_peripheral_weth.setLiquidationsPeripheralAddress(
+        liquidations_peripheral,
+        {"from": owner}
+    )
+    loans_peripheral_weth.setLiquidityControlsAddress(
+        liquidity_controls,
+        {"from": owner}
+    )
+    
+    liquidations_core.setLiquidationsPeripheralAddress(
+        liquidations_peripheral,
+        {"from": owner}
+    )
+    liquidations_core.addLoansCoreAddress(
+        weth,
+        loans_core_weth,
+        {"from": owner}
+    )
+    
+    liquidations_peripheral.addLoansCoreAddress(
+        weth,
+        loans_core_weth,
+        {"from": owner}
+    )
+    liquidations_peripheral.addLendingPoolPeripheralAddress(
+        weth,
+        lending_pool_peripheral_weth,
+        {"from": owner}
+    )
+    liquidations_peripheral.setCollateralVaultPeripheralAddress(
+        collateral_vault_peripheral,
+        {"from": owner}
+    )
+
+    loans_peripheral_weth.addCollateralToWhitelist(cool_cats_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(hashmasks_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(kennel_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(doodles_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(wow_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(mutant_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(veefriends_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
+    loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
+
+
 def dev():
     owner = accounts[0]
 
-    contracts = load_contracts("dev")
-    nft_contracts = load_nft_contracts("dev")
-
-    cool_cats_instance = nft_contracts["cool_cats_instance"]
-    hashmasks_instance = nft_contracts["hashmasks_instance"]
-    kennel_instance = nft_contracts["kennel_instance"]
-    doodles_instance = nft_contracts["doodles_instance"]
-    wow_instance = nft_contracts["wow_instance"]
-    mutant_instance = nft_contracts["mutant_instance"]
-    veefriends_instance = nft_contracts["veefriends_instance"]
-    pudgypenguins_instance = nft_contracts["pudgypenguins_instance"]
-    bayc_instance = nft_contracts["bayc_instance"]
-    wpunks_instance = nft_contracts["wpunks_instance"]
+    ### TEST NFT CONTRACTS ###
+    cool_cats_instance = ERC721.deploy({"from": owner})
+    hashmasks_instance = ERC721.deploy({"from": owner})
+    kennel_instance = ERC721.deploy({"from": owner})
+    doodles_instance = ERC721.deploy({"from": owner})
+    wow_instance = ERC721.deploy({"from": owner})
+    mutant_instance = ERC721.deploy({"from": owner})
+    veefriends_instance = ERC721.deploy({"from": owner})
+    pudgypenguins_instance = ERC721.deploy({"from": owner})
+    bayc_instance = ERC721.deploy({"from": owner})
+    wpunks_instance = ERC721.deploy({"from": owner})
 
     ### TEST WETH CONTRACT ###
-    weth = contracts["weth"]
+    weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {'from': owner})
 
     ### PROTOCOL CONTRACTS ###
     lending_pool_core_weth = LendingPoolCore.deploy(weth, {"from": owner})
@@ -222,22 +378,20 @@ def dev():
 def int():
     owner = accounts.load("goerliacc")
 
-    contracts = load_contracts("int")
-    nft_contracts = load_nft_contracts("int")
-
-    cool_cats_instance = nft_contracts["cool_cats_instance"]
-    hashmasks_instance = nft_contracts["hashmasks_instance"]
-    kennel_instance = nft_contracts["kennel_instance"]
-    doodles_instance = nft_contracts["doodles_instance"]
-    wow_instance = nft_contracts["wow_instance"]
-    mutant_instance = nft_contracts["mutant_instance"]
-    veefriends_instance = nft_contracts["veefriends_instance"]
-    pudgypenguins_instance = nft_contracts["pudgypenguins_instance"]
-    bayc_instance = nft_contracts["bayc_instance"]
-    wpunks_instance = nft_contracts["wpunks_instance"]
+    ### TEST NFT CONTRACTS ###
+    cool_cats_instance = ERC721.deploy({"from": owner})
+    hashmasks_instance = ERC721.deploy({"from": owner})
+    kennel_instance = ERC721.deploy({"from": owner})
+    doodles_instance = ERC721.deploy({"from": owner})
+    wow_instance = ERC721.deploy({"from": owner})
+    mutant_instance = ERC721.deploy({"from": owner})
+    veefriends_instance = ERC721.deploy({"from": owner})
+    pudgypenguins_instance = ERC721.deploy({"from": owner})
+    bayc_instance = ERC721.deploy({"from": owner})
+    wpunks_instance = ERC721.deploy({"from": owner})
 
     ### TEST WETH CONTRACT ###
-    weth = contracts["weth"]
+    weth = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {'from': owner})
 
     ### PROTOCOL CONTRACTS ###
     lending_pool_core_weth = LendingPoolCore.deploy(weth, {"from": owner})
