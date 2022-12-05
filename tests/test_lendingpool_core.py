@@ -108,10 +108,11 @@ def test_deposit(lending_pool_core_contract, lending_pool_peripheral_contract, e
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
 
     deposit_amount = Web3.toWei(1, "ether")
-    
+
     initial_balance = user_balance(erc20_contract, investor)
-    
-    erc20_contract.mint(investor, deposit_amount, {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, deposit_amount, {"from": contract_owner})
+    erc20_contract.transfer(investor, deposit_amount, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
     assert user_balance(erc20_contract, investor) == initial_balance + deposit_amount
 
@@ -124,7 +125,7 @@ def test_deposit(lending_pool_core_contract, lending_pool_peripheral_contract, e
     assert investor_funds["totalAmountWithdrawn"] == 0
     assert investor_funds["sharesBasisPoints"] == deposit_amount
     assert investor_funds["activeForRewards"] == True
-    
+
     assert lending_pool_core_contract.fundsAvailable() == deposit_amount
     assert lending_pool_core_contract.activeLenders() == 1
     assert lending_pool_core_contract.knownLenders(investor)
@@ -134,13 +135,14 @@ def test_deposit(lending_pool_core_contract, lending_pool_peripheral_contract, e
 
 def test_deposit_twice(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, investor, contract_owner):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    
+
     deposit_amount_one = Web3.toWei(1, "ether")
     deposit_amount_two = Web3.toWei(0.5, "ether")
-    
+
     initial_balance = user_balance(erc20_contract, investor)
-    
-    erc20_contract.mint(investor, deposit_amount_one + deposit_amount_two, {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, deposit_amount_one + deposit_amount_two, {"from": contract_owner})
+    erc20_contract.transfer(investor, deposit_amount_one + deposit_amount_two, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, deposit_amount_one + deposit_amount_two, {"from": investor})
     assert user_balance(erc20_contract, investor) == initial_balance + deposit_amount_one + deposit_amount_two
 
@@ -201,8 +203,9 @@ def test_withdraw(lending_pool_core_contract, lending_pool_peripheral_contract, 
     withdraw_amount = Web3.toWei(1, "ether")
 
     initial_balance = user_balance(erc20_contract, investor)
-    
-    erc20_contract.mint(investor, deposit_amount, {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, deposit_amount, {"from": contract_owner})
+    erc20_contract.transfer(investor, deposit_amount, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
     assert user_balance(erc20_contract, investor) == initial_balance + deposit_amount
 
@@ -234,8 +237,9 @@ def test_deposit_withdraw_deposit(lending_pool_core_contract, lending_pool_perip
     lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
 
     initial_balance = user_balance(erc20_contract, investor)
-    
-    erc20_contract.mint(investor, Web3.toWei(2, "ether"), {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, Web3.toWei(2, "ether"), {"from": contract_owner})
+    erc20_contract.transfer(investor, Web3.toWei(2, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(2, "ether"), {"from": investor})
     assert user_balance(erc20_contract, investor) == initial_balance + Web3.toWei(2, "ether")
 
@@ -401,9 +405,11 @@ def test_transfer_protocol_fees(lending_pool_core_contract, lending_pool_periphe
 
     amount = Web3.toWei(1, "ether")
 
-    erc20_contract.mint(borrower, amount, {"from": contract_owner})
+    erc20_contract.mint(contract_owner, amount, {"from": contract_owner})
+    erc20_contract.transfer(borrower, amount, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, amount, {"from": borrower})
 
+    contract_owner_balance = user_balance(erc20_contract, contract_owner)
     assert user_balance(erc20_contract, lending_pool_core_contract) == 0
 
     lending_pool_core_contract.transferProtocolFees(
@@ -414,7 +420,7 @@ def test_transfer_protocol_fees(lending_pool_core_contract, lending_pool_periphe
     )
 
     assert user_balance(erc20_contract, lending_pool_core_contract) == 0
-    assert user_balance(erc20_contract, contract_owner) == amount
+    assert user_balance(erc20_contract, contract_owner) == contract_owner_balance + amount
 
 
 def test_receive_funds(lending_pool_core_contract, lending_pool_peripheral_contract, liquidity_controls_contract, erc20_contract, investor, borrower, contract_owner):

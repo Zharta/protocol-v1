@@ -1,10 +1,12 @@
 import brownie
+import os
+import pytest
 
 
 def test_initial_state(collateral_vault_peripheral_contract, collateral_vault_core_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
     assert collateral_vault_peripheral_contract.owner() == contract_owner
-    assert collateral_vault_peripheral_contract.collateralVaultCoreAddress() == collateral_vault_core_contract
+    assert collateral_vault_peripheral_contract.collateralVaultCoreDefaultAddress() == collateral_vault_core_contract
 
 
 def test_propose_owner_wrong_sender(collateral_vault_peripheral_contract, borrower):
@@ -297,6 +299,40 @@ def test_store_collateral(collateral_vault_peripheral_contract, collateral_vault
     assert event["_from"] == borrower
 
 
+@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+def test_store_cryptopunk_collateral(
+    collateral_vault_peripheral_contract,
+    cryptopunks_vault_core_contract,
+    loans_peripheral_contract,
+    cryptopunks_market_contract,
+    cryptopunk_collaterals,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract)
+    cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, cryptopunks_vault_core_contract, {"from": borrower})
+
+    tx = collateral_vault_peripheral_contract.storeCollateral(
+        borrower,
+        cryptopunks_market_contract,
+        0,
+        erc20_contract,
+        {"from": loans_peripheral_contract}
+    )
+
+    assert cryptopunks_market_contract.punkIndexToAddress(0) == cryptopunks_vault_core_contract
+
+    event = tx.events["CollateralStored"]
+    assert event["collateralAddress"] == cryptopunks_market_contract
+    assert event["tokenId"] == 0
+    assert event["_from"] == borrower
+
+    cryptopunks_market_contract.transferPunk(borrower, 0, {'from': cryptopunks_vault_core_contract})
+
+
 def test_transfer_collateral_from_loan_zero_values(collateral_vault_peripheral_contract, erc721_contract, borrower):
     with brownie.reverts("address is the zero addr"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
@@ -399,7 +435,7 @@ def test_transfer_collateral_from_loan(collateral_vault_peripheral_contract, col
     erc721_contract.mint(borrower, 0, {"from": contract_owner})
     erc721_contract.approve(collateral_vault_core_contract, 0, {"from": borrower})
 
-    
+
     collateral_vault_peripheral_contract.storeCollateral(
         borrower,
         erc721_contract,
@@ -422,6 +458,49 @@ def test_transfer_collateral_from_loan(collateral_vault_peripheral_contract, col
 
     event = tx.events["CollateralFromLoanTransferred"]
     assert event["collateralAddress"] == erc721_contract
+    assert event["tokenId"] == 0
+    assert event["_to"] == borrower
+
+
+@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+def test_transfer_cryptopunk_collateral_from_loan(
+    collateral_vault_peripheral_contract,
+    cryptopunks_vault_core_contract,
+    loans_peripheral_contract,
+    cryptopunks_market_contract,
+    cryptopunk_collaterals,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract, {"from": contract_owner})
+    cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, cryptopunks_vault_core_contract, {"from": borrower})
+
+
+    collateral_vault_peripheral_contract.storeCollateral(
+        borrower,
+        cryptopunks_market_contract,
+        0,
+        erc20_contract,
+        {"from": loans_peripheral_contract}
+    )
+
+    assert cryptopunks_market_contract.punkIndexToAddress(0) == cryptopunks_vault_core_contract
+
+    tx = collateral_vault_peripheral_contract.transferCollateralFromLoan(
+        borrower,
+        cryptopunks_market_contract,
+        0,
+        erc20_contract,
+        {"from": loans_peripheral_contract}
+    )
+
+    assert cryptopunks_market_contract.punkIndexToAddress(0) == borrower
+
+    event = tx.events["CollateralFromLoanTransferred"]
+    assert event["collateralAddress"] == cryptopunks_market_contract
     assert event["tokenId"] == 0
     assert event["_to"] == borrower
 
@@ -502,7 +581,7 @@ def test_transfer_collateral_from_liquidation(collateral_vault_peripheral_contra
     erc721_contract.mint(borrower, 0, {"from": contract_owner})
     erc721_contract.approve(collateral_vault_core_contract, 0, {"from": borrower})
 
-    
+ 
     collateral_vault_peripheral_contract.storeCollateral(
         borrower,
         erc721_contract,
@@ -524,5 +603,48 @@ def test_transfer_collateral_from_liquidation(collateral_vault_peripheral_contra
 
     event = tx.events["CollateralFromLiquidationTransferred"]
     assert event["collateralAddress"] == erc721_contract
+    assert event["tokenId"] == 0
+    assert event["_to"] == borrower
+
+
+@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+def test_transfer_collateral_from_liquidation(
+    collateral_vault_peripheral_contract,
+    cryptopunks_vault_core_contract,
+    loans_peripheral_contract,
+    liquidations_peripheral_contract,
+    cryptopunks_market_contract,
+    cryptopunk_collaterals,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract)
+    cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, cryptopunks_vault_core_contract, {"from": borrower})
+
+    collateral_vault_peripheral_contract.storeCollateral(
+        borrower,
+        cryptopunks_market_contract,
+        0,
+        erc20_contract,
+        {"from": loans_peripheral_contract}
+    )
+
+    assert cryptopunks_market_contract.punkIndexToAddress(0) == cryptopunks_vault_core_contract
+
+    tx = collateral_vault_peripheral_contract.transferCollateralFromLiquidation(
+        borrower,
+        cryptopunks_market_contract,
+        0,
+        {"from": liquidations_peripheral_contract}
+    )
+
+    assert cryptopunks_market_contract.punkIndexToAddress(0) == borrower
+
+    event = tx.events["CollateralFromLiquidationTransferred"]
+    assert event["collateralAddress"] == cryptopunks_market_contract
     assert event["tokenId"] == 0
     assert event["_to"] == borrower

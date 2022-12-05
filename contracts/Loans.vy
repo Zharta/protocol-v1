@@ -23,6 +23,11 @@ interface ILendingPoolPeripheral:
 interface ILiquidationsPeripheral:
     def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
 
+interface INonERC721Vault:
+    def collateralOwner(_tokenId: uint256) -> address: view
+    def isApproved(_tokenId: uint256, _wallet: address) -> bool: view
+
+
 
 # Structs
 
@@ -286,15 +291,20 @@ def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 
 
 @view
 @internal
-def _isCollateralApproved(_borrower: address, _operator: address, _contractAddress: address) -> bool:
-    return IERC721(_contractAddress).isApprovedForAll(_borrower, _operator)
+def _isCollateralApprovedForVault(_borrower: address, _vault: address, _contractAddress: address, _tokenId: uint256) -> bool:
+    is_erc721: bool = _vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).collateralVaultCoreDefaultAddress()
+    if is_erc721:
+        return IERC721(_contractAddress).isApprovedForAll(_borrower, _vault) or IERC721(_contractAddress).getApproved(_tokenId) == _vault
+    else:
+        return INonERC721Vault(_vault).isApproved(_tokenId, _vault)
 
 
 @view
 @internal
 def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
-        if not self._isCollateralApproved(_borrower, ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).collateralVaultCoreAddress(), collateral.contractAddress):
+        vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).vaultAddress(collateral.contractAddress)
+        if not self._isCollateralApprovedForVault(_borrower, vault, collateral.contractAddress, collateral.tokenId):
             return False
     return True
 
