@@ -60,6 +60,34 @@ def cryptopunks_market_contract(contract_owner):
         return None
 
 @pytest.fixture(scope="module", autouse=True)
+def wpunks_contract(ERC721, contract_owner):
+    abi = """ [
+        {"constant":false,"inputs":[{"internalType":"uint256","name":"punkIndex","type":"uint256"}],"name":"mint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
+        {"constant":false,"inputs":[],"name":"registerProxy","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
+        {"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
+        {"constant":false,"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
+        {"constant":true,"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},
+        {"constant":true,"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"proxyInfo","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"}
+    ] """
+    try:
+        return Contract.from_abi(
+            "WrappedPunk",
+            "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
+            json.loads(abi),
+            owner=contract_owner
+        )
+    except ContractNotFound:
+        return None
+
+
+@pytest.fixture(scope="module", autouse=True)
+def hashmasks_contract(ERC721, contract_owner):
+    try:
+        return ERC721.at("0xC2C747E0F7004F9E8817Db2ca4997657a7746928")
+    except ContractNotFound:
+        return None
+
+@pytest.fixture(scope="module", autouse=True)
 def cryptopunks_vault_core_contract(CryptoPunksVaultCore, cryptopunks_market_contract, contract_owner):
     cryptopunks_address = cryptopunks_market_contract.address if cryptopunks_market_contract else brownie.ZERO_ADDRESS
     return CryptoPunksVaultCore.deploy(cryptopunks_address, {"from": contract_owner})

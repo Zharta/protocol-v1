@@ -32,6 +32,9 @@ interface INonERC721Vault:
 interface CryptoPunksMarket:
     def offerPunkForSaleToAddress(punkIndex: uint256, minSalePriceInWei: uint256, toAddress: address): nonpayable
 
+interface WrappedPunk:
+    def burn(punkIndex: uint256): nonpayable
+
 # Structs
 
 struct Collateral:
@@ -149,6 +152,14 @@ event SushiRouterAddressSet:
     currentValue: address
     newValue: address
 
+event WrappedPunksAddressSet:
+    currentValue: address
+    newValue: address
+
+event CryptoPunksAddressSet:
+    currentValue: address
+    newValue: address
+
 event LiquidationAdded:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
@@ -211,6 +222,8 @@ collateralVaultPeripheralAddress: public(address)
 nftxVaultFactoryAddress: public(address)
 nftxMarketplaceZapAddress: public(address)
 sushiRouterAddress: public(address)
+wrappedPunksAddress: public(address)
+cryptoPunksAddress: public(address)
 wethAddress: immutable(address)
 
 ##### INTERNAL METHODS #####
@@ -243,7 +256,8 @@ def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint25
 @internal
 def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
     assert self.nftxVaultFactoryAddress != empty(address), "nftx vault address not defined"
-    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
+    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_unwrappedCollateralAddress)
     
     if len(vaultAddrs) == 0:
         return empty(address)
@@ -254,7 +268,8 @@ def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
 @view
 @internal
 def _getNFTXVaultIdFromCollateralAddr(_collateralAddress: address) -> uint256:
-    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
+    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_unwrappedCollateralAddress)
     return INFTXVault(vaultAddr).vaultId()
 
 
@@ -267,7 +282,8 @@ def _getNFTXVaultMintFee(vaultAddr: address) -> uint256:
 @view
 @internal
 def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> uint256:
-    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
+    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_unwrappedCollateralAddress)
 
     if vaultAddr == empty(address):
         return 0
@@ -298,8 +314,24 @@ def _getCollateralAmount(_collaterals: DynArray[Collateral, 100], _collateralAdd
             return collateral.amount
     return max_value(uint256)
 
+@view
+@internal
+def _unwrappedCollateralAddressIfWrapped(_collateralAddress: address) -> address:
+    if _collateralAddress == self.wrappedPunksAddress:
+        return self.cryptoPunksAddress
+    return _collateralAddress
+
+@internal
+def _unwrapCollateral(_collateralAddress: address, _tokenId: uint256):
+    if _collateralAddress == self.wrappedPunksAddress:
+        WrappedPunk(self.wrappedPunksAddress).burn(_tokenId)
 
 ##### EXTERNAL METHODS - VIEW #####
+
+@view
+@external
+def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4:
+    return convert(method_id("onERC721Received(address,address,uint256,bytes)", output_type=Bytes[4]), bytes4)
 
 @view
 @external
@@ -539,6 +571,32 @@ def setSushiRouterAddress(_address: address):
     )
 
     self.sushiRouterAddress = _address
+
+
+@external
+def setWrappedPunksAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != empty(address), "address is the zero addr"
+
+    log WrappedPunksAddressSet(
+        self.wrappedPunksAddress,
+        _address
+    )
+
+    self.wrappedPunksAddress = _address
+
+
+@external
+def setCryptoPunksAddress(_address: address):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _address != empty(address), "address is the zero addr"
+
+    log CryptoPunksAddressSet(
+        self.cryptoPunksAddress,
+        _address
+    )
+
+    self.cryptoPunksAddress = _address
 
 
 @external
@@ -800,9 +858,19 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     assert autoLiquidationPrice > 0, "NFTX liq price is 0 or none"
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(self, _collateralAddress, _tokenId)
+
+    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    _wrapped_collateral: bool = _unwrappedCollateralAddress != _collateralAddress
+
+    if _wrapped_collateral:
+        self._unwrapCollateral(_collateralAddress, _tokenId)
+
     vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
 
-    if vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
+    if _wrapped_collateral:
+        # currently only cryptopunks
+        CryptoPunksMarket(_unwrappedCollateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
+    elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
         IERC721(_collateralAddress).approve(
             self.nftxMarketplaceZapAddress,
             _tokenId
@@ -930,3 +998,11 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidation
         _erc20TokenContract,
         "BACKSTOP_PERIOD_ADMIN"
     )
+
+@external
+def storeERC721CollateralToVault(_collateralAddress: address, _tokenId: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert IERC721(_collateralAddress).ownerOf(_tokenId) == self, "collateral not owned by contract"
+
+    vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
+    IERC721(_collateralAddress).safeTransferFrom(self, vault, _tokenId, b"")
