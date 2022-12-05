@@ -24,6 +24,13 @@ interface INFTXVault:
 interface INFTXMarketplaceZap:
     def mintAndSell721WETH(vaultId: uint256, ids: DynArray[uint256, 1], minWethOut: uint256, path: DynArray[address, 2], to: address): nonpayable
 
+interface INonERC721Vault:
+    def vaultName() -> String[30]: view
+    def collateralOwner(_tokenId: uint256) -> address: view
+    def isApproved(_tokenId: uint256, _wallet: address) -> bool: view
+
+interface CryptoPunksMarket:
+    def offerPunkForSaleToAddress(punkIndex: uint256, minSalePriceInWei: uint256, toAddress: address): nonpayable
 
 # Structs
 
@@ -542,7 +549,7 @@ def addLiquidation(
     _loanId: uint256,
     _erc20TokenContract: address
 ):
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
+    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
     
     borrowerLoan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(_borrower, _loanId)
     assert borrowerLoan.defaulted, "loan is not defaulted"
@@ -656,7 +663,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
 
 @external
 def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
+    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
     
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
@@ -702,7 +709,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
+    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
     
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
@@ -769,7 +776,7 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
+    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation within lender period"
@@ -792,22 +799,19 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
     assert autoLiquidationPrice > 0, "NFTX liq price is 0 or none"
 
-    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).approveBackstopBuyer(
-        self,
-        _collateralAddress,
-        _tokenId
-    )
+    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(self, _collateralAddress, _tokenId)
+    vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
 
-    IERC721(_collateralAddress).transferFrom(
-        ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(),
-        self,
-        _tokenId
-    )
+    if vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
+        IERC721(_collateralAddress).approve(
+            self.nftxMarketplaceZapAddress,
+            _tokenId
+        )
+    elif INonERC721Vault(vault).vaultName() == "cryptopunks":
+        CryptoPunksMarket(_collateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
+    else:
+        raise "Unsupported collateral"
 
-    IERC721(_collateralAddress).approve(
-        self.nftxMarketplaceZapAddress,
-        _tokenId
-    )
 
     INFTXMarketplaceZap(self.nftxMarketplaceZapAddress).mintAndSell721WETH(
         self._getNFTXVaultIdFromCollateralAddr(_collateralAddress),
@@ -865,7 +869,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 @external
 def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral not owned by vault"
+    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.lenderPeriodMaturity, "liq not out of lenders period"
@@ -901,7 +905,7 @@ def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _token
 @external
 def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert IERC721(_collateralAddress).ownerOf(_tokenId) != ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreAddress(), "collateral still owned by vault"
+    assert not ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral still owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert liquidation.lid == empty(bytes32), 'collateral still in liquidation'
