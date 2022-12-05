@@ -309,10 +309,25 @@ class DependencyManager:
     def __init__(self, contracts_to_deploy: list):
         self.contracts_to_deploy = contracts_to_deploy
 
+    def _is_included_in_contract_deployment(self, tx: Transaction) -> bool:
+        if "loans" in self.contracts_to_deploy:
+            if tx == Transaction.loansperiph_set_cvperiph:
+                return True
+            elif tx == Transaction.loansperiph_set_lpperiph:
+                return True
+        if "liquidations_peripheral" in self.contracts_to_deploy:
+            if tx == Transaction.liquidationsperiph_set_liquidationscore:
+                return True
+        return False
+
     def _remove_duplicates(self, txs: list):
         result = []
         for tx in txs:
-            if tx != [] and tx not in result:
+            if (
+                tx != []
+                and tx not in result
+                and not self._is_included_in_contract_deployment(tx)
+            ):
                 result.append(tx)
         return result
 
