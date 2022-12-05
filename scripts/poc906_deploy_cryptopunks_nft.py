@@ -473,18 +473,6 @@ def prod():
     loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(cryptopunks_instance, {"from": owner})
 
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, cryptopunks_instance, web3.toWei(750, "ether"))  # TBC
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, wpunks_instance, web3.toWei(750, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, bayc_instance, web3.toWei(500, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, doodles_instance, web3.toWei(50, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, pudgypenguins_instance, web3.toWei(35, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, mutant_instance, web3.toWei(75, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, veefriends_instance, web3.toWei(35, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, kennel_instance, web3.toWei(35, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, wow_instance, web3.toWei(25, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, cool_cats_instance, web3.toWei(25, "ether"))
-    liquidity_controls.changeMaxCollectionBorrowableAmount(True, hashmasks_instance, web3.toWei(5, "ether"))
-
 
 def main():
     # prod()

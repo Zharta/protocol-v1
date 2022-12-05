@@ -7,10 +7,7 @@ from brownie import (
     LendingPoolCore,
     LendingPoolPeripheral,
     CollateralVaultCore,
-<<<<<<< HEAD
     CryptoPunksVaultCore,
-=======
->>>>>>> dev
     CollateralVaultPeripheral,
     LoansCore,
     Loans,
@@ -24,10 +21,7 @@ from pathlib import Path
 
 NAME_TO_CONTRACT = {
     "collateral_vault_core": CollateralVaultCore,
-<<<<<<< HEAD
     "cryptopunks_vault_core": CryptoPunksVaultCore,
-=======
->>>>>>> dev
     "collateral_vault_peripheral": CollateralVaultPeripheral,
     "lending_pool_core": LendingPoolCore,
     "lending_pool": LendingPoolPeripheral,
@@ -63,12 +57,8 @@ def load_nft_contracts(env: str) -> dict:
         "veefriends_instance": ERC721.at(contracts[6]["contract"]),
         "pudgypenguins_instance": ERC721.at(contracts[7]["contract"]),
         "bayc_instance": ERC721.at(contracts[8]["contract"]),
-<<<<<<< HEAD
         "wpunks_instance": ERC721.at(contracts[9]["contract"]),
         "cryptopunks_instance": ERC721.at(contracts[10]["contract"]),
-=======
-        "wpunks_instance": ERC721.at(contracts[9]["contract"])
->>>>>>> dev
     }
 
 
@@ -88,16 +78,10 @@ def dev():
     pudgypenguins_instance = nft_contracts["pudgypenguins_instance"]
     bayc_instance = nft_contracts["bayc_instance"]
     wpunks_instance = nft_contracts["wpunks_instance"]
-<<<<<<< HEAD
     cryptopunks_instance = nft_contracts["cryptopunks_instance"]
 
     ### TEST WETH CONTRACT ###
     weth = contracts["token"]
-=======
-
-    ### TEST WETH CONTRACT ###
-    weth = contracts["weth"]
->>>>>>> dev
 
     ### PROTOCOL CONTRACTS ###
     lending_pool_core_weth = LendingPoolCore.deploy(weth, {"from": owner})
@@ -111,29 +95,17 @@ def dev():
         False,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
     cryptopunks_vault_core = CryptoPunksVaultCore.deploy(cryptopunks_instance, {"from": owner})
 
-=======
-    
-    collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
-    
->>>>>>> dev
     collateral_vault_peripheral = CollateralVaultPeripheral.deploy(
         collateral_vault_core,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     loans_core_weth = LoansCore.deploy({"from": owner})
 
-=======
-    
-    loans_core_weth = LoansCore.deploy({"from": owner})
-    
->>>>>>> dev
     loans_peripheral_weth = Loans.deploy(
         1000000,
         31 * 86400,
@@ -149,15 +121,9 @@ def dev():
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
-<<<<<<< HEAD
-        180 * 86400,
-        180 * 86400,
-        180 * 86400,
-=======
         2 * 86400,
         2 * 86400,
         2 * 86400,
->>>>>>> dev
         weth,
         {"from": owner},
     )
@@ -178,11 +144,7 @@ def dev():
         lending_pool_peripheral_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     lending_pool_peripheral_weth.setLoansPeripheralAddress(
         loans_peripheral_weth,
         {"from": owner}
@@ -195,7 +157,6 @@ def dev():
         liquidity_controls,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     collateral_vault_peripheral.addVault(
         cryptopunks_instance,
@@ -208,18 +169,11 @@ def dev():
         {"from": owner}
     )
 
-=======
-    
->>>>>>> dev
     collateral_vault_core.setCollateralVaultPeripheralAddress(
         collateral_vault_peripheral,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     collateral_vault_peripheral.addLoansPeripheralAddress(
         weth,
         loans_peripheral_weth,
@@ -229,20 +183,12 @@ def dev():
         liquidations_peripheral,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     loans_core_weth.setLoansPeripheral(
         loans_peripheral_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     loans_peripheral_weth.setLiquidationsPeripheralAddress(
         liquidations_peripheral,
         {"from": owner}
@@ -251,11 +197,7 @@ def dev():
         liquidity_controls,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     liquidations_core.setLiquidationsPeripheralAddress(
         liquidations_peripheral,
         {"from": owner}
@@ -265,11 +207,7 @@ def dev():
         loans_core_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     liquidations_peripheral.addLoansCoreAddress(
         weth,
         loans_core_weth,
@@ -295,10 +233,7 @@ def dev():
     loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
-<<<<<<< HEAD
     loans_peripheral_weth.addCollateralToWhitelist(cryptopunks_instance, {"from": owner})
-=======
->>>>>>> dev
 
 
 def int():
@@ -317,16 +252,10 @@ def int():
     pudgypenguins_instance = nft_contracts["pudgypenguins_instance"]
     bayc_instance = nft_contracts["bayc_instance"]
     wpunks_instance = nft_contracts["wpunks_instance"]
-<<<<<<< HEAD
     cryptopunks_instance = nft_contracts["cryptopunks_instance"]
 
     ### TEST WETH CONTRACT ###
     weth = contracts["token"]
-=======
-
-    ### TEST WETH CONTRACT ###
-    weth = contracts["weth"]
->>>>>>> dev
 
     ### PROTOCOL CONTRACTS ###
     lending_pool_core_weth = LendingPoolCore.deploy(weth, {"from": owner})
@@ -340,29 +269,17 @@ def int():
         False,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
     cryptopunks_vault_core = CryptoPunksVaultCore.deploy(cryptopunks_instance, {"from": owner})
 
-=======
-    
-    collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
-    
->>>>>>> dev
     collateral_vault_peripheral = CollateralVaultPeripheral.deploy(
         collateral_vault_core,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     loans_core_weth = LoansCore.deploy({"from": owner})
 
-=======
-    
-    loans_core_weth = LoansCore.deploy({"from": owner})
-    
->>>>>>> dev
     loans_peripheral_weth = Loans.deploy(
         1000000,
         31 * 86400,
@@ -378,15 +295,9 @@ def int():
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
-<<<<<<< HEAD
-        180 * 86400,
-        180 * 86400,
-        180 * 86400,
-=======
         2 * 86400,
         2 * 86400,
         2 * 86400,
->>>>>>> dev
         weth,
         {"from": owner},
     )
@@ -407,11 +318,7 @@ def int():
         lending_pool_peripheral_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     lending_pool_peripheral_weth.setLoansPeripheralAddress(
         loans_peripheral_weth,
         {"from": owner}
@@ -424,7 +331,6 @@ def int():
         liquidity_controls,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     collateral_vault_peripheral.addVault(
         cryptopunks_instance,
@@ -437,18 +343,11 @@ def int():
         {"from": owner}
     )
 
-=======
-    
->>>>>>> dev
     collateral_vault_core.setCollateralVaultPeripheralAddress(
         collateral_vault_peripheral,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     collateral_vault_peripheral.addLoansPeripheralAddress(
         weth,
         loans_peripheral_weth,
@@ -458,20 +357,12 @@ def int():
         liquidations_peripheral,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     loans_core_weth.setLoansPeripheral(
         loans_peripheral_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     loans_peripheral_weth.setLiquidationsPeripheralAddress(
         liquidations_peripheral,
         {"from": owner}
@@ -480,11 +371,7 @@ def int():
         liquidity_controls,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     liquidations_core.setLiquidationsPeripheralAddress(
         liquidations_peripheral,
         {"from": owner}
@@ -494,11 +381,7 @@ def int():
         loans_core_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     liquidations_peripheral.addLoansCoreAddress(
         weth,
         loans_core_weth,
@@ -524,10 +407,7 @@ def int():
     loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
-<<<<<<< HEAD
     loans_peripheral_weth.addCollateralToWhitelist(cryptopunks_instance, {"from": owner})
-=======
->>>>>>> dev
 
 
 def prod():
@@ -546,14 +426,9 @@ def prod():
     pudgypenguins_instance = nft_contracts["pudgypenguins_instance"]
     bayc_instance = nft_contracts["bayc_instance"]
     wpunks_instance = nft_contracts["wpunks_instance"]
-<<<<<<< HEAD
     cryptopunks_instance = nft_contracts["cryptopunks_instance"]
 
     weth = contracts["token"]
-=======
-
-    weth = contracts["weth"]
->>>>>>> dev
 
     ### PROTOCOL CONTRACTS ###
     lending_pool_core_weth = LendingPoolCore.deploy(weth, {"from": owner})
@@ -567,29 +442,17 @@ def prod():
         False,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
     cryptopunks_vault_core = CryptoPunksVaultCore.deploy(cryptopunks_instance, {"from": owner})
 
-=======
-    
-    collateral_vault_core = CollateralVaultCore.deploy({"from": owner})
-    
->>>>>>> dev
     collateral_vault_peripheral = CollateralVaultPeripheral.deploy(
         collateral_vault_core,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     loans_core_weth = LoansCore.deploy({"from": owner})
 
-=======
-    
-    loans_core_weth = LoansCore.deploy({"from": owner})
-    
->>>>>>> dev
     loans_peripheral_weth = Loans.deploy(
         1000000,
         31 * 86400,
@@ -605,15 +468,9 @@ def prod():
 
     liquidations_peripheral = LiquidationsPeripheral.deploy(
         liquidations_core,
-<<<<<<< HEAD
-        180 * 86400,
-        180 * 86400,
-        180 * 86400,
-=======
         2 * 86400,
         2 * 86400,
         2 * 86400,
->>>>>>> dev
         weth,
         {"from": owner},
     )
@@ -634,11 +491,7 @@ def prod():
         lending_pool_peripheral_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     lending_pool_peripheral_weth.setLoansPeripheralAddress(
         loans_peripheral_weth,
         {"from": owner}
@@ -651,7 +504,6 @@ def prod():
         liquidity_controls,
         {"from": owner}
     )
-<<<<<<< HEAD
 
     collateral_vault_peripheral.addVault(
         cryptopunks_instance,
@@ -664,18 +516,11 @@ def prod():
         {"from": owner}
     )
 
-=======
-    
->>>>>>> dev
     collateral_vault_core.setCollateralVaultPeripheralAddress(
         collateral_vault_peripheral,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     collateral_vault_peripheral.addLoansPeripheralAddress(
         weth,
         loans_peripheral_weth,
@@ -685,20 +530,12 @@ def prod():
         liquidations_peripheral,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     loans_core_weth.setLoansPeripheral(
         loans_peripheral_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     loans_peripheral_weth.setLiquidationsPeripheralAddress(
         liquidations_peripheral,
         {"from": owner}
@@ -707,11 +544,7 @@ def prod():
         liquidity_controls,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     liquidations_core.setLiquidationsPeripheralAddress(
         liquidations_peripheral,
         {"from": owner}
@@ -721,11 +554,7 @@ def prod():
         loans_core_weth,
         {"from": owner}
     )
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> dev
     liquidations_peripheral.addLoansCoreAddress(
         weth,
         loans_core_weth,
@@ -763,10 +592,9 @@ def prod():
     loans_peripheral_weth.addCollateralToWhitelist(pudgypenguins_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(bayc_instance, {"from": owner})
     loans_peripheral_weth.addCollateralToWhitelist(wpunks_instance, {"from": owner})
-<<<<<<< HEAD
     loans_peripheral_weth.addCollateralToWhitelist(cryptopunks_instance, {"from": owner})
-=======
 
+    liquidity_controls.changeMaxCollectionBorrowableAmount(True, cryptopunks_instance, web3.toWei(750, "ether"))
     liquidity_controls.changeMaxCollectionBorrowableAmount(True, wpunks_instance, web3.toWei(750, "ether"))
     liquidity_controls.changeMaxCollectionBorrowableAmount(True, bayc_instance, web3.toWei(500, "ether"))
     liquidity_controls.changeMaxCollectionBorrowableAmount(True, doodles_instance, web3.toWei(50, "ether"))
@@ -777,7 +605,6 @@ def prod():
     liquidity_controls.changeMaxCollectionBorrowableAmount(True, wow_instance, web3.toWei(25, "ether"))
     liquidity_controls.changeMaxCollectionBorrowableAmount(True, cool_cats_instance, web3.toWei(25, "ether"))
     liquidity_controls.changeMaxCollectionBorrowableAmount(True, hashmasks_instance, web3.toWei(5, "ether"))
->>>>>>> dev
 
 
 def main():
