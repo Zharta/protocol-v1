@@ -434,5 +434,5 @@ class DeploymentManager:
 
 
 def main():
-    # DeploymentManager(["loans"], ENV).deploy(full_deployment=True)
+    # DeploymentManager(["collateral_vault_peripheral", "liquidations_peripheral", "loans"], ENV).deploy(full_deployment=False)
     pass
