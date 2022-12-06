@@ -501,7 +501,7 @@ def addCollateralToWhitelist(_address: address):
     assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
     # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
-    assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
+    # assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
 
     self.whitelistedCollaterals[_address] = True
 

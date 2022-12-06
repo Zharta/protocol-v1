@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 contracts = [
+    "CryptoPunksVaultCore",
     "CollateralVaultCore",
     "CollateralVaultPeripheral",
     "LendingPoolCore",
@@ -37,6 +38,7 @@ contracts = [
 # A map between the contract name on the contracts addresses configuration file and
 # the contract vyper file name
 contracts_mapped = {
+    "CryptoPunksVaultCore": "cryptopunks_vault_core",
     "CollateralVaultCore": "collateral_vault_core",
     "CollateralVaultPeripheral": "collateral_vault_peripheral",
     "LendingPoolCore": "lending_pool_core",
