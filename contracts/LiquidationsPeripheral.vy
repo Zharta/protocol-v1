@@ -868,8 +868,10 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
 
     if _wrapped_collateral:
-        # currently only cryptopunks
-        CryptoPunksMarket(_unwrappedCollateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
+        if _unwrappedCollateralAddress == self.cryptoPunksAddress:
+            CryptoPunksMarket(_unwrappedCollateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
+        else:
+            raise "Unsupported collateral"
     elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
         IERC721(_collateralAddress).approve(
             self.nftxMarketplaceZapAddress,
