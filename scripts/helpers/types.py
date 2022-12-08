@@ -3,8 +3,7 @@ from typing import Optional, Callable, Any
 from brownie.network.account import Account
 from brownie.network.contract import ContractContainer, ProjectContract
 from brownie import ERC721, ERC20
-from transactions import execute
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 Environment = Enum('Environment', ['local', 'dev', 'int', 'prod'])
 
@@ -16,13 +15,17 @@ class ContractConfig():
 @dataclass
 class DeploymentContext():
 
-    contracts: dict[str, ContractConfig]
+    contract: dict[str, ContractConfig]
     env: Environment
     owner: Account
+    config: dict[str, Any] = field(default_factory=dict)
     # TODO gas_strategy?
 
+    def __getitem__(self, key):
+        return self.contract[key] if key in self.contract else self.config[key]
 
-@dataclass
+
+@dataclass(frozen=True)
 class ContractConfig():
 
     name: str
@@ -30,11 +33,11 @@ class ContractConfig():
     container: ContractContainer
     nft: bool = False
     container_name: str = None
-    deployment_deps: set[str] = set()
-    config_deps: dict[str, Callable] = dict()
+    deployment_deps: set[str] = field(default_factory=set)
+    config_deps: dict[str, Callable] = field(default_factory=dict)
 
     def deployable(self, contract: DeploymentContext) -> bool:
-        pass
+        return False
 
     def deployment_dependencies(self) -> set[str]:
         return self.deployment_deps
@@ -42,7 +45,7 @@ class ContractConfig():
     def config_dependencies(self) -> dict[str, Callable]:
         return self.config_deps
 
-    def deploy(self, context: DeploymentContext, dryrun: bool = False):
+    def deploy(self, context: DeploymentContext, dryrun: bool = False) -> ContractConfig:
         pass
 
     def config_dependency(self, contract: ContractConfig, context: DeploymentContext, dryrun: bool = False):
@@ -55,10 +58,13 @@ class ContractConfig():
         return self.name
 
     def __str__(self):
+        return self.name
+
+    def __repr__(self):
         return f"Contract[name={self.name}, nft={self.nft}, contract={self.contract}, container_name={self.container_name}]"
 
 
-@dataclass
+@dataclass(frozen=True)
 class ExternalContract(ContractConfig):
 
     def deployable(self, context: DeploymentContext) -> bool:
@@ -69,9 +75,9 @@ class ExternalContract(ContractConfig):
             print(f"{self.name}: WARNING Deployment will override contract at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        _new = execute(self.container.deploy, {'from': {context.owner}}, _dryrun=dryrun)
-        if not dryrun:
-            self.contract = _new
+        args = [{'from': {context.owner}}]
+        print(f"executing {self.container_name}.deploy({','.join(str(a) for a in args)}")
+        return self.container.deploy(*args) if not dryrun else None
 
 
 class NFT(ExternalContract):
@@ -91,6 +97,14 @@ class Token(ExternalContract):
     def config_key(self):
         return self.config_key
 
+    def deploy(self, context: DeploymentContext, dryrun: bool = False):
+        if self.contract is not None:
+            print(f"{self.name}: WARNING Deployment will override contract at {self.contract}")
+        if not self.deployable(context):
+            raise Exception(f"Cant deploy contract {self} in current context")
+        args = [self.name, self.name, 18, 10**30, {'from': {context.owner}}]
+        print(f"executing {self.container_name}.deploy({','.join(str(a) for a in args)}")
+        return self.container.deploy(*args) if not dryrun else None
 
 class GenericExternalContract(ExternalContract):
 
@@ -103,31 +117,29 @@ class GenericExternalContract(ExternalContract):
     def address(self):
         return self.address
 
-    def __str__(self):
+    def __repr__(self):
         return f"GenericExternalContract[name={self.name}, address={self.address}]"
 
 
-@dataclass
+@dataclass(frozen=True)
 class InternalContract(ContractConfig):
 
-    deployment_args_contracts: list[Any] = list()
+    deployment_args_contracts: list[Any] = field(default_factory=list)
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
-        return [context.contracts[c] for c in self.deployment_args_contracts]
+        return [context.contract[c] for c in self.deployment_args_contracts]
 
     def deployment_options(self, context: DeploymentContext) -> dict[str, Any]:
         return {'from': context.owner}
 
-    def deploy(self, context: DeploymentContext, dryrun: bool = False):
+    def deployable(self, contract: DeploymentContext) -> bool:
+        return True
+
+    def deploy(self, context: DeploymentContext, dryrun: bool = False) -> ContractConfig:
         if self.contract is not None:
             print(f"{self.name}: WARNING Deployment will override contract at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        _new = execute(
-            self.container.deploy,
-            *self.deployment_args(context),
-            dry_run=dryrun,
-            **self.deployment_options(context)
-        )
-        if not dryrun:
-            self.contract = _new
+        args = [*self.deployment_args(context), self.deployment_options(context)]
+        print(f"executing {self.container_name}.deploy({','.join(str(a) for a in args)}")
+        return self.container.deploy(*args) if not dryrun else None

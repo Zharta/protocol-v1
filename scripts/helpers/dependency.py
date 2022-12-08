@@ -1,8 +1,7 @@
 from typing import Callable
-from types import DeploymentContext, InternalContract
-from itertools import groupby
-from transactions import Transaction
-from types import ContractConfig
+from collections import defaultdict
+from .types import DeploymentContext, InternalContract, ContractConfig
+from .transactions import Transaction
 
 
 class DependencyManager:
@@ -15,11 +14,12 @@ class DependencyManager:
         self.deployment_dependencies = deployment_dependencies
         self.config_dependencies = config_dependencies
         self.deployment_order = _build_deployment_order(deployment_dependencies)
-        self.deployment_set = self._build_deployment_set()
+        self._build_deployment_set()
 
     def _build_deployment_set(self):
         dependencies = self.deployment_dependencies
-        nodes = {dependencies.keys()} | {dependencies.values()}
+        undeployed = {k for k, c in self.context.contract.items() if c.deployable(self.context) and c.contract is None}
+        nodes = set(dependencies.keys()) | {w for v in dependencies.values() for w in v} | set(self.config_dependencies.keys()) | undeployed
         vis = {n: False in nodes for n in nodes}
 
         def _dfs(n: str):
@@ -32,10 +32,10 @@ class DependencyManager:
             if not vis[d]:
                 _dfs(d)
 
-        self.deployment_set = {k for k, v in vis if v and k in self.context.contract}
+        self.deployment_set = {k for k in vis if vis[k] and k in self.context.contract}
         self.transaction_set = {
             k: {tx for tx in txs if not self._is_included_in_contract_deployment(tx)}
-            for k, txs in self.config_dependencies
+            for k, txs in self.config_dependencies.items()
             if k in (self.deployment_set | self.changed_configs)
         }
 
@@ -51,7 +51,7 @@ class DependencyManager:
         return False
 
     def build_transaction_set(self) -> set[Callable]:
-        return self.transaction_set
+        return {tx for k, txs in self.transaction_set.items() for tx in txs}
 
     def build_contract_deploy_set(self) -> list[ContractConfig]:
         return [
@@ -62,19 +62,19 @@ class DependencyManager:
 
 
 def _build_dependencies(context: DeploymentContext) -> tuple[dict, dict]:
-    internal_contracts = {c for c in context.contract.values() if isinstance(c, InternalContract)}
+    internal_contracts = [c for c in context.contract.values() if isinstance(c, InternalContract)]
 
     dep_dependencies_set = {(dep, c.name) for c in internal_contracts for dep in c.deployment_dependencies()}
-    config_dependencies_set1 = {(k, v) for c in internal_contracts for k, v in c.config_dependencies()}
-    config_dependencies_set2 = {(c.name, v) for c in internal_contracts for k, v in c.config_dependencies()}
+    config_dependencies_set1 = {(k, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
+    config_dependencies_set2 = {(c.name, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
 
-    dep_dependencies = {k: set(v) for k, v in groupby(dep_dependencies_set, lambda x: x[0])}
-    config_dependencies = {k: set(v) for k, v in groupby(config_dependencies_set1 | config_dependencies_set2, lambda x: x[0])}
+    dep_dependencies = groupby_first(dep_dependencies_set)
+    config_dependencies = groupby_first(config_dependencies_set1 | config_dependencies_set2)
     return (dep_dependencies, config_dependencies)
 
 
-def _build_deployment_order(dependencies: dict[str, set(str)]) -> list[str]:
-    nodes = {dependencies.keys()} | {dependencies.values()}
+def _build_deployment_order(dependencies: dict[str, set[str]]) -> list[str]:
+    nodes = set(dependencies.keys()) | {w for v in dependencies.values() for w in v}
     vis = {n: False for n in nodes}
     stack = list()
 
@@ -89,3 +89,10 @@ def _build_deployment_order(dependencies: dict[str, set(str)]) -> list[str]:
         if not vis[d]:
             _dfs(d)
     return stack[::-1]
+
+
+def groupby_first(tuples: set[tuple]) -> dict[str, set[str]]:
+    res = defaultdict(set)
+    for k, v in tuples:
+        res[k].add(v)
+    return res

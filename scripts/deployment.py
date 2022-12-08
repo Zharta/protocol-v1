@@ -5,6 +5,7 @@ import os
 from typing import Any
 from brownie import ERC721, accounts
 from pathlib import Path
+from dataclasses import replace
 
 from .helpers.dependency import DependencyManager
 from .helpers.types import Environment, DeploymentContext, ContractConfig, NFT, Token, InternalContract
@@ -14,13 +15,13 @@ from .helpers.contracts import (
     CollateralVaultCoreContract,
     CollateralVaultPeripheralContract,
     LoansCoreContract,
-    LoansContract,
+    LoansPeripheralContract,
     LiquidationsCoreContract,
     LiquidationsPeripheralContract,
     LiquidityControlsContract,
 )
 
-ENV = Environment[os.environ.get("ENV", "dev")]
+ENV = Environment[os.environ.get("ENV", "local")]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -32,23 +33,23 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         config = json.load(f)["tokens"]["WETH"]
 
     def load(contract: ContractConfig):
-        address = config.get(contract.config_key(), None)
-        if address:
-            contract.contract = contract.container.at(address)
+        address = config.get(contract.config_key(), {}).get('contract', None)
+        if address and env != Environment.local:
+            return replace(contract, contract=contract.container.at(address))
         return contract
 
-    return {load(c) for c in [
+    return [load(c) for c in [
         LendingPoolCoreContract(None),
         LendingPoolPeripheralContract(None),
         CollateralVaultCoreContract(None),
         CollateralVaultPeripheralContract(None),
         LoansCoreContract(None),
-        LoansContract(None),
+        LoansPeripheralContract(None),
         LiquidationsCoreContract(None),
         LiquidationsPeripheralContract(None),
         LiquidityControlsContract(None),
         Token("weth", "token", None),
-    ]}
+    ]]
 
 
 def store_contracts(env: Environment, contracts: set[ContractConfig]):
@@ -58,15 +59,18 @@ def store_contracts(env: Environment, contracts: set[ContractConfig]):
         f.write(json.dumps(file_struct, indent=4))
 
 
-def load_nft_contracts(env: Environment) -> set[NFT]:
+def load_nft_contracts(env: Environment) -> list[NFT]:
     config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
     with open(config_file, "r") as f:
         contracts = json.load(f)
 
     def load(name, pos):
-        return NFT(name, ERC721.at(contracts[pos]["contract"]), pos)
+        if env != Environment.local:
+            return NFT(name, ERC721.at(contracts[pos]["contract"]), pos)
+        else:
+            return NFT(name, None, pos)
 
-    return {
+    return [
         load("cool_cats", 0),
         load("hashmasks", 1),
         load("bakc", 2),
@@ -77,9 +81,14 @@ def load_nft_contracts(env: Environment) -> set[NFT]:
         load("pudgy_penguins", 7),
         load("bayc", 8),
         load("wpunks", 9),
-        # load("cryptopunks", 10),
-        # NFT("newnft", ERC712.at(some_addr), 11),
-    }
+        NFT(
+            "punks",
+            ERC721.at('0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB') if env == Environment.prod else None,
+            10
+        ),
+        # load("punks", 10),
+        # NFT("newnft", ERC721.at(some_addr), 11),
+    ]
 
 
 def store_nft_contracts(env: Environment, nfts: set[NFT]):
@@ -91,8 +100,8 @@ def store_nft_contracts(env: Environment, nfts: set[NFT]):
         f.write(json.dumps(file_struct, indent=4))
 
 
-def load_borrowable_amounts(env: str) -> dict:
-    config_file = f"{Path.cwd()}/configs/{env}/collaterals_borrowable_amounts.json"
+def load_borrowable_amounts(env: Environment) -> dict:
+    config_file = f"{Path.cwd()}/configs/{env.name}/collaterals_borrowable_amounts.json"
     with open(config_file, "r") as f:
         values = json.load(f)
 
@@ -125,14 +134,11 @@ class DeploymentManager:
             case Environment.prod:
                 self.owner = accounts.load("prodacc")
 
-        self.context = DeploymentContext(self._get_contracts(), self.env, self.owner)
+        self.context = DeploymentContext(self._get_contracts(), self.env, self.owner, self._get_configs())
 
     def _get_contracts(self) -> dict[str, ContractConfig]:
         contracts = load_contracts(self.env)
         nfts = load_nft_contracts(self.env)
-        if self.env == Environment.local:
-            for nft in nfts:
-                nft.contract = None
         return {c.name: c for c in nfts + contracts}
 
     def _get_configs(self) -> dict[str, Any]:
@@ -150,8 +156,8 @@ class DeploymentManager:
         store_nft_contracts(self.env, nft_contracts)
         store_contracts(self.env, contracts)
 
-    def deploy(self, changed_contracts: set[str], changed_configs: set[str] = {}, dryrun=False, save_state=True):
-        dependency_manager = DependencyManager(self.context, changed_contracts, changed_configs)
+    def deploy(self, contracts: set[str] = None, configs: set[str] = None, dryrun=False, save_state=True):
+        dependency_manager = DependencyManager(self.context, contracts or set(), configs or set())
         contracts_to_deploy = dependency_manager.build_contract_deploy_set()
         dependencies_tx = dependency_manager.build_transaction_set()
 
@@ -164,10 +170,15 @@ class DeploymentManager:
         if save_state and not dryrun:
             self._save_state()
 
+    def deploy_all(self, dryrun=False, save_state=True):
+        self.deploy(contracts=self.context.contract.keys(), dryrun=dryrun, save_state=save_state)
+
+
 
 def main():
     manager = DeploymentManager(ENV)
-    manager.deploy({"collateral_vault_peripheral", "liquidations_peripheral", "loans"}, dryrun=True)
-    manager.deploy({}, {"nft_borrowable_amounts"}, save_state=False)
+    # manager.deploy(contracts={"collateral_vault_peripheral", "liquidations_peripheral", "loans"}, dryrun=True)
+    # manager.deploy(configs={"nft_borrowable_amounts"}, save_state=False)
+    # dm.deploy({"loans", "liquidity_controls"}, set(), dryrun=True)
     manager.deploy_all(dryrun=True)
     pass
