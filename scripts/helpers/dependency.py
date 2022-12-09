@@ -5,22 +5,28 @@ from .transactions import Transaction
 
 
 class DependencyManager:
-    def __init__(self, context: DeploymentContext, changed_contracts: set[str], changed_configs: set[str]):
-        # self.contracts_to_deploy = contracts_to_deploy
+    def __init__(self, context: DeploymentContext, changed: set[str]):
         self.context = context
-        self.changed_contracts = changed_contracts
-        self.changed_configs = changed_configs
-        (deployment_dependencies, config_dependencies) = _build_dependencies(context)
-        self.deployment_dependencies = deployment_dependencies
-        self.config_dependencies = config_dependencies
-        self.deployment_order = _build_deployment_order(deployment_dependencies)
+        self.changed = changed
+        self._build_dependencies()
+        self._build_deployment_order()
         self._build_deployment_set()
+
+    def _build_dependencies(self) -> tuple[dict, dict]:
+        internal_contracts = [c for c in self.context.contract.values() if isinstance(c, InternalContract)]
+        dep_dependencies_set = {(dep, c.name) for c in internal_contracts for dep in c.deployment_dependencies()}
+        config_dependencies_set1 = {(k, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
+        config_dependencies_set2 = {(c.name, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
+        self.deployment_dependencies = groupby_first(dep_dependencies_set, set(self.context.keys()))
+        self.config_dependencies = groupby_first(config_dependencies_set1 | config_dependencies_set2, set(self.context.keys()))
 
     def _build_deployment_set(self):
         dependencies = self.deployment_dependencies
         undeployed = {k for k, c in self.context.contract.items() if c.deployable(self.context) and c.contract is None}
-        nodes = set(dependencies.keys()) | {w for v in dependencies.values() for w in v} | set(self.config_dependencies.keys()) | undeployed
-        vis = {n: False in nodes for n in nodes}
+        # nodes = set(dependencies.keys()) | {w for v in dependencies.values() for w in v} | set(self.config_dependencies.keys()) | undeployed
+        nodes = set(self.context.contract.keys()) | set(self.context.config.keys())
+        starting_set = self.changed | undeployed
+        vis = {n: False for n in nodes}
 
         def _dfs(n: str):
             vis[n] = True
@@ -28,7 +34,7 @@ class DependencyManager:
                 if not vis[d]:
                     _dfs(d)
 
-        for d in (self.changed_contracts | self.changed_configs):
+        for d in starting_set:
             if not vis[d]:
                 _dfs(d)
 
@@ -36,8 +42,17 @@ class DependencyManager:
         self.transaction_set = {
             k: {tx for tx in txs if not self._is_included_in_contract_deployment(tx)}
             for k, txs in self.config_dependencies.items()
-            if k in (self.deployment_set | self.changed_configs)
+            if k in (self.deployment_set | self.changed)
         }
+
+    def _build_deployment_order(self):
+        sorted_dependencies = topological_sort(self.deployment_dependencies)
+        external_deployable = {
+            k for k, c in self.context.contract.items()
+            if not isinstance(c, InternalContract) and c.deployable(self.context)
+        }
+        internal_deployable_sorted = [c for c in sorted_dependencies if c not in external_deployable]
+        self.deployment_order = list(external_deployable) + internal_deployable_sorted
 
     def _is_included_in_contract_deployment(self, tx: Transaction) -> bool:
         if "loans" in self.deployment_set:
@@ -61,19 +76,7 @@ class DependencyManager:
         ]
 
 
-def _build_dependencies(context: DeploymentContext) -> tuple[dict, dict]:
-    internal_contracts = [c for c in context.contract.values() if isinstance(c, InternalContract)]
-
-    dep_dependencies_set = {(dep, c.name) for c in internal_contracts for dep in c.deployment_dependencies()}
-    config_dependencies_set1 = {(k, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
-    config_dependencies_set2 = {(c.name, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
-
-    dep_dependencies = groupby_first(dep_dependencies_set)
-    config_dependencies = groupby_first(config_dependencies_set1 | config_dependencies_set2)
-    return (dep_dependencies, config_dependencies)
-
-
-def _build_deployment_order(dependencies: dict[str, set[str]]) -> list[str]:
+def topological_sort(dependencies: dict[str, set[str]]) -> list[str]:
     nodes = set(dependencies.keys()) | {w for v in dependencies.values() for w in v}
     vis = {n: False for n in nodes}
     stack = list()
@@ -91,8 +94,10 @@ def _build_deployment_order(dependencies: dict[str, set[str]]) -> list[str]:
     return stack[::-1]
 
 
-def groupby_first(tuples: set[tuple]) -> dict[str, set[str]]:
+def groupby_first(tuples: set[tuple], extended_keys: set[str] = None) -> dict[str, set[str]]:
     res = defaultdict(set)
+    for k in (extended_keys or set()):
+        res[k] = set()
     for k, v in tuples:
         res[k].add(v)
-    return res
+    return dict(res)

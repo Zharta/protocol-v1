@@ -18,7 +18,7 @@ from brownie import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass
 class CollateralVaultCoreContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -35,7 +35,7 @@ class CollateralVaultCoreContract(InternalContract):
         )
 
 
-@dataclass(frozen=True)
+@dataclass
 class CollateralVaultPeripheralContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -53,7 +53,7 @@ class CollateralVaultPeripheralContract(InternalContract):
         )
 
 
-@dataclass(frozen=True)
+@dataclass
 class LendingPoolCoreContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -68,7 +68,7 @@ class LendingPoolCoreContract(InternalContract):
         )
 
 
-@dataclass(frozen=True)
+@dataclass
 class LendingPoolPeripheralContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -87,16 +87,19 @@ class LendingPoolPeripheralContract(InternalContract):
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         return [
-            context.contract["lending_pool_core"],
-            context.contract["weth"],
+            context["lending_pool_core"].contract,
+            context["weth"].contract,
             context.owner,
             2500,
             7000,
             False,
         ]
 
+    def config_key(self):
+        return "lending_pool"
 
-@dataclass(frozen=True)
+
+@dataclass
 class LoansCoreContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -111,7 +114,7 @@ class LoansCoreContract(InternalContract):
         )
 
 
-@dataclass(frozen=True)
+@dataclass
 class LoansPeripheralContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -136,7 +139,7 @@ class LoansPeripheralContract(InternalContract):
                 "pudgy_penguins": Transaction.loansperiph_add_collateral_pudgy_penguins,
                 "bayc": Transaction.loansperiph_add_collateral_bayc,
                 "wpunks": Transaction.loansperiph_add_collateral_wpunks,
-                "cryptopunks": Transaction.loansperiph_add_collateral_cryptopunks,
+                "punks": Transaction.loansperiph_add_collateral_punks,
             },
         )
 
@@ -146,13 +149,13 @@ class LoansPeripheralContract(InternalContract):
             31 * 86400,
             web3.toWei(10000, "ether"),
             24 * 60 * 60,
-            context.contract["loans_core"],
-            context.contract["lending_pool_peripheral"],
-            context.contract["collateral_vault_peripheral"],
+            context["loans_core"].contract,
+            context["lending_pool_peripheral"].contract,
+            context["collateral_vault_peripheral"].contract,
         ]
 
 
-@dataclass(frozen=True)
+@dataclass
 class LiquidationsCoreContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -171,7 +174,7 @@ class LiquidationsCoreContract(InternalContract):
         )
 
 
-@dataclass(frozen=True)
+@dataclass
 class LiquidationsPeripheralContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -194,15 +197,15 @@ class LiquidationsPeripheralContract(InternalContract):
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         return [
-            context.contract["liquidations_core"],
+            context["liquidations_core"].contract,
             2 * 86400,
             2 * 86400,
             2 * 86400,
-            context.contract["weth"],
+            context["weth"].contract,
         ]
 
 
-@dataclass(frozen=True)
+@dataclass
 class LiquidityControlsContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):

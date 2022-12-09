@@ -28,7 +28,7 @@ class Transaction:
 
     @staticmethod
     def cvperiph_add_loansperiph(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "collateral_vault_peripheral", "addLoansPeripheralAddress", "loans", dryrun=dryrun)
+        execute(context, "collateral_vault_peripheral", "addLoansPeripheralAddress", "weth", "loans", dryrun=dryrun)
 
     @staticmethod
     def cvperiph_set_liquidationsperiph(context: DeploymentContext, dryrun: bool = False):
@@ -36,7 +36,7 @@ class Transaction:
 
     @staticmethod
     def loanscore_set_loansperiph(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans_core", "setLoansPeripheralAddress", "loans", dryrun=dryrun)
+        execute(context, "loans_core", "setLoansPeripheral", "loans", dryrun=dryrun)
 
     @staticmethod
     def loansperiph_set_liquidationsperiph(context: DeploymentContext, dryrun: bool = False):
@@ -60,7 +60,7 @@ class Transaction:
 
     @staticmethod
     def liquidationscore_add_loanscore(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_core", "addLoansCoreAddress", "loans_core", dryrun=dryrun)
+        execute(context, "liquidations_core", "addLoansCoreAddress", "weth", "loans_core", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_set_liquidationscore(context: DeploymentContext, dryrun: bool = False):
@@ -68,11 +68,11 @@ class Transaction:
 
     @staticmethod
     def liquidationsperiph_add_loanscore(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_peripheral", "addLoansCoreAddress", "loans_core", dryrun=dryrun)
+        execute(context, "liquidations_peripheral", "addLoansCoreAddress", "weth", "loans_core", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_add_lpperiph(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_peripheral", "addLendingPoolPeripheralAddress", "lending_pool_peripheral", dryrun=dryrun)
+        execute(context, "liquidations_peripheral", "addLendingPoolPeripheralAddress", "weth", "lending_pool_peripheral", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
@@ -131,8 +131,8 @@ class Transaction:
         execute(context, "loans", "addCollateralToWhitelist", "wpunks", dryrun=dryrun)
 
     @staticmethod
-    def loansperiph_add_collateral_cryptopunks(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "cryptopunks", dryrun=dryrun)
+    def loansperiph_add_collateral_punks(context: DeploymentContext, dryrun: bool = False):
+        execute(context, "loans", "addCollateralToWhitelist", "punks", dryrun=dryrun)
 
     @staticmethod
     def liquiditycontrols_change_collectionborrowableamounts(context: DeploymentContext, dryrun: bool = False):
@@ -142,9 +142,9 @@ class Transaction:
             address = context[nft].address()
             args = [True, address, value_wei, {"from": context.owner}]
             if dryrun:
-                print(f"executing liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
+                print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
             elif contract_instance.maxCollectionBorrowableAmount(address) != value_wei:
-                print(f"executing liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
+                print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
                 contract_instance.changeMaxCollectionBorrowableAmount(*args)
             else:
                 print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current addres is already {address}")
@@ -152,8 +152,8 @@ class Transaction:
 
 def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False):
     contract_instance = context.contract[contract].contract
-    print(f"executing {contract}.{func}({','.join(args)})")
+    print(f"## {contract}.{func}({','.join(args)})")
     if not dryrun:
         function = getattr(contract_instance, func)
-        deploy_args = [context.config[a].contract for a in args]
+        deploy_args = [context[a].address() for a in args]
         function(*deploy_args, {"from": context.owner})

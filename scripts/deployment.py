@@ -5,10 +5,17 @@ import os
 from typing import Any
 from brownie import ERC721, accounts
 from pathlib import Path
-from dataclasses import replace
 
 from .helpers.dependency import DependencyManager
-from .helpers.types import Environment, DeploymentContext, ContractConfig, NFT, Token, InternalContract
+from .helpers.types import (
+    ContractConfig,
+    DeploymentContext,
+    Environment,
+    GenericExternalContract,
+    InternalContract,
+    NFT,
+    Token,
+)
 from .helpers.contracts import (
     LendingPoolCoreContract,
     LendingPoolPeripheralContract,
@@ -35,7 +42,7 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
     def load(contract: ContractConfig):
         address = config.get(contract.config_key(), {}).get('contract', None)
         if address and env != Environment.local:
-            return replace(contract, contract=contract.container.at(address))
+            contract.contract = contract.container.at(address)
         return contract
 
     return [load(c) for c in [
@@ -52,11 +59,11 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
     ]]
 
 
-def store_contracts(env: Environment, contracts: set[ContractConfig]):
+def store_contracts(env: Environment, contracts: list[ContractConfig]):
     config_file = f"{Path.cwd()}/configs/{env.name}/contracts.json"
-    file_struct = {'tokens': {'WETH': {c.config_key(): c.address() for c in contracts}}}
+    file_struct = {'tokens': {'WETH': {c.config_key(): {'contract': c.address()} for c in contracts}}}
     with open(config_file, "w") as f:
-        f.write(json.dumps(file_struct, indent=4))
+        f.write(json.dumps(file_struct, indent=4, sort_keys=True))
 
 
 def load_nft_contracts(env: Environment) -> list[NFT]:
@@ -91,9 +98,9 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
     ]
 
 
-def store_nft_contracts(env: Environment, nfts: set[NFT]):
+def store_nft_contracts(env: Environment, nfts: list[NFT]):
     config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
-    sorted_nfts = sorted(nfts, key=NFT.order)
+    sorted_nfts = sorted(nfts, key=lambda nft: nft.config_order)
     file_struct = [{'contract': nft.address()} for nft in sorted_nfts]
 
     with open(config_file, "w") as f:
@@ -139,30 +146,31 @@ class DeploymentManager:
     def _get_contracts(self) -> dict[str, ContractConfig]:
         contracts = load_contracts(self.env)
         nfts = load_nft_contracts(self.env)
-        return {c.name: c for c in nfts + contracts}
+        other = [
+            GenericExternalContract("nftxvaultfactory", "0xBE86f647b167567525cCAAfcd6f881F1Ee558216"),
+            GenericExternalContract("nftxmarketplacezap", "0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d"),
+            GenericExternalContract("sushirouter", "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"),
+        ]
+        return {c.name: c for c in nfts + contracts + other}
 
     def _get_configs(self) -> dict[str, Any]:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
-        return {
-            "nft_borrowable_amounts": nft_borrowable_amounts,
-            "nftxvaultfactory": "0xBE86f647b167567525cCAAfcd6f881F1Ee558216",
-            "nftxmarketplacezap": "0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d",
-            "sushirouter": "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
-        }
+        return {"nft_borrowable_amounts": nft_borrowable_amounts}
 
     def _save_state(self):
-        nft_contracts = {c for c in self.context.contracts if c.nft}
-        contracts = {c for c in self.context.contracts if isinstance(c, InternalContract) or isinstance(c, Token)}
+        nft_contracts = [c for c in self.context.contract.values() if c.nft]
+        contracts = [c for c in self.context.contract.values() if isinstance(c, InternalContract) or isinstance(c, Token)]
         store_nft_contracts(self.env, nft_contracts)
         store_contracts(self.env, contracts)
 
-    def deploy(self, contracts: set[str] = None, configs: set[str] = None, dryrun=False, save_state=True):
-        dependency_manager = DependencyManager(self.context, contracts or set(), configs or set())
+    def deploy(self, changes: set[str], dryrun=False, save_state=True):
+        dependency_manager = DependencyManager(self.context, changes)
         contracts_to_deploy = dependency_manager.build_contract_deploy_set()
         dependencies_tx = dependency_manager.build_transaction_set()
 
         for contract in contracts_to_deploy:
-            contract.deploy(self.context, dryrun)
+            if contract.deployable(self.context):
+                contract.deploy(self.context, dryrun)
 
         for dependency_tx in dependencies_tx:
             dependency_tx(self.context, dryrun)
@@ -171,14 +179,13 @@ class DeploymentManager:
             self._save_state()
 
     def deploy_all(self, dryrun=False, save_state=True):
-        self.deploy(contracts=self.context.contract.keys(), dryrun=dryrun, save_state=save_state)
-
+        self.deploy(self.context.contract.keys(), dryrun=dryrun, save_state=save_state)
 
 
 def main():
-    manager = DeploymentManager(ENV)
-    # manager.deploy(contracts={"collateral_vault_peripheral", "liquidations_peripheral", "loans"}, dryrun=True)
-    # manager.deploy(configs={"nft_borrowable_amounts"}, save_state=False)
-    # dm.deploy({"loans", "liquidity_controls"}, set(), dryrun=True)
-    manager.deploy_all(dryrun=True)
+    dm = DeploymentManager(ENV)
+    dm.deploy({"collateral_vault_peripheral", "liquidations_peripheral", "loans"}, dryrun=True)
+    # dm.deploy({"nft_borrowable_amounts"}, save_state=False)
+    # dm.deploy({"loans", "liquidity_controls"}, dryrun=True)
+    # dm.deploy_all(dryrun=False)
     pass
