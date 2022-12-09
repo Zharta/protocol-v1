@@ -482,9 +482,7 @@ def test_pay_loan_liquidations_grace_period(
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
     erc721_contract.mint(collateral_vault_core_contract, 1, {"from": contract_owner})
 
-    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
@@ -509,11 +507,14 @@ def test_pay_loan_liquidations_grace_period(
     liquidation1 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
     liquidation2 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 1)
 
-    erc20_contract.mint(borrower, liquidation1["gracePeriodPrice"], {"from": contract_owner})
-    erc20_contract.mint(borrower, liquidation2["gracePeriodPrice"], {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, liquidation1["gracePeriodPrice"] + liquidation2["gracePeriodPrice"], {"from": borrower})
+    contract_owner.transfer(to=borrower, amount=liquidation1["gracePeriodPrice"])
+    contract_owner.transfer(to=borrower, amount=liquidation2["gracePeriodPrice"])
 
-    tx = liquidations_peripheral_contract.payLoanLiquidationsGracePeriod(loan_id, erc20_contract, {"from": borrower})
+    tx = liquidations_peripheral_contract.payLoanLiquidationsGracePeriod(
+        loan_id,
+        erc20_contract,
+        {"from": borrower, 'value': liquidation1["gracePeriodPrice"] + liquidation2["gracePeriodPrice"]}
+    )
 
     # LIQUIDATION 1
     event_liquidation_removed1 = tx.events["LiquidationRemoved"][0]
@@ -605,9 +606,7 @@ def test_buy_nft_grace_period(
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
 
-    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
@@ -634,13 +633,12 @@ def test_buy_nft_grace_period(
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
 
     grace_period_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
-    erc20_contract.mint(borrower, grace_period_price, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, grace_period_price, {"from": borrower})
+    contract_owner.transfer(to=borrower, amount=grace_period_price)
 
     tx = liquidations_peripheral_contract.buyNFTGracePeriod(
         erc721_contract,
         0,
-        {"from": borrower}
+        {"from": borrower, 'value': grace_period_price}
     )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
@@ -687,9 +685,8 @@ def test_buy_nft_lender_period_grace_period(
     contract_owner
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+
+    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
@@ -714,7 +711,7 @@ def test_buy_nft_lender_period_grace_period(
         liquidations_peripheral_contract.buyNFTLenderPeriod(
             erc721_contract,
             0,
-            {"from": borrower}
+            {"from": borrower, 'value': LOAN_AMOUNT * 2}
         )
 
 
@@ -734,9 +731,7 @@ def test_buy_nft_lender_period_past_period(
     contract_owner
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
@@ -832,9 +827,7 @@ def test_buy_nft_lender_period(
     contract_owner
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
@@ -863,13 +856,11 @@ def test_buy_nft_lender_period(
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
 
     liquidation_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
-    erc20_contract.mint(contract_owner, liquidation_price, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, liquidation_price, {"from": contract_owner})
 
     tx = liquidations_peripheral_contract.buyNFTLenderPeriod(
         erc721_contract,
         0,
-        {"from": contract_owner}
+        {"from": borrower, 'value': liquidation_price}
     )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
@@ -1024,9 +1015,7 @@ def _create_liquidation(
     contract_owner
     ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
@@ -1305,9 +1294,7 @@ def test_cryptopunks_nftx_buy(
 ):
     cryptopunks_market_contract.transferPunk(cryptopunks_vault_core_contract, 0, {'from': borrower})
 
-    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})

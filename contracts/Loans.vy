@@ -23,7 +23,7 @@ interface ILendingPoolPeripheral:
     def maxFundsInvestable() -> uint256: view 
     def erc20TokenContract() -> address: view
     def sendFunds(_to: address, _amount: uint256): nonpayable
-    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): nonpayable
+    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
     def lendingPoolCoreContract() -> address: view
 
 interface ILiquidationsPeripheral:
@@ -196,6 +196,16 @@ event LoanDefaulted:
     loanId: uint256
     amount: uint256
     erc20TokenContract: address
+
+event PaymentSent:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
+event PaymentReceived:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
 
 
 # Global variables
@@ -835,14 +845,18 @@ def reserve(
 
 
 
-
+@payable
 @external
 def pay(_loanId: uint256):
+
     """
     @notice Closes an active loan by paying the full amount
     @dev Logs the `LoanPayment` and `LoanPaid` events. The associated `LendingPoolCore` contract must be approved for the payment amount
     @param _loanId The id of the loan to settle
     """
+
+    _received_amount: uint256 = msg.value
+
     assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
     assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
     assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
@@ -867,11 +881,9 @@ def pay(_loanId: uint256):
     )
 
     erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    assert IERC20(erc20TokenContract).balanceOf(msg.sender) >= paymentAmount, "insufficient balance"
-    assert IERC20(erc20TokenContract).allowance(
-        msg.sender,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
-    ) >= paymentAmount, "insufficient allowance"
+    assert _received_amount >= paymentAmount, "insufficient value received"
+    _excess_amount: uint256 = _received_amount - paymentAmount
+    log PaymentReceived(msg.sender, msg.sender,_received_amount)
 
     paidInterestAmount: uint256 = paymentAmount - loan.amount
 
@@ -879,7 +891,7 @@ def pay(_loanId: uint256):
     ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
     ILoansCore(self.loansCoreContract).updateHighestRepayment(msg.sender, _loanId)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
 
     for collateral in loan.collaterals:
         ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
@@ -891,6 +903,10 @@ def pay(_loanId: uint256):
             collateral.tokenId,
             erc20TokenContract
         )
+
+    if _excess_amount > 0:
+        send(msg.sender, _excess_amount)
+        log PaymentSent(msg.sender, msg.sender,_excess_amount)
 
     log LoanPayment(
         msg.sender,

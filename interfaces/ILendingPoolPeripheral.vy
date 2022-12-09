@@ -274,6 +274,7 @@ def changePoolStatus(_flag: bool):
 def deprecate():
     pass
 
+@payable
 @external
 def deposit(_amount: uint256):
     pass
@@ -286,10 +287,12 @@ def withdraw(_amount: uint256):
 def sendFunds(_to: address, _amount: uint256):
     pass
 
+@payable
 @external
 def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
+@payable
 @external
 def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
     pass

@@ -15,6 +15,10 @@ from interfaces import ILendingPoolLock
 from interfaces import ILiquidityControls
 
 
+interface IWETH:
+    def deposit(): payable
+    def withdraw(_amount: uint256): nonpayable
+
 # Structs
 
 struct InvestorFunds:
@@ -136,6 +140,16 @@ event FundsReceipt:
     investedAmount: uint256
     erc20TokenContract: address
     fundsOrigin: String[30]
+
+event PaymentSent:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
+event PaymentReceived:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
 
 
 # Global variables
@@ -262,6 +276,7 @@ def _computeLockPeriod(_lender: address, _amount: uint256) -> (uint256, uint256)
 @internal
 def _transferReceivedFunds(
     _borrower: address,
+    _payer: address,
     _amount: uint256,
     _rewardsPool: uint256,
     _rewardsProtocol: uint256,
@@ -277,11 +292,11 @@ def _transferReceivedFunds(
             self.erc20TokenContract
         )
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, _rewardsPool, _investedAmount):
+    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_payer, _amount, _rewardsPool, _investedAmount):
         raise "error receiving funds in LPCore"
     
     if _rewardsProtocol > 0:
-        if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, _rewardsProtocol):
+        if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_payer, self.protocolWallet, _rewardsProtocol):
             raise "error transferring protocol fees"
 
     log FundsReceipt(
@@ -301,12 +316,13 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256,
     rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _investedAmount, "loan")
+    self._transferReceivedFunds(_borrower, self, _amount, rewardsPool, rewardsProtocol, _investedAmount, "loan")
 
 
 @internal
 def _receiveFundsFromLiquidation(
     _borrower: address,
+    _payer: address,
     _amount: uint256,
     _rewardsAmount: uint256,
     _distributeToProtocol: bool,
@@ -321,7 +337,20 @@ def _receiveFundsFromLiquidation(
     else:
         rewardsPool = _rewardsAmount
 
-    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _investedAmount, _origin)
+    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _investedAmount, _origin)
+
+
+@internal
+def _unwrap_and_send(_to: address, _amount: uint256):
+    IWETH(self.erc20TokenContract).withdraw(_amount)
+    send(_to, _amount)
+    log PaymentSent(_to, _to, _amount)
+
+@internal
+def _wrap_and_approve(_to: address, _amount: uint256):
+    IWETH(self.erc20TokenContract).deposit(value=_amount)
+    log PaymentSent(self.erc20TokenContract, self.erc20TokenContract,_amount)
+    IERC20(self.erc20TokenContract).approve(_to,_amount)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -379,6 +408,12 @@ def __init__(
     
     if _whitelistEnabled:
         self.whitelistEnabled = _whitelistEnabled
+
+
+@external
+@payable
+def __default__():
+    log PaymentReceived(msg.sender, msg.sender, msg.value)
 
 
 @external
@@ -619,13 +654,16 @@ def deprecate():
 
 
 @external
-def deposit(_amount: uint256):
+@payable
+# def deposit(_amount: uint256):
+def deposit():
     """
     @notice Deposits the given amount in the lending pool
     @dev Logs the `Deposit` event
     @param _amount Value to deposit in wei
     """
 
+    _amount: uint256 = msg.value
     assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
     assert self.isPoolActive, "pool is not active right now"
     assert _amount > 0, "_amount has to be higher than 0"
@@ -636,7 +674,8 @@ def deposit(_amount: uint256):
         self.lendingPoolCoreContract,
         self._theoreticalMaxFundsInvestable(_amount)
     ), "max pool share surpassed"
-    assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
+
+    log PaymentReceived(msg.sender, msg.sender, _amount)
 
     if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
         raise "msg.sender is not whitelisted"
@@ -649,6 +688,7 @@ def deposit(_amount: uint256):
             True,
             self.erc20TokenContract
         )
+    self._wrap_and_approve(self.lendingPoolCoreContract, _amount)
 
     lockPeriodEnd: uint256 = 0
     lockPeriodAmount: uint256 = 0
@@ -689,8 +729,9 @@ def withdraw(_amount: uint256):
     if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _amount):
         raise "error withdrawing funds"
 
-    log Withdrawal(msg.sender, msg.sender, _amount, self.erc20TokenContract)
+    self._unwrap_and_send(msg.sender, _amount)
 
+    log Withdrawal(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
 @external
 def sendFunds(_to: address, _amount: uint256):
@@ -718,14 +759,18 @@ def sendFunds(_to: address, _amount: uint256):
             self.erc20TokenContract
         )
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_to, _amount):
+    if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(self, _amount):
         raise "error sending funds in LPCore"
+
+    self._unwrap_and_send(_to, _amount)
 
     log FundsTransfer(_to, _to, _amount, self.erc20TokenContract)
 
 
+@payable
 @external
 def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+
     """
     @notice Receive funds from a borrower as part of a loan payment
     @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
@@ -734,14 +779,21 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive in wei
     """
 
+     _received_amount: uint256 = msg.value
+
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
     assert _borrower != empty(address), "_borrower is the zero address"
-    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
+    assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
     
+    log PaymentReceived(msg.sender, msg.sender, _received_amount)
+    
+    self._wrap_and_approve(self.lendingPoolCoreContract, _received_amount)
+
     self._receiveFunds(_borrower, _amount, _rewardsAmount, _amount)
 
 
+@payable
 @external
 def receiveFundsFromLiquidation(
     _borrower: address,
@@ -751,6 +803,7 @@ def receiveFundsFromLiquidation(
     _investedAmount: uint256,
     _origin: String[30]
 ):
+
     """
     @notice Receive funds from a liquidation
     @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
@@ -761,9 +814,16 @@ def receiveFundsFromLiquidation(
     @param _origin Identification of the liquidation method
     """
 
+    _received_amount: uint256 = msg.value
+
     assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
     assert _borrower != empty(address), "_borrower is the zero address"
-    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
-    
-    self._receiveFundsFromLiquidation(_borrower, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
+    if _received_amount > 0:
+        assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
+        log PaymentReceived(msg.sender, msg.sender, _received_amount)
+        self._wrap_and_approve(self.lendingPoolCoreContract, _received_amount)
+        self._receiveFundsFromLiquidation(_borrower, self, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
+    else:
+        assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
+        self._receiveFundsFromLiquidation(_borrower, _borrower, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)

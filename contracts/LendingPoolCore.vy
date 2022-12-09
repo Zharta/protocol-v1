@@ -245,7 +245,7 @@ def deposit(_lender: address, _amount: uint256) -> bool:
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _lender != empty(address), "The _address is the zero address"
-    assert self._fundsAreAllowed(_lender, self, _amount), "Not enough funds allowed"
+    assert self._fundsAreAllowed(msg.sender, self, _amount), "Not enough funds allowed"
 
     sharesAmount: uint256 = self._computeShares(_amount)
 
@@ -277,7 +277,7 @@ def deposit(_lender: address, _amount: uint256) -> bool:
     self.fundsAvailable += _amount
     self.totalSharesBasisPoints += sharesAmount
 
-    return IERC20(self.erc20TokenContract).transferFrom(_lender, self, _amount)
+    return IERC20(self.erc20TokenContract).transferFrom(msg.sender, self, _amount)
 
 
 @external
@@ -309,7 +309,7 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
 
     self.fundsAvailable -= _amount
 
-    return IERC20(self.erc20TokenContract).transfer(_lender, _amount)
+    return IERC20(self.erc20TokenContract).transfer(self.lendingPoolPeripheral, _amount)
 
 
 @external
@@ -335,6 +335,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
+    assert IERC20(self.erc20TokenContract).allowance(_borrower, self) >= _amount, "insufficient value received"
 
     self.fundsAvailable += _amount + _rewardsAmount
     self.fundsInvested -= _investedAmount
@@ -351,5 +352,6 @@ def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: 
     assert _protocolWallet != empty(address), "_protocolWallet is the zero address"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount > 0, "_amount should be higher than 0"
+    assert IERC20(self.erc20TokenContract).allowance(_borrower, self) >= _amount, "insufficient value received"
 
     return IERC20(self.erc20TokenContract).transferFrom(_borrower, _protocolWallet, _amount)

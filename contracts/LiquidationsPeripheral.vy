@@ -204,6 +204,16 @@ event AdminWithdrawal:
     tokenId: uint256
     wallet: address
 
+event PaymentSent:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
+event PaymentReceived:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
 
 # Global variables
 
@@ -657,16 +667,23 @@ def addLiquidation(
     ILiquidationsCore(self.liquidationsCoreAddress).addLoanToLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId)
 
 
+@payable
 @external
 def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: address):
-    loan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(msg.sender, _loanId)
+    _received_amount: uint256 = msg.value
+    assert _received_amount > 0, "recv amount is 0"
 
+    loan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(msg.sender, _loanId)
     assert loan.defaulted, "loan is not defaulted"
+
+    log PaymentReceived(msg.sender, msg.sender,_received_amount)
+    _payed_amount: uint256 = 0
 
     for collateral in loan.collaterals:
         liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(collateral.contractAddress, collateral.tokenId)
 
         assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
+        assert _received_amount >= _payed_amount + liquidation.gracePeriodPrice, "insufficient value received"
 
         ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(collateral.contractAddress, collateral.tokenId)
 
@@ -682,14 +699,20 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             liquidation.borrower
         )
 
-        ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+        _lendingPoolPeripheral : address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+        ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidation(
             liquidation.borrower,
             liquidation.principal,
             liquidation.gracePeriodPrice - liquidation.principal,
             True,
             liquidation.principal,
             "liquidation_grace_period"
+            value=liquidation.gracePeriodPrice
         )
+
+        log PaymentSent(_lendingPoolPeripheral, _lendingPoolPeripheral, liquidation.gracePeriodPrice)
+        _payed_amount = _payed_amount + liquidation.gracePeriodPrice
+
 
         ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(
             msg.sender,
@@ -710,12 +733,21 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             "GRACE_PERIOD"
         )
 
+    _excess_amount: uint256 = _received_amount - _payed_amount
+    if _excess_amount > 0:
+        send(msg.sender, _excess_amount)
+        log PaymentSent(msg.sender, msg.sender,_excess_amount)
 
+@payable
 @external
 def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
     assert msg.sender == liquidation.borrower, "msg.sender is not borrower"
+
+    _received_amount: uint256 = msg.value
+    assert _received_amount > 0, "recv amount is 0"
+    log PaymentReceived(msg.sender, msg.sender, _received_amount)
 
     ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 
@@ -731,14 +763,19 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.borrower
     )
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+    assert _received_amount >= liquidation.gracePeriodPrice, "insufficient value received"
+    _excess_amount: uint256 = _received_amount - liquidation.gracePeriodPrice
+    _lendingPoolPeripheral: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+    ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidation(
         liquidation.borrower,
         liquidation.principal,
         liquidation.gracePeriodPrice - liquidation.principal,
         True,
         liquidation.principal,
         "liquidation_grace_period"
+        value=liquidation.gracePeriodPrice
     )
+    log PaymentSent(_lendingPoolPeripheral, _lendingPoolPeripheral, liquidation.gracePeriodPrice)
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
 
@@ -755,7 +792,12 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         "GRACE_PERIOD"
     )
 
+    if _excess_amount > 0:
+        send(msg.sender, _excess_amount)
+        log PaymentSent(msg.sender, msg.sender,_excess_amount)
 
+
+@payable
 @external
 def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):    
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
@@ -763,6 +805,9 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     assert block.timestamp <= liquidation.lenderPeriodMaturity, "liquidation out of lender period"
 
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
+    _received_amount: uint256 = msg.value
+    assert _received_amount > 0, "recv amount is 0"
+    log PaymentReceived(msg.sender, msg.sender, _received_amount)
 
     ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 
@@ -783,30 +828,21 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.principal,
         liquidation.interestAmount
     )
-    if liquidation.lenderPeriodPrice > liquidation.principal + lenderPeriodInterestAmount:
-        fundsSender = self
-        IERC20(liquidation.erc20TokenContract).transferFrom(
-            msg.sender,
-            self,
-            liquidation.lenderPeriodPrice
-        )
-        IERC20(liquidation.erc20TokenContract).approve(
-            ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).lendingPoolCoreContract(),
-            liquidation.principal + lenderPeriodInterestAmount
-        )
-        IERC20(liquidation.erc20TokenContract).transfer(
-            liquidation.borrower,
-            liquidation.lenderPeriodPrice - (liquidation.principal + lenderPeriodInterestAmount)
-        )
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveFundsFromLiquidation(
+    _liquidation_amount: uint256 = liquidation.principal + lenderPeriodInterestAmount
+    assert _received_amount >= _liquidation_amount, "insufficient value received"
+    _excess_amount: uint256 = _received_amount - _liquidation_amount
+    _lendingPoolPeripheral: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+    ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidation(
         fundsSender,
         liquidation.principal,
         lenderPeriodInterestAmount,
         True,
         liquidation.principal,
         "liquidation_lenders_period"
+        value=_liquidation_amount
     )
+    log PaymentSent(_lendingPoolPeripheral, _lendingPoolPeripheral, _liquidation_amount)
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
 
@@ -823,6 +859,9 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
         "LENDER_PERIOD"
     )
 
+    if _excess_amount > 0:
+        send(msg.sender, _excess_amount)
+        log PaymentSent(msg.sender, msg.sender,_excess_amount)
 
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):

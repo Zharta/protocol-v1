@@ -170,6 +170,94 @@ event AdminWithdrawal:
 
 @view
 @external
+def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidation:
+    pass
+
+@external
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
+    pass
+
+@external
+def setGracePeriodDuration(_duration: uint256):
+    pass
+
+@external
+def setLendersPeriodDuration(_duration: uint256):
+    pass
+
+@external
+def setAuctionPeriodDuration(_duration: uint256):
+    pass
+
+@external
+def setLiquidationsCoreAddress(_address: address):
+    pass
+
+@external
+def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
+    pass
+
+@external
+def removeLoansCoreAddress(_erc20TokenContract: address):
+    pass
+
+@external
+def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: address):
+    pass
+
+@external
+def removeLendingPoolPeripheralAddress(_erc20TokenContract: address):
+    pass
+
+@external
+def setCollateralVaultPeripheralAddress(_address: address):
+    pass
+
+@external
+def setNFTXVaultFactoryAddress(_address: address):
+    pass
+
+@external
+def setNFTXMarketplaceZapAddress(_address: address):
+    pass
+
+@external
+def setSushiRouterAddress(_address: address):
+    pass
+
+@external
+def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: address, _loanId: uint256, _erc20TokenContract: address):
+    pass
+
+@payable
+@external
+def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: address):
+    pass
+
+@payable
+@external
+def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
+    pass
+
+@payable
+@external
+def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
+    pass
+
+@external
+def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
+    pass
+
+@external
+def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _tokenId: uint256):
+    pass
+
+@view
+@external
 def owner() -> address:
     pass
 
