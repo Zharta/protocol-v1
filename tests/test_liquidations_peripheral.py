@@ -358,22 +358,6 @@ def test_set_collateral_vault_address_same_address(liquidations_peripheral_contr
         liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
 
-def test_add_liquidation_collat_not_owned_by_vault(liquidations_peripheral_contract, liquidations_core_contract, collateral_vault_peripheral_contract, erc721_contract, contract_owner):
-    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-
-    erc721_contract.mint(contract_owner, 0, {"from": contract_owner})
-
-    with brownie.reverts("collateral not owned by vault"):
-        liquidations_peripheral_contract.addLiquidation(
-            erc721_contract,
-            0,
-            brownie.ZERO_ADDRESS,
-            0,
-            brownie.ZERO_ADDRESS
-        )
-
-
 def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
@@ -399,8 +383,6 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
     tx = liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -472,44 +454,6 @@ def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, li
 
     with brownie.reverts("loan is not defaulted"):
         liquidations_peripheral_contract.addLiquidation(
-            erc721_contract,
-            0,
-            borrower,
-            loan_id,
-            erc20_contract
-        )
-
-
-def test_add_liquidation_collat_not_in_loan(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
-    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
-    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-
-    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
-
-    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    erc721_contract.mint(collateral_vault_core_contract, 1, {"from": contract_owner})
-    
-    tx_add_loan = loans_core_contract.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        [(erc721_contract, 0, LOAN_AMOUNT)],
-        {"from": loans_peripheral_contract}
-    )
-    loan_id = tx_add_loan.return_value
-    loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
-    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
-
-    with brownie.reverts("collateral not in loan"):
-        liquidations_peripheral_contract.addLiquidation(
-            erc721_contract,
-            1,
             borrower,
             loan_id,
             erc20_contract
@@ -569,16 +513,6 @@ def test_pay_loan_liquidations_grace_period(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
-        borrower,
-        loan_id,
-        erc20_contract
-    )
-
-    liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        1,
         borrower,
         loan_id,
         erc20_contract
@@ -635,18 +569,6 @@ def test_pay_loan_liquidations_grace_period(
         assert event["fundsOrigin"] == "liquidation_grace_period"
 
 
-def test_buy_nft_grace_period_collat_not_owned_by_vault(liquidations_peripheral_contract, collateral_vault_peripheral_contract, erc721_contract, contract_owner):
-    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-
-    erc721_contract.mint(contract_owner, 0, {"from": contract_owner})
-
-    with brownie.reverts("collateral not owned by vault"):
-        liquidations_peripheral_contract.buyNFTGracePeriod(
-            erc721_contract,
-            0
-        )
-
-
 def test_buy_nft_grace_period_not_allowed(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
@@ -676,8 +598,6 @@ def test_buy_nft_grace_period_not_allowed(liquidations_peripheral_contract, liqu
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -742,8 +662,6 @@ def test_buy_nft_grace_period(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -843,8 +761,6 @@ def test_buy_nft_lender_period_grace_period(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -909,8 +825,6 @@ def test_buy_nft_lender_period_past_period(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -977,8 +891,6 @@ def test_buy_nft_lender_period(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -1193,8 +1105,6 @@ def _create_liquidation(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -1488,8 +1398,6 @@ def test_cryptopunks_nftx_buy(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        cryptopunks_market_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract

@@ -125,6 +125,10 @@ def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: u
     pass
 
 @external
+def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256):
+    pass
+
+@external
 def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
     pass
 

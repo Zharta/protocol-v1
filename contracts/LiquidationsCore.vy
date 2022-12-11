@@ -257,10 +257,11 @@ def addLiquidation(
     _loansCoreContract: address,
     _erc20TokenContract: address
 ) -> bytes32:
-    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not BNPeriph addr"
+    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not LiqPeriph addr"
     
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
     assert self.liquidations[liquidationKey].startTime == 0, "liquidation already exists"
+    assert not self.liquidatedLoans[self._computeLiquidatedLoansKey(_borrower, _loansCoreContract, _loanId)], "loan already liquidated"
 
     lid: bytes32 = self._computeLiquidationId(_collateralAddress, _tokenId, block.timestamp)
     self.liquidations[liquidationKey] = Liquidation(
@@ -288,8 +289,15 @@ def addLiquidation(
 
 
 @external
+def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256):
+    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not LiqPeriph addr"
+    
+    self.liquidatedLoans[self._computeLiquidatedLoansKey(_borrower, _loansCoreContract, _loanId)] = True
+
+
+@external
 def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
-    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not BNPeriph addr"
+    assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not LiqPeriph addr"
 
     liquidationKey: bytes32 = self._computeLiquidationKey(_collateralAddress, _tokenId)
     
