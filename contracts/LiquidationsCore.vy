@@ -69,6 +69,7 @@ liquidationsPeripheralAddress: public(address)
 loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
 
 liquidations: HashMap[bytes32, Liquidation]
+liquidatedLoans: HashMap[bytes32, bool]
 
 
 ##### INTERNAL METHODS #####
@@ -76,13 +77,19 @@ liquidations: HashMap[bytes32, Liquidation]
 @pure
 @internal
 def _computeLiquidationId(_collateralAddress: address, _collateralId: uint256, _timestamp: uint256) -> bytes32:
-  return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32), convert(_timestamp, bytes32)))
+    return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32), convert(_timestamp, bytes32)))
 
 
 @pure
 @internal
 def _computeLiquidationKey(_collateralAddress: address, _collateralId: uint256) -> bytes32:
-  return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
+    return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
+
+
+@pure
+@internal
+def _computeLiquidatedLoansKey(_borrower: address, _loansCoreContract: address, _loanId: uint256) -> bytes32:
+    return keccak256(_abi_encode(_borrower, _loansCoreContract, convert(_loanId, bytes32)))
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -137,6 +144,12 @@ def getLiquidationERC20Contract(_collateralAddress: address, _tokenId: uint256) 
 @external
 def isLiquidationInAuction(_collateralAddress: address, _tokenId: uint256) -> bool:
     return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)].inAuction
+
+
+@view
+@external
+def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256) -> bool:
+    return self.liquidatedLoans[self._computeLiquidatedLoansKey(_borrower, _loansCoreContract, _loanId)]
 
 
 ##### EXTERNAL METHODS - WRITE #####

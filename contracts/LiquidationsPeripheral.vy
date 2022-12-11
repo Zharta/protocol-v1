@@ -553,6 +553,9 @@ def addLiquidation(
     
     borrowerLoan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(_borrower, _loanId)
     assert borrowerLoan.defaulted, "loan is not defaulted"
+
+    assert not ILiquidationsCore(self.liquidationsCoreAddress).isLoanLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId), "loan already liquidated"
+    assert ILiquidationsCore(self.liquidationsCoreAddress).getLiquidationStartTime(_collateralAddress, _tokenId) == 0, "liquidation already exists"
     assert self._isCollateralInArray(borrowerLoan.collaterals, _collateralAddress, _tokenId), "collateral not in loan"
 
     principal: uint256 = self._getCollateralAmount(borrowerLoan.collaterals, _collateralAddress, _tokenId)
