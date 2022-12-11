@@ -543,8 +543,6 @@ def setSushiRouterAddress(_address: address):
 
 @external
 def addLiquidation(
-    # _collateralAddress: address,
-    # _tokenId: uint256,
     _borrower: address,
     _loanId: uint256,
     _erc20TokenContract: address
