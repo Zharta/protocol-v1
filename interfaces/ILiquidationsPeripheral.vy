@@ -134,7 +134,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
-    method: String[20]
+    method: String[30]
 event AdminWithdrawal:
     collateralAddressIndexed: address
     liquidationId: bytes32
@@ -206,7 +206,7 @@ def setSushiRouterAddress(_address: address):
     pass
 
 @external
-def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: address, _loanId: uint256, _erc20TokenContract: address):
+def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
     pass
 
 @external
@@ -227,6 +227,10 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _tokenId: uint256):
+    pass
+
+@external
+def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
 @view
@@ -287,11 +291,6 @@ def nftxMarketplaceZapAddress() -> address:
 @view
 @external
 def sushiRouterAddress() -> address:
-    pass
-
-@view
-@external
-def lenderMinDepositAmount() -> uint256:
     pass
 
 
