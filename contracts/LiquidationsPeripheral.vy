@@ -710,10 +710,12 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
 @external
 def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
-    
+
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
     assert block.timestamp <= liquidation.lenderPeriodMaturity, "liquidation out of lender period"
+
+    assert ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
 
     ILiquidationsCore(self.liquidationsCoreAddress).removeLiquidation(_collateralAddress, _tokenId)
 
