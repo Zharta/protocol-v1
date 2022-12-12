@@ -303,14 +303,6 @@ def _isCollateralInArray(_collaterals: DynArray[Collateral, 100], _collateralAdd
     return False
 
 
-# @pure
-# @internal
-# def _getCollateralAmount(_collaterals: DynArray[Collateral, 100], _collateralAddress: address, _tokenId: uint256) -> uint256:
-#     for collateral in _collaterals:
-#         if collateral.contractAddress == _collateralAddress and collateral.tokenId == _tokenId:
-#             return collateral.amount
-#     return max_value(uint256)
-
 @view
 @internal
 def _unwrappedCollateralAddressIfWrapped(_collateralAddress: address) -> address:
