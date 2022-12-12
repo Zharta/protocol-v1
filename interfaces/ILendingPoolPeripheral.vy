@@ -276,7 +276,7 @@ def deprecate():
 
 @payable
 @external
-def deposit(_amount: uint256):
+def deposit():
     pass
 
 @external
