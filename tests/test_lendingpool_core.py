@@ -3,8 +3,6 @@ from web3 import Web3
 
 import brownie
 
-# FAILED tests/test_lendingpool_core.py::test_withdraw - TypeError: deposit requires no arguments
-# FAILED tests/test_lendingpool_core.py::test_deposit_withdraw_deposit - TypeError: deposit requires no arguments
 
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
