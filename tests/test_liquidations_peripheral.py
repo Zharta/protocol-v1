@@ -428,6 +428,8 @@ def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_con
     assert event["loanId"] == loan_id
     assert event["borrower"] == borrower
 
+    assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, loan_id)
+
 
 def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
@@ -567,6 +569,8 @@ def test_pay_loan_liquidations_grace_period(
 
     for event in tx.events["FundsReceipt"]:
         assert event["fundsOrigin"] == "liquidation_grace_period"
+    
+    assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, loan_id)
 
 
 def test_buy_nft_grace_period_not_allowed(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, lending_pool_peripheral_contract, lending_pool_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
@@ -944,6 +948,8 @@ def test_buy_nft_lender_period(
 
     event_funds_receipt = tx.events["FundsReceipt"]
     assert event_funds_receipt["fundsOrigin"] == "liquidation_lenders_period"
+
+    assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, loan_id)
 
 
 def test_admin_withdrawal_wrong_sender(
