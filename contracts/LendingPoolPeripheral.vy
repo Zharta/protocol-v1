@@ -785,9 +785,9 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
-    
+
     log PaymentReceived(msg.sender, msg.sender, _received_amount)
-    
+
     self._wrap_and_approve(self.lendingPoolCoreContract, _received_amount)
 
     self._receiveFunds(_borrower, _amount, _rewardsAmount, _amount)
@@ -814,15 +814,15 @@ def receiveFundsFromLiquidation(
     @param _origin Identification of the liquidation method
     """
 
-    _received_amount: uint256 = msg.value
+    receivedAmount: uint256 = msg.value
 
     assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
-    if _received_amount > 0:
-        assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
-        log PaymentReceived(msg.sender, msg.sender, _received_amount)
-        self._wrap_and_approve(self.lendingPoolCoreContract, _received_amount)
+    if receivedAmount > 0:
+        assert receivedAmount == _amount + _rewardsAmount, "recv amount not match partials"
+        log PaymentReceived(msg.sender, msg.sender, receivedAmount)
+        self._wrap_and_approve(self.lendingPoolCoreContract, receivedAmount)
         self._receiveFundsFromLiquidation(_borrower, self, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
     else:
         assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"

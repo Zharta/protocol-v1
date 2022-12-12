@@ -855,8 +855,7 @@ def pay(_loanId: uint256):
     @param _loanId The id of the loan to settle
     """
 
-    _received_amount: uint256 = msg.value
-
+    receivedAmount: uint256 = msg.value
     assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
     assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
     assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
@@ -881,9 +880,9 @@ def pay(_loanId: uint256):
     )
 
     erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    assert _received_amount >= paymentAmount, "insufficient value received"
-    _excess_amount: uint256 = _received_amount - paymentAmount
-    log PaymentReceived(msg.sender, msg.sender,_received_amount)
+    assert receivedAmount >= paymentAmount, "insufficient value received"
+    excessAmount: uint256 = receivedAmount - paymentAmount
+    log PaymentReceived(msg.sender, msg.sender, receivedAmount)
 
     paidInterestAmount: uint256 = paymentAmount - loan.amount
 
@@ -904,9 +903,9 @@ def pay(_loanId: uint256):
             erc20TokenContract
         )
 
-    if _excess_amount > 0:
-        send(msg.sender, _excess_amount)
-        log PaymentSent(msg.sender, msg.sender,_excess_amount)
+    if excessAmount > 0:
+        send(msg.sender, excessAmount)
+        log PaymentSent(msg.sender, msg.sender,excessAmount)
 
     log LoanPayment(
         msg.sender,
