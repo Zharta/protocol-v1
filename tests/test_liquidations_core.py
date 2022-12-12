@@ -156,7 +156,7 @@ def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_con
 
     liquidation_id_abi_encoded = eth_abi.encode_abi(
         ["address", "uint256", "uint256"],
-        [erc721_contract.address, 0, start_time]
+        [erc721_contract.address, 0, tx.timestamp]
     ).hex()
     liquidation_id = Web3.solidityKeccak(
         ["bytes32"],
