@@ -895,8 +895,6 @@ def test_buy_nft_lender_period_not_lender(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        erc721_contract,
-        0,
         borrower,
         loan_id,
         erc20_contract
@@ -1567,8 +1565,6 @@ def test_hashmasks_nftx_buy(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        hashmasks_contract,
-        token_id,
         borrower,
         loan_id,
         erc20_contract
@@ -1673,8 +1669,6 @@ def test_wpunks_nftx_buy(
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
 
     liquidations_peripheral_contract.addLiquidation(
-        wpunks_contract,
-        token_id,
         borrower,
         loan_id,
         erc20_contract
@@ -1725,7 +1719,6 @@ def test_store_collateral(
     loans_peripheral_contract,
     erc20_contract,
     erc721_contract,
-    borrower,
     contract_owner
 ):
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
