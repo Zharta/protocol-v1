@@ -23,8 +23,3 @@ Using the console, the smart contracts can be deployed and tests manually. For e
 ```
 
 To see more about interacting with smart contracts using Brownie, check [here](https://eth-brownie.readthedocs.io/en/stable/core-contracts.html).
-
-
-
-
-
