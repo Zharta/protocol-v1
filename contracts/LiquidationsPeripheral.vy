@@ -256,8 +256,8 @@ def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint25
 @internal
 def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
     assert self.nftxVaultFactoryAddress != empty(address), "nftx vault address not defined"
-    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
-    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_unwrappedCollateralAddress)
+    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(unwrappedCollateralAddress)
     
     if len(vaultAddrs) == 0:
         return empty(address)
@@ -268,8 +268,8 @@ def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
 @view
 @internal
 def _getNFTXVaultIdFromCollateralAddr(_collateralAddress: address) -> uint256:
-    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
-    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_unwrappedCollateralAddress)
+    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(unwrappedCollateralAddress)
     return INFTXVault(vaultAddr).vaultId()
 
 
@@ -859,17 +859,17 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(self, _collateralAddress, _tokenId)
 
-    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
-    _wrapped_collateral: bool = _unwrappedCollateralAddress != _collateralAddress
+    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    wrappedCollateral: bool = unwrappedCollateralAddress != _collateralAddress
 
-    if _wrapped_collateral:
+    if wrappedCollateral:
         self._unwrapCollateral(_collateralAddress, _tokenId)
 
     vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
 
-    if _wrapped_collateral:
-        if _unwrappedCollateralAddress == self.cryptoPunksAddress:
-            CryptoPunksMarket(_unwrappedCollateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
+    if _wrappedCollateral:
+        if unwrappedCollateralAddress == self.cryptoPunksAddress:
+            CryptoPunksMarket(unwrappedCollateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
         else:
             raise "Unsupported collateral"
     elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
