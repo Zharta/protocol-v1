@@ -251,14 +251,6 @@ def test_add_address_to_whitelist_not_contract_address(loans_peripheral_contract
         )
 
 
-def test_add_address_to_whitelist_not_ERC721_contract(loans_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts(""):
-        loans_peripheral_contract.addCollateralToWhitelist(
-            erc20_contract,
-            {"from": contract_owner}
-        )
-
-
 def test_add_address_to_whitelist(loans_peripheral_contract, erc721_contract, contract_owner):
     tx = loans_peripheral_contract.addCollateralToWhitelist(
         erc721_contract,

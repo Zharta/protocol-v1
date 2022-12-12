@@ -926,6 +926,74 @@ def test_buy_nft_lender_period_past_period(
         )
 
 
+def test_buy_nft_lender_period_not_lender(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+    
+    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+
+    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
+    liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": contract_owner})
+
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
+
+    erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    
+    tx_add_loan = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract, 0, LOAN_AMOUNT)],
+        {"from": loans_peripheral_contract}
+    )
+    loan_id = tx_add_loan.return_value
+    loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
+
+    liquidations_peripheral_contract.addLiquidation(
+        erc721_contract,
+        0,
+        borrower,
+        loan_id,
+        erc20_contract
+    )
+
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION + 1)
+
+    with brownie.reverts("msg.sender is not a lender"):
+        liquidations_peripheral_contract.buyNFTLenderPeriod(
+            erc721_contract,
+            0,
+            {"from": borrower}
+        )
+
+
 def test_buy_nft_lender_period(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -992,18 +1060,13 @@ def test_buy_nft_lender_period(
     interest_amount = int(Decimal(loan["amount"]) * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"])) / Decimal(25920000000))
 
     liquidation_price = Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.toWei(0.2, "ether")))
-    erc20_contract.mint(borrower, liquidation_price, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, liquidation_price, {"from": borrower})
-
-    print(liquidation_price)
-    print(liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)["lenderPeriodPrice"])
-    print(erc20_contract.balanceOf(borrower))
-    print(erc20_contract.allowance(borrower, lending_pool_core_contract))
+    erc20_contract.mint(contract_owner, liquidation_price, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, liquidation_price, {"from": contract_owner})
 
     tx = liquidations_peripheral_contract.buyNFTLenderPeriod(
         erc721_contract,
         0,
-        {"from": borrower}
+        {"from": contract_owner}
     )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
@@ -1026,7 +1089,7 @@ def test_buy_nft_lender_period(
     assert event_nft_purchased["collateralAddress"] == erc721_contract
     assert event_nft_purchased["tokenId"] == 0
     assert event_nft_purchased["amount"] == liquidation_price
-    assert event_nft_purchased["buyerAddress"] == borrower
+    assert event_nft_purchased["buyerAddress"] == contract_owner
     assert event_nft_purchased["erc20TokenContract"] == erc20_contract
     assert event_nft_purchased["method"] == "LENDER_PERIOD"
 
