@@ -256,8 +256,7 @@ def _computeLiquidationInterestAmount(principal: uint256, interestAmount: uint25
 @internal
 def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
     assert self.nftxVaultFactoryAddress != empty(address), "nftx vault address not defined"
-    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
-    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(unwrappedCollateralAddress)
+    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
     
     if len(vaultAddrs) == 0:
         return empty(address)
@@ -268,8 +267,7 @@ def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
 @view
 @internal
 def _getNFTXVaultIdFromCollateralAddr(_collateralAddress: address) -> uint256:
-    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
-    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(unwrappedCollateralAddress)
+    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
     return INFTXVault(vaultAddr).vaultId()
 
 
@@ -282,8 +280,7 @@ def _getNFTXVaultMintFee(vaultAddr: address) -> uint256:
 @view
 @internal
 def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> uint256:
-    _unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
-    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_unwrappedCollateralAddress)
+    vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
 
     if vaultAddr == empty(address):
         return 0
@@ -623,7 +620,8 @@ def addLiquidation(
     apr: uint256 = borrowerLoan.interest * 12
 
     gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount)
-    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
+    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(unwrappedCollateralAddress, _tokenId)
     # autoLiquidationPrice: uint256 = 0
     lenderPeriodPrice: uint256 = 0
 
@@ -853,13 +851,13 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         liquidation.borrower
     )
 
-    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(_collateralAddress, _tokenId)
+    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
+    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(unwrappedCollateralAddress, _tokenId)
 
     assert autoLiquidationPrice > 0, "NFTX liq price is 0 or none"
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(self, _collateralAddress, _tokenId)
 
-    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
     wrappedCollateral: bool = unwrappedCollateralAddress != _collateralAddress
 
     if wrappedCollateral:
@@ -867,7 +865,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
     vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
 
-    if _wrappedCollateral:
+    if wrappedCollateral:
         if unwrappedCollateralAddress == self.cryptoPunksAddress:
             CryptoPunksMarket(unwrappedCollateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
         else:
@@ -884,10 +882,10 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
 
     INFTXMarketplaceZap(self.nftxMarketplaceZapAddress).mintAndSell721WETH(
-        self._getNFTXVaultIdFromCollateralAddr(_collateralAddress),
+        self._getNFTXVaultIdFromCollateralAddr(unwrappedCollateralAddress),
         [_tokenId],
         autoLiquidationPrice,
-        [self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress), wethAddress],
+        [self._getNFTXVaultAddrFromCollateralAddr(unwrappedCollateralAddress), wethAddress],
         self
     )
 
