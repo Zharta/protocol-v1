@@ -303,14 +303,6 @@ def _isCollateralInArray(_collaterals: DynArray[Collateral, 100], _collateralAdd
     return False
 
 
-@pure
-@internal
-def _getCollateralAmount(_collaterals: DynArray[Collateral, 100], _collateralAddress: address, _tokenId: uint256) -> uint256:
-    for collateral in _collaterals:
-        if collateral.contractAddress == _collateralAddress and collateral.tokenId == _tokenId:
-            return collateral.amount
-    return max_value(uint256)
-
 @view
 @internal
 def _unwrappedCollateralAddressIfWrapped(_collateralAddress: address) -> address:
@@ -598,70 +590,72 @@ def setCryptoPunksAddress(_address: address):
 
 @external
 def addLiquidation(
-    _collateralAddress: address,
-    _tokenId: uint256,
     _borrower: address,
     _loanId: uint256,
     _erc20TokenContract: address
-):
-    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
-    
+):  
     borrowerLoan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(_borrower, _loanId)
     assert borrowerLoan.defaulted, "loan is not defaulted"
-    assert self._isCollateralInArray(borrowerLoan.collaterals, _collateralAddress, _tokenId), "collateral not in loan"
+    assert not ILiquidationsCore(self.liquidationsCoreAddress).isLoanLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId), "loan already liquidated"
+    
+    # APR from loan duration (maturity)
+    loanAPR: uint256 = borrowerLoan.interest * 12
 
-    principal: uint256 = self._getCollateralAmount(borrowerLoan.collaterals, _collateralAddress, _tokenId)
-    interestAmount: uint256 = self._computeLoanInterestAmount(
-        principal,
-        borrowerLoan.interest,
-        borrowerLoan.maturity - borrowerLoan.startTime
-    )
-    # # APR from loan duration (maturity)
-    apr: uint256 = borrowerLoan.interest * 12
+    for collateral in borrowerLoan.collaterals:
+        assert ILiquidationsCore(self.liquidationsCoreAddress).getLiquidationStartTime(collateral.contractAddress, collateral.tokenId) == 0, "liquidation already exists"
 
-    gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount)
-    unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
-    autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(unwrappedCollateralAddress, _tokenId)
-    # autoLiquidationPrice: uint256 = 0
-    lenderPeriodPrice: uint256 = 0
+        principal: uint256 = collateral.amount
+        interestAmount: uint256 = self._computeLoanInterestAmount(
+            principal,
+            borrowerLoan.interest,
+            borrowerLoan.maturity - borrowerLoan.startTime
+        )
 
-    if gracePeriodPrice > autoLiquidationPrice:
-        lenderPeriodPrice = gracePeriodPrice
-    else:
-        lenderPeriodPrice = autoLiquidationPrice
+        gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount)
+        unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(collateral.contractAddress)
+        autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(unwrappedCollateralAddress, collateral.tokenId)
+        # autoLiquidationPrice: uint256 = 0
+        lenderPeriodPrice: uint256 = 0
 
-    lid: bytes32 = ILiquidationsCore(self.liquidationsCoreAddress).addLiquidation(
-        _collateralAddress,
-        _tokenId,
-        block.timestamp,
-        block.timestamp + self.gracePeriodDuration,
-        block.timestamp + self.gracePeriodDuration + self.lenderPeriodDuration,
-        principal,
-        interestAmount,
-        apr,
-        gracePeriodPrice,
-        lenderPeriodPrice,
-        _borrower,
-        _loanId,
-        self.loansCoreAddresses[_erc20TokenContract],
-        _erc20TokenContract
-    )
+        if gracePeriodPrice > autoLiquidationPrice:
+            lenderPeriodPrice = gracePeriodPrice
+        else:
+            lenderPeriodPrice = autoLiquidationPrice
 
-    log LiquidationAdded(
-        _erc20TokenContract,
-        _collateralAddress,
-        lid,
-        _collateralAddress,
-        _tokenId,
-        _erc20TokenContract,
-        gracePeriodPrice,
-        lenderPeriodPrice,
-        block.timestamp + self.gracePeriodDuration,
-        block.timestamp + self.gracePeriodDuration + self.lenderPeriodDuration,
-        self.loansCoreAddresses[_erc20TokenContract],
-        _loanId,
-        _borrower
-    )
+        lid: bytes32 = ILiquidationsCore(self.liquidationsCoreAddress).addLiquidation(
+            collateral.contractAddress,
+            collateral.tokenId,
+            block.timestamp,
+            block.timestamp + self.gracePeriodDuration,
+            block.timestamp + self.gracePeriodDuration + self.lenderPeriodDuration,
+            principal,
+            interestAmount,
+            loanAPR,
+            gracePeriodPrice,
+            lenderPeriodPrice,
+            _borrower,
+            _loanId,
+            self.loansCoreAddresses[_erc20TokenContract],
+            _erc20TokenContract
+        )
+
+        log LiquidationAdded(
+            _erc20TokenContract,
+            collateral.contractAddress,
+            lid,
+            collateral.contractAddress,
+            collateral.tokenId,
+            _erc20TokenContract,
+            gracePeriodPrice,
+            lenderPeriodPrice,
+            block.timestamp + self.gracePeriodDuration,
+            block.timestamp + self.gracePeriodDuration + self.lenderPeriodDuration,
+            self.loansCoreAddresses[_erc20TokenContract],
+            _loanId,
+            _borrower
+        )
+    
+    ILiquidationsCore(self.liquidationsCoreAddress).addLoanToLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId)
 
 
 @external
@@ -718,9 +712,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
 
 
 @external
-def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
-    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
-    
+def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):   
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
     assert msg.sender == liquidation.borrower, "msg.sender is not borrower"
@@ -764,9 +756,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
 
 
 @external
-def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
-    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
-
+def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):    
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
     assert block.timestamp <= liquidation.lenderPeriodMaturity, "liquidation out of lender period"
@@ -940,7 +930,6 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 @external
 def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.lenderPeriodMaturity, "liq not out of lenders period"
@@ -979,7 +968,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidation
     assert not ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral still owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
-    assert liquidation.lid == empty(bytes32), 'collateral still in liquidation'
+    assert liquidation.lid == empty(bytes32), "collateral still in liquidation"
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[_erc20TokenContract]).receiveFundsFromLiquidation(
         msg.sender,

@@ -21,7 +21,7 @@ interface ILendingPoolPeripheral:
     def lendingPoolCoreContract() -> address: view
 
 interface ILiquidationsPeripheral:
-    def addLiquidation(_collateralAddress: address, _tokenId: uint256, _borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
+    def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
 
 interface INonERC721Vault:
     def collateralOwner(_tokenId: uint256) -> address: view
@@ -865,13 +865,11 @@ def settleDefault(_borrower: address, _loanId: uint256):
         ILoansCore(self.loansCoreContract).removeCollateralFromLoan(_borrower, collateral, _loanId)
         ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
-        ILiquidationsPeripheral(self.liquidationsPeripheralContract).addLiquidation(
-            collateral.contractAddress,
-            collateral.tokenId,
-            _borrower,
-            _loanId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-        )
+    ILiquidationsPeripheral(self.liquidationsPeripheralContract).addLiquidation(
+        _borrower,
+        _loanId,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    )
 
     log LoanDefaulted(
         _borrower,

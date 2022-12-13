@@ -176,7 +176,7 @@ def test_remove_loans_core_address(liquidations_core_contract, loans_core_contra
 
 
 def test_add_liquidation_wrong_sender(liquidations_core_contract, borrower):
-    with brownie.reverts("msg.sender is not BNPeriph addr"):
+    with brownie.reverts("msg.sender is not LiqPeriph addr"):
         liquidations_core_contract.addLiquidation(
             brownie.ZERO_ADDRESS,
             0,
@@ -292,8 +292,21 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
         )
 
 
+def test_add_loan_to_liquidated_wrong_sender(liquidations_core_contract, loans_core_contract, contract_owner):
+    with brownie.reverts("msg.sender is not LiqPeriph addr"):
+        liquidations_core_contract.addLoanToLiquidated(contract_owner, loans_core_contract, 0, {"from": contract_owner})
+
+
+def test_add_loan_to_liquidated(liquidations_core_contract, liquidations_peripheral_contract, loans_core_contract, contract_owner, borrower):
+    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
+
+    liquidations_core_contract.addLoanToLiquidated(borrower, loans_core_contract, 0, {"from": liquidations_peripheral_contract})
+
+    assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, 0)
+
+
 def test_remove_liquidation_wrong_sender(liquidations_core_contract, erc721_contract, contract_owner):
-    with brownie.reverts("msg.sender is not BNPeriph addr"):
+    with brownie.reverts("msg.sender is not LiqPeriph addr"):
         liquidations_core_contract.removeLiquidation(erc721_contract, 0, {"from": contract_owner})
 
 
