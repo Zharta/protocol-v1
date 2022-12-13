@@ -16,7 +16,6 @@ event MaxCollectionBorrowableAmountChanged:
 event LockPeriodFlagChanged:
     value: bool
 
-
 # Functions
 
 @view
@@ -36,7 +35,7 @@ def outOfLockPeriod(_lender: address, _lpCoreContractAddress: address) -> bool:
 
 @view
 @external
-def withinCollectionShareLimit(_amount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool: view
+def withinCollectionShareLimit(_amount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool:
     pass
 
 @external
@@ -77,7 +76,7 @@ def lockPeriodDuration() -> uint256:
 
 @view
 @external
-def maxCollectionBorrowableAmount(arg0: address) -> uint256
+def maxCollectionBorrowableAmount(arg0: address) -> uint256:
     pass
 
 @view
@@ -97,7 +96,7 @@ def maxLoansPoolShareEnabled() -> bool:
 
 @view
 @external
-def maxCollectionBorrowableAmountEnabled() -> bool: view
+def maxCollectionBorrowableAmountEnabled() -> bool:
     pass
 
 
