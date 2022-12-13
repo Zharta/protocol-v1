@@ -95,6 +95,11 @@ def getLiquidationERC20Contract(_collateralAddress: address, _tokenId: uint256) 
 def isLiquidationInAuction(_collateralAddress: address, _tokenId: uint256) -> bool:
     pass
 
+@view
+@external
+def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256) -> bool:
+    pass
+
 @external
 def proposeOwner(_address: address):
     pass
@@ -117,6 +122,10 @@ def removeLoansCoreAddress(_erc20TokenContract: address):
 
 @external
 def addLiquidation(_collateralAddress: address, _tokenId: uint256, _startTime: uint256, _gracePeriodMaturity: uint256, _lenderPeriodMaturity: uint256, _principal: uint256, _interestAmount: uint256, _apr: uint256, _gracePeriodPrice: uint256, _lenderPeriodPrice: uint256, _borrower: address, _loanId: uint256, _loansCoreContract: address, _erc20TokenContract: address) -> bytes32:
+    pass
+
+@external
+def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256):
     pass
 
 @external
