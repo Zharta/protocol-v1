@@ -5,6 +5,7 @@
 
 from vyper.interfaces import ERC20 as IERC20
 from interfaces import ILendingPoolCore
+from interfaces import ILendingPoolLock
 from interfaces import ILiquidityControls
 
 
@@ -18,6 +19,9 @@ struct InvestorFunds:
     lockPeriodEnd: uint256
     activeForRewards: bool
 
+struct InvestorLock:
+    lockPeriodEnd: uint256
+    lockPeriodAmount: uint256
 
 # Events
 
@@ -135,6 +139,7 @@ proposedOwner: public(address)
 
 loansContract: public(address)
 lendingPoolCoreContract: public(address)
+lendingPoolLockContract: public(address)
 erc20TokenContract: public(address)
 liquidationsPeripheralContract: public(address)
 liquidityControlsContract: public(address)
@@ -329,6 +334,7 @@ def lenderFunds(_lender: address) -> InvestorFunds:
 @external
 def __init__(
     _lendingPoolCoreContract: address,
+    _lendingPoolLockContract: address,
     _erc20TokenContract: address,
     _protocolWallet: address,
     _protocolFeesShare: uint256,
@@ -343,6 +349,7 @@ def __init__(
 
     self.owner = msg.sender
     self.lendingPoolCoreContract = _lendingPoolCoreContract
+    self.lendingPoolLockContract = _lendingPoolLockContract
     self.erc20TokenContract = _erc20TokenContract
     self.protocolWallet = _protocolWallet
     self.protocolFeesShare = _protocolFeesShare
@@ -617,9 +624,11 @@ def deposit(_amount: uint256):
             True,
             self.erc20TokenContract
         )
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, self._computeLockPeriodEnd(msg.sender)):
+    lockPeriodEnd: uint256 = self._computeLockPeriodEnd(msg.sender)
+    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, lockPeriodEnd):
         raise "error creating deposit"
+
+    ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, _amount, lockPeriodEnd)
 
     log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
@@ -629,8 +638,10 @@ def withdraw(_amount: uint256):
     # _amount should be passed in wei
 
     assert _amount > 0, "_amount has to be higher than 0"
-    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, self.lendingPoolCoreContract), "msg.sender within lock period"
-    assert ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender) >= _amount, "_amount more than withdrawable"
+    
+    withdrawableAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender)
+    assert withdrawableAmount >= _amount, "_amount more than withdrawable"
+    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "msg.sender within lock period"
     assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
 
     if self.isPoolInvesting and not self._poolHasFundsToInvestAfterWithdraw(_amount):

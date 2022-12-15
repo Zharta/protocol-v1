@@ -16,9 +16,14 @@ interface ILoansCore:
     def borrowedAmount(_borrower: address) -> uint256: view
     def collectionsBorrowedAmount(_collection: address) -> uint256: view
 
+interface ILendingPoolLock:
+    def investorLocks(arg0: address) -> InvestorLock: view
 
 # Structs
 
+struct InvestorLock:
+    lockPeriodEnd: uint256
+    lockPeriodAmount: uint256
 
 # Events
 
@@ -102,11 +107,12 @@ def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreCo
 
 @view
 @external
-def outOfLockPeriod(_lender: address, _lpCoreContractAddress: address) -> bool:
+def outOfLockPeriod(_lender: address, _remainingAmount: uint256, _lpLockContractAddress: address) -> bool:
     if not self.lockPeriodEnabled:
         return True
     
-    return ILendingPoolCore(_lpCoreContractAddress).lockPeriodEnd(_lender) <= block.timestamp
+    investorLock : InvestorLock = ILendingPoolLock(_lpLockContractAddress).investorLocks(_lender)
+    return investorLock.lockPeriodEnd <= block.timestamp or _remainingAmount >= investorLock.lockPeriodAmount
 
 
 @view
