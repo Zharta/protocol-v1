@@ -85,7 +85,7 @@ def test_store_collateral_wrong_sender(cryptopunks_vault_core_contract, contract
         cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": contract_owner})
 
 
-@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_store_collateral_invalid_contract(cryptopunks_vault_core_contract, collateral_vault_peripheral_contract, erc721_contract, borrower, contract_owner):
     erc721_contract.mint(borrower, 0, {"from": contract_owner})
     erc721_contract.approve(cryptopunks_vault_core_contract, 0, {"from": borrower})
@@ -96,7 +96,7 @@ def test_store_collateral_invalid_contract(cryptopunks_vault_core_contract, coll
         cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": collateral_vault_peripheral_contract})
 
 
-@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_store_collateral(
     cryptopunks_vault_core_contract,
     collateral_vault_peripheral_contract,
@@ -119,7 +119,7 @@ def test_transfer_collateral_wrong_sender(cryptopunks_vault_core_contract, contr
         cryptopunks_vault_core_contract.transferCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": contract_owner})
 
 
-@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_transfer_collateral(
     cryptopunks_vault_core_contract,
     collateral_vault_peripheral_contract,

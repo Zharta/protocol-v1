@@ -9,6 +9,19 @@ LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 
 
+def test_set_loans_peripheral(loans_core_contract, loans_peripheral_contract, contract_owner):
+    tx = loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+    assert loans_core_contract.loansPeripheral() == loans_peripheral_contract
+
+    event = tx.events["LoansPeripheralAddressSet"]
+    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["newValue"] == loans_peripheral_contract
+
+
+def test_load_contract_config(contracts_config):
+    pass  # contracts_config fixture active from this point on
+
+
 def test_initial_state(loans_core_contract, contract_owner):
     # Check if the constructor of the contract is set up properly
     assert loans_core_contract.owner() == contract_owner
@@ -30,8 +43,6 @@ def test_propose_owner_same_owner(loans_core_contract, contract_owner):
 
 
 def test_propose_owner(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx = loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
     assert loans_core_contract.proposedOwner() == borrower
@@ -43,17 +54,13 @@ def test_propose_owner(loans_core_contract, loans_peripheral_contract, contract_
 
 
 def test_propose_owner_same_proposed(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
-    
+
     with brownie.reverts("proposed owner addr is the same"):
         loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
 
 def test_claim_ownership_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
     with brownie.reverts("msg.sender is not the proposed"):
@@ -61,8 +68,6 @@ def test_claim_ownership_wrong_sender(loans_core_contract, loans_peripheral_cont
 
 
 def test_claim_ownership(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
     tx = loans_core_contract.claimOwnership({"from": borrower})
@@ -86,19 +91,9 @@ def test_set_loans_peripheral_zero_address(loans_core_contract, contract_owner):
 
 
 def test_set_loans_peripheral_same_address(loans_core_contract, loans_peripheral_contract, contract_owner):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-    
     with brownie.reverts("new loans addr is the same"):
         loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
-
-def test_set_loans_peripheral(loans_core_contract, loans_peripheral_contract, contract_owner):
-    tx = loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-    assert loans_core_contract.loansPeripheral() == loans_peripheral_contract
-
-    event = tx.events["LoansPeripheralAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
-    assert event["newValue"] == loans_peripheral_contract
 
 
 def test_add_loan_wrong_sender(loans_core_contract, contract_owner, borrower, test_collaterals):
@@ -114,8 +109,6 @@ def test_add_loan_wrong_sender(loans_core_contract, contract_owner, borrower, te
 
 
 def test_add_loan(loans_core_contract, loans_peripheral_contract, borrower, contract_owner, test_collaterals):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -156,15 +149,11 @@ def test_add_loan(loans_core_contract, loans_peripheral_contract, borrower, cont
 
 
 def test_update_invalid_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     with brownie.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updateInvalidLoan(borrower, 0, {"from": contract_owner})
 
 
 def test_update_invalid_loan(loans_core_contract, loans_peripheral_contract, borrower, contract_owner, test_collaterals):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -183,15 +172,11 @@ def test_update_invalid_loan(loans_core_contract, loans_peripheral_contract, bor
 
 
 def test_update_paid_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     with brownie.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updatePaidLoan(borrower, 0, {"from": contract_owner})
 
 
 def test_update_paid_loan(loans_core_contract, loans_peripheral_contract, erc721_contract, borrower, contract_owner, test_collaterals):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -215,15 +200,11 @@ def test_update_paid_loan(loans_core_contract, loans_peripheral_contract, erc721
 
 
 def test_update_defaulted_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-    
     with brownie.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updateDefaultedLoan(borrower, 0, {"from": contract_owner})
 
 
 def test_update_defaulted_loan(loans_core_contract, loans_peripheral_contract, erc721_contract, borrower, contract_owner, test_collaterals):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -247,15 +228,11 @@ def test_update_defaulted_loan(loans_core_contract, loans_peripheral_contract, e
 
 
 def test_update_canceled_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     with brownie.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updateCanceledLoan(borrower, 0, {"from": contract_owner})
 
 
 def test_update_canceled_loan(loans_core_contract, loans_peripheral_contract, borrower, contract_owner, test_collaterals):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -274,14 +251,13 @@ def test_update_canceled_loan(loans_core_contract, loans_peripheral_contract, bo
 
 
 def test_update_loan_started_wrong_sender(
+    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -298,6 +274,7 @@ def test_update_loan_started_wrong_sender(
 
 
 def test_update_loan_started(
+    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     erc721_contract,
@@ -305,8 +282,6 @@ def test_update_loan_started(
     borrower,
     test_collaterals
 ):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-    
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -332,14 +307,13 @@ def test_update_loan_started(
 
 
 def test_update_paid_amount_wrong_sender(
+    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -358,14 +332,13 @@ def test_update_paid_amount_wrong_sender(
 
 
 def test_update_paid_amount(
+    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
@@ -386,14 +359,13 @@ def test_update_paid_amount(
 
 
 def test_update_paid_amount_multiple(
+    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
     borrower,
     test_collaterals
 ):
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
         LOAN_AMOUNT,
