@@ -236,14 +236,20 @@ def _theoreticalMaxFundsInvestable(_amount: uint256) -> uint256:
 @view
 @internal
 def _computeLockPeriodEnd(_lender: address) -> uint256:
-    lockPeriodEnd: uint256 = 0
-    if ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender).lockPeriodEnd <= block.timestamp:
+    lockPeriodEnd: uint256 = ILendingPoolLock(self.lendingPoolLockContract).investorLocks(_lender).lockPeriodEnd
+    if lockPeriodEnd <= block.timestamp:
         lockPeriodEnd = block.timestamp + ILiquidityControls(self.liquidityControlsContract).lockPeriodDuration()
-    else:
-        lockPeriodEnd = ILendingPoolCore(self.lendingPoolCoreContract).funds(msg.sender).lockPeriodEnd
-    
     return lockPeriodEnd
 
+
+@view
+@internal
+def _computeLockPeriod(_lender: address, _amount: uint256) -> (uint256, uint256):
+    investorLock: InvestorLock = ILendingPoolLock(self.lendingPoolLockContract).investorLocks(msg.sender)
+    if investorLock.lockPeriodEnd <= block.timestamp:
+        return block.timestamp + ILiquidityControls(self.liquidityControlsContract).lockPeriodDuration(), _amount
+    else:
+        return investorLock.lockPeriodEnd, investorLock.lockPeriodAmount + _amount
 
 ##### INTERNAL METHODS - WRITE #####
 
@@ -624,11 +630,15 @@ def deposit(_amount: uint256):
             True,
             self.erc20TokenContract
         )
-    lockPeriodEnd: uint256 = self._computeLockPeriodEnd(msg.sender)
+
+    lockPeriodEnd: uint256 = 0
+    lockPeriodAmount: uint256 = 0
+    lockPeriodEnd, lockPeriodAmount = self._computeLockPeriod(msg.sender, _amount)
+
     if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, lockPeriodEnd):
         raise "error creating deposit"
 
-    ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, _amount, lockPeriodEnd)
+    ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, lockPeriodAmount, lockPeriodEnd)
 
     log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
@@ -641,7 +651,7 @@ def withdraw(_amount: uint256):
     
     withdrawableAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender)
     assert withdrawableAmount >= _amount, "_amount more than withdrawable"
-    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "msg.sender within lock period"
+    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "withdraw within lock period"
     assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
 
     if self.isPoolInvesting and not self._poolHasFundsToInvestAfterWithdraw(_amount):

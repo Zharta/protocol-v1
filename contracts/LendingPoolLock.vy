@@ -5,6 +5,7 @@
 
 from vyper.interfaces import ERC20 as IERC20
 
+from interfaces import ILendingPoolCore
 
 # Structs
 
@@ -12,6 +13,14 @@ struct InvestorLock:
     lockPeriodEnd: uint256
     lockPeriodAmount: uint256
 
+
+struct InvestorFunds:
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
+    activeForRewards: bool
 
 # Events
 
@@ -45,6 +54,7 @@ lendingPoolPeripheral: public(address)
 erc20TokenContract: public(address)
 
 investorLocks: public(HashMap[address, InvestorLock])
+migrationDone: bool
 
 
 ##### INTERNAL METHODS #####
@@ -58,13 +68,24 @@ investorLocks: public(HashMap[address, InvestorLock])
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
-def __init__(
-    _erc20TokenContract: address
-):
+def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "The address is the zero address"
-
     self.owner = msg.sender
     self.erc20TokenContract = _erc20TokenContract
+    self.migrationDone = False
+
+
+@external
+def migrate(_lendingPoolCoreAddress: address, _lenders: DynArray[address, 100]):
+    assert not self.migrationDone, "migration already done"
+    assert _lendingPoolCoreAddress.is_contract, "LPCore is not a contract"
+    for lender in _lenders:
+        investorFunds: InvestorFunds = ILendingPoolCore(_lendingPoolCoreAddress).funds(lender)
+        self.investorLocks[lender] = InvestorLock({
+            lockPeriodEnd: investorFunds.lockPeriodEnd,
+            lockPeriodAmount: investorFunds.currentAmountDeposited
+        })
+    self.migrationDone = True
 
 
 @external

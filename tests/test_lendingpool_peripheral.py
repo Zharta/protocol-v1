@@ -448,62 +448,83 @@ def test_deposit_whitelisted(
     assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
-def test_deposit(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+def test_deposit(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
+    amount = Web3.toWei(1, "ether")
+    erc20_contract.mint(investor, amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount, {"from": investor})
 
-    tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    tx_deposit = lending_pool_peripheral_contract.deposit(amount, {"from": investor})
 
     chain_time = chain.time()
 
     investor_funds = lending_pool_core_contract.funds(investor)
-    assert investor_funds["currentAmountDeposited"] == Web3.toWei(1, "ether")
-    assert investor_funds["totalAmountDeposited"] == Web3.toWei(1, "ether")
+    assert investor_funds["currentAmountDeposited"] == amount
+    assert investor_funds["totalAmountDeposited"] == amount
     assert investor_funds["totalAmountWithdrawn"] == 0
-    assert investor_funds["sharesBasisPoints"] == Web3.toWei(1, "ether")
-
-    assert investor_funds["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
+    assert investor_funds["sharesBasisPoints"] == amount
     assert investor_funds["activeForRewards"] == True
 
-    assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1, "ether")
-    assert lending_pool_core_contract.fundsInvested() == 0
+    lock_period = lending_pool_lock_contract.investorLocks(investor)
+    assert lock_period["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10  # 10s of buffer
+    assert lock_period["lockPeriodAmount"] == amount
 
     assert lending_pool_peripheral_contract.isPoolInvesting()
 
     assert tx_deposit.events["Deposit"]["wallet"] == investor
-    assert tx_deposit.events["Deposit"]["amount"] == Web3.toWei(1, "ether")
+    assert tx_deposit.events["Deposit"]["amount"] == amount
     assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
-def test_deposit_twice(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    tx_deposit = lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+def test_deposit_twice(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
+    amount1 = Web3.toWei(1, "ether")
+    erc20_contract.mint(investor, amount1, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount1, {"from": investor})
+    tx_deposit = lending_pool_peripheral_contract.deposit(amount1, {"from": investor})
 
     chain_time = chain.time()
 
     chain.mine(blocks=1, timedelta=LOCK_PERIOD_DURATION / 2)
 
-    erc20_contract.mint(investor, Web3.toWei(0.5, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(0.5, "ether"), {"from": investor})
-    tx_deposit_twice = lending_pool_peripheral_contract.deposit(Web3.toWei(0.5, "ether"), {"from": investor})
+    amount2 = Web3.toWei(0.5, "ether")
+    erc20_contract.mint(investor, amount2, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount2, {"from": investor})
+    tx_deposit_twice = lending_pool_peripheral_contract.deposit(amount2, {"from": investor})
 
     investor_funds = lending_pool_core_contract.funds(investor)
-    assert investor_funds["currentAmountDeposited"] == Web3.toWei(1.5, "ether")
-    assert investor_funds["totalAmountDeposited"] == Web3.toWei(1.5, "ether")
-    assert investor_funds["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10 # 10s of buffer
+    assert investor_funds["currentAmountDeposited"] == amount1 + amount2
+    assert investor_funds["totalAmountDeposited"] == amount1 + amount2
 
-    assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1.5, "ether")
+    lock_period = lending_pool_lock_contract.investorLocks(investor)
+    assert lock_period["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10  # 10s of buffer
+    assert lock_period["lockPeriodAmount"] == amount1 + amount2
+
+    assert lending_pool_core_contract.fundsAvailable() == amount1 + amount2
     assert lending_pool_core_contract.fundsInvested() == 0
 
     assert lending_pool_peripheral_contract.isPoolInvesting()
 
     assert tx_deposit.events["Deposit"]["wallet"] == investor
-    assert tx_deposit.events["Deposit"]["amount"] == Web3.toWei(1, "ether")
+    assert tx_deposit.events["Deposit"]["amount"] == amount1
     assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
     assert tx_deposit_twice.events["Deposit"]["wallet"] == investor
-    assert tx_deposit_twice.events["Deposit"]["amount"] == Web3.toWei(0.5, "ether")
+    assert tx_deposit_twice.events["Deposit"]["amount"] == amount2
     assert tx_deposit_twice.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
@@ -613,13 +634,39 @@ def test_withdraw_within_lock_period(
 
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
-    with brownie.reverts("msg.sender within lock period"):
+    with brownie.reverts("withdraw within lock period"):
         lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
+
+
+def test_withdraw_within_lock_period_within_amount(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
+    amount1 = Web3.toWei(1, "ether")
+    amount2 = Web3.toWei(2, "ether")
+    erc20_contract.mint(investor, amount1 + amount2, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount1 + amount2, {"from": investor})
+
+    liquidity_controls_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION, {"from": contract_owner})
+    lending_pool_peripheral_contract.deposit(amount1, {"from": investor})
+
+    chain.mine(blocks=1, timedelta=LOCK_PERIOD_DURATION * 2)
+    lending_pool_peripheral_contract.deposit(amount2, {"from": investor})
+    lending_pool_peripheral_contract.withdraw(amount1, {"from": investor})
+
+    lock_period = lending_pool_lock_contract.investorLocks(investor)
+    assert lock_period["lockPeriodAmount"] == amount2
 
 
 def test_withdraw_out_of_lock_period(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    lending_pool_lock_contract,
     liquidity_controls_contract,
     erc20_contract,
     investor,
@@ -636,8 +683,48 @@ def test_withdraw_out_of_lock_period(
 
     lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
 
-    investor_funds = lending_pool_core_contract.funds(investor)
-    assert investor_funds["lockPeriodEnd"] == 0
+
+def test_lock_period_migration(
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    lending_pool_peripheral_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
+    deposit_amount = Web3.toWei(1, "ether")
+
+    erc20_contract.mint(contract_owner, deposit_amount, {"from": contract_owner})
+    erc20_contract.transfer(investor, deposit_amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
+
+    lending_pool_core_contract.deposit(investor, deposit_amount, LOCK_PERIOD_DURATION, {"from": lending_pool_peripheral_contract})
+    lending_pool_lock_contract.migrate(lending_pool_core_contract, [investor])
+
+    lock_period = lending_pool_lock_contract.investorLocks(investor)
+    assert lock_period["lockPeriodAmount"] == deposit_amount
+    assert lock_period["lockPeriodEnd"] == lending_pool_core_contract.funds(investor)["lockPeriodEnd"]
+
+
+def test_lock_period_migration_twice(
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    lending_pool_peripheral_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
+    deposit_amount = Web3.toWei(1, "ether")
+
+    erc20_contract.mint(contract_owner, deposit_amount, {"from": contract_owner})
+    erc20_contract.transfer(investor, deposit_amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
+
+    lending_pool_core_contract.deposit(investor, deposit_amount, 0, {"from": lending_pool_peripheral_contract})
+    lending_pool_lock_contract.migrate(lending_pool_core_contract, [])
+
+    with brownie.reverts("migration already done"):
+        lending_pool_lock_contract.migrate(lending_pool_core_contract, [investor])
 
 
 def test_send_funds_deprecated(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):
