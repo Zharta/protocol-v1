@@ -11,87 +11,104 @@ struct InvestorFunds:
 # Events
 
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event MaxCapitalEfficiencyChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
+
 event ProtocolWalletChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event ProtocolFeesShareChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
+
 event LoansPeripheralAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event LiquidationsPeripheralAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event LiquidityControlsAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event WhitelistStatusChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: bool
     erc20TokenContract: address
+
 event WhitelistAddressAdded:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: address
     erc20TokenContract: address
+
 event WhitelistAddressRemoved:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: address
     erc20TokenContract: address
+
 event ContractStatusChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: bool
     erc20TokenContract: address
+
 event InvestingStatusChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: bool
     erc20TokenContract: address
+
 event ContractDeprecated:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     erc20TokenContract: address
+
 event Deposit:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event Withdrawal:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event FundsTransfer:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event FundsReceipt:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     rewardsPool: uint256
@@ -100,6 +117,81 @@ event FundsReceipt:
     fundsOrigin: String[30]
 
 # Functions
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def loansContract() -> address:
+    pass
+
+@view
+@external
+def lendingPoolCoreContract() -> address:
+    pass
+
+@view
+@external
+def erc20TokenContract() -> address:
+    pass
+
+@view
+@external
+def liquidationsPeripheralContract() -> address:
+    pass
+
+@view
+@external
+def liquidityControlsContract() -> address:
+    pass
+
+@view
+@external
+def protocolWallet() -> address:
+    pass
+
+@view
+@external
+def protocolFeesShare() -> uint256:
+    pass
+
+@view
+@external
+def maxCapitalEfficienty() -> uint256:
+    pass
+
+@view
+@external
+def isPoolActive() -> bool:
+    pass
+
+@view
+@external
+def isPoolDeprecated() -> bool:
+    pass
+
+@view
+@external
+def isPoolInvesting() -> bool:
+    pass
+
+@view
+@external
+def whitelistEnabled() -> bool:
+    pass
+
+@view
+@external
+def whitelistedAddresses(arg0: address) -> bool:
+    pass
 
 @view
 @external
@@ -192,80 +284,3 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
 @external
 def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _origin: String[30]):
     pass
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def loansContract() -> address:
-    pass
-
-@view
-@external
-def lendingPoolCoreContract() -> address:
-    pass
-
-@view
-@external
-def erc20TokenContract() -> address:
-    pass
-
-@view
-@external
-def liquidationsPeripheralContract() -> address:
-    pass
-
-@view
-@external
-def liquidityControlsContract() -> address:
-    pass
-
-@view
-@external
-def protocolWallet() -> address:
-    pass
-
-@view
-@external
-def protocolFeesShare() -> uint256:
-    pass
-
-@view
-@external
-def maxCapitalEfficienty() -> uint256:
-    pass
-
-@view
-@external
-def isPoolActive() -> bool:
-    pass
-
-@view
-@external
-def isPoolDeprecated() -> bool:
-    pass
-
-@view
-@external
-def isPoolInvesting() -> bool:
-    pass
-
-@view
-@external
-def whitelistEnabled() -> bool:
-    pass
-
-@view
-@external
-def whitelistedAddresses(arg0: address) -> bool:
-    pass
-
-
