@@ -251,7 +251,6 @@ def test_update_canceled_loan(loans_core_contract, loans_peripheral_contract, bo
 
 
 def test_update_loan_started_wrong_sender(
-    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
@@ -274,7 +273,6 @@ def test_update_loan_started_wrong_sender(
 
 
 def test_update_loan_started(
-    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     erc721_contract,
@@ -307,7 +305,6 @@ def test_update_loan_started(
 
 
 def test_update_paid_amount_wrong_sender(
-    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
@@ -332,7 +329,6 @@ def test_update_paid_amount_wrong_sender(
 
 
 def test_update_paid_amount(
-    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
@@ -359,7 +355,6 @@ def test_update_paid_amount(
 
 
 def test_update_paid_amount_multiple(
-    contracts_config,
     loans_core_contract,
     loans_peripheral_contract,
     contract_owner,
