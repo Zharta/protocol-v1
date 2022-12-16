@@ -78,6 +78,8 @@ def __init__(_erc20TokenContract: address):
 @external
 def migrate(_lendingPoolCoreAddress: address, _lenders: DynArray[address, 100]):
     assert not self.migrationDone, "migration already done"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _lendingPoolCoreAddress != empty(address), "_address is the zero address"
     assert _lendingPoolCoreAddress.is_contract, "LPCore is not a contract"
     for lender in _lenders:
         investorFunds: InvestorFunds = ILendingPoolCore(_lendingPoolCoreAddress).funds(lender)

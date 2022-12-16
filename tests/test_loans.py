@@ -75,6 +75,65 @@ def create_signature_fixture(test_collaterals, loans_peripheral_contract, contra
     return _create_signature
 
 
+def test_set_default_lender_zeroaddress(
+    loans_peripheral_contract,
+    create_signature,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    erc20_contract,
+    contract_owner,
+    investor,
+    borrower,
+    test_collaterals
+):
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+    loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
+    lending_pool_lock_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+
+    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    maturity = chain.time() + 10
+    (v, r, s) = create_signature(maturity=maturity)
+
+    tx_create_loan = loans_peripheral_contract.reserve(
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        maturity,
+        test_collaterals,
+        VALIDATION_DEADLINE,
+        v,
+        r,
+        s,
+        {'from': borrower}
+    )
+    loan_id = tx_create_loan.return_value
+
+    chain.mine(blocks=1, timedelta=15)
+
+    with brownie.reverts("BNPeriph is the zero address"):
+        loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
+
+
+
 def test_load_contract_config(contracts_config):
     pass  # contracts_config fixture active from this point on
 
@@ -1652,54 +1711,6 @@ def test_set_default_loan_not_started(
         loans_peripheral_contract.settleDefault(borrower, 0, {"from": contract_owner})
 
 
-def test_set_default_lender_zeroaddress(
-    loans_peripheral_contract,
-    create_signature,
-    loans_core_contract,
-    lending_pool_peripheral_contract,
-    lending_pool_core_contract,
-    collateral_vault_peripheral_contract,
-    collateral_vault_core_contract,
-    liquidity_controls_contract,
-    erc721_contract,
-    erc20_contract,
-    contract_owner,
-    investor,
-    borrower,
-    test_collaterals
-):
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
-
-    loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
-
-    for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
-
-    maturity = chain.time() + 10
-    (v, r, s) = create_signature(maturity=maturity)
-
-    tx_create_loan = loans_peripheral_contract.reserve(
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        maturity,
-        test_collaterals,
-        VALIDATION_DEADLINE,
-        v,
-        r,
-        s,
-        {'from': borrower}
-    )
-    loan_id = tx_create_loan.return_value
-
-    chain.mine(blocks=1, timedelta=15)
-
-    with brownie.reverts("BNPeriph is the zero address"):
-        loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
-
-
 def test_set_default_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1721,14 +1732,7 @@ def test_set_default_loan(
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
     lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})    
-
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
-    loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-
-    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-
-    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
-    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})

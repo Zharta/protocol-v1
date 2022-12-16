@@ -115,6 +115,25 @@ def test_set_collateral_vault_address_same_address(liquidations_peripheral_contr
         liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
 
+def test_set_collateral_vault_address(liquidations_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
+    tx = liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+    assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
+
+    event = tx.events["CollateralVaultPeripheralAddressSet"]
+    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["newValue"] == collateral_vault_peripheral_contract
+
+
+def test_set_collateral_vault_address_same_address(liquidations_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
+    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+    assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
+
+    with brownie.reverts("new value is the same"):
+        liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
+
+
 def test_load_contract_config(contracts_config):
     pass  # contracts_config fixture active from this point on
 
@@ -362,24 +381,6 @@ def test_set_collateral_vault_address_zero_address(liquidations_peripheral_contr
         liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
 
 
-def test_set_collateral_vault_address(liquidations_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
-    tx = liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-
-    assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
-
-    event = tx.events["CollateralVaultPeripheralAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
-    assert event["newValue"] == collateral_vault_peripheral_contract
-
-
-def test_set_collateral_vault_address_same_address(liquidations_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
-    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-
-    assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
-
-    with brownie.reverts("new value is the same"):
-        liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-
 def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
 
@@ -456,30 +457,6 @@ def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, li
     loan_id = tx_add_loan.return_value
 
     with brownie.reverts("loan is not defaulted"):
-        liquidations_peripheral_contract.addLiquidation(
-            borrower,
-            loan_id,
-            erc20_contract
-        )
-
-
-def test_add_liquidation_collat_not_in_loan(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
-    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    erc721_contract.mint(collateral_vault_core_contract, 1, {"from": contract_owner})
-
-    tx_add_loan = loans_core_contract.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        [(erc721_contract, 0, LOAN_AMOUNT)],
-        {"from": loans_peripheral_contract}
-    )
-    loan_id = tx_add_loan.return_value
-    loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
-    loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": loans_peripheral_contract})
-
-    with brownie.reverts("collateral not in loan"):
         liquidations_peripheral_contract.addLiquidation(
             borrower,
             loan_id,

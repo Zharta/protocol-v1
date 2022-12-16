@@ -4,6 +4,14 @@ struct InvestorLock:
     lockPeriodEnd: uint256
     lockPeriodAmount: uint256
 
+struct InvestorFunds:
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
+    activeForRewards: bool
+
 # Events
 
 event OwnerProposed:
@@ -51,6 +59,10 @@ def erc20TokenContract() -> address:
 @view
 @external
 def investorLocks(arg0: address) -> InvestorLock:
+    pass
+
+@external
+def migrate(_lendingPoolCoreAddress: address, _lenders: DynArray[address, 100]):
     pass
 
 @external
