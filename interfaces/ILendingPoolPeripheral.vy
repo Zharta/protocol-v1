@@ -96,6 +96,7 @@ event FundsReceipt:
     amount: uint256
     rewardsPool: uint256
     rewardsProtocol: uint256
+    investedAmount: uint256
     erc20TokenContract: address
     fundsOrigin: String[30]
 
@@ -186,11 +187,11 @@ def sendFunds(_to: address, _amount: uint256):
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256):
     pass
 
 @external
-def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _origin: String[30]):
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
     pass
 
 @view

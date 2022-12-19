@@ -688,6 +688,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             liquidation.principal,
             liquidation.gracePeriodPrice - liquidation.principal,
             True,
+            liquidation.principal,
             "liquidation_grace_period"
         )
 
@@ -712,7 +713,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
 
 
 @external
-def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):   
+def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
     assert msg.sender == liquidation.borrower, "msg.sender is not borrower"
@@ -736,6 +737,7 @@ def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.principal,
         liquidation.gracePeriodPrice - liquidation.principal,
         True,
+        liquidation.principal,
         "liquidation_grace_period"
     )
 
@@ -803,6 +805,7 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
         liquidation.principal,
         lenderPeriodInterestAmount,
         True,
+        liquidation.principal,
         "liquidation_lenders_period"
     )
 
@@ -907,6 +910,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         principal,
         interestAmount,
         distributeToProtocol,
+        liquidation.principal,
         "liquidation_nftx"
     )
 
@@ -960,7 +964,7 @@ def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _token
     )
 
 @external
-def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
+def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincipal: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert not ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral still owned by vault"
 
@@ -972,6 +976,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidation
         _principal,
         _interestAmount,
         True,
+        _loanPrincipal,
         "admin_liquidation"
     )
 

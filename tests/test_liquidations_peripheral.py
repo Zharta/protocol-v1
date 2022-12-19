@@ -1219,6 +1219,7 @@ def test_admin_liquidation(
     collateral_address = liquidation['collateralAddress']
     token_id = liquidation['tokenId']
     loan_id = loan['id']
+    investedAmount = liquidation["principal"]
 
     chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION+1)
     liquidations_peripheral_contract.adminWithdrawal(contract_owner, collateral_address, token_id, {"from": contract_owner})
@@ -1227,6 +1228,7 @@ def test_admin_liquidation(
     tx = liquidations_peripheral_contract.adminLiquidation(
         LOAN_AMOUNT*7//10,
         LOAN_AMOUNT*1//10,
+        investedAmount,
         liquidation_id,
         liquidation['erc20TokenContract'],
         collateral_address,
@@ -1254,6 +1256,7 @@ def test_admin_liquidation(
 
     event_funds_receipt = tx.events["FundsReceipt"]
     assert event_funds_receipt["fundsOrigin"] == "admin_liquidation"
+    assert event_funds_receipt["investedAmount"] == investedAmount
 
 
 def test_admin_liquidation_fail_on_message_not_from_owner(
@@ -1295,6 +1298,7 @@ def test_admin_liquidation_fail_on_message_not_from_owner(
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
+            liquidation["principal"],
             liquidation['lid'],
             liquidation['erc20TokenContract'],
             collateral_address,
@@ -1347,6 +1351,7 @@ def test_admin_liquidation_fail_on_collateral_in_vault(
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
+            liquidation["principal"],
             liquidation['lid'],
             liquidation['erc20TokenContract'],
             collateral_address,
@@ -1400,6 +1405,7 @@ def test_admin_liquidation_fail_on_collateral_in_liquidation(
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
+            liquidation["principal"],
             liquidation['lid'],
             liquidation['erc20TokenContract'],
             collateral_address,

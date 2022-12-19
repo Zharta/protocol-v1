@@ -17,7 +17,7 @@ interface ILendingPoolPeripheral:
     def maxFundsInvestable() -> uint256: view 
     def erc20TokenContract() -> address: view
     def sendFunds(_to: address, _amount: uint256): nonpayable
-    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): nonpayable
+    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256): nonpayable
     def lendingPoolCoreContract() -> address: view
 
 interface ILiquidationsPeripheral:
@@ -820,7 +820,7 @@ def pay(_loanId: uint256):
     ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
     ILoansCore(self.loansCoreContract).updateHighestRepayment(msg.sender, _loanId)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount, loan.amount)
 
     for collateral in loan.collaterals:
         ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)

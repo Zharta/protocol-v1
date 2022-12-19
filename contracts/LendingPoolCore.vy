@@ -82,14 +82,7 @@ def _computeShares(_amount: uint256) -> uint256:
 def _computeWithdrawableAmount(_lender: address) -> uint256:
     if self.totalSharesBasisPoints == 0:
         return 0
-
-    withdrawable: uint256 = (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
-
-    # due to rounding errors
-    if self.funds[_lender].currentAmountDeposited > withdrawable:
-        return self.funds[_lender].currentAmountDeposited
-
-    return withdrawable
+    return (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -305,15 +298,15 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
 
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
-    # _amount and _rewardsAmount should be passed in wei
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256) -> bool:
+    # _amount,_rewardsAmount and _investedAmount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
 
     self.fundsAvailable += _amount + _rewardsAmount
-    self.fundsInvested -= _amount
+    self.fundsInvested -= _investedAmount
     self.totalRewards += _rewardsAmount
 
     return IERC20(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount)

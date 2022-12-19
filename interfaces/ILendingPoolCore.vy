@@ -100,7 +100,7 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256) -> bool:
     pass
 
 @external
