@@ -43,5 +43,12 @@ jobs:
       env:
         FORK: "false"
       run: |
-        brownie networks add development ganache-mainnet-fork cmd=ganache-cli host=http://127.0.0.1 fork="https://eth-mainnet.g.alchemy.com/v2/$ALCHEMY_KEY" accounts=10 mnemonic=brownie port=8545 timeout=120
+        ganache-cli --version
+
+    - run: npm install -g ganache@7.5.0
+
+    - name: Run project unit tests 
+      env:
+        FORK: "false"
+      run: |
         brownie test tests/test_loans.py --durations=20 #--network ganache-mainnet-fork
