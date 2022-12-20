@@ -76,6 +76,10 @@ def activeForRewards(_lender: address) -> bool:
     pass
 
 @external
+def migrate(_from: address):
+    pass
+
+@external
 def proposeOwner(_address: address):
     pass
 

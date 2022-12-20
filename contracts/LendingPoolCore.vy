@@ -5,6 +5,7 @@
 
 from vyper.interfaces import ERC20 as IERC20
 
+from interfaces import ILendingPoolCore
 
 # Structs
 
@@ -59,6 +60,7 @@ totalFundsInvested: public(uint256)
 totalRewards: public(uint256)
 totalSharesBasisPoints: public(uint256)
 
+migrationDone: public(bool)
 
 ##### INTERNAL METHODS #####
 
@@ -144,13 +146,34 @@ def activeForRewards(_lender: address) -> bool:
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
-def __init__(
-    _erc20TokenContract: address
-):
+def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "The address is the zero address"
-
     self.owner = msg.sender
     self.erc20TokenContract = _erc20TokenContract
+    self.migrationDone = False
+
+
+@external
+def migrate(_from: address):
+    assert not self.migrationDone, "migration already done"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _from != empty(address), "_address is the zero address"
+    assert _from.is_contract, "LPCore is not a contract"
+
+    self.activeLenders = ILendingPoolCore(_from).activeLenders()
+    self.fundsAvailable = ILendingPoolCore(_from).fundsAvailable()
+    self.fundsInvested = ILendingPoolCore(_from).fundsInvested()
+    self.totalFundsInvested = ILendingPoolCore(_from).totalFundsInvested()
+    self.totalRewards = ILendingPoolCore(_from).totalRewards()
+    self.totalSharesBasisPoints = ILendingPoolCore(_from).totalSharesBasisPoints()
+
+    lenders: DynArray[address, 2**50] = ILendingPoolCore(_from).lendersArray()
+    for lender in lenders:
+        self.lenders.append(lender)
+        self.knownLenders[lender] = True
+        self.funds[lender] = ILendingPoolCore(_from).funds(lender)
+
+    self.migrationDone = True
 
 
 @external
