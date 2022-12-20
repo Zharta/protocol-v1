@@ -17,6 +17,7 @@ install: venv
 install-dev: venv install
 	${PIP} install -r requirements-dev.txt
 
+test: export FORK=false
 test: venv install-dev
 	patch contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
 	${VENV}/bin/brownie test ; patch -R contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch

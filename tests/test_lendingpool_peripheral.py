@@ -846,7 +846,6 @@ def test_receive_funds_wrong_sender(lending_pool_peripheral_contract, loans_peri
             borrower,
             Web3.toWei(0.2, "ether"),
             Web3.toWei(0.05, "ether"),
-            Web3.toWei(0.2, "ether"),
             {"from": borrower}
         )
 
@@ -859,7 +858,6 @@ def test_receive_funds_insufficient_amount(lending_pool_peripheral_contract, loa
             borrower,
             Web3.toWei(0.2, "ether"),
             Web3.toWei(0.05, "ether"),
-            Web3.toWei(0.2, "ether"),
             {"from": loans_peripheral_contract}
         )
 
@@ -870,7 +868,6 @@ def test_receive_funds_zero_value(lending_pool_peripheral_contract, loans_periph
     with brownie.reverts("amount should be higher than 0"):
         lending_pool_peripheral_contract.receiveFunds(
             borrower,
-            Web3.toWei(0, "ether"),
             Web3.toWei(0, "ether"),
             Web3.toWei(0, "ether"),
             {"from": loans_peripheral_contract}
@@ -909,7 +906,6 @@ def test_receive_funds(
         borrower,
         Web3.toWei(0.2, "ether"),
         Web3.toWei(0.02, "ether"),
-        Web3.toWei(0.2, "ether"),
         {"from": loans_peripheral_contract}
     )
 
@@ -973,7 +969,6 @@ def test_receive_funds_multiple_lenders(
         borrower,
         Web3.toWei(0.2, "ether"),
         Web3.toWei(0.02, "ether"),
-        Web3.toWei(0.2, "ether"),
         {"from": loans_peripheral_contract}
     )
 

@@ -686,7 +686,7 @@ def sendFunds(_to: address, _amount: uint256):
 
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256):
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     # _amount and _rewardsAmount should be passed in wei
 
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
@@ -694,7 +694,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, 
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     
-    self._receiveFunds(_borrower, _amount, _rewardsAmount, _investedAmount)
+    self._receiveFunds(_borrower, _amount, _rewardsAmount, _amount)
 
 
 @external
