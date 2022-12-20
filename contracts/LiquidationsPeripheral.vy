@@ -825,7 +825,6 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).isCollateralInVault(_collateralAddress, _tokenId), "collateral not owned by vault"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation within lender period"
