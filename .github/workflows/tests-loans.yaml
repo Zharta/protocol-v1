@@ -2,7 +2,7 @@ name: Loans tests
 
 on:
   push:
-    branches: [ "dev", "int", "prod", "feature/nftx-tests" ]
+    branches: [ "dev", "int", "prod", "fix/ganache-timeout" ]
   pull_request:
     branches: [ "dev", "int", "prod" ]
 
@@ -12,6 +12,7 @@ permissions:
 
 env:
   ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build:
@@ -39,6 +40,8 @@ jobs:
     - run: npm install -g ganache
     
     - name: Run project unit tests 
+      env:
+        FORK: "false"
       run: |
         brownie networks add development ganache-mainnet-fork cmd=ganache-cli host=http://127.0.0.1 fork="https://eth-mainnet.g.alchemy.com/v2/$ALCHEMY_KEY" accounts=10 mnemonic=brownie port=8545 timeout=120
-        brownie test tests/test_loans.py --durations=20 --network ganache-mainnet-fork
+        brownie test tests/test_loans.py --durations=20 #--network ganache-mainnet-fork
