@@ -320,7 +320,7 @@ def _unwrapCollateral(_collateralAddress: address, _tokenId: uint256):
 @view
 @external
 def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4:
-    return convert(method_id("onERC721Received(address,address,uint256,bytes)", output_type=Bytes[4]), bytes4)
+    return method_id("onERC721Received(address,address,uint256,bytes)", output_type=bytes4)
 
 @view
 @external
