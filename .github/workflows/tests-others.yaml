@@ -37,7 +37,7 @@ jobs:
       with:
         node-version: 16
     
-    - run: npm install -g ganache
+    - run: npm install -g ganache@7.5.0
     
     - name: Run project unit tests 
       run: |
