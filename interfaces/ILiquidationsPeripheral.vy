@@ -8,7 +8,7 @@ struct Collateral:
 struct Loan:
     id: uint256
     amount: uint256
-    interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    interest: uint256
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 100]
@@ -37,7 +37,7 @@ struct Liquidation:
     lenderPeriodMaturity: uint256
     principal: uint256
     interestAmount: uint256
-    apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    apr: uint256
     gracePeriodPrice: uint256
     lenderPeriodPrice: uint256
     borrower: address
@@ -49,60 +49,82 @@ struct Liquidation:
 # Events
 
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
+
 event LendersPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
+
 event AuctionPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
+
 event LiquidationsCoreAddressSet:
     currentValue: address
     newValue: address
+
 event LoansCoreAddressAdded:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event LoansCoreAddressRemoved:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     erc20TokenContract: address
+
 event LendingPoolPeripheralAddressAdded:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event LendingPoolPeripheralAddressRemoved:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     erc20TokenContract: address
+
 event CollateralVaultPeripheralAddressSet:
     currentValue: address
     newValue: address
+
 event NFTXVaultFactoryAddressSet:
     currentValue: address
     newValue: address
+
 event NFTXMarketplaceZapAddressSet:
     currentValue: address
     newValue: address
+
 event SushiRouterAddressSet:
     currentValue: address
     newValue: address
+
+event WrappedPunksAddressSet:
+    currentValue: address
+    newValue: address
+
+event CryptoPunksAddressSet:
+    currentValue: address
+    newValue: address
+
 event LiquidationAdded:
-    erc20TokenContractIndexed: address
-    collateralAddressIndexed: address
+    erc20TokenContractIndexed: indexed(address)
+    collateralAddressIndexed: indexed(address)
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
@@ -114,9 +136,10 @@ event LiquidationAdded:
     loansCoreContract: address
     loanId: uint256
     borrower: address
+
 event LiquidationRemoved:
-    erc20TokenContractIndexed: address
-    collateralAddressIndexed: address
+    erc20TokenContractIndexed: indexed(address)
+    collateralAddressIndexed: indexed(address)
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
@@ -124,10 +147,11 @@ event LiquidationRemoved:
     loansCoreContract: address
     loanId: uint256
     borrower: address
+
 event NFTPurchased:
-    erc20TokenContractIndexed: address
-    collateralAddressIndexed: address
-    buyerAddressIndexed: address
+    erc20TokenContractIndexed: indexed(address)
+    collateralAddressIndexed: indexed(address)
+    buyerAddressIndexed: indexed(address)
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
@@ -135,14 +159,90 @@ event NFTPurchased:
     buyerAddress: address
     erc20TokenContract: address
     method: String[30]
+
 event AdminWithdrawal:
-    collateralAddressIndexed: address
+    collateralAddressIndexed: indexed(address)
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     wallet: address
 
 # Functions
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def gracePeriodDuration() -> uint256:
+    pass
+
+@view
+@external
+def lenderPeriodDuration() -> uint256:
+    pass
+
+@view
+@external
+def auctionPeriodDuration() -> uint256:
+    pass
+
+@view
+@external
+def liquidationsCoreAddress() -> address:
+    pass
+
+@view
+@external
+def loansCoreAddresses(arg0: address) -> address:
+    pass
+
+@view
+@external
+def lendingPoolPeripheralAddresses(arg0: address) -> address:
+    pass
+
+@view
+@external
+def collateralVaultPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def nftxVaultFactoryAddress() -> address:
+    pass
+
+@view
+@external
+def nftxMarketplaceZapAddress() -> address:
+    pass
+
+@view
+@external
+def sushiRouterAddress() -> address:
+    pass
+
+@view
+@external
+def wrappedPunksAddress() -> address:
+    pass
+
+@view
+@external
+def cryptoPunksAddress() -> address:
+    pass
+
+@view
+@external
+def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4:
+    pass
 
 @view
 @external
@@ -206,6 +306,14 @@ def setSushiRouterAddress(_address: address):
     pass
 
 @external
+def setWrappedPunksAddress(_address: address):
+    pass
+
+@external
+def setCryptoPunksAddress(_address: address):
+    pass
+
+@external
 def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
     pass
 
@@ -230,67 +338,9 @@ def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _token
     pass
 
 @external
-def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
+def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincipal: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
-@view
 @external
-def owner() -> address:
+def storeERC721CollateralToVault(_collateralAddress: address, _tokenId: uint256):
     pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def gracePeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def lenderPeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def auctionPeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def liquidationsCoreAddress() -> address:
-    pass
-
-@view
-@external
-def loansCoreAddresses(arg0: address) -> address:
-    pass
-
-@view
-@external
-def lendingPoolPeripheralAddresses(arg0: address) -> address:
-    pass
-
-@view
-@external
-def collateralVaultPeripheralAddress() -> address:
-    pass
-
-@view
-@external
-def nftxVaultFactoryAddress() -> address:
-    pass
-
-@view
-@external
-def nftxMarketplaceZapAddress() -> address:
-    pass
-
-@view
-@external
-def sushiRouterAddress() -> address:
-    pass
-
-

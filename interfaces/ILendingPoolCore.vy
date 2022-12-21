@@ -11,24 +11,91 @@ struct InvestorFunds:
 # Events
 
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event LendingPoolPeripheralAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
 
 # Functions
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def lendingPoolPeripheral() -> address:
+    pass
+
+@view
+@external
+def erc20TokenContract() -> address:
+    pass
+
+@view
+@external
+def funds(arg0: address) -> InvestorFunds:
+    pass
+
+@view
+@external
+def knownLenders(arg0: address) -> bool:
+    pass
+
+@view
+@external
+def activeLenders() -> uint256:
+    pass
+
+@view
+@external
+def fundsAvailable() -> uint256:
+    pass
+
+@view
+@external
+def fundsInvested() -> uint256:
+    pass
+
+@view
+@external
+def totalFundsInvested() -> uint256:
+    pass
+
+@view
+@external
+def totalRewards() -> uint256:
+    pass
+
+@view
+@external
+def totalSharesBasisPoints() -> uint256:
+    pass
+
+@view
+@external
+def migrationDone() -> bool:
+    pass
 
 @view
 @external
@@ -110,65 +177,3 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, 
 @external
 def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
     pass
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def lendingPoolPeripheral() -> address:
-    pass
-
-@view
-@external
-def erc20TokenContract() -> address:
-    pass
-
-@view
-@external
-def funds(arg0: address) -> InvestorFunds:
-    pass
-
-@view
-@external
-def knownLenders(arg0: address) -> bool:
-    pass
-
-@view
-@external
-def activeLenders() -> uint256:
-    pass
-
-@view
-@external
-def fundsAvailable() -> uint256:
-    pass
-
-@view
-@external
-def fundsInvested() -> uint256:
-    pass
-
-@view
-@external
-def totalFundsInvested() -> uint256:
-    pass
-
-@view
-@external
-def totalRewards() -> uint256:
-    pass
-
-@view
-@external
-def totalSharesBasisPoints() -> uint256:
-    pass
-
-

@@ -1,3 +1,11 @@
+# Structs
+
+struct Offer:
+    isForSale: bool
+    punkIndex: uint256
+    seller: address
+    minValue: uint256
+    onlySellTo: address
 
 # Events
 
@@ -17,12 +25,7 @@ event CollateralVaultPeripheralAddressSet:
     currentValue: address
     newValue: address
 
-
 # Functions
-
-@view
-def vaultName() -> String[30]:
-    pass
 
 @view
 @external
@@ -41,12 +44,22 @@ def collateralVaultPeripheralAddress() -> address:
 
 @view
 @external
+def cryptoPunksMarketAddress() -> address:
+    pass
+
+@view
+@external
+def vaultName() -> String[30]:
+    pass
+
+@view
+@external
 def collateralOwner(_tokenId: uint256) -> address:
     pass
 
 @view
 @external
-def isApproved(_tokenId: uint256, _wallet: address) ->
+def isApproved(_tokenId: uint256, _wallet: address) -> bool:
     pass
 
 @external
@@ -57,23 +70,18 @@ def proposeOwner(_address: address):
 def claimOwnership():
     pass
 
-
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
     pass
-
 
 @external
 def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
-
 @external
 def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
-
 @external
 def approveOperator(_address: address, _collateralAddress: address, _tokenId: uint256):
     pass
-

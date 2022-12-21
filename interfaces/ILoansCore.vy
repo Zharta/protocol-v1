@@ -8,7 +8,7 @@ struct Collateral:
 struct Loan:
     id: uint256
     amount: uint256
-    interest: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    interest: uint256
     maturity: uint256
     startTime: uint256
     collaterals: DynArray[Collateral, 100]
@@ -29,24 +29,76 @@ struct TopStats:
 # Events
 
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event LoansPeripheralAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
 
 # Functions
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def loansPeripheral() -> address:
+    pass
+
+@view
+@external
+def borrowedAmount(arg0: address) -> uint256:
+    pass
+
+@view
+@external
+def ongoingLoans(arg0: address) -> uint256:
+    pass
+
+@view
+@external
+def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
+    pass
+
+@view
+@external
+def collateralsInLoansUsed(arg0: bytes32, arg1: address, arg2: uint256) -> bool:
+    pass
+
+@view
+@external
+def collateralsUsed(arg0: bytes32) -> bool:
+    pass
+
+@view
+@external
+def collateralsData(arg0: bytes32) -> Collateral:
+    pass
+
+@view
+@external
+def collectionsBorrowedAmount(arg0: address) -> uint256:
+    pass
 
 @external
 def proposeOwner(_address: address):
@@ -225,55 +277,3 @@ def updateHighestRepayment(_borrower: address, _loanId: uint256):
 @external
 def updateHighestDefaultedLoan(_borrower: address, _loanId: uint256):
     pass
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def loansPeripheral() -> address:
-    pass
-
-@view
-@external
-def borrowedAmount(arg0: address) -> uint256:
-    pass
-
-@view
-@external
-def ongoingLoans(arg0: address) -> uint256:
-    pass
-
-@view
-@external
-def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
-    pass
-
-@view
-@external
-def collateralsInLoansUsed(arg0: bytes32, arg1: address, arg2: uint256) -> bool:
-    pass
-
-@view
-@external
-def collateralsUsed(arg0: bytes32) -> bool:
-    pass
-
-@view
-@external
-def collateralsData(arg0: bytes32) -> Collateral:
-    pass
-
-@view
-@external
-def collectionsBorrowedAmount(arg0: address) -> uint256:
-    pass
-
-

@@ -1,4 +1,4 @@
-.PHONY: venv install install-dev test run clean
+.PHONY: venv install install-dev test run clean interfaces
 
 VENV?=./.venv
 PYTHON=${VENV}/bin/python3
@@ -24,6 +24,9 @@ test: venv install-dev
 
 full-test: venv install-dev
 	${VENV}/bin/brownie test --durations=20 --gas --network ganache-mainnet-fork
+
+interfaces:
+	python scripts/build_interfaces.py contracts/*.vy
 
 clean:
 	rm -rf ${VENV}
