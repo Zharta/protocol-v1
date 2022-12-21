@@ -320,7 +320,7 @@ def _unwrapCollateral(_collateralAddress: address, _tokenId: uint256):
 @view
 @external
 def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4:
-    return convert(method_id("onERC721Received(address,address,uint256,bytes)", output_type=Bytes[4]), bytes4)
+    return method_id("onERC721Received(address,address,uint256,bytes)", output_type=bytes4)
 
 @view
 @external
@@ -824,6 +824,8 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation within lender period"
 
