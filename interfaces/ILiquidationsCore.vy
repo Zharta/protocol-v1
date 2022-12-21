@@ -9,7 +9,7 @@ struct Liquidation:
     lenderPeriodMaturity: uint256
     principal: uint256
     interestAmount: uint256
-    apr: uint256 # parts per 10000, e.g. 2.5% is represented by 250 parts per 10000
+    apr: uint256
     gracePeriodPrice: uint256
     lenderPeriodPrice: uint256
     borrower: address
@@ -21,29 +21,53 @@ struct Liquidation:
 # Events
 
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+
 event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
+
 event LoansCoreAddressAdded:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event LoansCoreAddressRemoved:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     erc20TokenContract: address
 
 # Functions
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def liquidationsPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def loansCoreAddresses(arg0: address) -> address:
+    pass
 
 @view
 @external
@@ -131,25 +155,3 @@ def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId
 @external
 def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
     pass
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def liquidationsPeripheralAddress() -> address:
-    pass
-
-@view
-@external
-def loansCoreAddresses(arg0: address) -> address:
-    pass
-
-
