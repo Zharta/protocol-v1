@@ -6,10 +6,11 @@ The protocol part of the Zharta offering comprises the smart contracts that gove
 
 These off-chain components provide input for the on-chain protocol as admin functionalities.
 
+
 # Overview
-| **Version** | **Language** | **Reference implementation** |
-|---|---|---|
-| V1 | Vyper 0.3.6 | https://gitlab.com/z106/protocol-v1 |
+| **Version** | **Language** | **Reference implementation**          |
+| ---         | ---          | ---                                   |
+| V1          | Vyper 0.3.6  | https://github.com/Zharta/protocol-v1 |
 
 Zharta V1 is a binary smart contract system comprised of many smart contracts. Each domain is comprised of two smart contracts, the Core and the Periphery.
 
@@ -19,16 +20,22 @@ The Periphery contracts define the protocol logic and are the gateway to interac
 
 The Periphery contracts are more easily changed since they hold no storage variables, they only hold protocol logic. Since the domain storage exists in the domain-specific Core contract, it is easier to deploy a new domain-specific Periphery contract and point it to the Core contract and vice-versa.
 
+This architecture is mentioned as [data separation](https://ethereum.org/en/developers/docs/smart-contracts/upgrading/#data-separation) in Ethereum Docs, and has the purpose of easying the smart contracts upgrades, allowing faster bug fixing (including security issues) and business logic iterations. Even if the long term is towards contracts immutability, is important at this stage to allow upgradability.
+
 Zharta V1 is divided into the following domains:
-* Loans
-* Lending Pool (LP)
-* Collateral Vault (CV)
-* Liquidations
-* Liquidity Controls (LC)
+
+| **Domain**              | **Logic**                 | **Data**                                   |
+| ---                     | ---                       | ---                                        |
+| Loans                   | Loans                     | LoansCore                                  |
+| Lending Pool (LP)       | LendingPoolPeripheral     | LendingPoolCore                            |
+| Collateral Vault (CV)   | CollateralVaultPeripheral | CollateralVaultCore / CryptoPunksVaultCore |
+| Liquidations            | LiquidationsPeripheral    | LiquidationsCore                           |
+| Liquidity Controls (LC) | LiquidityControls         |                                            |
+
 
 # General considerations
 
-Zharta will launch the V1 of the protocol with the following restrictions:
+Zharta launched the V1 of the protocol with the following restrictions:
 * maturity-based loans with at most 30 days
 * one single lending pool of WETH
 * no liquidations before a loan's maturity date
@@ -47,24 +54,25 @@ As for the CV, Liquidations and Liquidity Controls domains, they are not specifi
 
 The liquidity controls contract exists as the first and simple layer of automated risk management. The table below outlines the current implemented controls.
 
-| **Name** | **Target** | **Current Value** | **Description** |
-|---|---|---|---|
-| Loan-to-deposit ratio | Lenders | 70% | This represents the maximum utilisation of pools and when set to less than 100%, it allows for a buffer for withdrawals by lenders. |
-|  | Borrowers | 70% | This represents the maximum utilisation of pools and when set to less than 100%, it allows for less funds available for loans taken by borrowers. |
-| Limit per pool | Lenders | 15% | This represents the maximum share that a single lender can take from a lending pool. |
-|  | Borrowers | 15% | This represents the maximum share that a single borrower can represent from the total amount of borrowed funds. |
-| Diversification of collections | Lenders | _NA_ | _NA_ |
-|  | Borrowers | 50% | The represents the maximum share that a single collection can represent from the total amount of borrowed funds. |
-| Funds withdrawals | Lenders | 7 days lock period | This represents the lock period applicable for deposits in lending pools, i.e. for each new deposit, it can’t be withdrawn before the lock period finishes. If the lender already has an ongoing lock period, a new deposit won’t extend the lock period. |
-|  | Borrowers | _NA_ | _NA_ |
+| **Name**                       | **Target** | **Current Value**  | **Description**                                                                                                                                                                                                                                             |
+| ---                            | ---        | ---                | ---                                                                                                                                                                                                                                                         |
+| Loan-to-deposit ratio          | Lenders    | 70%                | This represents the maximum utilisation of pools and when set to less than 100%, it allows for a buffer for withdrawals by lenders.                                                                                                                         |
+|                                | Borrowers  | 70%                | This represents the maximum utilisation of pools and when set to less than 100%, it allows for less funds available for loans taken by borrowers.                                                                                                           |
+| Limit per pool                 | Lenders    | 15%                | This represents the maximum share that a single lender can take from a lending pool.                                                                                                                                                                        |
+|                                | Borrowers  | 15%                | This represents the maximum share that a single borrower can represent from the total amount of borrowed funds.                                                                                                                                             |
+| Diversification of collections | Lenders    | _NA_               | _NA_                                                                                                                                                                                                                                                        |
+|                                | Borrowers  | 50%                | The represents the maximum share that a single collection can represent from the total amount of borrowed funds.                                                                                                                                            |
+| Funds withdrawals              | Lenders    | 7 days lock period | This represents the lock period applicable for deposits in lending pools, i.e. for each new deposit, it can’t be withdrawn before the lock period finishes. If the lender already has an ongoing lock period, a new deposit won’t extend the lock period. |
+|                                | Borrowers  | _NA_               | _NA_                                                                                                                                                                                                                                                        |
 
 ## Loan creation flow - a mix between on-chain and off-chain processes
 
 The loan creation flow has two steps:
-1. The loan is created on-chain by the borrower
+1. Zharta's API pre-validation
     - the borrower should call Zharta's APIs beforehand to get the conditions for the loan given the NFTs chosen to be used as collateral
+    - the Zharta's APIs also validate the loan request and sign a ERC712 message
     - Zharta's portal simplifies this for now
-2. After the loan is created, Zharta's off-chain indexer reacts to it and either validates or invalidated the loan, depending on the conditions that were set
+2. The loan is created on-chain by the borrower, using the signed message which is validated by the Loans smart contract
 
 ![Loan Creation Flow](loan_creation_flow.jpg)
 
@@ -75,10 +83,6 @@ In the diagrams below, the coloured boxes (i.e. boxes that don’t have a white 
 ## Loan creation
 
 ![Loan Creation](loan_creation.jpg)
-
-## Loan validation/invalidation
-
-![Loan Validation/Invalidation](loan_validation_invalidation.jpg)
 
 ## Loan payment
 
