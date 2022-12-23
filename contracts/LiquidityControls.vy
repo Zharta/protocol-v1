@@ -1,5 +1,11 @@
 # @version ^0.3.6
 
+"""
+@title LiquidityControls
+@author [Zharta](https://zharta.io/)
+@notice The liquidity controls contract exists as the first and simple layer of automated risk management
+@dev Does not rely on a data contract
+"""
 
 # Interfaces
 
@@ -154,6 +160,13 @@ def __init__(
 
 @external
 def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
+    """
+    @notice Sets the parameters for the Max Pool Share control, the maximum share that a single lender can take from a lending pool
+    @dev Logs `MaxPoolShareFlagChanged` and `MaxPoolShareChanged` events
+    @param _flag Enables / disable the Max Pool Share control
+    @param _value Sets the Max Pool Share value (bps) to use if `_flag` enables it
+    """
+
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value <= 10000, "max pool share exceeds 10000 bps"
         
@@ -168,6 +181,12 @@ def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
 
 @external
 def changeMaxLoansPoolShareConditions(_flag: bool, _value: uint256):
+    """
+    @notice Sets the parameters for the Max Loans Pool Share control, the maximum share that a single borrower can represent from the total amount of borrowed funds
+    @dev Logs `MaxLoansPoolShareFlagChanged` and `MaxLoansPoolShareChanged` events
+    @param _flag Enables / disable the Max Loans Pool Share control
+    @param _value Sets the Max Loans Pool Share value (bps) to use if `_flag` enables it
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value <= 10000, "max pool share exceeds 10000 bps"
         
@@ -182,6 +201,13 @@ def changeMaxLoansPoolShareConditions(_flag: bool, _value: uint256):
 
 @external
 def changeMaxCollectionBorrowableAmount(_flag: bool, _collectionAddress: address, _value: uint256):
+    """
+    @notice Sets the parameters for the Max Collection Borrowable Amount control, the maximum share that a single collection can represent from the total amount of borrowed funds
+    @dev Logs `MaxCollectionBorrowableAmountFlagChanged` and `MaxCollectionBorrowableAmountChanged` events
+    @param _flag Enables / disable the Max Collection Borrowable Amount control
+    @param _collectionAddress the address of the collection the control applies to
+    @param _value Sets the Max Collection Borrowable Amount value (wei) to use if `_flag` enables it
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _collectionAddress != empty(address), "collection addr is empty addr"
         
@@ -196,6 +222,12 @@ def changeMaxCollectionBorrowableAmount(_flag: bool, _collectionAddress: address
 
 @external
 def changeLockPeriodConditions(_flag: bool, _value: uint256):
+    """
+    @notice Sets the parameters for the Lock Period control, the lock period applicable for deposits in lending pools, i.e. for each new deposit, it can’t be withdrawn before the lock period finishes. If the lender already has an ongoing lock period, a new deposit won’t extend the lock period
+    @dev Logs `LockPeriodFlagChanged` and `LockPeriodDurationChanged` events
+    @param _flag Enables / disable the Lock Period control
+    @param _value Sets the Lock Period value (seconds) to use if `_flag` enables it
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     
     self.lockPeriodDuration = _value
