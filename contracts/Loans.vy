@@ -218,11 +218,6 @@ isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
 whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral address, is the collection whitelisted
-    """
-    @notice Sets the interest accrual period, considered on loan payment calculations
-    @dev Logs `InterestAccrualPeriodChanged` event
-    @param _value The interest accrual period in seconds
-    """
 
 loansCoreContract: public(address)
 lendingPoolPeripheralContract: public(address)
@@ -773,7 +768,7 @@ def reserve(
     """
     @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract owner.
     @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract owner of the implicit message consisting of the remaining parameters, in order for the loan to be created
-    @param _value The loan amount in wei
+    @param _amount The loan amount in wei
     @param _interest The interest rate in bps (1/1000)
     @param _maturity The loan maturity in unix epoch format
     @param _collaterals The list of collaterals supporting the loan

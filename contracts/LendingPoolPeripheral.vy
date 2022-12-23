@@ -1,5 +1,11 @@
 # @version ^0.3.6
 
+"""
+@title lendingPoolPeripheral
+@author [Zharta](https://zharta.io/)
+@notice The lending pool contract implements the lending pool logic. Each instance works with a corresponding loans contract to implement an isolated lending market.
+@dev Uses a `lendingPoolCore` contract to store state
+"""
 
 # Interfaces
 
@@ -592,7 +598,11 @@ def deprecate():
 
 @external
 def deposit(_amount: uint256):
-    # _amount should be passed in wei
+    """
+    @notice Deposits the given amount in the lending pool
+    @dev Logs the `Deposit` event
+    @param _amount Value to deposit in wei
+    """
 
     assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
     assert self.isPoolActive, "pool is not active right now"
@@ -626,7 +636,11 @@ def deposit(_amount: uint256):
 
 @external
 def withdraw(_amount: uint256):
-    # _amount should be passed in wei
+    """
+    @notice Withdrawals the given amount from the lending pool
+    @dev Logs the `Withdrawal` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _amount Value to withdraw in wei
+    """
 
     assert _amount > 0, "_amount has to be higher than 0"
     assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, self.lendingPoolCoreContract), "msg.sender within lock period"
@@ -650,7 +664,12 @@ def withdraw(_amount: uint256):
 
 @external
 def sendFunds(_to: address, _amount: uint256):
-    # _amount should be passed in wei
+    """
+    @notice Sends funds to a borrower as part of a loan creation
+    @dev Logs the `FundsTransfer` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _to The wallet address to transfer the funds to
+    @param _amount Value to transfer in wei
+    """
 
     assert not self.isPoolDeprecated, "pool is deprecated"
     assert self.isPoolActive, "pool is inactive"
@@ -677,7 +696,13 @@ def sendFunds(_to: address, _amount: uint256):
 
 @external
 def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
-    # _amount and _rewardsAmount should be passed in wei
+    """
+    @notice Receive funds from a borrower as part of a loan payment
+    @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _borrower The wallet address to receive the funds from
+    @param _amount Value of the loans principal to receive in wei
+    @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive in wei
+    """
 
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
     assert _borrower != empty(address), "_borrower is the zero address"
@@ -695,7 +720,15 @@ def receiveFundsFromLiquidation(
     _distributeToProtocol: bool,
     _origin: String[30]
 ):
-    # _amount and _rewardsAmount should be passed in wei
+    """
+    @notice Receive funds from a liquidation
+    @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _borrower The wallet address to receive the funds from
+    @param _amount Value of the loans principal to receive in wei
+    @param _rewardsAmount Value of the rewards after liquidation (including the protocol fee share) to receive in wei
+    @param _distributeToProtocol Wether to distribute the protocol fees or not
+    @param _origin Identification of the liquidation method
+    """
 
     assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
     assert _borrower != empty(address), "_borrower is the zero address"
