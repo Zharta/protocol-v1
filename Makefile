@@ -1,8 +1,13 @@
-.PHONY: venv install install-dev test run clean interfaces
+.PHONY: venv install install-dev test run clean interfaces docs
 
 VENV?=./.venv
 PYTHON=${VENV}/bin/python3
 PIP=${VENV}/bin/pip
+
+CONTRACTS := $(shell find contracts -depth 1 -name '*.vy')
+NATSPEC := $(patsubst contracts/%, natspec/%, $(CONTRACTS:%.vy=%.json))
+
+vpath %.vy ./contracts
 
 $(VENV)/bin/activate: requirements.txt
 	python3 -m venv $(VENV)
@@ -26,6 +31,11 @@ full-test: venv install-dev
 
 interfaces:
 	python scripts/build_interfaces.py contracts/*.vy
+
+docs: $(NATSPEC)
+
+natspec/%.json: %.vy
+	vyper -f userdoc,devdoc $< > $@
 
 clean:
 	rm -rf ${VENV}
