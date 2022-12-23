@@ -1,10 +1,10 @@
 # @version ^0.3.6
 
 """
-@title lendingPoolPeripheral
+@title LendingPoolPeripheral
 @author [Zharta](https://zharta.io/)
 @notice The lending pool contract implements the lending pool logic. Each instance works with a corresponding loans contract to implement an isolated lending market.
-@dev Uses a `lendingPoolCore` contract to store state
+@dev Uses a `LendingPoolCore` contract to store state
 """
 
 # Interfaces
