@@ -243,10 +243,6 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def updateInvalidLoan(_borrower: address, _loanId: uint256):
-    pass
-
-@external
 def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256):
     pass
 
@@ -256,10 +252,6 @@ def updatePaidLoan(_borrower: address, _loanId: uint256):
 
 @external
 def updateDefaultedLoan(_borrower: address, _loanId: uint256):
-    pass
-
-@external
-def updateCanceledLoan(_borrower: address, _loanId: uint256):
     pass
 
 @external

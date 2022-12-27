@@ -88,12 +88,6 @@ event OwnerProposed:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxAllowedLoansChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event MaxLoansChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
@@ -329,16 +323,12 @@ def _collateralsAmounts(_collaterals: DynArray[Collateral, 100]) -> uint256:
 def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 100]) -> bool:
     collections: DynArray[address, 100] = empty(DynArray[address, 100])
 
-    i: uint256 = 0
     for collateral in _collaterals:
         if collateral.contractAddress not in collections:
             collections.append(collateral.contractAddress)
+            self.collectionsAmount[collateral.contractAddress] = 0
 
-        if i == 0:
-            self.collectionsAmount[collateral.contractAddress] = collateral.amount
-            i += 1
-        else:
-            self.collectionsAmount[collateral.contractAddress] += collateral.amount
+        self.collectionsAmount[collateral.contractAddress] += collateral.amount
 
     for collection in collections:
         result: bool = ILiquidityControls(self.liquidityControlsContract).withinCollectionShareLimit(

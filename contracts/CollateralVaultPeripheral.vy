@@ -40,10 +40,6 @@ event OwnerProposed:
     owner: address
     proposedOwner: address
 
-event CollateralVaultCoreAddressSet:
-    currentValue: address
-    newValue: address
-
 event CollateralVaultAdded:
     collateralContractIndexed: indexed(address)
     currentValue: address
