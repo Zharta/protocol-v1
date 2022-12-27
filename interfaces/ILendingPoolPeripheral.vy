@@ -5,7 +5,6 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
-    lockPeriodEnd: uint256
     activeForRewards: bool
 
 struct InvestorLock:

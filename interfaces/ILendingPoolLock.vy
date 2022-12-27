@@ -4,7 +4,7 @@ struct InvestorLock:
     lockPeriodEnd: uint256
     lockPeriodAmount: uint256
 
-struct InvestorFunds:
+struct LegacyInvestorFunds:
     currentAmountDeposited: uint256
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256

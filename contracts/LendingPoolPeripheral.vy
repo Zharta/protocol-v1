@@ -22,7 +22,6 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
-    lockPeriodEnd: uint256
     activeForRewards: bool
 
 struct InvestorLock:
@@ -655,7 +654,7 @@ def deposit(_amount: uint256):
     lockPeriodAmount: uint256 = 0
     lockPeriodEnd, lockPeriodAmount = self._computeLockPeriod(msg.sender, _amount)
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount, lockPeriodEnd):
+    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount):
         raise "error creating deposit"
 
     ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, lockPeriodAmount, lockPeriodEnd)

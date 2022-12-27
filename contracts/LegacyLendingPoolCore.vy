@@ -7,20 +7,9 @@ from vyper.interfaces import ERC20 as IERC20
 
 from interfaces import ILendingPoolCore
 
-interface ILegacyLendingPoolCore:
-    def lockPeriodEnd(_lender: address) -> uint256: view
-    def funds(arg0: address) -> LegacyInvestorFunds: view
-
 # Structs
 
 struct InvestorFunds:
-    currentAmountDeposited: uint256
-    totalAmountDeposited: uint256
-    totalAmountWithdrawn: uint256
-    sharesBasisPoints: uint256
-    activeForRewards: bool
-
-struct LegacyInvestorFunds:
     currentAmountDeposited: uint256
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
@@ -144,6 +133,12 @@ def sharesBasisPoints(_lender: address) -> uint256:
 
 @view
 @external
+def lockPeriodEnd(_lender: address) -> uint256:
+    return self.funds[_lender].lockPeriodEnd
+
+
+@view
+@external
 def activeForRewards(_lender: address) -> bool:
     return self.funds[_lender].activeForRewards
 
@@ -176,15 +171,7 @@ def migrate(_from: address):
     for lender in lenders:
         self.lenders.append(lender)
         self.knownLenders[lender] = True
-        legacy: LegacyInvestorFunds = ILegacyLendingPoolCore(_from).funds(lender)
-        self.funds[lender] = InvestorFunds({
-                currentAmountDeposited: legacy.currentAmountDeposited,
-                totalAmountDeposited: legacy.totalAmountDeposited,
-                totalAmountWithdrawn: legacy.totalAmountWithdrawn,
-                sharesBasisPoints: legacy.sharesBasisPoints,
-                activeForRewards: legacy.activeForRewards
-            }
-        )
+        self.funds[lender] = ILendingPoolCore(_from).funds(lender)
 
     self.migrationDone = True
 
@@ -240,7 +227,7 @@ def setLendingPoolPeripheralAddress(_address: address):
 
 
 @external
-def deposit(_lender: address, _amount: uint256) -> bool:
+def deposit(_lender: address, _amount: uint256, _lockPeriodEnd: uint256) -> bool:
     # _amount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
@@ -267,6 +254,7 @@ def deposit(_lender: address, _amount: uint256) -> bool:
                 totalAmountDeposited: _amount,
                 totalAmountWithdrawn: 0,
                 sharesBasisPoints: sharesAmount,
+                lockPeriodEnd: _lockPeriodEnd,
                 activeForRewards: True
             }
         )
@@ -274,6 +262,8 @@ def deposit(_lender: address, _amount: uint256) -> bool:
         self.knownLenders[_lender] = True
         self.activeLenders += 1
     
+    self.funds[_lender].lockPeriodEnd = _lockPeriodEnd
+
     self.fundsAvailable += _amount
     self.totalSharesBasisPoints += sharesAmount
 
@@ -299,12 +289,14 @@ def withdraw(_lender: address, _amount: uint256) -> bool:
             totalAmountDeposited: self.funds[_lender].totalAmountDeposited,
             totalAmountWithdrawn: self.funds[_lender].totalAmountWithdrawn + _amount,
             sharesBasisPoints: newLenderSharesAmount,
+            lockPeriodEnd: self.funds[_lender].lockPeriodEnd,
             activeForRewards: True
         }
     )
 
     if self.funds[_lender].currentAmountDeposited == 0:
         self.funds[_lender].activeForRewards = False
+        self.funds[_lender].lockPeriodEnd = 0
         self.activeLenders -= 1
 
     self.fundsAvailable -= _amount

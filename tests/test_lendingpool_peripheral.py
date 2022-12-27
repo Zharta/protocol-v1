@@ -685,6 +685,7 @@ def test_withdraw_out_of_lock_period(
 
 
 def test_lock_period_migration(
+    lending_pool_legacy_core_contract,
     lending_pool_core_contract,
     lending_pool_lock_contract,
     lending_pool_peripheral_contract,
@@ -696,17 +697,18 @@ def test_lock_period_migration(
 
     erc20_contract.mint(contract_owner, deposit_amount, {"from": contract_owner})
     erc20_contract.transfer(investor, deposit_amount, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
+    erc20_contract.approve(lending_pool_legacy_core_contract, deposit_amount, {"from": investor})
 
-    lending_pool_core_contract.deposit(investor, deposit_amount, LOCK_PERIOD_DURATION, {"from": lending_pool_peripheral_contract})
-    lending_pool_lock_contract.migrate(lending_pool_core_contract, [investor])
+    lending_pool_legacy_core_contract.deposit(investor, deposit_amount, LOCK_PERIOD_DURATION, {"from": lending_pool_peripheral_contract})
+    lending_pool_lock_contract.migrate(lending_pool_legacy_core_contract, [investor])
 
     lock_period = lending_pool_lock_contract.investorLocks(investor)
     assert lock_period["lockPeriodAmount"] == deposit_amount
-    assert lock_period["lockPeriodEnd"] == lending_pool_core_contract.funds(investor)["lockPeriodEnd"]
+    assert lock_period["lockPeriodEnd"] == lending_pool_legacy_core_contract.funds(investor)["lockPeriodEnd"]
 
 
 def test_lock_period_migration_twice(
+    lending_pool_legacy_core_contract,
     lending_pool_core_contract,
     lending_pool_lock_contract,
     lending_pool_peripheral_contract,
@@ -718,13 +720,13 @@ def test_lock_period_migration_twice(
 
     erc20_contract.mint(contract_owner, deposit_amount, {"from": contract_owner})
     erc20_contract.transfer(investor, deposit_amount, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
+    erc20_contract.approve(lending_pool_legacy_core_contract, deposit_amount, {"from": investor})
 
-    lending_pool_core_contract.deposit(investor, deposit_amount, 0, {"from": lending_pool_peripheral_contract})
-    lending_pool_lock_contract.migrate(lending_pool_core_contract, [])
+    lending_pool_legacy_core_contract.deposit(investor, deposit_amount, 0, {"from": lending_pool_peripheral_contract})
+    lending_pool_lock_contract.migrate(lending_pool_legacy_core_contract, [])
 
     with brownie.reverts("migration already done"):
-        lending_pool_lock_contract.migrate(lending_pool_core_contract, [investor])
+        lending_pool_lock_contract.migrate(lending_pool_legacy_core_contract, [investor])
 
 
 def test_send_funds_deprecated(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):

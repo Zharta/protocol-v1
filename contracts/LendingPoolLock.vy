@@ -5,7 +5,10 @@
 
 from vyper.interfaces import ERC20 as IERC20
 
-from interfaces import ILendingPoolCore
+interface ILegacyLendingPoolCore:
+    def lockPeriodEnd(_lender: address) -> uint256: view
+    def funds(arg0: address) -> LegacyInvestorFunds: view
+    def lendersArray() -> DynArray[address, 2**50]: view
 
 # Structs
 
@@ -14,7 +17,7 @@ struct InvestorLock:
     lockPeriodAmount: uint256
 
 
-struct InvestorFunds:
+struct LegacyInvestorFunds:
     currentAmountDeposited: uint256
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
@@ -56,7 +59,6 @@ erc20TokenContract: public(address)
 investorLocks: public(HashMap[address, InvestorLock])
 migrationDone: bool
 
-
 ##### INTERNAL METHODS #####
 
 
@@ -82,7 +84,7 @@ def migrate(_lendingPoolCoreAddress: address, _lenders: DynArray[address, 100]):
     assert _lendingPoolCoreAddress != empty(address), "_address is the zero address"
     assert _lendingPoolCoreAddress.is_contract, "LPCore is not a contract"
     for lender in _lenders:
-        investorFunds: InvestorFunds = ILendingPoolCore(_lendingPoolCoreAddress).funds(lender)
+        investorFunds: LegacyInvestorFunds = ILegacyLendingPoolCore(_lendingPoolCoreAddress).funds(lender)
         self.investorLocks[lender] = InvestorLock({
             lockPeriodEnd: investorFunds.lockPeriodEnd,
             lockPeriodAmount: investorFunds.currentAmountDeposited
