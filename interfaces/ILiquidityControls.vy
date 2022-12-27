@@ -1,5 +1,9 @@
 # Structs
 
+struct InvestorLock:
+    lockPeriodEnd: uint256
+    lockPeriodAmount: uint256
+
 # Events
 
 event MaxPoolShareFlagChanged:
@@ -86,7 +90,7 @@ def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreCo
 
 @view
 @external
-def outOfLockPeriod(_lender: address, _lpCoreContractAddress: address) -> bool:
+def outOfLockPeriod(_lender: address, _remainingAmount: uint256, _lpLockContractAddress: address) -> bool:
     pass
 
 @view

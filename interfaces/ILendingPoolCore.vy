@@ -5,6 +5,13 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
+    activeForRewards: bool
+
+struct LegacyInvestorFunds:
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    sharesBasisPoints: uint256
     lockPeriodEnd: uint256
     activeForRewards: bool
 
@@ -134,11 +141,6 @@ def sharesBasisPoints(_lender: address) -> uint256:
 
 @view
 @external
-def lockPeriodEnd(_lender: address) -> uint256:
-    pass
-
-@view
-@external
 def activeForRewards(_lender: address) -> bool:
     pass
 
@@ -159,7 +161,7 @@ def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
-def deposit(_lender: address, _amount: uint256, _lockPeriodEnd: uint256) -> bool:
+def deposit(_lender: address, _amount: uint256) -> bool:
     pass
 
 @external

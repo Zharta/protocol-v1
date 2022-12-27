@@ -5,8 +5,11 @@ struct InvestorFunds:
     totalAmountDeposited: uint256
     totalAmountWithdrawn: uint256
     sharesBasisPoints: uint256
-    lockPeriodEnd: uint256
     activeForRewards: bool
+
+struct InvestorLock:
+    lockPeriodEnd: uint256
+    lockPeriodAmount: uint256
 
 # Events
 
@@ -137,6 +140,11 @@ def loansContract() -> address:
 @view
 @external
 def lendingPoolCoreContract() -> address:
+    pass
+
+@view
+@external
+def lendingPoolLockContract() -> address:
     pass
 
 @view

@@ -299,7 +299,7 @@ def test_store_collateral(collateral_vault_peripheral_contract, collateral_vault
     assert event["_from"] == borrower
 
 
-@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_store_cryptopunk_collateral(
     collateral_vault_peripheral_contract,
     cryptopunks_vault_core_contract,
@@ -462,7 +462,7 @@ def test_transfer_collateral_from_loan(collateral_vault_peripheral_contract, col
     assert event["_to"] == borrower
 
 
-@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_transfer_cryptopunk_collateral_from_loan(
     collateral_vault_peripheral_contract,
     cryptopunks_vault_core_contract,
@@ -607,7 +607,7 @@ def test_transfer_collateral_from_liquidation(collateral_vault_peripheral_contra
     assert event["_to"] == borrower
 
 
-@pytest.mark.skipif(os.environ.get('FORK', "true") == "false", reason="requires mainnet fork")
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_transfer_collateral_from_liquidation(
     collateral_vault_peripheral_contract,
     cryptopunks_vault_core_contract,
