@@ -5,6 +5,7 @@
 
 from vyper.interfaces import ERC20 as IERC20
 
+from interfaces import ILendingPoolCore
 
 # Structs
 
@@ -59,6 +60,7 @@ totalFundsInvested: public(uint256)
 totalRewards: public(uint256)
 totalSharesBasisPoints: public(uint256)
 
+migrationDone: public(bool)
 
 ##### INTERNAL METHODS #####
 
@@ -82,14 +84,7 @@ def _computeShares(_amount: uint256) -> uint256:
 def _computeWithdrawableAmount(_lender: address) -> uint256:
     if self.totalSharesBasisPoints == 0:
         return 0
-
-    withdrawable: uint256 = (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
-
-    # due to rounding errors
-    if self.funds[_lender].currentAmountDeposited > withdrawable:
-        return self.funds[_lender].currentAmountDeposited
-
-    return withdrawable
+    return (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -151,13 +146,34 @@ def activeForRewards(_lender: address) -> bool:
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
-def __init__(
-    _erc20TokenContract: address
-):
+def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "The address is the zero address"
-
     self.owner = msg.sender
     self.erc20TokenContract = _erc20TokenContract
+    self.migrationDone = False
+
+
+@external
+def migrate(_from: address):
+    assert not self.migrationDone, "migration already done"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _from != empty(address), "_address is the zero address"
+    assert _from.is_contract, "LPCore is not a contract"
+
+    self.activeLenders = ILendingPoolCore(_from).activeLenders()
+    self.fundsAvailable = ILendingPoolCore(_from).fundsAvailable()
+    self.fundsInvested = ILendingPoolCore(_from).fundsInvested()
+    self.totalFundsInvested = ILendingPoolCore(_from).totalFundsInvested()
+    self.totalRewards = ILendingPoolCore(_from).totalRewards()
+    self.totalSharesBasisPoints = ILendingPoolCore(_from).totalSharesBasisPoints()
+
+    lenders: DynArray[address, 2**50] = ILendingPoolCore(_from).lendersArray()
+    for lender in lenders:
+        self.lenders.append(lender)
+        self.knownLenders[lender] = True
+        self.funds[lender] = ILendingPoolCore(_from).funds(lender)
+
+    self.migrationDone = True
 
 
 @external
@@ -305,15 +321,15 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
 
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
-    # _amount and _rewardsAmount should be passed in wei
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256) -> bool:
+    # _amount,_rewardsAmount and _investedAmount should be passed in wei
 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
 
     self.fundsAvailable += _amount + _rewardsAmount
-    self.fundsInvested -= _amount
+    self.fundsInvested -= _investedAmount
     self.totalRewards += _rewardsAmount
 
     return IERC20(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount)

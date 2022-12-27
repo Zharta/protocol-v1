@@ -928,6 +928,7 @@ def test_receive_funds(
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["investedAmount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
     assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"
 
@@ -995,5 +996,6 @@ def test_receive_funds_multiple_lenders(
     assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["investedAmount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
     assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"
