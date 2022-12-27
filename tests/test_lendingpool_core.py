@@ -188,8 +188,6 @@ def test_withdraw_insufficient_investment(lending_pool_core_contract, lending_po
 
 
 def test_withdraw_with_losses(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, borrower, investor, contract_owner):
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-
     deposit_amount = Web3.toWei(1, "ether")
     invested_amount = Web3.toWei(0.5, "ether")
     recovered_amount = Web3.toWei(0.4, "ether")
@@ -471,11 +469,7 @@ def test_receive_funds_with_losses(
     borrower,
     contract_owner
 ):
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
-
     deposit_amount = Web3.toWei(1, "ether")
-
     erc20_contract.mint(investor, deposit_amount, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
     lending_pool_peripheral_contract.deposit(deposit_amount, {"from": investor})
@@ -522,8 +516,6 @@ def test_receive_funds_with_losses(
 
 
 def test_withdrawable_precision(lending_pool_core_contract, lending_pool_peripheral_contract, erc20_contract, borrower, investor, contract_owner):
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-
     deposit_amount1 = Web3.toWei(1, "ether")
     deposit_amount2 = Web3.toWei(1, "wei")
 
