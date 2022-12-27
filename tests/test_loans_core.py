@@ -148,29 +148,6 @@ def test_add_loan(loans_core_contract, loans_peripheral_contract, borrower, cont
     assert loans_core_contract.ongoingLoans(borrower) == 1
 
 
-def test_update_invalid_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    with brownie.reverts("msg.sender is not the loans addr"):
-        loans_core_contract.updateInvalidLoan(borrower, 0, {"from": contract_owner})
-
-
-def test_update_invalid_loan(loans_core_contract, loans_peripheral_contract, borrower, contract_owner, test_collaterals):
-    tx_add_loan = loans_core_contract.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        {"from": loans_peripheral_contract}
-    )
-    loan_id = tx_add_loan.return_value
-
-    loans_core_contract.updateInvalidLoan(borrower, loan_id, {"from": loans_peripheral_contract})
-    assert loans_core_contract.getLoanInvalidated(borrower, loan_id) == loans_core_contract.getLoan(borrower, loan_id)["invalidated"]
-    assert loans_core_contract.getLoanInvalidated(borrower, loan_id)
-
-    assert loans_core_contract.ongoingLoans(borrower) == 0
-
-
 def test_update_paid_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
     with brownie.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updatePaidLoan(borrower, 0, {"from": contract_owner})
@@ -223,29 +200,6 @@ def test_update_defaulted_loan(loans_core_contract, loans_peripheral_contract, e
 
     assert loans_core_contract.borrowedAmount(borrower) == 0
     assert loans_core_contract.collectionsBorrowedAmount(erc721_contract) == 0
-
-    assert loans_core_contract.ongoingLoans(borrower) == 0
-
-
-def test_update_canceled_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    with brownie.reverts("msg.sender is not the loans addr"):
-        loans_core_contract.updateCanceledLoan(borrower, 0, {"from": contract_owner})
-
-
-def test_update_canceled_loan(loans_core_contract, loans_peripheral_contract, borrower, contract_owner, test_collaterals):
-    tx_add_loan = loans_core_contract.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        {"from": loans_peripheral_contract}
-    )
-    loan_id = tx_add_loan.return_value
-
-    loans_core_contract.updateCanceledLoan(borrower, loan_id, {"from": loans_peripheral_contract})
-    assert loans_core_contract.getLoanCanceled(borrower, loan_id) == loans_core_contract.getPendingLoan(borrower, loan_id)["canceled"]
-    assert loans_core_contract.getLoanCanceled(borrower, loan_id)
 
     assert loans_core_contract.ongoingLoans(borrower) == 0
 

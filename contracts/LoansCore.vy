@@ -1,4 +1,4 @@
-# @version ^0.3.6
+# @version 0.3.7
 
 
 # Interfaces
@@ -451,15 +451,6 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
 
 
 @external
-def updateInvalidLoan(_borrower: address, _loanId: uint256):
-    assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-
-    self.loans[_borrower][_loanId].invalidated = True
-
-    self.ongoingLoans[_borrower] -= 1
-
-
-@external
 def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
   
@@ -493,15 +484,6 @@ def updateDefaultedLoan(_borrower: address, _loanId: uint256):
 
     for collateral in self.loans[_borrower][_loanId].collaterals:
         self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
-
-
-@external
-def updateCanceledLoan(_borrower: address, _loanId: uint256):
-    assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-
-    self.loans[_borrower][_loanId].canceled = True
-
-    self.ongoingLoans[_borrower] -= 1
 
 
 @external

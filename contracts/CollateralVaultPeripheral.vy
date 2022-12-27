@@ -1,5 +1,11 @@
-# @version ^0.3.6
+# @version 0.3.7
 
+"""
+@title CollateralVaultPeripheral
+@author [Zharta](https://zharta.io/)
+@notice The lending pool contract implements the lending pool logic. Each instance works with a corresponding loans contract to implement an isolated lending market.
+@dev Uses a `CollateralVaultCore` to store ERC721 collaterals, and supports different vault cores (eg CryptoPunksVaultCore) as extension points for other protocols.
+"""
 
 # Interfaces
 
@@ -33,10 +39,6 @@ event OwnerProposed:
     proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
-
-event CollateralVaultCoreAddressSet:
-    currentValue: address
-    newValue: address
 
 event CollateralVaultAdded:
     collateralContractIndexed: indexed(address)
@@ -258,6 +260,16 @@ def setLiquidationsPeripheralAddress(_address: address):
 
 @external
 def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address):
+
+    """
+    @notice Stores the given collateral
+    @dev Logs the `CollateralStored` event
+    @param _wallet The wallet to transfer the collateral from
+    @param _collateralAddress The collateral contract address
+    @param _tokenId The token id of the collateral
+    @param _erc20TokenContract The token address by which the loans contract is indexed
+    """
+
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
     assert _erc20TokenContract != empty(address), "address is the zero addr"
@@ -288,6 +300,16 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
 
 @external
 def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address):
+
+    """
+    @notice Transfers the given collateral from the vault to a wallet
+    @dev Logs the `CollateralFromLoanTransferred` event; to be used by `LoansPeripheral`
+    @param _wallet The wallet to transfer the collateral to
+    @param _collateralAddress The collateral contract address
+    @param _tokenId The token id of the collateral
+    @param _erc20TokenContract The token address by which the loans contract is indexed
+    """
+
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
     assert _erc20TokenContract != empty(address), "address is the zero addr"
@@ -316,6 +338,15 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
 
 @external
 def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256):
+
+    """
+    @notice Transfers the given collateral from the vault to a wallet, as part of a liquidation
+    @dev Logs the `CollateralFromLiquidationTransferred` event; to be used by `LiquidationsPeripheral`
+    @param _wallet The wallet to transfer the collateral to
+    @param _collateralAddress The collateral contract address
+    @param _tokenId The token id of the collateral
+    """
+
     assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not authorised"
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
@@ -341,6 +372,15 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
 
 @external
 def approveBackstopBuyer(_address: address, _collateralAddress: address, _tokenId: uint256):
+
+    """
+    @notice Aproves the given collateral from the vault to a wallet, as part of a liquidation
+    @dev Logs the `OperatorApproved` event; to be used by `LiquidationsPeripheral`
+    @param _address The wallet to approve
+    @param _collateralAddress The collateral contract address
+    @param _tokenId The token id of the collateral
+    """
+
     assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not authorised"
     assert _address != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"

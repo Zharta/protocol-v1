@@ -338,7 +338,7 @@ def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _token
     pass
 
 @external
-def adminLiquidation(_principal: uint256, _interestAmount: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
+def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincipal: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
     pass
 
 @external

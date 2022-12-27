@@ -36,17 +36,6 @@ event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
 
-event LoansCoreAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    newValue: address
-    erc20TokenContract: address
-
-event LoansCoreAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
-
 # Functions
 
 @view
@@ -62,11 +51,6 @@ def proposedOwner() -> address:
 @view
 @external
 def liquidationsPeripheralAddress() -> address:
-    pass
-
-@view
-@external
-def loansCoreAddresses(arg0: address) -> address:
     pass
 
 @view
@@ -134,14 +118,6 @@ def claimOwnership():
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
-    pass
-
-@external
-def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
-    pass
-
-@external
-def removeLoansCoreAddress(_erc20TokenContract: address):
     pass
 
 @external

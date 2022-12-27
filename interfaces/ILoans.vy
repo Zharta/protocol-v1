@@ -49,12 +49,6 @@ event OwnerProposed:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxAllowedLoansChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event MaxLoansChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256

@@ -1,5 +1,11 @@
-# @version ^0.3.6
+# @version 0.3.7
 
+"""
+@title Loans
+@author [Zharta](https://zharta.io/)
+@notice The loans contract exists as the main interface to create peer-to-pool NFT-backed loans
+@dev Uses a `LoansCore` contract to store state
+"""
 
 # Interfaces
 
@@ -80,12 +86,6 @@ event OwnerProposed:
     proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
-    erc20TokenContract: address
-
-event MaxAllowedLoansChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
     erc20TokenContract: address
 
 event MaxLoansChanged:
@@ -323,16 +323,12 @@ def _collateralsAmounts(_collaterals: DynArray[Collateral, 100]) -> uint256:
 def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 100]) -> bool:
     collections: DynArray[address, 100] = empty(DynArray[address, 100])
 
-    i: uint256 = 0
     for collateral in _collaterals:
         if collateral.contractAddress not in collections:
             collections.append(collateral.contractAddress)
+            self.collectionsAmount[collateral.contractAddress] = 0
 
-        if i == 0:
-            self.collectionsAmount[collateral.contractAddress] = collateral.amount
-            i += 1
-        else:
-            self.collectionsAmount[collateral.contractAddress] += collateral.amount
+        self.collectionsAmount[collateral.contractAddress] += collateral.amount
 
     for collection in collections:
         result: bool = ILiquidityControls(self.liquidityControlsContract).withinCollectionShareLimit(
@@ -435,6 +431,11 @@ def claimOwnership():
 
 @external
 def changeMaxAllowedLoans(_value: uint256):
+    """
+    @notice Sets the max allowed loans value per borrower, validated againt active loans
+    @dev Logs `MaxLoansChanged` event
+    @param _value Sets the max allowed loans value in wei
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value > 0, "value for max loans is 0"
     assert _value != self.maxAllowedLoans, "new max loans value is the same"
@@ -451,6 +452,11 @@ def changeMaxAllowedLoans(_value: uint256):
 
 @external
 def changeMaxAllowedLoanDuration(_value: uint256):
+    """
+    @notice Sets the max allowed loans duration per borrower, validated on loan creation
+    @dev Logs `MaxLoanDurationChanged` event
+    @param _value Sets the max allowed loans value in seconds
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value > 0, "value for max duration is 0"
     assert _value != self.maxAllowedLoanDuration, "new max duration value is the same"
@@ -467,6 +473,11 @@ def changeMaxAllowedLoanDuration(_value: uint256):
 
 @external
 def changeMaxLoanAmount(_value: uint256):
+    """
+    @notice Sets the max loan amount per borrower, validated on loan creation
+    @dev Logs `MaxLoanAmountChanged` event
+    @param _value Sets the max allowed loan amount in wei
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value != self.maxLoanAmount, "new max loan amount is the same"
 
@@ -482,6 +493,11 @@ def changeMaxLoanAmount(_value: uint256):
 
 @external
 def changeInterestAccrualPeriod(_value: uint256):
+    """
+    @notice Sets the interest accrual period, considered on loan payment calculations
+    @dev Logs `InterestAccrualPeriodChanged` event
+    @param _value The interest accrual period in seconds
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value != self.interestAccrualPeriod, "_value is the same"
 
@@ -497,6 +513,11 @@ def changeInterestAccrualPeriod(_value: uint256):
 
 @external
 def addCollateralToWhitelist(_address: address):
+    """
+    @notice Adds a collection to the collateral whitelist, enabling it to be used in new loans
+    @dev Logs `CollateralToWhitelistAdded` event
+    @param _address The colletion address to whitelist
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
     assert _address.is_contract, "_address is not a contract"
@@ -514,6 +535,11 @@ def addCollateralToWhitelist(_address: address):
 
 @external
 def removeCollateralFromWhitelist(_address: address):
+    """
+    @notice Removes a collection from the collateral whitelist, preventing it to be used in new loans
+    @dev Logs `CollateralToWhitelistRemoved` event
+    @param _address The colletion address to remove from the whitelist
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.whitelistedCollaterals[_address], "collateral is not whitelisted"
 
@@ -596,6 +622,11 @@ def setLiquidityControlsAddress(_address: address):
 
 @external
 def changeWalletsWhitelistStatus(_flag: bool):
+    """
+    @notice Sets the wallets whitelist control, considered on loan creation
+    @dev Logs `WalletsWhitelistStatusChanged` event
+    @param _flag Enables / disables the wallets whitelist control
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert self.walletWhitelistEnabled != _flag, "new value is the same"
 
@@ -610,6 +641,11 @@ def changeWalletsWhitelistStatus(_flag: bool):
 
 @external
 def addWhitelistedWallet(_address: address):
+    """
+    @notice Adds a wallet to the wallets whitelist, enabling it to be used in new loans if the whitelist is enabled
+    @dev Logs `CollateralToWhitelistAdded` event
+    @param _address The colletion address to whitelist
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
     assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
@@ -626,6 +662,11 @@ def addWhitelistedWallet(_address: address):
 
 @external
 def removeWhitelistedWallet(_address: address):
+    """
+    @notice Removes a wallet from the wallets whitelist, preventing it to be used in new loans if the whitelist is enabled
+    @dev Logs `CollateralToWhitelistRemoved` event
+    @param _address The colletion address to remove from the whitelist
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
     assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
@@ -714,6 +755,19 @@ def reserve(
     _r: uint256,
     _s: uint256
 ) -> uint256:
+    """
+    @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract owner.
+    @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract owner of the implicit message consisting of the remaining parameters, in order for the loan to be created
+    @param _amount The loan amount in wei
+    @param _interest The interest rate in bps (1/1000)
+    @param _maturity The loan maturity in unix epoch format
+    @param _collaterals The list of collaterals supporting the loan
+    @param _deadline The deadline of validity for the signed message in unix epoch format
+    @param _v recovery id for public key recover
+    @param _r r value in ECDSA signature
+    @param _s s value in ECDSA signature
+    @return The loan id
+    """
     assert not self.isDeprecated, "contract is deprecated"
     assert self.isAcceptingLoans, "contract is not accepting loans"
     assert block.timestamp <= _maturity, "maturity is in the past"
@@ -784,6 +838,11 @@ def reserve(
 
 @external
 def pay(_loanId: uint256):
+    """
+    @notice Closes an active loan by paying the full amount
+    @dev Logs the `LoanPayment` and `LoanPaid` events. The associated `LendingPoolCore` contract must be approved for the payment amount
+    @param _loanId The id of the loan to settle
+    """
     assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
     assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
     assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
@@ -852,6 +911,12 @@ def pay(_loanId: uint256):
 
 @external
 def settleDefault(_borrower: address, _loanId: uint256):
+    """
+    @notice Settles an active loan as defaulted
+    @dev Logs the `LoanDefaulted` event, removes the collaterals from the loan and creates a liquidation
+    @param _borrower The wallet address of the borrower
+    @param _loanId The id of the loan to settle
+    """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan not found"
     assert block.timestamp > ILoansCore(self.loansCoreContract).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"

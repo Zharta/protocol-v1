@@ -94,6 +94,11 @@ def totalSharesBasisPoints() -> uint256:
 
 @view
 @external
+def migrationDone() -> bool:
+    pass
+
+@view
+@external
 def lendersArray() -> DynArray[address, 1125899906842624]:
     pass
 
@@ -138,6 +143,10 @@ def activeForRewards(_lender: address) -> bool:
     pass
 
 @external
+def migrate(_from: address):
+    pass
+
+@external
 def proposeOwner(_address: address):
     pass
 
@@ -162,7 +171,7 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256) -> bool:
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256) -> bool:
     pass
 
 @external

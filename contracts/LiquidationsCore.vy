@@ -1,4 +1,4 @@
-# @version ^0.3.6
+# @version 0.3.7
 
 
 # Interfaces
@@ -48,17 +48,6 @@ event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
 
-event LoansCoreAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    newValue: address
-    erc20TokenContract: address
-
-event LoansCoreAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
-
 
 # Global variables
 
@@ -66,7 +55,6 @@ owner: public(address)
 proposedOwner: public(address)
 
 liquidationsPeripheralAddress: public(address)
-loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
 
 liquidations: HashMap[bytes32, Liquidation]
 liquidatedLoans: HashMap[bytes32, bool]
@@ -204,40 +192,6 @@ def setLiquidationsPeripheralAddress(_address: address):
 
     self.liquidationsPeripheralAddress = _address
 
-
-@external
-def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "address is the zero addr"
-    assert _address.is_contract, "address is not a contract"
-    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
-    assert self.loansCoreAddresses[_erc20TokenContract] != _address, "new value is the same"
-
-    log LoansCoreAddressAdded(
-        _erc20TokenContract,
-        self.loansCoreAddresses[_erc20TokenContract],
-        _address,
-        _erc20TokenContract
-    )
-
-    self.loansCoreAddresses[_erc20TokenContract] = _address
-
-
-@external
-def removeLoansCoreAddress(_erc20TokenContract: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
-    assert self.loansCoreAddresses[_erc20TokenContract] != empty(address), "address not found"
-
-    log LoansCoreAddressRemoved(
-        _erc20TokenContract,
-        self.loansCoreAddresses[_erc20TokenContract],
-        _erc20TokenContract
-    )
-    
-    self.loansCoreAddresses[_erc20TokenContract] = empty(address)
 
 
 @external
