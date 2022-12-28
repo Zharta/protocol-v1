@@ -161,11 +161,11 @@ def setLendingPoolPeripheralAddress(_address: address):
     pass
 
 @external
-def deposit(_lender: address, _amount: uint256) -> bool:
+def deposit(_lender: address, _payer: address, _amount: uint256) -> bool:
     pass
 
 @external
-def withdraw(_lender: address, _amount: uint256) -> bool:
+def withdraw(_lender: address, _wallet: address, _amount: uint256) -> bool:
     pass
 
 @external

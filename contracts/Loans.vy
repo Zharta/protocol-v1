@@ -22,8 +22,10 @@ interface IERC20Symbol:
 interface ILendingPoolPeripheral:
     def maxFundsInvestable() -> uint256: view 
     def erc20TokenContract() -> address: view
-    def sendFunds(_to: address, _amount: uint256): nonpayable
-    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
+    def sendFundsEth(_to: address, _amount: uint256): nonpayable
+    def sendFundsWeth(_to: address, _amount: uint256): nonpayable
+    def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
+    def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
     def lendingPoolCoreContract() -> address: view
 
 interface ILiquidationsPeripheral:
@@ -405,6 +407,77 @@ def _recoverReserveSigner(
     return signer
 
 
+@internal
+def _reserve(
+    _amount: uint256,
+    _interest: uint256,
+    _maturity: uint256,
+    _collaterals: DynArray[Collateral, 100],
+    _deadline: uint256,
+    _v: uint256,
+    _r: uint256,
+    _s: uint256
+) -> uint256:
+    assert not self.isDeprecated, "contract is deprecated"
+    assert self.isAcceptingLoans, "contract is not accepting loans"
+    assert block.timestamp <= _maturity, "maturity is in the past"
+    assert block.timestamp <= _deadline, "deadline has passed"
+    assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "maturity exceeds the max allowed"
+    assert self._areCollateralsWhitelisted(_collaterals), "not all NFTs are accepted"
+    assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
+    assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
+    assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
+    assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
+    assert ILoansCore(self.loansCoreContract).ongoingLoans(msg.sender) < self.maxAllowedLoans, "max loans already reached"
+    assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
+
+    assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
+        msg.sender,
+        _amount,
+        self.loansCoreContract,
+        self.lendingPoolPeripheralContract
+    ), "max loans pool share surpassed"
+    assert self._withinCollectionShareLimit(_collaterals), "max collection share surpassed"
+
+    if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
+        raise "msg.sender is not whitelisted"
+
+    signer: address = self._recoverReserveSigner(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
+    assert signer == self.owner, "invalid message signature"
+
+    newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
+        msg.sender,
+        _amount,
+        _interest,
+        _maturity,
+        _collaterals
+    )
+
+    for collateral in _collaterals:
+        ILoansCore(self.loansCoreContract).addCollateralToLoan(msg.sender, collateral, newLoanId)
+        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, False)
+
+        ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).storeCollateral(
+            msg.sender,
+            collateral.contractAddress,
+            collateral.tokenId,
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+        )
+
+    log LoanCreated(
+        msg.sender,
+        msg.sender,
+        newLoanId,
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+    )
+
+    ILoansCore(self.loansCoreContract).updateLoanStarted(msg.sender, newLoanId)
+    ILoansCore(self.loansCoreContract).updateHighestSingleCollateralLoan(msg.sender, newLoanId)
+    ILoansCore(self.loansCoreContract).updateHighestCollateralBundleLoan(msg.sender, newLoanId)
+
+    return newLoanId
+
+
 @external
 def proposeOwner(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
@@ -755,7 +828,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
 
 
 @external
-def reserve(
+def reserveWeth(
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
@@ -778,64 +851,46 @@ def reserve(
     @param _s s value in ECDSA signature
     @return The loan id
     """
-    assert not self.isDeprecated, "contract is deprecated"
-    assert self.isAcceptingLoans, "contract is not accepting loans"
-    assert block.timestamp <= _maturity, "maturity is in the past"
-    assert block.timestamp <= _deadline, "deadline has passed"
-    assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "maturity exceeds the max allowed"
-    assert self._areCollateralsWhitelisted(_collaterals), "not all NFTs are accepted"
-    assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
-    assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
-    assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
-    assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
-    assert ILoansCore(self.loansCoreContract).ongoingLoans(msg.sender) < self.maxAllowedLoans, "max loans already reached"
-    assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
 
-    assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
+
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsWeth(
         msg.sender,
-        _amount,
-        self.loansCoreContract,
-        self.lendingPoolPeripheralContract
-    ), "max loans pool share surpassed"
-    assert self._withinCollectionShareLimit(_collaterals), "max collection share surpassed"
-
-    if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
-        raise "msg.sender is not whitelisted"
-
-    signer: address = self._recoverReserveSigner(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
-    assert signer == self.owner, "invalid message signature"
-
-    newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
-        msg.sender,
-        _amount,
-        _interest,
-        _maturity,
-        _collaterals
+        ILoansCore(self.loansCoreContract).getLoanAmount(msg.sender, newLoanId)
     )
 
-    for collateral in _collaterals:
-        ILoansCore(self.loansCoreContract).addCollateralToLoan(msg.sender, collateral, newLoanId)
-        ILoansCore(self.loansCoreContract).updateCollaterals(collateral, False)
+    return newLoanId
 
-        ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).storeCollateral(
-            msg.sender,
-            collateral.contractAddress,
-            collateral.tokenId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-        )
 
-    log LoanCreated(
-        msg.sender,
-        msg.sender,
-        newLoanId,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
 
-    ILoansCore(self.loansCoreContract).updateLoanStarted(msg.sender, newLoanId)
-    ILoansCore(self.loansCoreContract).updateHighestSingleCollateralLoan(msg.sender, newLoanId)
-    ILoansCore(self.loansCoreContract).updateHighestCollateralBundleLoan(msg.sender, newLoanId)
+@external
+def reserveEth(
+    _amount: uint256,
+    _interest: uint256,
+    _maturity: uint256,
+    _collaterals: DynArray[Collateral, 100],
+    _deadline: uint256,
+    _v: uint256,
+    _r: uint256,
+    _s: uint256
+) -> uint256:
+    """
+    @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract owner.
+    @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract owner of the implicit message consisting of the remaining parameters, in order for the loan to be created
+    @param _amount The loan amount in wei
+    @param _interest The interest rate in bps (1/1000)
+    @param _maturity The loan maturity in unix epoch format
+    @param _collaterals The list of collaterals supporting the loan
+    @param _deadline The deadline of validity for the signed message in unix epoch format
+    @param _v recovery id for public key recover
+    @param _r r value in ECDSA signature
+    @param _s s value in ECDSA signature
+    @return The loan id
+    """
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFunds(
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
+
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsEth(
         msg.sender,
         ILoansCore(self.loansCoreContract).getLoanAmount(msg.sender, newLoanId)
     )
@@ -880,9 +935,12 @@ def pay(_loanId: uint256):
     )
 
     erc20TokenContract: address = ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    assert receivedAmount >= paymentAmount, "insufficient value received"
-    excessAmount: uint256 = receivedAmount - paymentAmount
-    log PaymentReceived(msg.sender, msg.sender, receivedAmount)
+    excessAmount: uint256 = 0
+
+    if receivedAmount > 0:
+        assert receivedAmount >= paymentAmount, "insufficient value received"
+        excessAmount = receivedAmount - paymentAmount
+        log PaymentReceived(msg.sender, msg.sender, receivedAmount)
 
     paidInterestAmount: uint256 = paymentAmount - loan.amount
 
@@ -890,7 +948,11 @@ def pay(_loanId: uint256):
     ILoansCore(self.loansCoreContract).updatePaidLoan(msg.sender, _loanId)
     ILoansCore(self.loansCoreContract).updateHighestRepayment(msg.sender, _loanId)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
+    if receivedAmount > 0:
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFundsEth(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
+        log PaymentSent(self.lendingPoolPeripheralContract, self.lendingPoolPeripheralContract, paymentAmount)
+    else:
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFundsWeth(msg.sender, loan.amount, paidInterestAmount)
 
     for collateral in loan.collaterals:
         ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
