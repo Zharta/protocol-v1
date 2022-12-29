@@ -273,6 +273,7 @@ def __init__(
         )
     )
 
+
 @internal
 def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
@@ -831,9 +832,6 @@ def reserve(
     )
 
     return newLoanId
-
-
-
 
 
 @external
