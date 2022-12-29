@@ -103,7 +103,7 @@ def test_set_default_lender_zeroaddress(
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.depositEth(Web3.toWei(1, "ether"), {"from": investor})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -114,7 +114,7 @@ def test_set_default_lender_zeroaddress(
     maturity = chain.time() + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,
@@ -133,12 +133,14 @@ def test_set_default_lender_zeroaddress(
         loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_set_default_lender_zeroaddress(
     loans_peripheral_contract,
     create_signature,
     loans_core_contract,
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
+    lending_pool_lock_contract,
     collateral_vault_peripheral_contract,
     collateral_vault_core_contract,
     liquidity_controls_contract,
@@ -150,6 +152,7 @@ def test_set_default_lender_zeroaddress(
     test_collaterals
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
+    lending_pool_lock_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
     loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
@@ -160,7 +163,7 @@ def test_set_default_lender_zeroaddress(
     loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -171,7 +174,7 @@ def test_set_default_lender_zeroaddress(
     maturity = chain.time() + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,
@@ -576,7 +579,7 @@ def test_create_deprecated(
     loans_peripheral_contract.deprecate({"from": contract_owner})
     (v, r, s) = create_signature()
     with brownie.reverts("contract is deprecated"):
-        tx_start_loan = loans_peripheral_contract.reserve(
+        tx_start_loan = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -600,7 +603,7 @@ def test_create_not_accepting_loans(
     (v, r, s) = create_signature()
 
     with brownie.reverts("contract is not accepting loans"):
-        tx_start_loan = loans_peripheral_contract.reserve(
+        tx_start_loan = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -627,7 +630,7 @@ def test_create_maturity_in_the_past(
     (v, r, s) = create_signature(maturity=maturity)
 
     with brownie.reverts("maturity is in the past"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
@@ -653,7 +656,7 @@ def test_create_maturity_too_long(
     maturity = int(dt.datetime.now().timestamp()) + MAX_LOAN_DURATION * 2
     (v, r, s) = create_signature(maturity=maturity)
     with brownie.reverts("maturity exceeds the max allowed"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
@@ -674,7 +677,7 @@ def test_create_collateral_notwhitelisted(
 ):
     (v, r, s) = create_signature()
     with brownie.reverts("not all NFTs are accepted"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -687,6 +690,7 @@ def test_create_collateral_notwhitelisted(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_collaterals_not_owned(
     loans_peripheral_contract,
     create_signature,
@@ -702,7 +706,7 @@ def test_create_collaterals_not_owned(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -710,7 +714,7 @@ def test_create_collaterals_not_owned(
     (v, r, s) = create_signature()
 
     with brownie.reverts("msg.sender does not own all NFTs"):
-        tx = loans_peripheral_contract.reserve(
+        tx = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -723,6 +727,7 @@ def test_create_collaterals_not_owned(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_collateral_not_approved(
     loans_peripheral_contract,
     create_signature,
@@ -740,7 +745,7 @@ def test_create_loan_collateral_not_approved(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -750,7 +755,7 @@ def test_create_loan_collateral_not_approved(
     (v, r, s) = create_signature()
 
     with brownie.reverts("not all NFTs are approved"):
-        tx = loans_peripheral_contract.reserve(
+        tx = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -763,6 +768,7 @@ def test_create_loan_collateral_not_approved(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_sum_collaterals_amounts_not_amount(
     loans_peripheral_contract,
     create_signature,
@@ -779,7 +785,7 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
     borrower
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -791,7 +797,7 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
     (v, r, s) = create_signature(collaterals = [(erc721_contract.address, k, 0) for k in range(5)])
 
     with brownie.reverts("amount in collats != than amount"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -829,7 +835,7 @@ def test_create_loan_unsufficient_funds_in_lp(
     (v, r, s) = create_signature()
 
     with brownie.reverts("insufficient liquidity"):
-        tx = loans_peripheral_contract.reserve(
+        tx = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -842,6 +848,7 @@ def test_create_loan_unsufficient_funds_in_lp(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_max_loans_reached(
     loans_peripheral_contract,
     create_signature,
@@ -858,7 +865,7 @@ def test_create_max_loans_reached(
     borrower
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(50, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(50, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(50, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -868,7 +875,7 @@ def test_create_max_loans_reached(
 
     for k in range(MAX_NUMBER_OF_LOANS):
         (v, r, s) = create_signature(collaterals = [(erc721_contract.address, k, LOAN_AMOUNT)])
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -884,7 +891,7 @@ def test_create_max_loans_reached(
 
     with brownie.reverts("max loans already reached"):
         (v, r, s) = create_signature(collaterals = [(erc721_contract.address, MAX_NUMBER_OF_LOANS, LOAN_AMOUNT)])
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -897,6 +904,7 @@ def test_create_max_loans_reached(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_max_amount(
     loans_peripheral_contract,
     create_signature,
@@ -913,7 +921,7 @@ def test_create_loan_max_amount(
     borrower
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(15, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(15, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(15, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -922,7 +930,7 @@ def test_create_loan_max_amount(
 
     with brownie.reverts("loan amount > than the max value"):
         (v, r, s) = create_signature(collaterals = [(erc721_contract.address, 0, Web3.toWei(10, "ether"))])
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             Web3.toWei(10, "ether"),
             LOAN_INTEREST,
             MATURITY,
@@ -935,6 +943,7 @@ def test_create_loan_max_amount(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_outside_pool_share(
     loans_peripheral_contract,
     create_signature,
@@ -953,7 +962,7 @@ def test_create_loan_outside_pool_share(
 ):
     liquidity_controls_contract.changeMaxLoansPoolShareConditions(True, MAX_LOANS_POOL_SHARE, {"from": contract_owner})
     contract_owner.transfer(to=investor, amount=Web3.toWei(15, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': LOAN_AMOUNT * 2})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -964,7 +973,7 @@ def test_create_loan_outside_pool_share(
     (v, r, s) = create_signature()
 
     with brownie.reverts("max loans pool share surpassed"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -977,6 +986,7 @@ def test_create_loan_outside_pool_share(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_outside_collection_share(
     loans_peripheral_contract,
     create_signature,
@@ -995,7 +1005,7 @@ def test_create_loan_outside_collection_share(
 ):
     liquidity_controls_contract.changeMaxCollectionBorrowableAmount(True, erc721_contract, LOAN_AMOUNT / 10, {"from": contract_owner})
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1006,7 +1016,7 @@ def test_create_loan_outside_collection_share(
     (v, r, s) = create_signature()
 
     with brownie.reverts("max collection share surpassed"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -1019,6 +1029,7 @@ def test_create_loan_outside_collection_share(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_wallet_not_whitelisted(
     loans_peripheral_contract,
     create_signature,
@@ -1036,7 +1047,7 @@ def test_create_loan_wallet_not_whitelisted(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(15, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(15, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(15, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1049,7 +1060,7 @@ def test_create_loan_wallet_not_whitelisted(
     (v, r, s) = create_signature()
 
     with brownie.reverts("msg.sender is not whitelisted"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -1062,6 +1073,7 @@ def test_create_loan_wallet_not_whitelisted(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1079,7 +1091,7 @@ def test_create_loan(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1089,7 +1101,7 @@ def test_create_loan(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1125,6 +1137,7 @@ def test_create_loan(
     assert event["loanId"] == 0
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_wrong_signature(
         loans_peripheral_contract,
         create_signature,
@@ -1144,7 +1157,7 @@ def test_create_loan_wrong_signature(
 ):
     liquidity_controls_contract.changeMaxLoansPoolShareConditions(True, MAX_LOANS_POOL_SHARE, {"from": contract_owner})
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1171,7 +1184,7 @@ def test_create_loan_wrong_signature(
         print(f"creating signature with {k} = {v}")
         (v, r, s) = create_signature(**{k:v})
         with brownie.reverts("invalid message signature"):
-            loans_peripheral_contract.reserve(
+            loans_peripheral_contract.reserveEth(
                 LOAN_AMOUNT,
                 LOAN_INTEREST,
                 MATURITY,
@@ -1184,6 +1197,7 @@ def test_create_loan_wrong_signature(
             )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_past_signature_deadline(
         loans_peripheral_contract,
         create_signature,
@@ -1201,7 +1215,7 @@ def test_create_loan_past_signature_deadline(
         test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1213,7 +1227,7 @@ def test_create_loan_past_signature_deadline(
     (v, r, s) = create_signature(deadline = deadline_in_the_past)
 
     with brownie.reverts("deadline has passed"):
-        loans_peripheral_contract.reserve(
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -1226,6 +1240,7 @@ def test_create_loan_past_signature_deadline(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_within_pool_share(
     loans_peripheral_contract,
     create_signature,
@@ -1244,7 +1259,7 @@ def test_create_loan_within_pool_share(
 ):
     liquidity_controls_contract.changeMaxLoansPoolShareConditions(True, MAX_LOANS_POOL_SHARE, {"from": contract_owner})
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1254,7 +1269,7 @@ def test_create_loan_within_pool_share(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1290,6 +1305,7 @@ def test_create_loan_within_pool_share(
     assert event["loanId"] == 0
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_within_collection_share(
     loans_peripheral_contract,
     create_signature,
@@ -1308,7 +1324,7 @@ def test_create_loan_within_collection_share(
 ):
     liquidity_controls_contract.changeMaxCollectionBorrowableAmount(True, erc721_contract, LOAN_AMOUNT, {"from": contract_owner})
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1318,7 +1334,7 @@ def test_create_loan_within_collection_share(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1354,6 +1370,7 @@ def test_create_loan_within_collection_share(
     assert event["loanId"] == 0
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_wallet_whitelist_enabled(
     loans_peripheral_contract,
     create_signature,
@@ -1371,7 +1388,7 @@ def test_create_loan_wallet_whitelist_enabled(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1384,7 +1401,7 @@ def test_create_loan_wallet_whitelist_enabled(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1426,6 +1443,7 @@ def test_pay_loan_not_issued(loans_peripheral_contract, borrower):
         loans_peripheral_contract.pay(0, {"from": borrower})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_defaulted(
     loans_peripheral_contract,
     create_signature,
@@ -1443,7 +1461,7 @@ def test_pay_loan_defaulted(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1454,7 +1472,7 @@ def test_pay_loan_defaulted(
     maturity = chain.time() + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,
@@ -1478,6 +1496,7 @@ def test_pay_loan_defaulted(
         loans_peripheral_contract.pay(loan["id"], {"from": borrower})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_insufficient_balance(
     loans_peripheral_contract,
     create_signature,
@@ -1495,7 +1514,7 @@ def test_pay_loan_insufficient_balance(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1507,7 +1526,7 @@ def test_pay_loan_insufficient_balance(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveWeth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1528,12 +1547,13 @@ def test_pay_loan_insufficient_balance(
 
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
-    with brownie.reverts("insufficient value received"):
+    with brownie.reverts("insufficient balance"):
         loans_peripheral_contract.pay(loan_id, {"from": borrower})
 
     erc20_contract.transfer(borrower, transfer_amount, {"from": contract_owner})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_insufficient_allowance(
     loans_peripheral_contract,
     create_signature,
@@ -1551,7 +1571,7 @@ def test_pay_loan_insufficient_allowance(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1567,7 +1587,7 @@ def test_pay_loan_insufficient_allowance(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1584,10 +1604,13 @@ def test_pay_loan_insufficient_allowance(
 
     erc20_contract.approve(lending_pool_core_contract, amount_paid / 2, {"from": borrower})
 
-    with brownie.reverts("insufficient value received"):
+    with brownie.reverts("insufficient allowance"):
         loans_peripheral_contract.pay(loan_id, {"from": borrower})
 
+    with brownie.reverts("insufficient value received"):
+        loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": amount_paid / 2})
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1605,7 +1628,7 @@ def test_pay_loan(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1617,7 +1640,7 @@ def test_pay_loan(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1668,6 +1691,7 @@ def test_pay_loan(
     assert borrower.balance() + amount_paid == borrower_initial_balance + LOAN_AMOUNT
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_already_paid(
     loans_peripheral_contract,
     create_signature,
@@ -1685,7 +1709,7 @@ def test_pay_loan_already_paid(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1695,7 +1719,7 @@ def test_pay_loan_already_paid(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1738,6 +1762,7 @@ def test_set_default_loan_not_started(
 
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_set_default_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1757,7 +1782,7 @@ def test_set_default_loan(
     test_collaterals
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     loans_peripheral_contract.addCollateralToWhitelist(erc721_contract, {"from": contract_owner})
 
@@ -1768,7 +1793,7 @@ def test_set_default_loan(
     maturity = chain.time() + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserve(
+    tx_create_loan = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,

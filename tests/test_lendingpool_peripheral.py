@@ -3,6 +3,7 @@ from decimal import Decimal
 from web3 import Web3
 
 import brownie
+import pytest
 
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
@@ -352,29 +353,33 @@ def test_deprecate_already_deprecated(lending_pool_peripheral_contract, contract
         lending_pool_peripheral_contract.deprecate({"from": contract_owner})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_deposit_deprecated(lending_pool_peripheral_contract, investor, contract_owner):
     lending_pool_peripheral_contract.deprecate({"from": contract_owner})
 
     with brownie.reverts("pool is deprecated, withdraw"):
-        lending_pool_peripheral_contract.deposit({"from": investor, 'value': 0})
+        lending_pool_peripheral_contract.depositEth({"from": investor, 'value': 0})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_deposit_inactive(lending_pool_peripheral_contract, investor, contract_owner):
     lending_pool_peripheral_contract.changePoolStatus(False, {"from": contract_owner})
 
     with brownie.reverts("pool is not active right now"):
-        lending_pool_peripheral_contract.deposit({"from": investor, 'value': 0})
+        lending_pool_peripheral_contract.depositEth({"from": investor, 'value': 0})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_deposit_zero_investment(lending_pool_peripheral_contract, investor):
     with brownie.reverts("_amount has to be higher than 0"):
-        lending_pool_peripheral_contract.deposit({"from": investor, 'value': 0})
+        lending_pool_peripheral_contract.depositEth({"from": investor, 'value': 0})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_deposit_pool_share_surpassed(lending_pool_peripheral_contract, liquidity_controls_contract, investor, contract_owner):
     liquidity_controls_contract.changeMaxPoolShareConditions(True, MAX_POOL_SHARE, {"from": contract_owner})
     with brownie.reverts("max pool share surpassed"):
-        lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+        lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
 
 def test_deposit_insufficient_amount_allowed(
@@ -389,9 +394,10 @@ def test_deposit_insufficient_amount_allowed(
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(0.5, "ether"), {"from": investor})
 
     with brownie.reverts("not enough funds allowed"):
-        lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+        lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_deposit_not_whitelisted(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -409,9 +415,10 @@ def test_deposit_not_whitelisted(
     erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
 
     with brownie.reverts("msg.sender is not whitelisted"):
-        lending_pool_peripheral_contract.deposit({"from": investor, 'value': deposit_amount})
+        lending_pool_peripheral_contract.depositEth({"from": investor, 'value': deposit_amount})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_deposit_whitelisted(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -428,7 +435,7 @@ def test_deposit_whitelisted(
 
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
 
-    tx_deposit = lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    tx_deposit = lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     investor_funds = lending_pool_core_contract.funds(investor)
     assert investor_funds["currentAmountDeposited"] == Web3.toWei(1, "ether")
@@ -447,7 +454,8 @@ def test_deposit_whitelisted(
     assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
-def test_deposit(
+@pytest.mark.require_network("ganache-mainnet-fork")
+def test_deposit_eth(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
     lending_pool_lock_contract,
@@ -457,15 +465,8 @@ def test_deposit(
     contract_owner
 ):
     amount = Web3.toWei(1, "ether")
-    erc20_contract.mint(investor, amount, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, amount, {"from": investor})
-
-    tx_deposit = lending_pool_peripheral_contract.deposit(amount, {"from": investor})
-
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-
-    tx_deposit = lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    contract_owner.transfer(to=investor, amount=amount)
+    tx_deposit = lending_pool_peripheral_contract.depositEth({"from": investor, "value": amount})
 
     chain_time = chain.time()
 
@@ -490,6 +491,45 @@ def test_deposit(
     assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
 
 
+def test_deposit_weth(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    investor,
+    contract_owner
+):
+    amount = Web3.toWei(1, "ether")
+    erc20_contract.mint(investor, amount, {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, amount, {"from": investor})
+
+    tx_deposit = lending_pool_peripheral_contract.depositWeth(amount, {"from": investor})
+
+    chain_time = chain.time()
+
+    investor_funds = lending_pool_core_contract.funds(investor)
+    assert investor_funds["currentAmountDeposited"] == amount
+    assert investor_funds["totalAmountDeposited"] == amount
+    assert investor_funds["totalAmountWithdrawn"] == 0
+    assert investor_funds["sharesBasisPoints"] == amount
+    assert investor_funds["activeForRewards"] == True
+
+    lock_period = lending_pool_lock_contract.investorLocks(investor)
+    assert lock_period["lockPeriodEnd"] <= chain_time + LOCK_PERIOD_DURATION + 10  # 10s of buffer
+    assert lock_period["lockPeriodAmount"] == amount
+
+    assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1, "ether")
+    assert lending_pool_core_contract.fundsInvested() == 0
+
+    assert lending_pool_peripheral_contract.isPoolInvesting()
+
+    assert tx_deposit.events["Deposit"]["wallet"] == investor
+    assert tx_deposit.events["Deposit"]["amount"] == amount
+    assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
+
+
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_deposit_twice(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -500,18 +540,16 @@ def test_deposit_twice(
     contract_owner
 ):
     amount1 = Web3.toWei(1, "ether")
-    erc20_contract.mint(investor, amount1, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, amount1, {"from": investor})
-    tx_deposit = lending_pool_peripheral_contract.deposit({"from": investor, 'value': amount1})
+    contract_owner.transfer(to=investor, amount=amount1)
+    tx_deposit = lending_pool_peripheral_contract.depositEth({"from": investor, 'value': amount1})
 
     chain_time = chain.time()
 
     chain.mine(blocks=1, timedelta=LOCK_PERIOD_DURATION / 2)
 
     amount2 = Web3.toWei(0.5, "ether")
-    erc20_contract.mint(investor, amount2, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, amount2, {"from": investor})
-    tx_deposit_twice = lending_pool_peripheral_contract.deposit({"from": investor, 'value': amount2})
+    contract_owner.transfer(to=investor, amount=amount2)
+    tx_deposit_twice = lending_pool_peripheral_contract.depositEth({"from": investor, 'value': amount2})
 
     investor_funds = lending_pool_core_contract.funds(investor)
     assert investor_funds["currentAmountDeposited"] == amount1 + amount2
@@ -548,12 +586,12 @@ def test_deposit_max_pool_share_enabled(
 
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': Web3.toWei(3, "ether")})
+
+    lending_pool_peripheral_contract.depositWeth(Web3.toWei(3, "ether"), {"from": contract_owner})
 
     liquidity_controls_contract.changeMaxPoolShareConditions(True, 4000, {"from": contract_owner})
 
-    tx_deposit = lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    tx_deposit = lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
 
     investor_funds = lending_pool_core_contract.funds(investor)
     assert investor_funds["currentAmountDeposited"] == Web3.toWei(1, "ether")
@@ -574,14 +612,15 @@ def test_deposit_max_pool_share_enabled(
 
 def test_withdraw_zero_amount(lending_pool_peripheral_contract, investor):
     with brownie.reverts("_amount has to be higher than 0"):
-        lending_pool_peripheral_contract.withdraw(0, {"from": investor})
+        lending_pool_peripheral_contract.withdrawEth(0, {"from": investor})
 
 
 def test_withdraw_noinvestment(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, investor, contract_owner):
     with brownie.reverts("_amount more than withdrawable"):
-        lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
+        lending_pool_peripheral_contract.withdrawEth(Web3.toWei(1, "ether"), {"from": investor})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_withdraw_insufficient_investment(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -590,25 +629,28 @@ def test_withdraw_insufficient_investment(
     investor,
     contract_owner
 ):
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
-    
+    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
+
     with brownie.reverts("_amount more than withdrawable"):
-        lending_pool_peripheral_contract.withdraw(Web3.toWei(1.5, "ether"), {"from": investor})
+        lending_pool_peripheral_contract.withdrawEth(Web3.toWei(1.5, "ether"), {"from": investor})
+
+    with brownie.reverts("_amount more than withdrawable"):
+        lending_pool_peripheral_contract.withdrawWeth(Web3.toWei(1.5, "ether"), {"from": investor})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_withdraw(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, investor, contract_owner):
     initial_balance = investor.balance()
 
     contract_owner.transfer(to=investor, amount=Web3.toWei(2, "ether"))
     assert investor.balance() == initial_balance + Web3.toWei(2, "ether")
 
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
     assert investor.balance() == initial_balance + Web3.toWei(1, "ether")
     assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1, "ether")
 
-    tx_withdraw = lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
+    tx_withdraw = lending_pool_peripheral_contract.withdrawEth(Web3.toWei(1, "ether"), {"from": investor})
     assert investor.balance() == initial_balance + Web3.toWei(2, "ether")
     assert lending_pool_core_contract.fundsAvailable() == 0
 
@@ -624,6 +666,7 @@ def test_withdraw(lending_pool_peripheral_contract, lending_pool_core_contract, 
     assert tx_withdraw.events["Withdrawal"]["erc20TokenContract"] == erc20_contract
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_withdraw_within_lock_period(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -632,15 +675,15 @@ def test_withdraw_within_lock_period(
     investor,
     contract_owner
 ):
-    erc20_contract.mint(investor, Web3.toWei(2, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(2, "ether"), {"from": investor})
-
+    contract_owner.transfer(to=investor, amount=Web3.toWei(2, "ether"))
     liquidity_controls_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION*2, {"from": contract_owner})
-
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     with brownie.reverts("withdraw within lock period"):
-        lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
+        lending_pool_peripheral_contract.withdrawEth(Web3.toWei(1, "ether"), {"from": investor})
+
+    with brownie.reverts("withdraw within lock period"):
+        lending_pool_peripheral_contract.withdrawWeth(Web3.toWei(1, "ether"), {"from": investor})
 
 
 def test_withdraw_within_lock_period_within_amount(
@@ -658,11 +701,11 @@ def test_withdraw_within_lock_period_within_amount(
     erc20_contract.approve(lending_pool_core_contract, amount1 + amount2, {"from": investor})
 
     liquidity_controls_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(amount1, {"from": investor})
+    lending_pool_peripheral_contract.depositWeth(amount1, {"from": investor})
 
     chain.mine(blocks=1, timedelta=LOCK_PERIOD_DURATION * 2)
-    lending_pool_peripheral_contract.deposit(amount2, {"from": investor})
-    lending_pool_peripheral_contract.withdraw(amount1, {"from": investor})
+    lending_pool_peripheral_contract.depositWeth(amount2, {"from": investor})
+    lending_pool_peripheral_contract.withdrawWeth(amount1, {"from": investor})
 
     lock_period = lending_pool_lock_contract.investorLocks(investor)
     assert lock_period["lockPeriodAmount"] == amount2
@@ -682,11 +725,11 @@ def test_withdraw_out_of_lock_period(
 
     liquidity_controls_contract.changeLockPeriodConditions(True, LOCK_PERIOD_DURATION*2, {"from": contract_owner})
 
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
 
     chain.mine(blocks=1, timedelta=LOCK_PERIOD_DURATION * 2)
 
-    lending_pool_peripheral_contract.withdraw(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.withdrawWeth(Web3.toWei(1, "ether"), {"from": investor})
 
 
 def test_lock_period_migration(
@@ -737,34 +780,35 @@ def test_lock_period_migration_twice(
 def test_send_funds_deprecated(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
 
     lending_pool_peripheral_contract.deprecate({"from": contract_owner})
 
     with brownie.reverts("pool is deprecated"):
-        lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
+        lending_pool_peripheral_contract.sendFundsWeth(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
 
 
 def test_send_funds_inactive(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
 
     lending_pool_peripheral_contract.changePoolStatus(False, {"from": contract_owner})
 
     with brownie.reverts("pool is inactive"):
-        lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
+        lending_pool_peripheral_contract.sendFundsWeth(borrower, Web3.toWei(1, "ether"), {"from": contract_owner})
 
 
 def test_send_funds_wrong_sender(lending_pool_peripheral_contract, lending_pool_core_contract, liquidity_controls_contract, erc20_contract, contract_owner, investor, borrower):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
 
     with brownie.reverts("msg.sender is not the loans addr"):
-        lending_pool_peripheral_contract.sendFunds(borrower, Web3.toWei(1, "ether"), {"from": investor})
+        lending_pool_peripheral_contract.sendFundsWeth(borrower, Web3.toWei(1, "ether"), {"from": investor})
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_send_funds_zero_amount(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -777,16 +821,17 @@ def test_send_funds_zero_amount(
 ):
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     with brownie.reverts("_amount has to be higher than 0"):
-        lending_pool_peripheral_contract.sendFunds(
+        lending_pool_peripheral_contract.sendFundsEth(
             borrower,
             Web3.toWei(0, "ether"),
             {"from": loans_peripheral_contract}
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_send_funds_wrong_amount(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -797,18 +842,18 @@ def test_send_funds_wrong_amount(
     investor,
     borrower
 ):
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     with brownie.reverts("insufficient liquidity"):
-        lending_pool_peripheral_contract.sendFunds(
+        lending_pool_peripheral_contract.sendFundsEth(
             borrower,
             Web3.toWei(2, "ether"),
             {"from": loans_peripheral_contract}
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_send_funds_insufficient_funds_to_lend(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -819,19 +864,19 @@ def test_send_funds_insufficient_funds_to_lend(
     investor,
     borrower
 ):
-    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
     with brownie.reverts("insufficient liquidity"):
-        tx_send = lending_pool_peripheral_contract.sendFunds(
+        tx_send = lending_pool_peripheral_contract.sendFundsEth(
             borrower,
             Web3.toWei(0.8, "ether"),
             {"from": loans_peripheral_contract}
         )
 
 
-def test_send_funds(
+@pytest.mark.require_network("ganache-mainnet-fork")
+def test_send_funds_eth(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
     liquidity_controls_contract,
@@ -845,9 +890,9 @@ def test_send_funds(
 
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
 
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
-    tx_send = lending_pool_peripheral_contract.sendFunds(
+    tx_send = lending_pool_peripheral_contract.sendFundsEth(
         borrower,
         Web3.toWei(0.2, "ether"),
         {"from": loans_peripheral_contract}
@@ -862,21 +907,64 @@ def test_send_funds(
     assert tx_send.events["FundsTransfer"]["erc20TokenContract"] == erc20_contract
 
 
-def test_receive_funds_wrong_sender(lending_pool_peripheral_contract, loans_peripheral_contract, borrower, contract_owner):
+def test_send_funds_weth(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    liquidity_controls_contract,
+    erc20_contract,
+    loans_peripheral_contract,
+    contract_owner,
+    investor,
+    borrower
+):
+    initial_balance = user_balance(erc20_contract, borrower)
+
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+
+    lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
+
+    tx_send = lending_pool_peripheral_contract.sendFundsWeth(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        {"from": loans_peripheral_contract}
+    )
+
+    assert user_balance(erc20_contract, borrower) == initial_balance + Web3.toWei(0.2, "ether")
+    assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(0.8, "ether")
+    assert lending_pool_core_contract.fundsInvested() == Web3.toWei(0.2, "ether")
+
+    assert tx_send.events["FundsTransfer"]["wallet"] == borrower
+    assert tx_send.events["FundsTransfer"]["amount"] == Web3.toWei(0.2, "ether")
+    assert tx_send.events["FundsTransfer"]["erc20TokenContract"] == erc20_contract
+
+
+@pytest.mark.require_network("ganache-mainnet-fork")
+def test_receive_funds_wrong_sender_eth(lending_pool_peripheral_contract, borrower, contract_owner):
     with brownie.reverts("msg.sender is not the loans addr"):
-        lending_pool_peripheral_contract.receiveFunds(
+        lending_pool_peripheral_contract.receiveFundsEth(
+            borrower,
+            Web3.toWei(0.2, "ether"),
+            Web3.toWei(0.05, "ether"),
+            {"from": borrower, "value": Web3.toWei(0.25, "ether")}
+        )
+
+def test_receive_funds_wrong_sender_weth(erc20_contract, lending_pool_peripheral_contract, lending_pool_core_contract, borrower, contract_owner):
+    erc20_contract.mint(borrower, Web3.toWei(0.25, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(0.25, "ether"), {"from": borrower})
+    with brownie.reverts("msg.sender is not the loans addr"):
+        lending_pool_peripheral_contract.receiveFundsWeth(
             borrower,
             Web3.toWei(0.2, "ether"),
             Web3.toWei(0.05, "ether"),
             {"from": borrower}
         )
 
-
 def test_receive_funds_insufficient_amount(lending_pool_peripheral_contract, loans_peripheral_contract, contract_owner, borrower):
     contract_owner.transfer(to=lending_pool_peripheral_contract, amount=Web3.toWei(2, "ether"))
     lending_pool_peripheral_contract.setLoansPeripheralAddress(lending_pool_peripheral_contract)
     with brownie.reverts("recv amount not match partials"):
-        lending_pool_peripheral_contract.receiveFunds(
+        lending_pool_peripheral_contract.receiveFundsEth(
             borrower,
             Web3.toWei(0.2, "ether"),
             Web3.toWei(0.05, "ether"),
@@ -886,7 +974,15 @@ def test_receive_funds_insufficient_amount(lending_pool_peripheral_contract, loa
 
 def test_receive_funds_zero_value(lending_pool_peripheral_contract, loans_peripheral_contract, contract_owner, borrower):
     with brownie.reverts("amount should be higher than 0"):
-        lending_pool_peripheral_contract.receiveFunds(
+        lending_pool_peripheral_contract.receiveFundsEth(
+            borrower,
+            Web3.toWei(0, "ether"),
+            Web3.toWei(0, "ether"),
+            {"from": loans_peripheral_contract}
+        )
+
+    with brownie.reverts("amount should be higher than 0"):
+        lending_pool_peripheral_contract.receiveFundsWeth(
             borrower,
             Web3.toWei(0, "ether"),
             Web3.toWei(0, "ether"),
@@ -894,7 +990,8 @@ def test_receive_funds_zero_value(lending_pool_peripheral_contract, loans_periph
         )
 
 
-def test_receive_funds(
+@pytest.mark.require_network("ganache-mainnet-fork")
+def test_receive_funds_eth(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
     erc20_contract,
@@ -906,9 +1003,9 @@ def test_receive_funds(
     protocol_wallet
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
 
-    lending_pool_peripheral_contract.sendFunds(
+    lending_pool_peripheral_contract.sendFundsEth(
         borrower,
         Web3.toWei(0.2, "ether"),
         {"from": loans_peripheral_contract}
@@ -919,7 +1016,7 @@ def test_receive_funds(
     loans_peripheral_contract = lending_pool_peripheral_contract # workaround as loans doesnt recv eth
     contract_owner.transfer(to=loans_peripheral_contract, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract)
-    tx_receive = lending_pool_peripheral_contract.receiveFunds(
+    tx_receive = lending_pool_peripheral_contract.receiveFundsEth(
         borrower,
         Web3.toWei(0.2, "ether"),
         Web3.toWei(0.02, "ether"),
@@ -950,6 +1047,61 @@ def test_receive_funds(
     assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"
 
 
+def test_receive_funds_weth(
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    erc20_contract,
+    loans_peripheral_contract,
+    liquidity_controls_contract,
+    contract_owner,
+    investor,
+    borrower,
+    protocol_wallet
+):
+    erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
+
+    lending_pool_peripheral_contract.sendFundsWeth(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        {"from": loans_peripheral_contract}
+    )
+
+    erc20_contract.mint(borrower, Web3.toWei(0.02, "ether"), {"from": contract_owner})
+    erc20_contract.approve(lending_pool_core_contract, Web3.toWei(0.22, "ether"), {"from": borrower})
+    tx_receive = lending_pool_peripheral_contract.receiveFundsWeth(
+        borrower,
+        Web3.toWei(0.2, "ether"),
+        Web3.toWei(0.02, "ether"),
+        {"from": loans_peripheral_contract}
+    )
+
+    expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
+    expectedPoolFees = Decimal(0.02) - expectedProtocolFees
+
+    assert lending_pool_core_contract.fundsAvailable() == Web3.toWei(1 + expectedPoolFees, "ether")
+    assert lending_pool_core_contract.fundsInvested() == 0
+    assert lending_pool_core_contract.totalFundsInvested() == Web3.toWei(0.2, "ether")
+
+    assert lending_pool_core_contract.totalRewards() == Web3.toWei(expectedPoolFees, "ether")
+
+    assert lending_pool_core_contract.funds(investor)["sharesBasisPoints"] == Web3.toWei(1, "ether")
+    assert lending_pool_core_contract.computeWithdrawableAmount(investor) == Web3.toWei(1 + expectedPoolFees, "ether")
+
+    assert user_balance(erc20_contract, protocol_wallet) == Web3.toWei(expectedProtocolFees, "ether")
+    assert user_balance(erc20_contract, lending_pool_core_contract) == Web3.toWei(1 + expectedPoolFees, "ether")
+
+    assert tx_receive.events["FundsReceipt"]["wallet"] == borrower
+    assert tx_receive.events["FundsReceipt"]["amount"] == Web3.toWei(0.2, "ether")
+    assert tx_receive.events["FundsReceipt"]["rewardsPool"] == Web3.toWei(expectedPoolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
+    assert tx_receive.events["FundsReceipt"]["investedAmount"] == Web3.toWei(0.2, "ether")
+    assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
+    assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"
+
+
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_receive_funds_multiple_lenders(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
@@ -962,10 +1114,10 @@ def test_receive_funds_multiple_lenders(
     protocol_wallet
 ):
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.deposit({"from": investor, 'value': Web3.toWei(1, "ether")})
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': Web3.toWei(3, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": investor, 'value': Web3.toWei(1, "ether")})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': Web3.toWei(3, "ether")})
 
-    tx_send = lending_pool_peripheral_contract.sendFunds(
+    tx_send = lending_pool_peripheral_contract.sendFundsEth(
         borrower,
         Web3.toWei(0.2, "ether"),
         {"from": loans_peripheral_contract}
@@ -975,7 +1127,7 @@ def test_receive_funds_multiple_lenders(
 
     contract_owner.transfer(to=lending_pool_peripheral_contract, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.setLoansPeripheralAddress(lending_pool_peripheral_contract)
-    tx_receive = lending_pool_peripheral_contract.receiveFunds(
+    tx_receive = lending_pool_peripheral_contract.receiveFundsEth(
         borrower,
         Web3.toWei(0.2, "ether"),
         Web3.toWei(0.02, "ether"),

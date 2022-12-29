@@ -370,7 +370,7 @@ def _receiveFunds(_borrower: address, _payer: address, _amount: uint256, _reward
     rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-    self._transferReceivedFunds(_borrower, self, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
+    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
 
 
 @internal
@@ -766,11 +766,8 @@ def depositWeth(_amount: uint256):
     @param _amount Value to deposit in wei
     """
 
-    assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "insufficient liquidity"
+    assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
     self._deposit(_amount, msg.sender)
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, msg.sender, _amount):
-        raise "error creating deposit"
 
 
 
@@ -851,6 +848,7 @@ def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint25
     """
 
     _received_amount: uint256 = msg.value
+    assert _received_amount > 0, "amount should be higher than 0"
     assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
 
     log PaymentReceived(msg.sender, msg.sender, _amount + _rewardsAmount)

@@ -356,7 +356,7 @@ def _removeLiquidationAndTransfer(_collateralAddress: address, _tokenId: uint256
         _liquidation.gracePeriodPrice,
         msg.sender,
         _liquidation.erc20TokenContract,
-        "GRACE_PERIOD"
+        _origin
     )
 
 

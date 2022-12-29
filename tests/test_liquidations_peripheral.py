@@ -464,6 +464,7 @@ def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, li
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_liquidations_grace_period(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -482,8 +483,8 @@ def test_pay_loan_liquidations_grace_period(
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
     erc721_contract.mint(collateral_vault_core_contract, 1, {"from": contract_owner})
 
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -589,6 +590,7 @@ def test_buy_nft_grace_period_not_allowed(liquidations_peripheral_contract, liqu
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_buy_nft_grace_period(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -606,8 +608,8 @@ def test_buy_nft_grace_period(
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
 
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -669,6 +671,7 @@ def test_buy_nft_grace_period(
     assert event_funds_receipt["fundsOrigin"] == "liquidation_grace_period"
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_buy_nft_lender_period_grace_period(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -686,8 +689,8 @@ def test_buy_nft_lender_period_grace_period(
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
 
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -715,6 +718,7 @@ def test_buy_nft_lender_period_grace_period(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_buy_nft_lender_period_past_period(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -731,8 +735,8 @@ def test_buy_nft_lender_period_past_period(
     contract_owner
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -780,8 +784,8 @@ def test_buy_nft_lender_period_not_lender(
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositWeth(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.sendFundsWeth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -811,6 +815,7 @@ def test_buy_nft_lender_period_not_lender(
         )
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_buy_nft_lender_period(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -827,8 +832,8 @@ def test_buy_nft_lender_period(
     contract_owner
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     tx_add_loan = loans_core_contract.addLoan(
         borrower,
@@ -860,7 +865,7 @@ def test_buy_nft_lender_period(
     tx = liquidations_peripheral_contract.buyNFTLenderPeriod(
         erc721_contract,
         0,
-        {"from": borrower, 'value': liquidation_price}
+        {"from": contract_owner, 'value': liquidation_price}
     )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
@@ -943,7 +948,7 @@ def test_admin_withdrawal_wrong_sender(
 
 #     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
 #     erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-#     lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
+#     lending_pool_peripheral_contract.depositEth(LOAN_AMOUNT * 2, {"from": contract_owner})
 #     lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
     
 #     tx_add_loan = loans_core_contract.addLoan(
@@ -1015,8 +1020,8 @@ def _create_liquidation(
     contract_owner
     ):
     erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
 
@@ -1044,6 +1049,7 @@ def _create_liquidation(
     return (liquidation, loan)
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_admin_liquidation(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -1120,6 +1126,7 @@ def test_admin_liquidation(
     assert event_funds_receipt["investedAmount"] == investedAmount
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_admin_liquidation_fail_on_message_not_from_owner(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -1171,6 +1178,7 @@ def test_admin_liquidation_fail_on_message_not_from_owner(
     assert liquidation["lid"] != brownie.ZERO_ADDRESS
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_admin_liquidation_fail_on_collateral_in_vault(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -1224,6 +1232,7 @@ def test_admin_liquidation_fail_on_collateral_in_vault(
     assert liquidation["lid"] != brownie.ZERO_ADDRESS
 
 
+@pytest.mark.require_network("ganache-mainnet-fork")
 def test_admin_liquidation_fail_on_collateral_in_liquidation(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -1294,8 +1303,8 @@ def test_cryptopunks_nftx_buy(
 ):
     cryptopunks_market_contract.transferPunk(cryptopunks_vault_core_contract, 0, {'from': borrower})
 
-    lending_pool_peripheral_contract.deposit({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositEth({"from": contract_owner, 'value': LOAN_AMOUNT * 2})
+    lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
 
@@ -1375,8 +1384,8 @@ def test_hashmasks_nftx_buy(
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositWeth(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.sendFundsWeth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
 
@@ -1460,8 +1469,8 @@ def test_wpunks_nftx_buy(
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2, {"from": contract_owner})
-    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
+    lending_pool_peripheral_contract.depositWeth(LOAN_AMOUNT * 2, {"from": contract_owner})
+    lending_pool_peripheral_contract.sendFundsWeth(contract_owner, LOAN_AMOUNT, {"from": loans_peripheral_contract})
 
     erc20_contract.mint(contract_owner, LOAN_AMOUNT * 2, {"from": contract_owner})
 

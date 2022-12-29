@@ -941,6 +941,12 @@ def pay(_loanId: uint256):
         assert receivedAmount >= paymentAmount, "insufficient value received"
         excessAmount = receivedAmount - paymentAmount
         log PaymentReceived(msg.sender, msg.sender, receivedAmount)
+    else:
+        assert IERC20(erc20TokenContract).balanceOf(msg.sender) >= paymentAmount, "insufficient balance"
+        assert IERC20(erc20TokenContract).allowance(
+                msg.sender,
+                ILendingPoolPeripheral(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
+        ) >= paymentAmount, "insufficient allowance"
 
     paidInterestAmount: uint256 = paymentAmount - loan.amount
 
