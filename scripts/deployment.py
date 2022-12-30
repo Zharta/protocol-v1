@@ -189,11 +189,8 @@ def main():
     dm.context.config["lenders_with_active_locks"] = [
         lender for lender in lending_pool_core.contract.lendersArray()
         if lending_pool_core.contract.lockPeriodEnd(lender) >= chain.time()
-    ]
+    ] if dm.env != ENV.local else []
     dm.context.config["run_lpc_migration_01"] = True
-
-
-    # dm.context["lending_pool_peripheral"].contract.changePoolStatus(False)
 
     dm.deploy({
         "lending_pool_core",
@@ -204,7 +201,6 @@ def main():
         "loans",
     }, dryrun=True, save_state=False)
 
-    # dm.context["lending_pool_peripheral"].contract.changePoolStatus(True)
 
 def console():
     pass

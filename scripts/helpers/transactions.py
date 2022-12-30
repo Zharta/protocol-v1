@@ -21,6 +21,8 @@ class Transaction:
             return
         execute(context, "lending_pool_core", "proposeOwner", "lpc_migration_01", dryrun=dryrun)
         execute(context, "legacy_lending_pool_core", "proposeOwner", "lpc_migration_01", dryrun=dryrun)
+        # next line is to make sure no more funds can be moved after migration started
+        execute(context, "lending_pool_core", "setLendingPoolPeripheralAddress", "lpc_migration_01", dryrun=dryrun)
         execute(context, "lpc_migration_01", "migrate", dryrun=dryrun)
         execute(context, "lending_pool_core", "claimOwnership", dryrun=dryrun)
 
