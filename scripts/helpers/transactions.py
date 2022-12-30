@@ -23,7 +23,16 @@ class Transaction:
         execute(context, "legacy_lending_pool_core", "proposeOwner", "lpc_migration_01", dryrun=dryrun)
         # next line is to make sure no more funds can be moved after migration started
         execute(context, "lending_pool_core", "setLendingPoolPeripheralAddress", "lpc_migration_01", dryrun=dryrun)
-        execute(context, "lpc_migration_01", "migrate", dryrun=dryrun)
+
+        legacy = context["legacy_lending_pool_core"].contract
+        lpcore = context["lending_pool_core"].contract
+        for lender in legacy.lendersArray():
+            funds = legacy.funds(lender)
+            print(f"## lpcore.migrateLender({','.join(str(x) for x in [lender, funds[0], funds[1], funds[2], funds[3], funds[5]])})")
+            if not dryrun:
+                lpcore.migrateLender(lender, funds[0], funds[1], funds[2], funds[3], funds[5], {'from:': context.owner})
+
+        execute(context, "lpc_migration_01", "migrate", dryrun=dryrun, options={"gas_limit":1200000,"allow_revert":True})
         execute(context, "lending_pool_core", "claimOwnership", dryrun=dryrun)
 
     @staticmethod
@@ -176,10 +185,10 @@ class Transaction:
                 print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current addres is already {address}")
 
 
-def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False):
+def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):
     contract_instance = context.contract[contract].contract
     print(f"## {contract}.{func}({','.join(args)})")
     if not dryrun:
         function = getattr(contract_instance, func)
         deploy_args = [context[a].address() for a in args]
-        function(*deploy_args, {"from": context.owner})
+        return function(*deploy_args, {"from": context.owner} | (options or {}))

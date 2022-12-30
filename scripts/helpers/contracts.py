@@ -203,8 +203,6 @@ class LiquidationsCoreContract(InternalContract):
             deployment_deps={},
             config_deps={
                 "liquidations_core": Transaction.liquidationscore_set_liquidationsperiph,
-                "loans_core": Transaction.liquidationscore_add_loanscore,
-
             },
             deployment_args_contracts=[],
         )
