@@ -81,7 +81,7 @@ class LendingPoolLockContract(InternalContract):
             container_name="LendingPoolLock",
             deployment_deps=["weth"],
             config_deps={
-                "lending_pool_peripheral": Transaction.lpcore_set_lpperiph,
+                "lending_pool_peripheral": Transaction.lplock_set_lpperiph,
                 "lenders_with_active_locks": Transaction.lplock_migrate
             },
             deployment_args_contracts=["weth"],

@@ -32,7 +32,8 @@ class Transaction:
             if not dryrun:
                 lpcore.migrateLender(lender, funds[0], funds[1], funds[2], funds[3], funds[5], {'from:': context.owner})
 
-        execute(context, "lpc_migration_01", "migrate", dryrun=dryrun, options={"gas_limit":1200000,"allow_revert":True})
+        # execute(context, "lpc_migration_01", "migrate", dryrun=dryrun, options={"gas_limit":1200000,"allow_revert":True})
+        execute(context, "lpc_migration_01", "migrate", dryrun=dryrun)
         execute(context, "lending_pool_core", "claimOwnership", dryrun=dryrun)
 
     @staticmethod
@@ -173,7 +174,8 @@ class Transaction:
     def liquiditycontrols_change_collectionborrowableamounts(context: DeploymentContext, dryrun: bool = False):
         nft_borrowable_amounts = context["nft_borrowable_amounts"]
         contract_instance = context["liquidity_controls"].contract
-        for nft, value_wei in nft_borrowable_amounts.items():
+        for nft, value_eth in nft_borrowable_amounts.items():
+            value_wei = value_eth * 1e18
             address = context[nft].address()
             args = [True, address, value_wei, {"from": context.owner}]
             if dryrun:
