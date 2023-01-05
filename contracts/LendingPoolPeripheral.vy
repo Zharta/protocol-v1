@@ -780,12 +780,10 @@ def depositEth():
     @dev Logs the `Deposit` event
     """
 
-    _amount: uint256 = msg.value
+    log PaymentReceived(msg.sender, msg.sender, msg.value)
 
-    log PaymentReceived(msg.sender, msg.sender, _amount)
-
-    self._wrap_and_approve(self.lendingPoolCoreContract, _amount)
-    self._deposit(_amount, self)
+    self._wrap_and_approve(self.lendingPoolCoreContract, msg.value)
+    self._deposit(msg.value, self)
 
 
 @external
