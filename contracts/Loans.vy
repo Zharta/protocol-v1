@@ -273,6 +273,7 @@ def __init__(
         )
     )
 
+
 @internal
 def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
@@ -833,9 +834,6 @@ def reserve(
     return newLoanId
 
 
-
-
-
 @external
 def pay(_loanId: uint256):
     """
@@ -844,15 +842,15 @@ def pay(_loanId: uint256):
     @param _loanId The id of the loan to settle
     """
     assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
-    assert block.timestamp <= ILoansCore(self.loansCoreContract).getLoanMaturity(msg.sender, _loanId), "loan maturity reached"
-    assert not ILoansCore(self.loansCoreContract).getLoanPaid(msg.sender, _loanId), "loan already paid"
-
+    
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(msg.sender, _loanId)
+    assert block.timestamp <= loan.maturity, "loan maturity reached"
+    assert not loan.paid, "loan already paid"
 
     # compute days passed in seconds
     timePassed: uint256 = self._computePeriodPassedInSeconds(
         block.timestamp,
-        ILoansCore(self.loansCoreContract).getLoanStartTime(msg.sender, _loanId),
+        loan.startTime,
         self.interestAccrualPeriod
     )
 
@@ -919,14 +917,16 @@ def settleDefault(_borrower: address, _loanId: uint256):
     """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan not found"
-    assert block.timestamp > ILoansCore(self.loansCoreContract).getLoanMaturity(_borrower, _loanId), "loan is within maturity period"
+    
+    loan: Loan = ILoansCore(self.loansCoreContract).getLoan(_borrower, _loanId)
+    assert not loan.paid, "loan already paid"
+    assert block.timestamp > loan.maturity, "loan is within maturity period"
     assert self.liquidationsPeripheralContract != empty(address), "BNPeriph is the zero address"
 
     ILoansCore(self.loansCoreContract).updateDefaultedLoan(_borrower, _loanId)
     ILoansCore(self.loansCoreContract).updateHighestDefaultedLoan(_borrower, _loanId)
 
-    collaterals: DynArray[Collateral, 100] = ILoansCore(self.loansCoreContract).getLoanCollaterals(_borrower, _loanId)
-    for collateral in collaterals:
+    for collateral in loan.collaterals:
         ILoansCore(self.loansCoreContract).removeCollateralFromLoan(_borrower, collateral, _loanId)
         ILoansCore(self.loansCoreContract).updateCollaterals(collateral, True)
 
@@ -940,7 +940,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
         _borrower,
         _borrower,
         _loanId,
-        ILoansCore(self.loansCoreContract).getLoanAmount(_borrower, _loanId),
+        loan.amount,
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
 
