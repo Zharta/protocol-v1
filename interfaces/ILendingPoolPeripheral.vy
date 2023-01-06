@@ -120,6 +120,16 @@ event FundsReceipt:
     erc20TokenContract: address
     fundsOrigin: String[30]
 
+event PaymentSent:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
+event PaymentReceived:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
 # Functions
 
 @view
@@ -275,21 +285,44 @@ def deprecate():
     pass
 
 @external
-def deposit(_amount: uint256):
+def depositWeth(_amount: uint256):
     pass
 
 @external
-def withdraw(_amount: uint256):
+@payable
+def depositEth():
     pass
 
 @external
-def sendFunds(_to: address, _amount: uint256):
+def withdrawWeth(_amount: uint256):
     pass
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def withdrawEth(_amount: uint256):
     pass
 
 @external
-def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
+def sendFundsWeth(_to: address, _amount: uint256):
+    pass
+
+@external
+def sendFundsEth(_to: address, _amount: uint256):
+    pass
+
+@payable
+@external
+def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    pass
+
+@external
+def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    pass
+
+@external
+def receiveFundsFromLiquidationWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
+    pass
+
+@payable
+@external
+def receiveFundsFromLiquidationEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
     pass

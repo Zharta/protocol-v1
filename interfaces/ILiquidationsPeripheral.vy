@@ -166,6 +166,16 @@ event AdminWithdrawal:
     tokenId: uint256
     wallet: address
 
+event PaymentSent:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
+event PaymentReceived:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
 # Functions
 
 @view
@@ -316,14 +326,17 @@ def setCryptoPunksAddress(_address: address):
 def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
     pass
 
+@payable
 @external
 def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: address):
     pass
 
+@payable
 @external
 def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
+@payable
 @external
 def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     pass
