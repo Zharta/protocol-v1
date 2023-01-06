@@ -15,6 +15,10 @@ from interfaces import ILendingPoolLock
 from interfaces import ILiquidityControls
 
 
+interface IWETH:
+    def deposit(): payable
+    def withdraw(_amount: uint256): nonpayable
+
 # Structs
 
 struct InvestorFunds:
@@ -136,6 +140,16 @@ event FundsReceipt:
     investedAmount: uint256
     erc20TokenContract: address
     fundsOrigin: String[30]
+
+event PaymentSent:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
+event PaymentReceived:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
 
 
 # Global variables
@@ -259,9 +273,110 @@ def _computeLockPeriod(_lender: address, _amount: uint256) -> (uint256, uint256)
 
 ##### INTERNAL METHODS - WRITE #####
 
+
+@internal
+def _deposit(_amount: uint256, _payer: address):
+    assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
+    assert self.isPoolActive, "pool is not active right now"
+    assert _amount > 0, "_amount has to be higher than 0"
+
+    assert ILiquidityControls(self.liquidityControlsContract).withinPoolShareLimit(
+        msg.sender,
+        _amount,
+        self,
+        self.lendingPoolCoreContract,
+        self._theoreticalMaxFundsInvestable(_amount)
+    ), "max pool share surpassed"
+
+    if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
+        raise "msg.sender is not whitelisted"
+
+    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterDeposit(_amount):
+        self.isPoolInvesting = True
+
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            True,
+            self.erc20TokenContract
+        )
+
+    lockPeriodEnd: uint256 = 0
+    lockPeriodAmount: uint256 = 0
+    lockPeriodEnd, lockPeriodAmount = self._computeLockPeriod(msg.sender, _amount)
+
+    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _payer, _amount):
+        raise "error creating deposit"
+
+    ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, lockPeriodAmount, lockPeriodEnd)
+
+    log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
+
+
+@internal
+def _withdraw(_amount: uint256, _receiver: address):
+    assert _amount > 0, "_amount has to be higher than 0"
+    
+    withdrawableAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender)
+    assert withdrawableAmount >= _amount, "_amount more than withdrawable"
+    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "withdraw within lock period"
+    assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
+
+    if self.isPoolInvesting and not self._poolHasFundsToInvestAfterWithdraw(_amount):
+        self.isPoolInvesting = False
+
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            False,
+            self.erc20TokenContract
+        )
+
+    if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _receiver, _amount):
+        raise "error withdrawing funds"
+
+    log Withdrawal(msg.sender, msg.sender, _amount, self.erc20TokenContract)
+
+
+@internal
+def _sendFunds(_to: address, _receiver: address, _amount: uint256):
+    assert not self.isPoolDeprecated, "pool is deprecated"
+    assert self.isPoolActive, "pool is inactive"
+    assert self.isPoolInvesting, "max capital eff reached"
+    assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
+    assert _to != empty(address), "_to is the zero address"
+    assert _amount > 0, "_amount has to be higher than 0"
+    assert _amount <= self._maxFundsInvestable(), "insufficient liquidity"
+
+    if self.isPoolInvesting and not self._poolHasFundsToInvestAfterInvestment(_amount):
+        self.isPoolInvesting = False
+
+        log InvestingStatusChanged(
+            self.erc20TokenContract,
+            False,
+            self.erc20TokenContract
+        )
+
+    if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_receiver, _amount):
+        raise "error sending funds in LPCore"
+
+    log FundsTransfer(_to, _to, _amount, self.erc20TokenContract)
+
+
+@internal
+def _receiveFunds(_borrower: address, _payer: address, _amount: uint256, _rewardsAmount: uint256):
+    assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
+    assert _borrower != empty(address), "_borrower is the zero address"
+    assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
+
+    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
+
+    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
+
+
 @internal
 def _transferReceivedFunds(
     _borrower: address,
+    _payer: address,
     _amount: uint256,
     _rewardsPool: uint256,
     _rewardsProtocol: uint256,
@@ -277,11 +392,11 @@ def _transferReceivedFunds(
             self.erc20TokenContract
         )
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_borrower, _amount, _rewardsPool, _investedAmount):
+    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_payer, _amount, _rewardsPool, _investedAmount):
         raise "error receiving funds in LPCore"
     
     if _rewardsProtocol > 0:
-        if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_borrower, self.protocolWallet, _rewardsProtocol):
+        if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_payer, self.protocolWallet, _rewardsProtocol):
             raise "error transferring protocol fees"
 
     log FundsReceipt(
@@ -297,22 +412,27 @@ def _transferReceivedFunds(
 
 
 @internal
-def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256):
+def delete_receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256):
     rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _investedAmount, "loan")
+    self._transferReceivedFunds(_borrower, self, _amount, rewardsPool, rewardsProtocol, _investedAmount, "loan")
 
 
 @internal
 def _receiveFundsFromLiquidation(
     _borrower: address,
+    _payer: address,
     _amount: uint256,
     _rewardsAmount: uint256,
     _distributeToProtocol: bool,
     _investedAmount: uint256,
     _origin: String[30]
 ):
+    assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
+    assert _borrower != empty(address), "_borrower is the zero address"
+    assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
+
     rewardsProtocol: uint256 = 0
     rewardsPool: uint256 = 0
     if _distributeToProtocol:
@@ -321,7 +441,20 @@ def _receiveFundsFromLiquidation(
     else:
         rewardsPool = _rewardsAmount
 
-    self._transferReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _investedAmount, _origin)
+    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _investedAmount, _origin)
+
+
+@internal
+def _unwrap_and_send(_to: address, _amount: uint256):
+    IWETH(self.erc20TokenContract).withdraw(_amount)
+    send(_to, _amount)
+    log PaymentSent(_to, _to, _amount)
+
+@internal
+def _wrap_and_approve(_to: address, _amount: uint256):
+    IWETH(self.erc20TokenContract).deposit(value=_amount)
+    log PaymentSent(self.erc20TokenContract, self.erc20TokenContract, _amount)
+    IERC20(self.erc20TokenContract).approve(_to, _amount)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -379,6 +512,12 @@ def __init__(
     
     if _whitelistEnabled:
         self.whitelistEnabled = _whitelistEnabled
+
+
+@external
+@payable
+def __default__():
+    log PaymentReceived(msg.sender, msg.sender, msg.value)
 
 
 @external
@@ -619,131 +758,120 @@ def deprecate():
 
 
 @external
-def deposit(_amount: uint256):
+def depositWeth(_amount: uint256):
+
     """
-    @notice Deposits the given amount in the lending pool
+    @notice Deposits the given amount of WETH in the lending pool
     @dev Logs the `Deposit` event
     @param _amount Value to deposit in wei
     """
 
-    assert not self.isPoolDeprecated, "pool is deprecated, withdraw"
-    assert self.isPoolActive, "pool is not active right now"
-    assert _amount > 0, "_amount has to be higher than 0"
-    assert ILiquidityControls(self.liquidityControlsContract).withinPoolShareLimit(
-        msg.sender,
-        _amount,
-        self,
-        self.lendingPoolCoreContract,
-        self._theoreticalMaxFundsInvestable(_amount)
-    ), "max pool share surpassed"
     assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
+    self._deposit(_amount, msg.sender)
 
-    if self.whitelistEnabled and not self.whitelistedAddresses[msg.sender]:
-        raise "msg.sender is not whitelisted"
-
-    if not self.isPoolInvesting and self._poolHasFundsToInvestAfterDeposit(_amount):
-        self.isPoolInvesting = True
-
-        log InvestingStatusChanged(
-            self.erc20TokenContract,
-            True,
-            self.erc20TokenContract
-        )
-
-    lockPeriodEnd: uint256 = 0
-    lockPeriodAmount: uint256 = 0
-    lockPeriodEnd, lockPeriodAmount = self._computeLockPeriod(msg.sender, _amount)
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _amount):
-        raise "error creating deposit"
-
-    ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, lockPeriodAmount, lockPeriodEnd)
-
-    log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
 
 
 @external
-def withdraw(_amount: uint256):
+@payable
+def depositEth():
+
     """
-    @notice Withdrawals the given amount from the lending pool
+    @notice Deposits the sent amount in the lending pool
+    @dev Logs the `Deposit` event
+    """
+
+    log PaymentReceived(msg.sender, msg.sender, msg.value)
+
+    self._wrap_and_approve(self.lendingPoolCoreContract, msg.value)
+    self._deposit(msg.value, self)
+
+
+@external
+def withdrawWeth(_amount: uint256):
+    """
+    @notice Withdrawals the given amount of WETH from the lending pool
     @dev Logs the `Withdrawal` and, if it changes the pools investing status, the `InvestingStatusChanged` events
     @param _amount Value to withdraw in wei
     """
-
-    assert _amount > 0, "_amount has to be higher than 0"
-    
-    withdrawableAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender)
-    assert withdrawableAmount >= _amount, "_amount more than withdrawable"
-    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "withdraw within lock period"
-    assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
-
-    if self.isPoolInvesting and not self._poolHasFundsToInvestAfterWithdraw(_amount):
-        self.isPoolInvesting = False
-
-        log InvestingStatusChanged(
-            self.erc20TokenContract,
-            False,
-            self.erc20TokenContract
-        )
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _amount):
-        raise "error withdrawing funds"
-
-    log Withdrawal(msg.sender, msg.sender, _amount, self.erc20TokenContract)
+    self._withdraw(_amount, msg.sender)
 
 
 @external
-def sendFunds(_to: address, _amount: uint256):
+def withdrawEth(_amount: uint256):
     """
-    @notice Sends funds to a borrower as part of a loan creation
+    @notice Withdrawals the given amount of ETH from the lending pool
+    @dev Logs the `Withdrawal` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _amount Value to withdraw in wei
+    """
+    self._withdraw(_amount, self)
+    self._unwrap_and_send(msg.sender, _amount)
+
+
+
+@external
+def sendFundsWeth(_to: address, _amount: uint256):
+    """
+    @notice Sends funds in WETH to a borrower as part of a loan creation
     @dev Logs the `FundsTransfer` and, if it changes the pools investing status, the `InvestingStatusChanged` events
     @param _to The wallet address to transfer the funds to
     @param _amount Value to transfer in wei
     """
 
-    assert not self.isPoolDeprecated, "pool is deprecated"
-    assert self.isPoolActive, "pool is inactive"
-    assert self.isPoolInvesting, "max capital eff reached"
-    assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
-    assert _to != empty(address), "_to is the zero address"
-    assert _amount > 0, "_amount has to be higher than 0"
-    assert _amount <= self._maxFundsInvestable(), "insufficient liquidity"
-
-    if self.isPoolInvesting and not self._poolHasFundsToInvestAfterInvestment(_amount):
-        self.isPoolInvesting = False
-
-        log InvestingStatusChanged(
-            self.erc20TokenContract,
-            False,
-            self.erc20TokenContract
-        )
-
-    if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_to, _amount):
-        raise "error sending funds in LPCore"
-
-    log FundsTransfer(_to, _to, _amount, self.erc20TokenContract)
+    self._sendFunds(_to, _to, _amount)
 
 
 @external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def sendFundsEth(_to: address, _amount: uint256):
     """
-    @notice Receive funds from a borrower as part of a loan payment
+    @notice Sends funds in ETH to a borrower as part of a loan creation
+    @dev Logs the `FundsTransfer` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _to The wallet address to transfer the funds to
+    @param _amount Value to transfer in wei
+    """
+
+    self._sendFunds(_to, self, _amount)
+    self._unwrap_and_send(_to, _amount)
+
+
+@payable
+@external
+def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+
+    """
+    @notice Receive funds in ETH from a borrower as part of a loan payment
     @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
     @param _borrower The wallet address to receive the funds from
     @param _amount Value of the loans principal to receive in wei
     @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive in wei
     """
 
-    assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
-    assert _borrower != empty(address), "_borrower is the zero address"
-    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
-    assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
-    
-    self._receiveFunds(_borrower, _amount, _rewardsAmount, _amount)
+    _received_amount: uint256 = msg.value
+    assert _received_amount > 0, "amount should be higher than 0"
+    assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
+
+    log PaymentReceived(msg.sender, msg.sender, _amount + _rewardsAmount)
+
+    self._wrap_and_approve(self.lendingPoolCoreContract, _received_amount)
+    self._receiveFunds(_borrower, self, _amount, _rewardsAmount)
 
 
 @external
-def receiveFundsFromLiquidation(
+def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+
+    """
+    @notice Receive funds in WETH from a borrower as part of a loan payment
+    @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _borrower The wallet address to receive the funds from
+    @param _amount Value of the loans principal to receive in wei
+    @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive in wei
+    """
+
+    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
+    self._receiveFunds(_borrower, _borrower, _amount, _rewardsAmount)
+
+
+@external
+def receiveFundsFromLiquidationWeth(
     _borrower: address,
     _amount: uint256,
     _rewardsAmount: uint256,
@@ -751,8 +879,9 @@ def receiveFundsFromLiquidation(
     _investedAmount: uint256,
     _origin: String[30]
 ):
+
     """
-    @notice Receive funds from a liquidation
+    @notice Receive funds from a liquidation in WETH
     @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
     @param _borrower The wallet address to receive the funds from
     @param _amount Value of the loans principal to receive in wei
@@ -761,9 +890,36 @@ def receiveFundsFromLiquidation(
     @param _origin Identification of the liquidation method
     """
 
-    assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
-    assert _borrower != empty(address), "_borrower is the zero address"
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
-    assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
-    
-    self._receiveFundsFromLiquidation(_borrower, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
+    self._receiveFundsFromLiquidation(_borrower, _borrower, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
+
+
+@payable
+@external
+def receiveFundsFromLiquidationEth(
+    _borrower: address,
+    _amount: uint256,
+    _rewardsAmount: uint256,
+    _distributeToProtocol: bool,
+    _investedAmount: uint256,
+    _origin: String[30]
+):
+
+    """
+    @notice Receive funds from a liquidation in ETH
+    @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
+    @param _borrower The wallet address to receive the funds from
+    @param _amount Value of the loans principal to receive in wei
+    @param _rewardsAmount Value of the rewards after liquidation (including the protocol fee share) to receive in wei
+    @param _distributeToProtocol Wether to distribute the protocol fees or not
+    @param _origin Identification of the liquidation method
+    """
+
+    receivedAmount: uint256 = msg.value
+
+    assert receivedAmount == _amount + _rewardsAmount, "recv amount not match partials"
+
+    log PaymentReceived(msg.sender, msg.sender, receivedAmount)
+
+    self._wrap_and_approve(self.lendingPoolCoreContract, receivedAmount)
+    self._receiveFundsFromLiquidation(_borrower, self, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)

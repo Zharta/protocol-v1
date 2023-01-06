@@ -196,7 +196,9 @@ def main():
         "lending_pool_core",
         "lending_pool_lock",
         "lpc_migration_01",
+        "lending_pool_peripheral",
         "liquidations_core",
+        "liquidations_peripheral",
         "liquidity_controls",
         "loans",
     }, dryrun=True, save_state=False)

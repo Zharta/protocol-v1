@@ -158,6 +158,16 @@ event LoanDefaulted:
     amount: uint256
     erc20TokenContract: address
 
+event PaymentSent:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
+event PaymentReceived:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+
 # Functions
 
 @view
@@ -319,9 +329,14 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
     pass
 
 @external
-def reserve(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
+def reserveWeth(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
     pass
 
+@external
+def reserveEth(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
+    pass
+
+@payable
 @external
 def pay(_loanId: uint256):
     pass

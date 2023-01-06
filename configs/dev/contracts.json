@@ -8,7 +8,7 @@
                 "contract": "0xDE74ad60cf97019138C7B2Af9941F8eBA2e6CB98"
             },
             "lending_pool": {
-                "contract": "0x5242a33908E9a1cF7fbD7A9FF3a4Bd6f33E3fEef"
+                "contract": "0x0098848bdc80A1e783a4F706c6231a8f63529B17"
             },
             "lending_pool_core": {
                 "contract": "0x84cE41820b3628Dd997f8Cb3c56cA5ca8ce78c63"
@@ -20,13 +20,13 @@
                 "contract": "0x0603bBE6308efb2386D565e862eff49fdeeAF94e"
             },
             "liquidations_peripheral": {
-                "contract": "0xBCD1AEa135BC671311394E488e88a0C3127C6620"
+                "contract": "0xC921C20948D6e344D67517665188f251B36ef4E2"
             },
             "liquidity_controls": {
                 "contract": "0xFa8D60a18382BC4d9b020E56F8f296143FA65665"
             },
             "loans": {
-                "contract": "0x6A081d8E6bB6C4765C0fE8D4ed21163b00400174"
+                "contract": "0x67255Cf94e76d869af582f087ad43579e3289C9c"
             },
             "loans_core": {
                 "contract": "0xe65A7a341978d59d40d30FC23F5014FACB4f575A"
