@@ -783,51 +783,6 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
 
 @payable
 @external
-def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
-    receivedAmount: uint256 = msg.value
-    ethPayment: bool = receivedAmount > 0
-    
-    liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
-    assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
-    assert msg.sender == liquidation.borrower, "msg.sender is not borrower"
-
-    if ethPayment:
-        assert receivedAmount >= liquidation.gracePeriodPrice, "insufficient value received"
-        log PaymentReceived(msg.sender, msg.sender, receivedAmount)
-
-    lendingPoolPeripheral: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
-    if ethPayment:
-        ILendingPoolPeripheral(lendingPoolPeripheral).receiveFundsFromLiquidationEth(
-            liquidation.borrower,
-            liquidation.principal,
-            liquidation.gracePeriodPrice - liquidation.principal,
-            True,
-            liquidation.principal,
-            "liquidation_grace_period",
-            value=liquidation.gracePeriodPrice
-        )
-        log PaymentSent(lendingPoolPeripheral, lendingPoolPeripheral, liquidation.gracePeriodPrice)
-    else:
-        ILendingPoolPeripheral(lendingPoolPeripheral).receiveFundsFromLiquidationWeth(
-            liquidation.borrower,
-            liquidation.principal,
-            liquidation.gracePeriodPrice - liquidation.principal,
-            True,
-            liquidation.principal,
-            "liquidation_grace_period"
-        )
-
-    self._removeLiquidationAndTransfer(_collateralAddress, _tokenId, liquidation, "GRACE_PERIOD")
-
-    if ethPayment:
-        excessAmount: uint256 = receivedAmount - liquidation.gracePeriodPrice
-        if excessAmount > 0:
-            send(msg.sender, excessAmount)
-            log PaymentSent(msg.sender, msg.sender,excessAmount)
-
-
-@payable
-@external
 def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
