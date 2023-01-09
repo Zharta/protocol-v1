@@ -26,10 +26,10 @@
                 "contract": "0xFa8D60a18382BC4d9b020E56F8f296143FA65665"
             },
             "loans": {
-                "contract": "0xEe0648991AEAeE666ef663F7545863c6345341b8"
+                "contract": "0x8c0b403D19E934b5172Efe06702663Cf3D982400"
             },
             "loans_core": {
-                "contract": "0xe65A7a341978d59d40d30FC23F5014FACB4f575A"
+                "contract": "0x069ab4a75F16175914c33d423c727C49Bb6651Da"
             },
             "token": {
                 "contract": "0xdF0e6f123431271fD0C54Eb7fAA03720be10723B"
