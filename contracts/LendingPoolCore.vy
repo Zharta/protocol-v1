@@ -7,9 +7,6 @@ from vyper.interfaces import ERC20 as IERC20
 
 from interfaces import ILendingPoolCore
 
-interface ILegacyLendingPoolCore:
-    def lockPeriodEnd(_lender: address) -> uint256: view
-    def funds(arg0: address) -> LegacyInvestorFunds: view
 
 # Structs
 
@@ -20,13 +17,6 @@ struct InvestorFunds:
     sharesBasisPoints: uint256
     activeForRewards: bool
 
-struct LegacyInvestorFunds:
-    currentAmountDeposited: uint256
-    totalAmountDeposited: uint256
-    totalAmountWithdrawn: uint256
-    sharesBasisPoints: uint256
-    lockPeriodEnd: uint256
-    activeForRewards: bool
 
 
 # Events
@@ -159,6 +149,30 @@ def __init__(_erc20TokenContract: address):
 
 
 @external
+def migrateLender(
+    _wallet: address,
+    _currentAmountDeposited: uint256,
+    _totalAmountDeposited: uint256,
+    _totalAmountWithdrawn: uint256,
+    _sharesBasisPoints: uint256,
+    _activeForRewards: bool
+):
+    assert not self.migrationDone, "migration already done"
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+
+    self.lenders.append(_wallet)
+    self.knownLenders[_wallet] = True
+    self.funds[_wallet] = InvestorFunds({
+            currentAmountDeposited: _currentAmountDeposited,
+            totalAmountDeposited: _totalAmountDeposited,
+            totalAmountWithdrawn: _totalAmountWithdrawn,
+            sharesBasisPoints: _sharesBasisPoints,
+            activeForRewards: _activeForRewards
+            }
+    )
+
+
+@external
 def migrate(_from: address):
     assert not self.migrationDone, "migration already done"
     assert msg.sender == self.owner, "msg.sender is not the owner"
@@ -171,20 +185,6 @@ def migrate(_from: address):
     self.totalFundsInvested = ILendingPoolCore(_from).totalFundsInvested()
     self.totalRewards = ILendingPoolCore(_from).totalRewards()
     self.totalSharesBasisPoints = ILendingPoolCore(_from).totalSharesBasisPoints()
-
-    lenders: DynArray[address, 2**50] = ILendingPoolCore(_from).lendersArray()
-    for lender in lenders:
-        self.lenders.append(lender)
-        self.knownLenders[lender] = True
-        legacy: LegacyInvestorFunds = ILegacyLendingPoolCore(_from).funds(lender)
-        self.funds[lender] = InvestorFunds({
-                currentAmountDeposited: legacy.currentAmountDeposited,
-                totalAmountDeposited: legacy.totalAmountDeposited,
-                totalAmountWithdrawn: legacy.totalAmountWithdrawn,
-                sharesBasisPoints: legacy.sharesBasisPoints,
-                activeForRewards: legacy.activeForRewards
-            }
-        )
 
     self.migrationDone = True
 
