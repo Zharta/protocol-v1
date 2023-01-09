@@ -28,6 +28,7 @@ from .helpers.contracts import (
     LiquidationsCoreContract,
     LiquidationsPeripheralContract,
     LiquidityControlsContract,
+    WETH9MockContract,
 )
 
 ENV = Environment[os.environ.get("ENV", "local")]
@@ -59,7 +60,7 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         LiquidationsPeripheralContract(None),
         LiquidityControlsContract(None),
         LPCMigration01Contract(None),
-        Token("weth", "token", None),
+        WETH9MockContract(None) if env == Environment.dev else Token("weth", "token", None),
     ]]
 
 

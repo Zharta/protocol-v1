@@ -16,6 +16,7 @@ from brownie import (
     LiquidationsCore,
     LiquidationsPeripheral,
     LiquidityControls,
+    WETH9Mock,
     web3
 )
 
@@ -102,6 +103,24 @@ class LPCMigration01Contract(InternalContract):
             deployment_args_contracts=["legacy_lending_pool_core", "lending_pool_core"],
         )
 
+
+@dataclass
+class WETH9MockContract(InternalContract):
+
+    def __init__(self, contract: Optional[ProjectContract]):
+        super().__init__(
+            "weth",
+            contract,
+            WETH9Mock,
+            container_name="WETH9Mock",
+            deployment_deps=[],
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return ["WETH", "WETH", 18, 1000]
+
+    def config_key(self):
+        return "token"
 
 @dataclass
 class LendingPoolPeripheralContract(InternalContract):
