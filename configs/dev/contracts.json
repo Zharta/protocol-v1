@@ -11,7 +11,7 @@
                 "contract": "0xfC3F18081011A336bC0555106c9E9155C036f9c7"
             },
             "lending_pool_core": {
-                "contract": "0x84cE41820b3628Dd997f8Cb3c56cA5ca8ce78c63"
+                "contract": "0xb6e0f96316514FD56C15Eca2E06aaDc1b4479df1"
             },
             "lending_pool_lock": {
                 "contract": "0x74627c40b96DB8b62a0CC4BadAE98bcd258fF979"
