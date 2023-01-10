@@ -401,7 +401,6 @@ def test_deposit_insufficient_amount_allowed(
 def test_deposit_not_whitelisted(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
-    liquidity_controls_contract,
     erc20_contract,
     investor,
     contract_owner
@@ -422,7 +421,6 @@ def test_deposit_not_whitelisted(
 def test_deposit_whitelisted(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
-    liquidity_controls_contract,
     erc20_contract,
     investor,
     contract_owner
@@ -449,9 +447,10 @@ def test_deposit_whitelisted(
 
     assert lending_pool_peripheral_contract.isPoolInvesting()
 
-    assert tx_deposit.events["Deposit"]["wallet"] == investor
-    assert tx_deposit.events["Deposit"]["amount"] == Web3.toWei(1, "ether")
-    assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
+    # First event is the deposit of the ETH in the WETH contract
+    assert tx_deposit.events["Deposit"][1]["wallet"] == investor
+    assert tx_deposit.events["Deposit"][1]["amount"] == Web3.toWei(1, "ether")
+    assert tx_deposit.events["Deposit"][1]["erc20TokenContract"] == erc20_contract
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -459,7 +458,6 @@ def test_deposit_eth(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
     lending_pool_lock_contract,
-    liquidity_controls_contract,
     erc20_contract,
     investor,
     contract_owner
@@ -486,16 +484,16 @@ def test_deposit_eth(
 
     assert lending_pool_peripheral_contract.isPoolInvesting()
 
-    assert tx_deposit.events["Deposit"]["wallet"] == investor
-    assert tx_deposit.events["Deposit"]["amount"] == amount
-    assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
+    # First event is the deposit of the ETH in the WETH contract
+    assert tx_deposit.events["Deposit"][1]["wallet"] == investor
+    assert tx_deposit.events["Deposit"][1]["amount"] == amount
+    assert tx_deposit.events["Deposit"][1]["erc20TokenContract"] == erc20_contract
 
 
 def test_deposit_weth(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
     lending_pool_lock_contract,
-    liquidity_controls_contract,
     erc20_contract,
     investor,
     contract_owner
@@ -534,7 +532,6 @@ def test_deposit_twice(
     lending_pool_peripheral_contract,
     lending_pool_core_contract,
     lending_pool_lock_contract,
-    liquidity_controls_contract,
     erc20_contract,
     investor,
     contract_owner
@@ -564,13 +561,15 @@ def test_deposit_twice(
 
     assert lending_pool_peripheral_contract.isPoolInvesting()
 
-    assert tx_deposit.events["Deposit"]["wallet"] == investor
-    assert tx_deposit.events["Deposit"]["amount"] == amount1
-    assert tx_deposit.events["Deposit"]["erc20TokenContract"] == erc20_contract
+    # First event is the deposit of the ETH in the WETH contract
+    assert tx_deposit.events["Deposit"][1]["wallet"] == investor
+    assert tx_deposit.events["Deposit"][1]["amount"] == amount1
+    assert tx_deposit.events["Deposit"][1]["erc20TokenContract"] == erc20_contract
 
-    assert tx_deposit_twice.events["Deposit"]["wallet"] == investor
-    assert tx_deposit_twice.events["Deposit"]["amount"] == amount2
-    assert tx_deposit_twice.events["Deposit"]["erc20TokenContract"] == erc20_contract
+    # First event is the deposit of the ETH in the WETH contract
+    assert tx_deposit_twice.events["Deposit"][1]["wallet"] == investor
+    assert tx_deposit_twice.events["Deposit"][1]["amount"] == amount2
+    assert tx_deposit_twice.events["Deposit"][1]["erc20TokenContract"] == erc20_contract
 
 
 def test_deposit_max_pool_share_enabled(
@@ -623,9 +622,6 @@ def test_withdraw_noinvestment(lending_pool_peripheral_contract, lending_pool_co
 @pytest.mark.require_network("ganache-mainnet-fork")
 def test_withdraw_insufficient_investment(
     lending_pool_peripheral_contract,
-    lending_pool_core_contract,
-    liquidity_controls_contract,
-    erc20_contract,
     investor,
     contract_owner
 ):
@@ -669,9 +665,7 @@ def test_withdraw(lending_pool_peripheral_contract, lending_pool_core_contract, 
 @pytest.mark.require_network("ganache-mainnet-fork")
 def test_withdraw_within_lock_period(
     lending_pool_peripheral_contract,
-    lending_pool_core_contract,
     liquidity_controls_contract,
-    erc20_contract,
     investor,
     contract_owner
 ):

@@ -10,7 +10,7 @@ These off-chain components provide input for the on-chain protocol as admin func
 # Overview
 | **Version** | **Language** | **Reference implementation**          |
 | ---         | ---          | ---                                   |
-| V1          | Vyper 0.3.6  | https://github.com/Zharta/protocol-v1 |
+| V1          | Vyper 0.3.7  | https://github.com/Zharta/protocol-v1 |
 
 Zharta V1 is a binary smart contract system comprised of many smart contracts. Each domain is comprised of two smart contracts, the Core and the Periphery.
 
@@ -39,6 +39,9 @@ Zharta launched the V1 of the protocol with the following restrictions:
 * maturity-based loans with at most 30 days
 * one single lending pool of WETH
 * no liquidations before a loan's maturity date
+
+### Important Note
+As said above, the protocol domains are separated into **logic** and **data** contracts. This is relevant because it allows for the upgradeability of the protocol. For the next version of the protocol, our goal is to deploy an immutable protocol but for that to be done efficiently, we first need to understand what users want and need and iterate over that. Zharta is the only party with the power to upgrade the protocol and we will always listen to our community and develop Zharta's protocol openly.
 
 # Architecture
 
