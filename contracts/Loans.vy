@@ -226,7 +226,7 @@ ZHARTA_DOMAIN_NAME: constant(String[6]) = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
 COLLATERAL_TYPE_DEF: constant(String[66]) = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-RESERVE_TYPE_DEF: constant(String[179]) = "ReserveMessageContent(uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)" \
+RESERVE_TYPE_DEF: constant(String[196]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)" \
                                           "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 DOMAIN_TYPE_HASH: constant(bytes32) = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
 COLLATERAL_TYPE_HASH: constant(bytes32) = keccak256(COLLATERAL_TYPE_DEF)
@@ -801,7 +801,6 @@ def reserveWeth(
     )
 
     return newLoanId
-
 
 
 @external

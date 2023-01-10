@@ -40,6 +40,7 @@ Zharta launched the V1 of the protocol with the following restrictions:
 * one single lending pool of WETH
 * no liquidations before a loan's maturity date
 
+### Important Note
 As said above, the protocol domains are separated into **logic** and **data** contracts. This is relevant because it allows for the upgradeability of the protocol. For the next version of the protocol, our goal is to deploy an immutable protocol but for that to be done efficiently, we first need to understand what users want and need and iterate over that. Zharta is the only party with the power to upgrade the protocol and we will always listen to our community and develop Zharta's protocol openly.
 
 # Architecture

@@ -53,7 +53,7 @@ def create_signature_fixture(
     ):
 
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        reserve_type_def = "ReserveMessageContent(uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)"
+        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)"
         collateral_type_def = (
             "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
         )
@@ -187,7 +187,7 @@ def test_set_default_lender_zeroaddress(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -271,7 +271,7 @@ def test_set_default_lender_zeroaddress(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -733,7 +733,7 @@ def test_create_deprecated(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -757,7 +757,7 @@ def test_create_not_accepting_loans(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -786,7 +786,7 @@ def test_create_maturity_in_the_past(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -814,7 +814,7 @@ def test_create_maturity_too_long(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -832,7 +832,7 @@ def test_create_collateral_notwhitelisted(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -869,7 +869,7 @@ def test_create_collaterals_not_owned(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -908,7 +908,7 @@ def test_create_loan_collateral_not_approved(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -953,7 +953,7 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -989,7 +989,7 @@ def test_create_loan_unsufficient_funds_in_lp(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -1036,7 +1036,7 @@ def test_create_loan_outside_pool_share(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -1083,7 +1083,7 @@ def test_create_loan_outside_collection_share(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -1130,7 +1130,7 @@ def test_create_loan_wallet_not_whitelisted(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -1173,7 +1173,7 @@ def test_create_loan(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1267,7 +1267,7 @@ def test_create_loan_wrong_signature(
                 v,
                 r,
                 s,
-                {"from": borrower, "value": LOAN_AMOUNT},
+                {"from": borrower},
             )
 
 
@@ -1311,7 +1311,7 @@ def test_create_loan_past_signature_deadline(
             v,
             r,
             s,
-            {"from": borrower, "value": LOAN_AMOUNT},
+            {"from": borrower},
         )
 
 
@@ -1358,7 +1358,7 @@ def test_create_loan_within_pool_share(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1428,7 +1428,7 @@ def test_create_loan_within_collection_share(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1499,7 +1499,7 @@ def test_create_loan_wallet_whitelist_enabled(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1573,7 +1573,7 @@ def test_pay_loan_defaulted(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1694,7 +1694,7 @@ def test_pay_loan_insufficient_allowance(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1754,7 +1754,7 @@ def test_pay_loan(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1865,7 +1865,7 @@ def test_pay_loan_already_paid(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
@@ -1947,7 +1947,7 @@ def test_set_default_loan(
         v,
         r,
         s,
-        {"from": borrower, "value": LOAN_AMOUNT},
+        {"from": borrower},
     )
     loan_id = tx_create_loan.return_value
 
