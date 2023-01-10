@@ -30,15 +30,17 @@ def not_contract_owner(accounts):
     return accounts.add()
 
 @pytest.fixture(scope="module", autouse=True)
-def erc20_contract(ERC20, contract_owner, borrower, investor):
-
+def erc20_contract(WETH9Mock, contract_owner, borrower, investor):
     try:
-        _erc20 = ERC20.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
+        _erc20 = WETH9Mock.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
         _erc20.transfer(contract_owner, 100 * 10**18, {'from': _erc20})
         _erc20.transfer(borrower, 100 * 10**18, {'from': _erc20})
         _erc20.transfer(investor, 100 * 10**18, {'from': _erc20})
     except ContractNotFound:
-        _erc20 = ERC20.deploy("Wrapped Ether", "WETH", 18, 0, {"from": contract_owner})
+        _erc20 = WETH9Mock.deploy("Wrapped Ether", "WETH", 18, 1000 * 10 ** 18, {"from": contract_owner})
+        _erc20.transfer(contract_owner, 100 * 10**18, {'from': contract_owner})
+        _erc20.transfer(borrower, 100 * 10**18, {'from': contract_owner})
+        _erc20.transfer(investor, 100 * 10**18, {'from': contract_owner})
     return _erc20
 
 

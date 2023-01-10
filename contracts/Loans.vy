@@ -90,19 +90,7 @@ event OwnerProposed:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxLoansChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event MaxLoanDurationChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
-event MaxLoanAmountChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
@@ -215,9 +203,7 @@ event PaymentReceived:
 owner: public(address)
 proposedOwner: public(address)
 
-maxAllowedLoans: public(uint256)
 maxAllowedLoanDuration: public(uint256)
-maxLoanAmount: public(uint256)
 interestAccrualPeriod: public(uint256)
 
 isAcceptingLoans: public(bool)
@@ -236,39 +222,34 @@ walletsWhitelisted: public(HashMap[address, bool])
 
 collectionsAmount: HashMap[address, uint256] # aux variable
 
-ZHARTA_DOMAIN_NAME: constant(String[6])    = "Zharta"
+ZHARTA_DOMAIN_NAME: constant(String[6]) = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
-COLLATERAL_TYPE_DEF: constant(String[66])  = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-RESERVE_TYPE_DEF: constant(String[179])    = "ReserveMessageContent(uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)" \
-                                             "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-DOMAIN_TYPE_HASH: constant(bytes32)        = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
-COLLATERAL_TYPE_HASH: constant(bytes32)    = keccak256(COLLATERAL_TYPE_DEF)
-RESERVE_TYPE_HASH: constant(bytes32)       = keccak256(RESERVE_TYPE_DEF)
+COLLATERAL_TYPE_DEF: constant(String[66]) = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
+RESERVE_TYPE_DEF: constant(String[179]) = "ReserveMessageContent(uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)" \
+                                          "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
+DOMAIN_TYPE_HASH: constant(bytes32) = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
+COLLATERAL_TYPE_HASH: constant(bytes32) = keccak256(COLLATERAL_TYPE_DEF)
+RESERVE_TYPE_HASH: constant(bytes32) = keccak256(RESERVE_TYPE_DEF)
 
 reserve_message_typehash: bytes32
 reserve_sig_domain_separator: bytes32
 
 @external
 def __init__(
-    _maxAllowedLoans: uint256,
     _maxAllowedLoanDuration: uint256,
-    _maxLoanAmount: uint256,
     _interestAccrualPeriod: uint256,
     _loansCoreContract: address,
     _lendingPoolPeripheralContract: address,
     _collateralVaultPeripheralContract: address
 ):
-    assert _maxAllowedLoans > 0, "value for max loans is 0"
     assert _maxAllowedLoanDuration > 0, "valor for max duration is 0"
     assert _loansCoreContract != empty(address), "address is the zero address"
     assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
     assert _collateralVaultPeripheralContract != empty(address), "address is the zero address"
 
     self.owner = msg.sender
-    self.maxAllowedLoans = _maxAllowedLoans
     self.maxAllowedLoanDuration = _maxAllowedLoanDuration
-    self.maxLoanAmount = _maxLoanAmount
     self.interestAccrualPeriod = _interestAccrualPeriod
     self.loansCoreContract = _loansCoreContract
     self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
@@ -377,6 +358,7 @@ def _computePeriodPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: ui
 
 @internal
 def _recoverReserveSigner(
+    _borrower: address,
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
@@ -395,6 +377,7 @@ def _recoverReserveSigner(
 
     data_hash: bytes32 = keccak256(_abi_encode(
                 RESERVE_TYPE_HASH,
+                _borrower,
                 _amount,
                 _interest,
                 _maturity,
@@ -429,8 +412,6 @@ def _reserve(
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
-    assert ILoansCore(self.loansCoreContract).ongoingLoans(msg.sender) < self.maxAllowedLoans, "max loans already reached"
-    assert _amount <= self.maxLoanAmount, "loan amount > than the max value"
 
     assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
         msg.sender,
@@ -443,7 +424,7 @@ def _reserve(
     if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
         raise "msg.sender is not whitelisted"
 
-    signer: address = self._recoverReserveSigner(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
+    signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
     assert signer == self.owner, "invalid message signature"
 
     newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
@@ -514,27 +495,6 @@ def claimOwnership():
 
 
 @external
-def changeMaxAllowedLoans(_value: uint256):
-    """
-    @notice Sets the max allowed loans value per borrower, validated againt active loans
-    @dev Logs `MaxLoansChanged` event
-    @param _value Sets the max allowed loans value in wei
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _value > 0, "value for max loans is 0"
-    assert _value != self.maxAllowedLoans, "new max loans value is the same"
-
-    log MaxLoansChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        self.maxAllowedLoans,
-        _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-    self.maxAllowedLoans = _value
-
-
-@external
 def changeMaxAllowedLoanDuration(_value: uint256):
     """
     @notice Sets the max allowed loans duration per borrower, validated on loan creation
@@ -553,26 +513,6 @@ def changeMaxAllowedLoanDuration(_value: uint256):
     )
 
     self.maxAllowedLoanDuration = _value
-
-
-@external
-def changeMaxLoanAmount(_value: uint256):
-    """
-    @notice Sets the max loan amount per borrower, validated on loan creation
-    @dev Logs `MaxLoanAmountChanged` event
-    @param _value Sets the max allowed loan amount in wei
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _value != self.maxLoanAmount, "new max loan amount is the same"
-
-    log MaxLoanAmountChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        self.maxLoanAmount,
-        _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-    self.maxLoanAmount = _value
 
 
 @external
@@ -857,7 +797,7 @@ def reserveWeth(
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsWeth(
         msg.sender,
-        ILoansCore(self.loansCoreContract).getLoanAmount(msg.sender, newLoanId)
+        _amount
     )
 
     return newLoanId
@@ -893,7 +833,7 @@ def reserveEth(
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsEth(
         msg.sender,
-        ILoansCore(self.loansCoreContract).getLoanAmount(msg.sender, newLoanId)
+        _amount
     )
 
     return newLoanId

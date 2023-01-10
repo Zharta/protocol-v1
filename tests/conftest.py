@@ -9,12 +9,10 @@ import pytest
 import json
 
 
-MAX_NUMBER_OF_LOANS = 10
 MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
-MAX_LOAN_AMOUNT = Web3.toWei(3, "ether")
 INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
 PROTOCOL_FEES_SHARE = 2500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
@@ -42,6 +40,7 @@ erc721_contract = conftest_base.erc721_contract
 def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
     yield CollateralVaultCore.deploy({"from": contract_owner})
 
+
 @pytest.fixture(scope="module", autouse=True)
 def cryptopunks_market_contract(contract_owner):
     abi = """ [
@@ -58,6 +57,7 @@ def cryptopunks_market_contract(contract_owner):
         )
     except ContractNotFound:
         return None
+
 
 @pytest.fixture(scope="module", autouse=True)
 def wpunks_contract(ERC721, contract_owner):
@@ -87,11 +87,11 @@ def hashmasks_contract(ERC721, contract_owner):
     except ContractNotFound:
         return None
 
+
 @pytest.fixture(scope="module", autouse=True)
 def cryptopunks_vault_core_contract(CryptoPunksVaultCore, cryptopunks_market_contract, contract_owner):
     cryptopunks_address = cryptopunks_market_contract.address if cryptopunks_market_contract else brownie.ZERO_ADDRESS
     return CryptoPunksVaultCore.deploy(cryptopunks_address, {"from": contract_owner})
-
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -117,6 +117,7 @@ def lending_pool_legacy_core_contract(LegacyLendingPoolCore, erc20_contract, con
 @pytest.fixture(scope="module", autouse=True)
 def lending_pool_lock_contract(LendingPoolLock, erc20_contract, contract_owner):
     yield LendingPoolLock.deploy(erc20_contract, {'from': contract_owner})
+
 
 @pytest.fixture(scope="module", autouse=True)
 def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, lending_pool_lock_contract, erc20_contract, contract_owner, protocol_wallet):
@@ -149,9 +150,7 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
 @pytest.fixture(scope="module", autouse=True)
 def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
     yield Loans.deploy(
-        MAX_NUMBER_OF_LOANS,
         MAX_LOAN_DURATION,
-        MAX_LOAN_AMOUNT,
         INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
         lending_pool_peripheral_contract,
@@ -163,8 +162,6 @@ def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_periphera
 @pytest.fixture(scope="module", autouse=True)
 def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
     yield Loans.deploy(
-        1,
-        1,
         1,
         INTEREST_ACCRUAL_PERIOD,
         accounts[4],
@@ -232,15 +229,12 @@ def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
 
 @pytest.fixture(scope="module")
 def contracts_config(
-    borrower,
     collateral_vault_core_contract,
     collateral_vault_peripheral_contract,
     contract_owner,
     cryptopunks_market_contract,
     cryptopunks_vault_core_contract,
     erc20_contract,
-    erc721_contract,
-    investor,
     lending_pool_core_contract,
     lending_pool_legacy_core_contract,
     lending_pool_lock_contract,
@@ -250,7 +244,6 @@ def contracts_config(
     liquidity_controls_contract,
     loans_core_contract,
     loans_peripheral_contract,
-    test_collaterals,
     wpunks_contract,
 ):
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
