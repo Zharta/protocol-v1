@@ -15,26 +15,44 @@ struct LegacyInvestorFunds:
 # Events
 
 event OwnerProposed:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
     erc20TokenContract: address
-
 event OwnershipTransferred:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
     erc20TokenContract: address
-
 event LendingPoolPeripheralAddressSet:
-    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
     erc20TokenContract: address
 
 # Functions
+
+@external
+def migrate(_lendingPoolCoreAddress: address, _lenders: DynArray[address, 100]):
+    pass
+
+@external
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
+    pass
+
+@external
+def setLendingPoolPeripheralAddress(_address: address):
+    pass
+
+@external
+def setInvestorLock(_lender: address, _amount: uint256, _lockPeriodEnd: uint256):
+    pass
 
 @view
 @external
@@ -61,22 +79,4 @@ def erc20TokenContract() -> address:
 def investorLocks(arg0: address) -> InvestorLock:
     pass
 
-@external
-def migrate(_lendingPoolCoreAddress: address, _lenders: DynArray[address, 100]):
-    pass
 
-@external
-def proposeOwner(_address: address):
-    pass
-
-@external
-def claimOwnership():
-    pass
-
-@external
-def setLendingPoolPeripheralAddress(_address: address):
-    pass
-
-@external
-def setInvestorLock(_lender: address, _amount: uint256, _lockPeriodEnd: uint256):
-    pass

@@ -1,104 +1,62 @@
-# Structs
-
 # Events
 
 event OwnershipTransferred:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-
 event OwnerProposed:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-
 event CollateralVaultAdded:
-    collateralContractIndexed: indexed(address)
+    collateralContractIndexed: address
     currentValue: address
     newValue: address
     collateralContract: address
-
 event CollateralVaultRemoved:
-    collateralContractIndexed: indexed(address)
+    collateralContractIndexed: address
     currentValue: address
     collateralContract: address
-
 event LoansPeripheralAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
     erc20TokenContract: address
-
 event LoansPeripheralAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContractIndexed: address
     currentValue: address
     erc20TokenContract: address
-
 event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
-
 event CollateralStored:
-    collateralAddressIndexed: indexed(address)
-    fromIndexed: indexed(address)
+    collateralAddressIndexed: address
+    fromIndexed: address
     collateralAddress: address
     tokenId: uint256
     _from: address
-
 event CollateralFromLoanTransferred:
-    collateralAddressIndexed: indexed(address)
-    toIndexed: indexed(address)
+    collateralAddressIndexed: address
+    toIndexed: address
     collateralAddress: address
     tokenId: uint256
     _to: address
-
 event CollateralFromLiquidationTransferred:
-    collateralAddressIndexed: indexed(address)
-    toIndexed: indexed(address)
+    collateralAddressIndexed: address
+    toIndexed: address
     collateralAddress: address
     tokenId: uint256
     _to: address
-
 event OperatorApproved:
-    collateralAddressIndexed: indexed(address)
-    toIndexed: indexed(address)
+    collateralAddressIndexed: address
+    toIndexed: address
     collateralAddress: address
     tokenId: uint256
     operator: address
 
 # Functions
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def collateralVaultCoreDefaultAddress() -> address:
-    pass
-
-@view
-@external
-def collateralVaultCoreAddresses(arg0: address) -> address:
-    pass
-
-@view
-@external
-def loansPeripheralAddresses(arg0: address) -> address:
-    pass
-
-@view
-@external
-def liquidationsPeripheralAddress() -> address:
-    pass
 
 @view
 @external
@@ -153,3 +111,35 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
 @external
 def approveBackstopBuyer(_address: address, _collateralAddress: address, _tokenId: uint256):
     pass
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def collateralVaultCoreDefaultAddress() -> address:
+    pass
+
+@view
+@external
+def collateralVaultCoreAddresses(arg0: address) -> address:
+    pass
+
+@view
+@external
+def loansPeripheralAddresses(arg0: address) -> address:
+    pass
+
+@view
+@external
+def liquidationsPeripheralAddress() -> address:
+    pass
+
+

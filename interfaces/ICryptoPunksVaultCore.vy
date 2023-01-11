@@ -6,46 +6,24 @@ struct Offer:
     seller: address
     minValue: uint256
     onlySellTo: address
-
+    
 # Events
 
 event OwnershipTransferred:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-
 event OwnerProposed:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-
 event CollateralVaultPeripheralAddressSet:
     currentValue: address
     newValue: address
 
 # Functions
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def collateralVaultPeripheralAddress() -> address:
-    pass
-
-@view
-@external
-def cryptoPunksMarketAddress() -> address:
-    pass
 
 @view
 @external
@@ -85,3 +63,25 @@ def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: 
 @external
 def approveOperator(_address: address, _collateralAddress: address, _tokenId: uint256):
     pass
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def collateralVaultPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def cryptoPunksMarketAddress() -> address:
+    pass
+
+

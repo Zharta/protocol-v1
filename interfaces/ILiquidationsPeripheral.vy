@@ -48,82 +48,66 @@ struct Liquidation:
 # Events
 
 event OwnershipTransferred:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-
 event OwnerProposed:
-    ownerIndexed: indexed(address)
-    proposedOwnerIndexed: indexed(address)
+    ownerIndexed: address
+    proposedOwnerIndexed: address
     owner: address
     proposedOwner: address
-
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-
 event LendersPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-
 event AuctionPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-
 event LiquidationsCoreAddressSet:
     currentValue: address
     newValue: address
-
 event LoansCoreAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
     erc20TokenContract: address
-
 event LoansCoreAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContractIndexed: address
     currentValue: address
     erc20TokenContract: address
-
 event LendingPoolPeripheralAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContractIndexed: address
     currentValue: address
     newValue: address
     erc20TokenContract: address
-
 event LendingPoolPeripheralAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
+    erc20TokenContractIndexed: address
     currentValue: address
     erc20TokenContract: address
-
 event CollateralVaultPeripheralAddressSet:
     currentValue: address
     newValue: address
-
 event NFTXVaultFactoryAddressSet:
     currentValue: address
     newValue: address
-
 event NFTXMarketplaceZapAddressSet:
     currentValue: address
     newValue: address
-
 event SushiRouterAddressSet:
     currentValue: address
     newValue: address
-
 event WrappedPunksAddressSet:
     currentValue: address
     newValue: address
-
 event CryptoPunksAddressSet:
     currentValue: address
     newValue: address
-
 event LiquidationAdded:
-    erc20TokenContractIndexed: indexed(address)
-    collateralAddressIndexed: indexed(address)
+    erc20TokenContractIndexed: address
+    collateralAddressIndexed: address
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
@@ -135,10 +119,9 @@ event LiquidationAdded:
     loansCoreContract: address
     loanId: uint256
     borrower: address
-
 event LiquidationRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    collateralAddressIndexed: indexed(address)
+    erc20TokenContractIndexed: address
+    collateralAddressIndexed: address
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
@@ -146,11 +129,10 @@ event LiquidationRemoved:
     loansCoreContract: address
     loanId: uint256
     borrower: address
-
 event NFTPurchased:
-    erc20TokenContractIndexed: indexed(address)
-    collateralAddressIndexed: indexed(address)
-    buyerAddressIndexed: indexed(address)
+    erc20TokenContractIndexed: address
+    collateralAddressIndexed: address
+    buyerAddressIndexed: address
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
@@ -158,95 +140,22 @@ event NFTPurchased:
     buyerAddress: address
     erc20TokenContract: address
     method: String[30]
-
 event AdminWithdrawal:
-    collateralAddressIndexed: indexed(address)
+    collateralAddressIndexed: address
     liquidationId: bytes32
     collateralAddress: address
     tokenId: uint256
     wallet: address
-
 event PaymentSent:
-    walletIndexed: indexed(address)
+    walletIndexed: address
     wallet: address
     amount: uint256
-
 event PaymentReceived:
-    walletIndexed: indexed(address)
+    walletIndexed: address
     wallet: address
     amount: uint256
 
 # Functions
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def gracePeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def lenderPeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def auctionPeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def liquidationsCoreAddress() -> address:
-    pass
-
-@view
-@external
-def loansCoreAddresses(arg0: address) -> address:
-    pass
-
-@view
-@external
-def lendingPoolPeripheralAddresses(arg0: address) -> address:
-    pass
-
-@view
-@external
-def collateralVaultPeripheralAddress() -> address:
-    pass
-
-@view
-@external
-def nftxVaultFactoryAddress() -> address:
-    pass
-
-@view
-@external
-def nftxMarketplaceZapAddress() -> address:
-    pass
-
-@view
-@external
-def sushiRouterAddress() -> address:
-    pass
-
-@view
-@external
-def wrappedPunksAddress() -> address:
-    pass
-
-@view
-@external
-def cryptoPunksAddress() -> address:
-    pass
 
 @view
 @external
@@ -333,11 +242,6 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
 
 @payable
 @external
-def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
-    pass
-
-@payable
-@external
 def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 
@@ -356,3 +260,75 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincip
 @external
 def storeERC721CollateralToVault(_collateralAddress: address, _tokenId: uint256):
     pass
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def gracePeriodDuration() -> uint256:
+    pass
+
+@view
+@external
+def lenderPeriodDuration() -> uint256:
+    pass
+
+@view
+@external
+def auctionPeriodDuration() -> uint256:
+    pass
+
+@view
+@external
+def liquidationsCoreAddress() -> address:
+    pass
+
+@view
+@external
+def loansCoreAddresses(arg0: address) -> address:
+    pass
+
+@view
+@external
+def lendingPoolPeripheralAddresses(arg0: address) -> address:
+    pass
+
+@view
+@external
+def collateralVaultPeripheralAddress() -> address:
+    pass
+
+@view
+@external
+def nftxVaultFactoryAddress() -> address:
+    pass
+
+@view
+@external
+def nftxMarketplaceZapAddress() -> address:
+    pass
+
+@view
+@external
+def sushiRouterAddress() -> address:
+    pass
+
+@view
+@external
+def wrappedPunksAddress() -> address:
+    pass
+
+@view
+@external
+def cryptoPunksAddress() -> address:
+    pass
+
+

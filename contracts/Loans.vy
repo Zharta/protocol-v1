@@ -102,16 +102,6 @@ event InterestAccrualPeriodChanged:
     newValue: uint256
     erc20TokenContract: address
 
-event CollateralToWhitelistAdded:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
-    erc20TokenContract: address
-
-event CollateralToWhitelistRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
-    erc20TokenContract: address
-
 event LendingPoolPeripheralAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
@@ -134,21 +124,6 @@ event LiquidityControlsAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
-    erc20TokenContract: address
-
-event WalletsWhitelistStatusChanged:
-    erc20TokenContractIndexed: indexed(address)
-    value: bool
-    erc20TokenContract: address
-
-event WhitelistedWalletAdded:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
-    erc20TokenContract: address
-
-event WhitelistedWalletRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
     erc20TokenContract: address
 
 event ContractStatusChanged:
@@ -209,16 +184,11 @@ interestAccrualPeriod: public(uint256)
 isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
-whitelistedCollaterals: public(HashMap[address, bool]) # given a collateral address, is the collection whitelisted
-
 loansCoreContract: public(address)
 lendingPoolPeripheralContract: public(address)
 collateralVaultPeripheralContract: public(address)
 liquidationsPeripheralContract: public(address)
 liquidityControlsContract: public(address)
-
-walletWhitelistEnabled: public(bool)
-walletsWhitelisted: public(HashMap[address, bool])
 
 collectionsAmount: HashMap[address, uint256] # aux variable
 
@@ -234,6 +204,7 @@ RESERVE_TYPE_HASH: constant(bytes32) = keccak256(RESERVE_TYPE_DEF)
 
 reserve_message_typehash: bytes32
 reserve_sig_domain_separator: bytes32
+
 
 @external
 def __init__(
@@ -265,14 +236,6 @@ def __init__(
             self
         )
     )
-
-
-@internal
-def _areCollateralsWhitelisted(_collaterals: DynArray[Collateral, 100]) -> bool:
-    for collateral in _collaterals:
-        if not self.whitelistedCollaterals[collateral.contractAddress]:
-            return False
-    return True
 
 
 @internal
@@ -407,7 +370,6 @@ def _reserve(
     assert block.timestamp <= _maturity, "maturity is in the past"
     assert block.timestamp <= _deadline, "deadline has passed"
     assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "maturity exceeds the max allowed"
-    assert self._areCollateralsWhitelisted(_collaterals), "not all NFTs are accepted"
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
@@ -420,9 +382,6 @@ def _reserve(
         self.lendingPoolPeripheralContract
     ), "max loans pool share surpassed"
     assert self._withinCollectionShareLimit(_collaterals), "max collection share surpassed"
-
-    if self.walletWhitelistEnabled and not self.walletsWhitelisted[msg.sender]:
-        raise "msg.sender is not whitelisted"
 
     signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
     assert signer == self.owner, "invalid message signature"
@@ -536,47 +495,6 @@ def changeInterestAccrualPeriod(_value: uint256):
 
 
 @external
-def addCollateralToWhitelist(_address: address):
-    """
-    @notice Adds a collection to the collateral whitelist, enabling it to be used in new loans
-    @dev Logs `CollateralToWhitelistAdded` event
-    @param _address The colletion address to whitelist
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert _address.is_contract, "_address is not a contract"
-    # No method yet to get the interface_id, so explicitly checking the ERC721 interface_id
-    # assert IERC165(_address).supportsInterface(0x80ac58cd), "_address is not a ERC721"
-
-    self.whitelistedCollaterals[_address] = True
-
-    log CollateralToWhitelistAdded(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-
-@external
-def removeCollateralFromWhitelist(_address: address):
-    """
-    @notice Removes a collection from the collateral whitelist, preventing it to be used in new loans
-    @dev Logs `CollateralToWhitelistRemoved` event
-    @param _address The colletion address to remove from the whitelist
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.whitelistedCollaterals[_address], "collateral is not whitelisted"
-
-    self.whitelistedCollaterals[_address] = False
-
-    log CollateralToWhitelistRemoved(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-
-@external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
@@ -642,67 +560,6 @@ def setLiquidityControlsAddress(_address: address):
     )
 
     self.liquidityControlsContract = _address
-
-
-@external
-def changeWalletsWhitelistStatus(_flag: bool):
-    """
-    @notice Sets the wallets whitelist control, considered on loan creation
-    @dev Logs `WalletsWhitelistStatusChanged` event
-    @param _flag Enables / disables the wallets whitelist control
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.walletWhitelistEnabled != _flag, "new value is the same"
-
-    self.walletWhitelistEnabled = _flag
-
-    log WalletsWhitelistStatusChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        _flag,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-
-@external
-def addWhitelistedWallet(_address: address):
-    """
-    @notice Adds a wallet to the wallets whitelist, enabling it to be used in new loans if the whitelist is enabled
-    @dev Logs `CollateralToWhitelistAdded` event
-    @param _address The colletion address to whitelist
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
-    assert not self.walletsWhitelisted[_address], "address is already whitelisted"
-
-    self.walletsWhitelisted[_address] = True
-
-    log WhitelistedWalletAdded(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-
-@external
-def removeWhitelistedWallet(_address: address):
-    """
-    @notice Removes a wallet from the wallets whitelist, preventing it to be used in new loans if the whitelist is enabled
-    @dev Logs `CollateralToWhitelistRemoved` event
-    @param _address The colletion address to remove from the whitelist
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert self.walletWhitelistEnabled, "wallets whitelist is disabled"
-    assert self.walletsWhitelisted[_address], "address is not whitelisted"
-
-    self.walletsWhitelisted[_address] = False
-
-    log WhitelistedWalletRemoved(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        _address,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
 
 
 @external
