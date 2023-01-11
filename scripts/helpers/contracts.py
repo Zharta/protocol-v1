@@ -184,17 +184,6 @@ class LoansPeripheralContract(InternalContract):
                 "liquidity_controls": Transaction.loansperiph_set_liquiditycontrols,
                 "lending_pool_peripheral": Transaction.loansperiph_set_lpperiph,
                 "collateral_vault_peripheral": Transaction.loansperiph_set_cvperiph,
-                "cool_cats": Transaction.loansperiph_add_collateral_cool_cats,
-                "hashmasks": Transaction.loansperiph_add_collateral_hashmasks,
-                "bakc": Transaction.loansperiph_add_collateral_bakc,
-                "doodles": Transaction.loansperiph_add_collateral_doodles,
-                "wow": Transaction.loansperiph_add_collateral_wow,
-                "mayc": Transaction.loansperiph_add_collateral_mayc,
-                "veefriends": Transaction.loansperiph_add_collateral_veefriends,
-                "pudgy_penguins": Transaction.loansperiph_add_collateral_pudgy_penguins,
-                "bayc": Transaction.loansperiph_add_collateral_bayc,
-                "wpunks": Transaction.loansperiph_add_collateral_wpunks,
-                "cryptopunks": Transaction.loansperiph_add_collateral_punks,
             },
         )
 
