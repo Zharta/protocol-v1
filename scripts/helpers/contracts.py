@@ -200,9 +200,7 @@ class LoansPeripheralContract(InternalContract):
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         return [
-            1000000,
             31 * 86400,
-            web3.toWei(10000, "ether"),
             24 * 60 * 60,
             context["loans_core"].contract,
             context["lending_pool_peripheral"].contract,
@@ -221,7 +219,7 @@ class LiquidationsCoreContract(InternalContract):
             container_name="LiquidationsCore",
             deployment_deps={},
             config_deps={
-                "liquidations_core": Transaction.liquidationscore_set_liquidationsperiph,
+                "liquidations_peripheral": Transaction.liquidationscore_set_liquidationsperiph,
             },
             deployment_args_contracts=[],
         )
@@ -245,6 +243,7 @@ class LiquidationsPeripheralContract(InternalContract):
                 "nftxvaultfactory": Transaction.liquidationsperiph_set_nftxvaultfactory,
                 "nftxmarketplacezap": Transaction.liquidationsperiph_set_nftxmarketplacezap,
                 "sushirouter, ": Transaction.liquidationsperiph_set_sushirouter,
+                "wpunks": Transaction.liquidationsperiph_set_wpunks,
             },
         )
 

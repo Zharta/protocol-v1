@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable
-from .types import DeploymentContext
+from .types import DeploymentContext, Environment
 
 
 @dataclass
@@ -113,18 +113,24 @@ class Transaction:
     def liquidationsperiph_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
         execute(context, "liquidations_peripheral", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
 
+    @staticmethod
+    def liquidationsperiph_set_wpunks(context: DeploymentContext, dryrun: bool = False):
+        execute(context, "liquidations_peripheral", "setWrappedPunksAddress", "wpunks", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_set_nftxvaultfactory(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_peripheral", "setNFTXVaultFactoryAddress", "nftxvaultfactory", dryrun=dryrun)
+        if context.env in [Environment.local, Environment.prod]:
+            execute(context, "liquidations_peripheral", "setNFTXVaultFactoryAddress", "nftxvaultfactory", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_set_nftxmarketplacezap(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_peripheral", "setNFTXMarketplaceZapAddress", "nftxmarketplacezap", dryrun=dryrun)
+        if context.env in [Environment.local, Environment.prod]:
+            execute(context, "liquidations_peripheral", "setNFTXMarketplaceZapAddress", "nftxmarketplacezap", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_set_sushirouter(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_peripheral", "setSushiRouterAddress", "sushirouter", dryrun=dryrun)
+        if context.env in [Environment.local, Environment.prod]:
+            execute(context, "liquidations_peripheral", "setSushiRouterAddress", "sushirouter", dryrun=dryrun)
 
     @staticmethod
     def loansperiph_add_collateral_cool_cats(context: DeploymentContext, dryrun: bool = False):
