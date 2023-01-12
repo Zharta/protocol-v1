@@ -14,87 +14,104 @@ struct InvestorLock:
 # Events
 
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event MaxCapitalEfficiencyChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
+
 event ProtocolWalletChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event ProtocolFeesShareChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
     erc20TokenContract: address
+
 event LoansPeripheralAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event LiquidationsPeripheralAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event LiquidityControlsAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
+
 event WhitelistStatusChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: bool
     erc20TokenContract: address
+
 event WhitelistAddressAdded:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: address
     erc20TokenContract: address
+
 event WhitelistAddressRemoved:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: address
     erc20TokenContract: address
+
 event ContractStatusChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: bool
     erc20TokenContract: address
+
 event InvestingStatusChanged:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     value: bool
     erc20TokenContract: address
+
 event ContractDeprecated:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     erc20TokenContract: address
+
 event Deposit:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event Withdrawal:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event FundsTransfer:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     erc20TokenContract: address
+
 event FundsReceipt:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
     rewardsPool: uint256
@@ -102,136 +119,18 @@ event FundsReceipt:
     investedAmount: uint256
     erc20TokenContract: address
     fundsOrigin: String[30]
+
 event PaymentSent:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
+
 event PaymentReceived:
-    walletIndexed: address
+    walletIndexed: indexed(address)
     wallet: address
     amount: uint256
 
 # Functions
-
-@view
-@external
-def maxFundsInvestable() -> uint256:
-    pass
-
-@view
-@external
-def theoreticalMaxFundsInvestable() -> uint256:
-    pass
-
-@view
-@external
-def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
-    pass
-
-@view
-@external
-def lenderFunds(_lender: address) -> InvestorFunds:
-    pass
-
-@payable
-@external
-def __default__():
-    pass
-
-@external
-def proposeOwner(_address: address):
-    pass
-
-@external
-def claimOwnership():
-    pass
-
-@external
-def changeMaxCapitalEfficiency(_value: uint256):
-    pass
-
-@external
-def changeProtocolWallet(_address: address):
-    pass
-
-@external
-def changeProtocolFeesShare(_value: uint256):
-    pass
-
-@external
-def setLoansPeripheralAddress(_address: address):
-    pass
-
-@external
-def setLiquidationsPeripheralAddress(_address: address):
-    pass
-
-@external
-def setLiquidityControlsAddress(_address: address):
-    pass
-
-@external
-def changeWhitelistStatus(_flag: bool):
-    pass
-
-@external
-def addWhitelistedAddress(_address: address):
-    pass
-
-@external
-def removeWhitelistedAddress(_address: address):
-    pass
-
-@external
-def changePoolStatus(_flag: bool):
-    pass
-
-@external
-def deprecate():
-    pass
-
-@external
-def depositWeth(_amount: uint256):
-    pass
-
-@payable
-@external
-def depositEth():
-    pass
-
-@external
-def withdrawWeth(_amount: uint256):
-    pass
-
-@external
-def withdrawEth(_amount: uint256):
-    pass
-
-@external
-def sendFundsWeth(_to: address, _amount: uint256):
-    pass
-
-@external
-def sendFundsEth(_to: address, _amount: uint256):
-    pass
-
-@payable
-@external
-def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
-    pass
-
-@external
-def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
-    pass
-
-@external
-def receiveFundsFromLiquidationWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
-    pass
-
-@payable
-@external
-def receiveFundsFromLiquidationEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
-    pass
 
 @view
 @external
@@ -313,4 +212,117 @@ def whitelistEnabled() -> bool:
 def whitelistedAddresses(arg0: address) -> bool:
     pass
 
+@view
+@external
+def maxFundsInvestable() -> uint256:
+    pass
 
+@view
+@external
+def theoreticalMaxFundsInvestable() -> uint256:
+    pass
+
+@view
+@external
+def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
+    pass
+
+@view
+@external
+def lenderFunds(_lender: address) -> InvestorFunds:
+    pass
+
+@external
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
+    pass
+
+@external
+def changeMaxCapitalEfficiency(_value: uint256):
+    pass
+
+@external
+def changeProtocolWallet(_address: address):
+    pass
+
+@external
+def changeProtocolFeesShare(_value: uint256):
+    pass
+
+@external
+def setLoansPeripheralAddress(_address: address):
+    pass
+
+@external
+def setLiquidationsPeripheralAddress(_address: address):
+    pass
+
+@external
+def setLiquidityControlsAddress(_address: address):
+    pass
+
+@external
+def changeWhitelistStatus(_flag: bool):
+    pass
+
+@external
+def addWhitelistedAddress(_address: address):
+    pass
+
+@external
+def removeWhitelistedAddress(_address: address):
+    pass
+
+@external
+def changePoolStatus(_flag: bool):
+    pass
+
+@external
+def deprecate():
+    pass
+
+@external
+def depositWeth(_amount: uint256):
+    pass
+
+@external
+@payable
+def depositEth():
+    pass
+
+@external
+def withdrawWeth(_amount: uint256):
+    pass
+
+@external
+def withdrawEth(_amount: uint256):
+    pass
+
+@external
+def sendFundsWeth(_to: address, _amount: uint256):
+    pass
+
+@external
+def sendFundsEth(_to: address, _amount: uint256):
+    pass
+
+@payable
+@external
+def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    pass
+
+@external
+def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+    pass
+
+@external
+def receiveFundsFromLiquidationWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
+    pass
+
+@payable
+@external
+def receiveFundsFromLiquidationEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
+    pass

@@ -10,100 +10,26 @@ struct InvestorFunds:
 # Events
 
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
 event LendingPoolPeripheralAddressSet:
-    erc20TokenContractIndexed: address
+    erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
     erc20TokenContract: address
 
 # Functions
-
-@view
-@external
-def lendersArray() -> DynArray[address, 1125899906842624]:
-    pass
-
-@view
-@external
-def computeWithdrawableAmount(_lender: address) -> uint256:
-    pass
-
-@view
-@external
-def fundsInPool() -> uint256:
-    pass
-
-@view
-@external
-def currentAmountDeposited(_lender: address) -> uint256:
-    pass
-
-@view
-@external
-def totalAmountDeposited(_lender: address) -> uint256:
-    pass
-
-@view
-@external
-def totalAmountWithdrawn(_lender: address) -> uint256:
-    pass
-
-@view
-@external
-def sharesBasisPoints(_lender: address) -> uint256:
-    pass
-
-@view
-@external
-def activeForRewards(_lender: address) -> bool:
-    pass
-
-@external
-def migrateLender(_wallet: address, _currentAmountDeposited: uint256, _totalAmountDeposited: uint256, _totalAmountWithdrawn: uint256, _sharesBasisPoints: uint256, _activeForRewards: bool):
-    pass
-
-@external
-def proposeOwner(_address: address):
-    pass
-
-@external
-def claimOwnership():
-    pass
-
-@external
-def setLendingPoolPeripheralAddress(_address: address):
-    pass
-
-@external
-def deposit(_lender: address, _payer: address, _amount: uint256) -> bool:
-    pass
-
-@external
-def withdraw(_lender: address, _wallet: address, _amount: uint256) -> bool:
-    pass
-
-@external
-def sendFunds(_to: address, _amount: uint256) -> bool:
-    pass
-
-@external
-def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256) -> bool:
-    pass
-
-@external
-def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
-    pass
 
 @view
 @external
@@ -170,4 +96,82 @@ def totalSharesBasisPoints() -> uint256:
 def migrationDone() -> bool:
     pass
 
+@view
+@external
+def lendersArray() -> DynArray[address, 1125899906842624]:
+    pass
 
+@view
+@external
+def computeWithdrawableAmount(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def fundsInPool() -> uint256:
+    pass
+
+@view
+@external
+def currentAmountDeposited(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def totalAmountDeposited(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def totalAmountWithdrawn(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def sharesBasisPoints(_lender: address) -> uint256:
+    pass
+
+@view
+@external
+def activeForRewards(_lender: address) -> bool:
+    pass
+
+@external
+def migrateLender(_wallet: address, _currentAmountDeposited: uint256, _totalAmountDeposited: uint256, _totalAmountWithdrawn: uint256, _sharesBasisPoints: uint256, _activeForRewards: bool):
+    pass
+
+@external
+def migrate(_from: address):
+    pass
+
+@external
+def proposeOwner(_address: address):
+    pass
+
+@external
+def claimOwnership():
+    pass
+
+@external
+def setLendingPoolPeripheralAddress(_address: address):
+    pass
+
+@external
+def deposit(_lender: address, _payer: address, _amount: uint256) -> bool:
+    pass
+
+@external
+def withdraw(_lender: address, _wallet: address, _amount: uint256) -> bool:
+    pass
+
+@external
+def sendFunds(_to: address, _amount: uint256) -> bool:
+    pass
+
+@external
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256) -> bool:
+    pass
+
+@external
+def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool:
+    pass

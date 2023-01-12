@@ -21,20 +21,37 @@ struct Liquidation:
 # Events
 
 event OwnershipTransferred:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+
 event OwnerProposed:
-    ownerIndexed: address
-    proposedOwnerIndexed: address
+    ownerIndexed: indexed(address)
+    proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+
 event LiquidationsPeripheralAddressSet:
     currentValue: address
     newValue: address
 
 # Functions
+
+@view
+@external
+def owner() -> address:
+    pass
+
+@view
+@external
+def proposedOwner() -> address:
+    pass
+
+@view
+@external
+def liquidationsPeripheralAddress() -> address:
+    pass
 
 @view
 @external
@@ -114,20 +131,3 @@ def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId
 @external
 def removeLiquidation(_collateralAddress: address, _tokenId: uint256):
     pass
-
-@view
-@external
-def owner() -> address:
-    pass
-
-@view
-@external
-def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def liquidationsPeripheralAddress() -> address:
-    pass
-
-
