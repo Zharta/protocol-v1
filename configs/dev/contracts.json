@@ -20,7 +20,7 @@
                 "contract": "0x0603bBE6308efb2386D565e862eff49fdeeAF94e"
             },
             "liquidations_peripheral": {
-                "contract": "0x1ee8f738b9d52E58159CA88f1107dAf8645D4f59"
+                "contract": "0x76CE3889B7AdD25D7A9276Af029242FAa6e2984d"
             },
             "liquidity_controls": {
                 "contract": "0xFa8D60a18382BC4d9b020E56F8f296143FA65665"

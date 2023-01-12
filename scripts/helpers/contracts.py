@@ -208,7 +208,7 @@ class LiquidationsCoreContract(InternalContract):
             container_name="LiquidationsCore",
             deployment_deps={},
             config_deps={
-                "liquidations_core": Transaction.liquidationscore_set_liquidationsperiph,
+                "liquidations_peripheral": Transaction.liquidationscore_set_liquidationsperiph,
             },
             deployment_args_contracts=[],
         )
@@ -232,6 +232,7 @@ class LiquidationsPeripheralContract(InternalContract):
                 "nftxvaultfactory": Transaction.liquidationsperiph_set_nftxvaultfactory,
                 "nftxmarketplacezap": Transaction.liquidationsperiph_set_nftxmarketplacezap,
                 "sushirouter, ": Transaction.liquidationsperiph_set_sushirouter,
+                "wpunks": Transaction.liquidationsperiph_set_wpunks,
             },
         )
 
