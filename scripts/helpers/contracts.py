@@ -6,6 +6,7 @@ from .transactions import Transaction
 
 from brownie import (
     LendingPoolCore,
+    LegacyLendingPoolCore,
     LendingPoolLock,
     LendingPoolPeripheral,
     CollateralVaultCore,
@@ -72,6 +73,21 @@ class LendingPoolCoreContract(InternalContract):
 
 
 @dataclass
+class LegacyLendingPoolCoreContract(InternalContract):
+
+    def __init__(self, contract: Optional[ProjectContract]):
+        super().__init__(
+            "legacy_lending_pool_core",
+            contract,
+            LegacyLendingPoolCore,
+            container_name="LegacyLendingPoolCore",
+            deployment_deps=[],
+            config_deps={},
+            deployment_args_contracts=["weth"],
+        )
+
+
+@dataclass
 class LendingPoolLockContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -80,7 +96,7 @@ class LendingPoolLockContract(InternalContract):
             contract,
             LendingPoolLock,
             container_name="LendingPoolLock",
-            deployment_deps=["weth"],
+            deployment_deps=["weth", "lpc_migration_01"],
             config_deps={
                 "lending_pool_peripheral": Transaction.lplock_set_lpperiph,
                 "lenders_with_active_locks": Transaction.lplock_migrate

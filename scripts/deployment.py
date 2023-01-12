@@ -18,6 +18,7 @@ from .helpers.types import (
 )
 from .helpers.contracts import (
     LendingPoolCoreContract,
+    LegacyLendingPoolCoreContract,
     LendingPoolLockContract,
     LendingPoolPeripheralContract,
     CollateralVaultCoreContract,
@@ -181,19 +182,43 @@ class DeploymentManager:
     def deploy_all(self, dryrun=False, save_state=True):
         self.deploy(self.context.contract.keys(), dryrun=dryrun, save_state=save_state)
 
+def gas_cost(context):
+    return {'gas_price': '10 gwei'}
 
 def main():
+
     dm = DeploymentManager(ENV)
+    dm.context.gas_func = gas_cost
 
     lending_pool_core = dm.context['lending_pool_core']
-    dm.context.contract["legacy_lending_pool_core"] = LendingPoolCoreContract(lending_pool_core.contract)
-    dm.context.config["lenders_with_active_locks"] = [
-        lender for lender in lending_pool_core.contract.lendersArray()
-        if lending_pool_core.contract.lockPeriodEnd(lender) >= chain.time()
-    ] if dm.env != ENV.local else []
+    lpc_address = lending_pool_core.contract.address
+    lending_pool_core.contract = None
+    del lending_pool_core.container[-1]
+
+    legacy_core = LegacyLendingPoolCoreContract(None)
+    legacy_core.contract = legacy_core.container.at(lpc_address)
+    dm.context.contract["legacy_lending_pool_core"] = legacy_core
+
+    dm.context.config["lenders_with_active_locks"] = True
     dm.context.config["run_lpc_migration_01"] = True
 
-    dm.deploy({
+    changes_non_prod = {
+        "weth",
+        "loans_core",
+        "cool_cats",
+        "hashmasks",
+        "bakc",
+        "doodles",
+        "wow",
+        "mayc",
+        "veefriends",
+        "pudgy_penguins",
+        "bayc",
+        "wpunks",
+        "cryptopunks"
+    }
+
+    changes_prod = {
         "lending_pool_core",
         "lending_pool_lock",
         "lpc_migration_01",
@@ -202,7 +227,11 @@ def main():
         "liquidations_peripheral",
         "liquidity_controls",
         "loans",
-    }, dryrun=True, save_state=False)
+    }
+
+    changes = changes_prod if ENV == Environment.prod else (changes_prod | changes_non_prod)
+
+    dm.deploy(changes, dryrun=False, save_state=True)
 
 
 def console():

@@ -19,13 +19,16 @@ class DeploymentContext():
     env: Environment
     owner: Account
     config: dict[str, Any] = field(default_factory=dict)
-    # TODO gas_strategy?
+    gas_func: Callable = None
 
     def __getitem__(self, key):
         return self.contract[key] if key in self.contract else self.config[key]
 
     def keys(self):
         return self.contract.keys() | self.config.keys()
+
+    def gas_options(self):
+        return self.gas_func(self) if self.gas_func is not None else {}
 
 
 @dataclass
@@ -78,7 +81,7 @@ class ExternalContract(ContractConfig):
             print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        args = [{'from': context.owner.address}]
+        args = [{'from': context.owner.address} | context.gas_options()]
         print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)})")
         if not dryrun:
             self.contract = self.container.deploy(*args)
@@ -109,7 +112,7 @@ class Token(ExternalContract):
             print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        args = [self.name, self.name, 18, 10**30, {'from': context.owner.address}]
+        args = [self.name, self.name, 18, 10**30, {'from': context.owner.address} | context.gas_options()]
         print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}) [{self.name}]")
         if not dryrun:
             self.contract = self.container.deploy(*args)
@@ -142,7 +145,7 @@ class InternalContract(ContractConfig):
         return [context[c].contract for c in self.deployment_args_contracts]
 
     def deployment_options(self, context: DeploymentContext) -> dict[str, Any]:
-        return {'from': context.owner.address}
+        return {'from': context.owner.address} | context.gas_options()
 
     def deployable(self, contract: DeploymentContext) -> bool:
         return True

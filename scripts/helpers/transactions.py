@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable
 from .types import DeploymentContext, Environment
+from brownie import chain
 
 
 @dataclass
@@ -24,13 +25,13 @@ class Transaction:
         # next line is to make sure no more funds can be moved after migration started
         execute(context, "lending_pool_core", "setLendingPoolPeripheralAddress", "lpc_migration_01", dryrun=dryrun)
 
-        legacy = context["legacy_lending_pool_core"].contract
         lpcore = context["lending_pool_core"].contract
-        for lender in legacy.lendersArray():
-            funds = legacy.funds(lender)
+        lpc_migration_01 = context["lpc_migration_01"].contract
+        for lender in lpc_migration_01.lendersArray():
+            funds = lpc_migration_01.funds(lender)
             print(f"## lpcore.migrateLender({','.join(str(x) for x in [lender, funds[0], funds[1], funds[2], funds[3], funds[5]])})")
             if not dryrun:
-                lpcore.migrateLender(lender, funds[0], funds[1], funds[2], funds[3], funds[5], {'from:': context.owner})
+                lpcore.migrateLender(lender, funds[0], funds[1], funds[2], funds[3], funds[5], {'from:': context.owner} | context.gas_options())
 
         # execute(context, "lpc_migration_01", "migrate", dryrun=dryrun, options={"gas_limit":1200000,"allow_revert":True})
         execute(context, "lpc_migration_01", "migrate", dryrun=dryrun)
@@ -40,10 +41,14 @@ class Transaction:
     def lplock_migrate(context: DeploymentContext, dryrun: bool = False):
         lending_pool_lock = context["lending_pool_lock"].contract
         legacy_lending_pool_core = context["legacy_lending_pool_core"].contract
-        lenders_with_active_locks = context["lenders_with_active_locks"]
+        lpc_migration_01 = context["lpc_migration_01"].contract
+        lenders_with_active_locks = [
+            lender for lender in lpc_migration_01.lendersArray()
+            if lpc_migration_01.lockPeriodEnd(lender) >= chain.time()
+        ] if dm.env != ENV.local else []
         print(f"## lending_pool_lock.migrate(legacy_lending_pool_core, {lenders_with_active_locks})")
         if not dryrun:
-            lending_pool_lock.migrate(legacy_lending_pool_core, lenders_with_active_locks, {"from": context.owner})
+            lending_pool_lock.migrate(legacy_lending_pool_core, lenders_with_active_locks, {"from": context.owner} | context.gas_options())
 
     @staticmethod
     def lpperiph_set_loansperiph(context: DeploymentContext, dryrun: bool = False):
@@ -139,7 +144,7 @@ class Transaction:
         for nft, value_eth in nft_borrowable_amounts.items():
             value_wei = value_eth * 1e18
             address = context[nft].address()
-            args = [True, address, value_wei, {"from": context.owner}]
+            args = [True, address, value_wei, {"from": context.owner} | context.gas_options()]
             if dryrun:
                 print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
             elif contract_instance.maxCollectionBorrowableAmount(address) != value_wei:
@@ -155,4 +160,4 @@ def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun:
     if not dryrun:
         function = getattr(contract_instance, func)
         deploy_args = [context[a].address() for a in args]
-        return function(*deploy_args, {"from": context.owner} | (options or {}))
+        return function(*deploy_args, {"from": context.owner} | context.gas_options() | (options or {}))
