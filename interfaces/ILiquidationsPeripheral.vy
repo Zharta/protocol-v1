@@ -333,11 +333,6 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
 
 @payable
 @external
-def buyNFTGracePeriod(_collateralAddress: address, _tokenId: uint256):
-    pass
-
-@payable
-@external
 def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
     pass
 

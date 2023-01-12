@@ -127,50 +127,6 @@ class Transaction:
         execute(context, "liquidations_peripheral", "setSushiRouterAddress", "sushirouter", dryrun=dryrun)
 
     @staticmethod
-    def loansperiph_add_collateral_cool_cats(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "cool_cats", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_hashmasks(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "hashmasks", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_bakc(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "bakc", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_doodles(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "doodles", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_wow(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "wow", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_mayc(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "mayc", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_veefriends(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "veefriends", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_pudgy_penguins(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "pudgy_penguins", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_bayc(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "bayc", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_wpunks(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "wpunks", dryrun=dryrun)
-
-    @staticmethod
-    def loansperiph_add_collateral_punks(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "loans", "addCollateralToWhitelist", "cryptopunks", dryrun=dryrun)
-
-    @staticmethod
     def liquiditycontrols_change_collectionborrowableamounts(context: DeploymentContext, dryrun: bool = False):
         nft_borrowable_amounts = context["nft_borrowable_amounts"]
         contract_instance = context["liquidity_controls"].contract

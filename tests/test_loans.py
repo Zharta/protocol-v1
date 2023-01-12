@@ -165,10 +165,6 @@ def test_set_default_lender_zeroaddress(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(
@@ -247,10 +243,6 @@ def test_set_default_lender_zeroaddress(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -442,237 +434,6 @@ def test_set_lending_pool_address(
     assert event["newValue"] == lending_pool_peripheral_contract
 
 
-def test_add_address_to_whitelist_wrong_sender(
-    loans_peripheral_contract, erc721_contract, borrower
-):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.addCollateralToWhitelist(
-            erc721_contract, {"from": borrower}
-        )
-
-
-def test_add_address_to_whitelist_zero_address(
-    loans_peripheral_contract, contract_owner
-):
-    with brownie.reverts("_address is the zero address"):
-        loans_peripheral_contract.addCollateralToWhitelist(
-            brownie.ZERO_ADDRESS, {"from": contract_owner}
-        )
-
-
-def test_add_address_to_whitelist_not_contract_address(
-    loans_peripheral_contract, contract_owner
-):
-    with brownie.reverts("_address is not a contract"):
-        loans_peripheral_contract.addCollateralToWhitelist(
-            "0xd8da6bf26964af9d7eed9e03e53415d37aa96045", {"from": contract_owner}
-        )
-
-
-@pytest.mark.skip
-def test_add_address_to_whitelist_not_ERC721_contract(
-    loans_peripheral_contract, erc20_contract, contract_owner
-):
-    with brownie.reverts(""):
-        loans_peripheral_contract.addCollateralToWhitelist(
-            erc20_contract, {"from": contract_owner}
-        )
-
-
-def test_add_address_to_whitelist(
-    loans_peripheral_contract, erc721_contract, contract_owner
-):
-    tx = loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
-    assert loans_peripheral_contract.whitelistedCollaterals(erc721_contract)
-
-    event = tx.events["CollateralToWhitelistAdded"]
-    assert event["value"] == erc721_contract
-
-
-def test_remove_address_from_whitelist_wrong_sender(
-    loans_peripheral_contract, erc721_contract, contract_owner, borrower
-):
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.removeCollateralFromWhitelist(
-            erc721_contract, {"from": borrower}
-        )
-
-
-def test_remove_address_from_whitelist_not_whitelisted(
-    loans_peripheral_contract, erc721_contract, contract_owner
-):
-    with brownie.reverts("collateral is not whitelisted"):
-        loans_peripheral_contract.removeCollateralFromWhitelist(
-            erc721_contract, {"from": contract_owner}
-        )
-
-
-def test_remove_address_from_whitelist(
-    loans_peripheral_contract, erc721_contract, contract_owner
-):
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.whitelistedCollaterals(erc721_contract)
-
-    tx = loans_peripheral_contract.removeCollateralFromWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-    assert not loans_peripheral_contract.whitelistedCollaterals(erc721_contract)
-
-    event = tx.events["CollateralToWhitelistRemoved"]
-    assert event["value"] == erc721_contract
-
-
-def test_change_whitelist_status_wrong_sender(loans_peripheral_contract, investor):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.changeWalletsWhitelistStatus(True, {"from": investor})
-
-
-def test_change_whitelist_status_same_status(loans_peripheral_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
-        loans_peripheral_contract.changeWalletsWhitelistStatus(
-            False, {"from": contract_owner}
-        )
-
-
-def test_change_whitelist_status(loans_peripheral_contract, contract_owner):
-    tx = loans_peripheral_contract.changeWalletsWhitelistStatus(
-        True, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.walletWhitelistEnabled()
-
-    event = tx.events["WalletsWhitelistStatusChanged"]
-    assert event["value"]
-
-    tx = loans_peripheral_contract.changeWalletsWhitelistStatus(
-        False, {"from": contract_owner}
-    )
-    assert not loans_peripheral_contract.walletWhitelistEnabled()
-
-    event = tx.events["WalletsWhitelistStatusChanged"]
-    assert not event["value"]
-
-
-def test_add_whitelisted_address_wrong_sender(loans_peripheral_contract, investor):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.addWhitelistedWallet(investor, {"from": investor})
-
-
-def test_add_whitelisted_address_zero_address(
-    loans_peripheral_contract, contract_owner
-):
-    with brownie.reverts("_address is the zero address"):
-        loans_peripheral_contract.addWhitelistedWallet(
-            brownie.ZERO_ADDRESS, {"from": contract_owner}
-        )
-
-
-def test_add_whitelisted_address_whitelist_disabled(
-    loans_peripheral_contract, contract_owner, investor
-):
-    with brownie.reverts("wallets whitelist is disabled"):
-        loans_peripheral_contract.addWhitelistedWallet(
-            investor, {"from": contract_owner}
-        )
-
-
-def test_add_whitelisted_address(loans_peripheral_contract, contract_owner, investor):
-    loans_peripheral_contract.changeWalletsWhitelistStatus(
-        True, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.walletWhitelistEnabled()
-
-    tx = loans_peripheral_contract.addWhitelistedWallet(
-        investor, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.walletsWhitelisted(investor)
-
-    event = tx.events["WhitelistedWalletAdded"]
-    assert event["value"] == investor
-
-
-def test_add_whitelisted_address_already_whitelisted(
-    loans_peripheral_contract, contract_owner, investor
-):
-    loans_peripheral_contract.changeWalletsWhitelistStatus(
-        True, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.walletWhitelistEnabled()
-
-    loans_peripheral_contract.addWhitelistedWallet(investor, {"from": contract_owner})
-    assert loans_peripheral_contract.walletsWhitelisted(investor)
-
-    with brownie.reverts("address is already whitelisted"):
-        loans_peripheral_contract.addWhitelistedWallet(
-            investor, {"from": contract_owner}
-        )
-
-
-def test_remove_whitelisted_address_wrong_sender(loans_peripheral_contract, investor):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.removeWhitelistedWallet(investor, {"from": investor})
-
-
-def test_remove_whitelisted_address_zero_address(
-    loans_peripheral_contract, contract_owner
-):
-    with brownie.reverts("_address is the zero address"):
-        loans_peripheral_contract.removeWhitelistedWallet(
-            brownie.ZERO_ADDRESS, {"from": contract_owner}
-        )
-
-
-def test_remove_whitelisted_address_whitelist_disabled(
-    loans_peripheral_contract, contract_owner, investor
-):
-    with brownie.reverts("wallets whitelist is disabled"):
-        loans_peripheral_contract.removeWhitelistedWallet(
-            investor, {"from": contract_owner}
-        )
-
-
-def test_remove_whitelisted_address_not_whitelisted(
-    loans_peripheral_contract, contract_owner, investor
-):
-    loans_peripheral_contract.changeWalletsWhitelistStatus(
-        True, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.walletWhitelistEnabled()
-
-    with brownie.reverts("address is not whitelisted"):
-        loans_peripheral_contract.removeWhitelistedWallet(
-            investor, {"from": contract_owner}
-        )
-
-
-def test_remove_whitelisted_address(
-    loans_peripheral_contract, contract_owner, investor
-):
-    loans_peripheral_contract.changeWalletsWhitelistStatus(
-        True, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.walletWhitelistEnabled()
-
-    loans_peripheral_contract.addWhitelistedWallet(investor, {"from": contract_owner})
-    assert loans_peripheral_contract.walletsWhitelisted(investor)
-
-    tx = loans_peripheral_contract.removeWhitelistedWallet(
-        investor, {"from": contract_owner}
-    )
-    assert not loans_peripheral_contract.walletsWhitelisted(investor)
-
-    event = tx.events["WhitelistedWalletRemoved"]
-    assert event["value"] == investor
-
-
 def test_change_contract_status_wrong_sender(loans_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.changeContractStatus(False, {"from": borrower})
@@ -764,15 +525,9 @@ def test_create_not_accepting_loans(
 def test_create_maturity_in_the_past(
     loans_peripheral_contract,
     create_signature,
-    erc721_contract,
-    contract_owner,
     borrower,
     test_collaterals,
 ):
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     maturity = int(dt.datetime.now().timestamp()) - 3600
     (v, r, s) = create_signature(maturity=maturity)
 
@@ -793,15 +548,9 @@ def test_create_maturity_in_the_past(
 def test_create_maturity_too_long(
     loans_peripheral_contract,
     create_signature,
-    erc721_contract,
-    contract_owner,
     borrower,
     test_collaterals,
 ):
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     maturity = int(dt.datetime.now().timestamp()) + MAX_LOAN_DURATION * 2
     (v, r, s) = create_signature(maturity=maturity)
     with brownie.reverts("maturity exceeds the max allowed"):
@@ -809,24 +558,6 @@ def test_create_maturity_too_long(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             maturity,
-            test_collaterals,
-            VALIDATION_DEADLINE,
-            v,
-            r,
-            s,
-            {"from": borrower},
-        )
-
-
-def test_create_collateral_notwhitelisted(
-    loans_peripheral_contract, create_signature, borrower, test_collaterals
-):
-    (v, r, s) = create_signature()
-    with brownie.reverts("not all NFTs are accepted"):
-        loans_peripheral_contract.reserveEth(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
             test_collaterals,
             VALIDATION_DEADLINE,
             v,
@@ -850,10 +581,6 @@ def test_create_collaterals_not_owned(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     erc721_contract.mint(investor, 0, {"from": contract_owner})
@@ -887,10 +614,6 @@ def test_create_loan_collateral_not_approved(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -928,10 +651,6 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
@@ -966,10 +685,6 @@ def test_create_loan_unsufficient_funds_in_lp(
     borrower,
     test_collaterals,
 ):
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
 
@@ -1012,10 +727,6 @@ def test_create_loan_outside_pool_share(
     contract_owner.transfer(to=investor, amount=Web3.toWei(15, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": LOAN_AMOUNT * 2}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -1061,10 +772,6 @@ def test_create_loan_outside_collection_share(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(
@@ -1074,53 +781,6 @@ def test_create_loan_outside_collection_share(
     (v, r, s) = create_signature()
 
     with brownie.reverts("max collection share surpassed"):
-        loans_peripheral_contract.reserveEth(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            VALIDATION_DEADLINE,
-            v,
-            r,
-            s,
-            {"from": borrower},
-        )
-
-
-@pytest.mark.require_network("ganache-mainnet-fork")
-def test_create_loan_wallet_not_whitelisted(
-    loans_peripheral_contract,
-    create_signature,
-    lending_pool_peripheral_contract,
-    collateral_vault_core_contract,
-    erc721_contract,
-    contract_owner,
-    investor,
-    borrower,
-    test_collaterals,
-):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(15, "ether"))
-    lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(15, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
-    for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
-    )
-
-    loans_peripheral_contract.changeWalletsWhitelistStatus(
-        True, {"from": contract_owner}
-    )
-
-    (v, r, s) = create_signature()
-
-    with brownie.reverts("msg.sender is not whitelisted"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -1150,10 +810,6 @@ def test_create_loan(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -1223,10 +879,6 @@ def test_create_loan_wrong_signature(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(
@@ -1288,10 +940,6 @@ def test_create_loan_past_signature_deadline(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(
@@ -1335,10 +983,6 @@ def test_create_loan_within_pool_share(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -1407,86 +1051,11 @@ def test_create_loan_within_collection_share(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(
         collateral_vault_core_contract, True, {"from": borrower}
     )
-
-    (v, r, s) = create_signature()
-
-    tx_create_loan = loans_peripheral_contract.reserveEth(
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        VALIDATION_DEADLINE,
-        v,
-        r,
-        s,
-        {"from": borrower},
-    )
-    loan_id = tx_create_loan.return_value
-
-    loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    assert loan_details["id"] == loan_id
-    assert loan_details["amount"] == LOAN_AMOUNT
-    assert loan_details["interest"] == LOAN_INTEREST
-    assert loan_details["paidPrincipal"] == 0
-    assert loan_details["paidInterestAmount"] == 0
-    assert loan_details["maturity"] == MATURITY
-    assert len(loan_details["collaterals"]) == 5
-    assert loan_details["collaterals"] == test_collaterals
-    assert loan_details["started"] == True
-    assert loan_details["invalidated"] == False
-    assert loan_details["paid"] == False
-    assert loan_details["defaulted"] == False
-    assert loan_details["canceled"] == False
-
-    for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
-
-    event = tx_create_loan.events["LoanCreated"]
-    assert event["wallet"] == borrower
-    assert event["loanId"] == 0
-
-
-@pytest.mark.require_network("ganache-mainnet-fork")
-def test_create_loan_wallet_whitelist_enabled(
-    loans_peripheral_contract,
-    create_signature,
-    loans_core_contract,
-    lending_pool_peripheral_contract,
-    collateral_vault_core_contract,
-    erc721_contract,
-    contract_owner,
-    borrower,
-    investor,
-    test_collaterals,
-):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
-    for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
-    )
-
-    loans_peripheral_contract.changeWalletsWhitelistStatus(
-        True, {"from": contract_owner}
-    )
-    loans_peripheral_contract.addWhitelistedWallet(borrower, {"from": contract_owner})
 
     (v, r, s) = create_signature()
 
@@ -1551,10 +1120,6 @@ def test_pay_loan_defaulted(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(
@@ -1605,10 +1170,6 @@ def test_pay_loan_insufficient_balance(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -1665,10 +1226,6 @@ def test_pay_loan_insufficient_allowance(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -1729,10 +1286,6 @@ def test_pay_loan(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
@@ -1844,10 +1397,6 @@ def test_pay_loan_already_paid(
         {"from": investor, "value": Web3.toWei(1, "ether")}
     )
 
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
-    )
-
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(
@@ -1923,10 +1472,6 @@ def test_set_default_loan(
     contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
         {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
-
-    loans_peripheral_contract.addCollateralToWhitelist(
-        erc721_contract, {"from": contract_owner}
     )
 
     for k in range(5):
