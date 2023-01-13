@@ -482,6 +482,17 @@ def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
 def lenderFunds(_lender: address) -> InvestorFunds:
     return ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender)
 
+@view
+@external
+def lockedAmount(_lender: address) -> uint256:
+    if not ILiquidityControls(self.liquidityControlsContract).lockPeriodEnabled():
+        return 0
+
+    lockPeriod: InvestorLock = ILendingPoolLock(self.lendingPoolLockContract).investorLocks(_lender)
+    if lockPeriod.lockPeriodEnd < block.timestamp:
+        return 0
+    return lockPeriod.lockPeriodAmount
+
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
