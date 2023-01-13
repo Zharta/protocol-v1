@@ -63,7 +63,7 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         LiquidationsPeripheralContract(None),
         LiquidityControlsContract(None),
         LPCMigration01Contract(None),
-        WETH9MockContract(None) if env == Environment.dev else Token("weth", "token", None),
+        WETH9MockContract(None) if env != Environment.prod else Token("weth", "token", None),
     ]]
 
 
