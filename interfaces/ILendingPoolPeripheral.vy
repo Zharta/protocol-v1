@@ -232,6 +232,11 @@ def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
 def lenderFunds(_lender: address) -> InvestorFunds:
     pass
 
+@view
+@external
+def lockedAmount(_lender: address) -> uint256:
+    pass
+
 @external
 def proposeOwner(_address: address):
     pass
