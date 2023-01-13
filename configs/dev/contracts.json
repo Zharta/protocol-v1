@@ -7,8 +7,11 @@
             "collateral_vault_peripheral": {
                 "contract": "0xDE74ad60cf97019138C7B2Af9941F8eBA2e6CB98"
             },
+            "cryptopunks_vault_core": {
+                "contract": "0xa52130A70cC1Edd96D38054D00CBa4797450a264"
+            },
             "lending_pool": {
-                "contract": "0xfC3F18081011A336bC0555106c9E9155C036f9c7"
+                "contract": "0xf4069481Fbd61b0594ffF33Ee0aA418f26C8F54E"
             },
             "lending_pool_core": {
                 "contract": "0xb6e0f96316514FD56C15Eca2E06aaDc1b4479df1"
@@ -26,7 +29,7 @@
                 "contract": "0xFa8D60a18382BC4d9b020E56F8f296143FA65665"
             },
             "loans": {
-                "contract": "0x6b83b5aa26Cb7dE339789cF07C1CcB0FC1e87EfE"
+                "contract": "0xF9d53012F31f77a505Bcef9Ad49C9219AceFEF4f"
             },
             "loans_core": {
                 "contract": "0x069ab4a75F16175914c33d423c727C49Bb6651Da"
