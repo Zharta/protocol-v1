@@ -45,7 +45,7 @@ class Transaction:
         lenders_with_active_locks = [
             lender for lender in lpc_migration_01.lendersArray()
             if lpc_migration_01.lockPeriodEnd(lender) >= chain.time()
-        ] if dm.env != ENV.local else []
+        ] if context["lenders_with_active_locks"] else []
         print(f"## lending_pool_lock.migrate(legacy_lending_pool_core, {lenders_with_active_locks})")
         if not dryrun:
             lending_pool_lock.migrate(legacy_lending_pool_core, lenders_with_active_locks, {"from": context.owner} | context.gas_options())
@@ -67,12 +67,20 @@ class Transaction:
         execute(context, "collateral_vault_core", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
 
     @staticmethod
+    def punksvault_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
+        execute(context, "cryptopunks_vault_core", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
+
+    @staticmethod
     def cvperiph_add_loansperiph(context: DeploymentContext, dryrun: bool = False):
         execute(context, "collateral_vault_peripheral", "addLoansPeripheralAddress", "weth", "loans", dryrun=dryrun)
 
     @staticmethod
     def cvperiph_set_liquidationsperiph(context: DeploymentContext, dryrun: bool = False):
         execute(context, "collateral_vault_peripheral", "setLiquidationsPeripheralAddress", "liquidations_peripheral", dryrun=dryrun)
+
+    @staticmethod
+    def cvperiph_add_punksvault(context: DeploymentContext, dryrun: bool = False):
+        execute(context, "collateral_vault_peripheral", "addVault", "cryptopunks", "cryptopunks_vault_core", dryrun=dryrun)
 
     @staticmethod
     def loanscore_set_loansperiph(context: DeploymentContext, dryrun: bool = False):

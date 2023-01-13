@@ -11,6 +11,7 @@ from brownie import (
     LendingPoolPeripheral,
     CollateralVaultCore,
     CollateralVaultPeripheral,
+    CryptoPunksVaultCore,
     LPCMigration01,
     LoansCore,
     Loans,
@@ -40,6 +41,23 @@ class CollateralVaultCoreContract(InternalContract):
 
 
 @dataclass
+class CryptoPunksVaultCoreContract(InternalContract):
+
+    def __init__(self, contract: Optional[ProjectContract]):
+        super().__init__(
+            "cryptopunks_vault_core",
+            contract,
+            CryptoPunksVaultCore,
+            container_name="CryptoPunksVaultCore",
+            deployment_deps={"cryptopunks"},
+            config_deps={
+                "collateral_vault_peripheral": Transaction.punksvault_set_cvperiph,
+            },
+            deployment_args_contracts=["cryptopunks"],
+        )
+
+
+@dataclass
 class CollateralVaultPeripheralContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -52,6 +70,7 @@ class CollateralVaultPeripheralContract(InternalContract):
             config_deps={
                 "liquidations_peripheral": Transaction.cvperiph_set_liquidationsperiph,
                 "loans": Transaction.cvperiph_add_loansperiph,
+                "cryptopunks_vault_core": Transaction.cvperiph_add_punksvault,
             },
             deployment_args_contracts=["collateral_vault_core"],
         )

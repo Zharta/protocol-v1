@@ -23,6 +23,7 @@ from .helpers.contracts import (
     LendingPoolPeripheralContract,
     CollateralVaultCoreContract,
     CollateralVaultPeripheralContract,
+    CryptoPunksVaultCoreContract,
     LPCMigration01Contract,
     LoansCoreContract,
     LoansPeripheralContract,
@@ -55,6 +56,7 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         LendingPoolPeripheralContract(None),
         CollateralVaultCoreContract(None),
         CollateralVaultPeripheralContract(None),
+        CryptoPunksVaultCoreContract(None),
         LoansCoreContract(None),
         LoansPeripheralContract(None),
         LiquidationsCoreContract(None),
@@ -231,7 +233,7 @@ def main():
 
     changes = changes_prod if ENV == Environment.prod else (changes_prod | changes_non_prod)
 
-    dm.deploy(changes, dryrun=False, save_state=True)
+    dm.deploy(changes, dryrun=True, save_state=True)
 
 
 def console():
