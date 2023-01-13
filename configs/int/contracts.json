@@ -11,31 +11,31 @@
                 "contract": "0xB8059Ea2939c38267197ddaC8C031Ef3F841EcF8"
             },
             "lending_pool": {
-                "contract": "0xa6F34405597448c19610851FD4e18b1C848fC52A"
+                "contract": "0xB6d6A9D1A883e3e6c9777a3D262DC2eb010B0aab"
             },
             "lending_pool_core": {
-                "contract": "0xD6fC975FE58391255Da3Bb1BF94FAAf94D753c12"
+                "contract": "0xE591DE9ff6FEd919AD0bD2128F0ce3178FE03e07"
             },
             "lending_pool_lock": {
-                "contract": "0x22C705719C29F294926e313A8B6409d79Ea80E0b"
+                "contract": "0x1585827FC2A43bB6Be0282baffc72191A575772A"
             },
             "liquidations_core": {
                 "contract": "0xF4edc1fBF757AABd6025E64299e033944FD26334"
             },
             "liquidations_peripheral": {
-                "contract": "0x7e1886284CE328e4D3a51892E70a20E048eaEE93"
+                "contract": "0x33dDb4BdEc39A83C6C907e9d276aA4cf9932731C"
             },
             "liquidity_controls": {
                 "contract": "0x3f498B310470C0d3F0aB95394742b8bE085d9776"
             },
             "loans": {
-                "contract": "0xF980020387415B36B29FE4D4238C64e93d8ceF10"
+                "contract": "0xf0f73Ee9ca2A753a8447fcC7B883Ed56A14ba88C"
             },
             "loans_core": {
                 "contract": "0x9917771853d4aB45e2132E4942E570d4A1d84cCb"
             },
             "token": {
-                "contract": "0x904c57d10aCF01aEeAD2e522e44B0182dcDc3Cc6"
+                "contract": "0x68a6fa525b07Ee9eC7784e8235FCb8C568692c9D"
             }
         }
     }
