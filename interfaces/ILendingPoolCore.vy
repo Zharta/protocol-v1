@@ -7,14 +7,6 @@ struct InvestorFunds:
     sharesBasisPoints: uint256
     activeForRewards: bool
 
-struct LegacyInvestorFunds:
-    currentAmountDeposited: uint256
-    totalAmountDeposited: uint256
-    totalAmountWithdrawn: uint256
-    sharesBasisPoints: uint256
-    lockPeriodEnd: uint256
-    activeForRewards: bool
-
 # Events
 
 event OwnerProposed:
@@ -142,6 +134,10 @@ def sharesBasisPoints(_lender: address) -> uint256:
 @view
 @external
 def activeForRewards(_lender: address) -> bool:
+    pass
+
+@external
+def migrateLender(_wallet: address, _currentAmountDeposited: uint256, _totalAmountDeposited: uint256, _totalAmountWithdrawn: uint256, _sharesBasisPoints: uint256, _activeForRewards: bool):
     pass
 
 @external

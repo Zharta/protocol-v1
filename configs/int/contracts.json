@@ -4,35 +4,38 @@
             "collateral_vault_core": {
                 "contract": "0x170a934DB411912D2D557F28B3866b994e246b83"
             },
-            "cryptopunks_vault_core": {
-                "contract": "0xB8059Ea2939c38267197ddaC8C031Ef3F841EcF8"
-            },
             "collateral_vault_peripheral": {
                 "contract": "0x5Be5079A3fBf52c6Bf853870a48b8Aa26AD41529"
             },
-            "lending_pool_core" : {
-                "contract": "0x423bb9CC3746b936F46785aEfDbb28F35D65b10b"
+            "cryptopunks_vault_core": {
+                "contract": "0xB8059Ea2939c38267197ddaC8C031Ef3F841EcF8"
             },
             "lending_pool": {
-                "contract": "0x5A4b9aeFcEd0BBAf2a5cf81852b2Acb666ADEF45"
+                "contract": "0xA9987E2995D01cc3Bc966E84427EF199B0f564A4"
             },
-            "liquidations_peripheral": {
-                "contract": "0xF3e0169d520031961F84B95aCeCfb1D28e6Fd17F"
+            "lending_pool_core": {
+                "contract": "0xE591DE9ff6FEd919AD0bD2128F0ce3178FE03e07"
+            },
+            "lending_pool_lock": {
+                "contract": "0x1585827FC2A43bB6Be0282baffc72191A575772A"
             },
             "liquidations_core": {
-                "contract": "0xC576a9Db2f307dA4C6C332913E860C839280C561"
+                "contract": "0xF4edc1fBF757AABd6025E64299e033944FD26334"
+            },
+            "liquidations_peripheral": {
+                "contract": "0x33dDb4BdEc39A83C6C907e9d276aA4cf9932731C"
             },
             "liquidity_controls": {
-                "contract": "0x3f498B310470C0d3F0aB95394742b8bE085d9776"
+                "contract": "0xC5bDDb6a64B0045b59402A05fb8493ee5913350E"
             },
             "loans": {
-                "contract": "0x70b3F500cD5736DBD1d344Fe2fE73cc70e34900A"
+                "contract": "0x74cE8a88DBeb8E579894452B4Acb22dabBC6C004"
             },
             "loans_core": {
                 "contract": "0x9917771853d4aB45e2132E4942E570d4A1d84cCb"
             },
             "token": {
-                "contract": "0x96D1000886E9F504184068DE3cd1270f0e00b286"
+                "contract": "0x68a6fa525b07Ee9eC7784e8235FCb8C568692c9D"
             }
         }
     }

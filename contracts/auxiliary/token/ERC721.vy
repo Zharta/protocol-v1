@@ -58,6 +58,9 @@ event ApprovalForAll:
 # @dev Mapping from NFT ID to the address that owns it.
 idToOwner: HashMap[uint256, address]
 
+# @dev Mapping from NFT ID to the position in the wallet that owns it.
+idToPositionInWallet: HashMap[uint256, uint256]
+
 # @dev Mapping from NFT ID to approved address.
 idToApprovals: HashMap[uint256, address]
 
@@ -66,6 +69,9 @@ ownerToNFTokenCount: HashMap[address, uint256]
 
 # @dev Mapping from owner address to mapping of operator addresses.
 ownerToOperators: HashMap[address, HashMap[address, bool]]
+
+# @dev Mapping from owner address to NFTs
+wallet: public(HashMap[address, DynArray[uint256, 2**16]])
 
 # @dev Address of minter, who can mint a token
 minter: address
@@ -185,6 +191,10 @@ def _addTokenTo(_to: address, _tokenId: uint256):
     # Change count tracking
     self.ownerToNFTokenCount[_to] += 1
 
+    self.idToPositionInWallet[_tokenId] = len(self.wallet[_to])
+    self.wallet[_to].append(_tokenId)
+
+
 
 @internal
 def _removeTokenFrom(_from: address, _tokenId: uint256):
@@ -198,6 +208,12 @@ def _removeTokenFrom(_from: address, _tokenId: uint256):
     self.idToOwner[_tokenId] = ZERO_ADDRESS
     # Change count tracking
     self.ownerToNFTokenCount[_from] -= 1
+
+    last: uint256 = self.wallet[_from].pop()
+    if last != _tokenId:
+        self.wallet[_from][self.idToPositionInWallet[_tokenId]] = last
+        self.idToPositionInWallet[last] = self.idToPositionInWallet[_tokenId]
+    self.idToPositionInWallet[_tokenId] = max_value(uint256)
 
 
 @internal
@@ -382,3 +398,8 @@ def burn(_tokenId: uint256):
 # @external
 # def tokenURL(tokenId: uint256) -> String[132]:
 #     return concat(self.baseURL, uint2str(tokenId))
+
+@view
+@external
+def walletOf(_wallet: address) -> DynArray[uint256, 2**16]:
+    return self.wallet[_wallet]

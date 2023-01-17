@@ -14,7 +14,7 @@ interface ISushiRouter:
     def getAmountsOut(amountIn: uint256, path: DynArray[address, 2]) -> DynArray[uint256, 2]: view
 
 interface INFTXVaultFactory:
-    def vaultsForAsset(assetAddress: address) -> DynArray[address, 20]: view
+    def vaultsForAsset(assetAddress: address) -> DynArray[address, 2**10]: view
 
 interface INFTXVault:
     def vaultId() -> uint256: view
@@ -258,8 +258,10 @@ def _computeLoanInterestAmount(principal: uint256, interest: uint256, duration: 
 @view
 @internal
 def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
-    assert self.nftxVaultFactoryAddress != empty(address), "nftx vault address not defined"
-    vaultAddrs: DynArray[address, 20] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
+    if self.nftxVaultFactoryAddress == empty(address):
+        return empty(address)
+
+    vaultAddrs: DynArray[address, 2**10] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
     
     if len(vaultAddrs) == 0:
         return empty(address)

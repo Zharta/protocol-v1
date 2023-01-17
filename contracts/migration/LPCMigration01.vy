@@ -6,6 +6,19 @@ from interfaces import ILendingPoolCore
 
 # Structs
 
+interface ILegacyLendingPoolCore:
+    def lockPeriodEnd(_lender: address) -> uint256: view
+    def funds(arg0: address) -> LegacyInvestorFunds: view
+    def lendersArray() -> DynArray[address, 2**5]: view
+
+struct LegacyInvestorFunds:
+    currentAmountDeposited: uint256
+    totalAmountDeposited: uint256
+    totalAmountWithdrawn: uint256
+    sharesBasisPoints: uint256
+    lockPeriodEnd: uint256
+    activeForRewards: bool
+
 struct InvestorFunds:
     currentAmountDeposited: uint256
     totalAmountDeposited: uint256
@@ -39,6 +52,20 @@ def __init__(_from: address, _to: address):
     self.oldContract = _from
     self.newContract = _to
 
+@view
+@external
+def lockPeriodEnd(_lender: address) -> uint256:
+    return ILegacyLendingPoolCore(self.oldContract).lockPeriodEnd(_lender)
+
+@view
+@external
+def lendersArray() -> DynArray[address, 2**50]:
+    return ILegacyLendingPoolCore(self.oldContract).lendersArray()
+
+@view
+@external
+def funds(arg0: address) -> LegacyInvestorFunds:
+    return ILegacyLendingPoolCore(self.oldContract).funds(arg0)
 
 @external
 def migrate():

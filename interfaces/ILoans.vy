@@ -49,19 +49,7 @@ event OwnerProposed:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxLoansChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event MaxLoanDurationChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
-event MaxLoanAmountChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
@@ -71,16 +59,6 @@ event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
     newValue: uint256
-    erc20TokenContract: address
-
-event CollateralToWhitelistAdded:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
-    erc20TokenContract: address
-
-event CollateralToWhitelistRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
     erc20TokenContract: address
 
 event LendingPoolPeripheralAddressSet:
@@ -105,21 +83,6 @@ event LiquidityControlsAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
-    erc20TokenContract: address
-
-event WalletsWhitelistStatusChanged:
-    erc20TokenContractIndexed: indexed(address)
-    value: bool
-    erc20TokenContract: address
-
-event WhitelistedWalletAdded:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
-    erc20TokenContract: address
-
-event WhitelistedWalletRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
     erc20TokenContract: address
 
 event ContractStatusChanged:
@@ -182,17 +145,7 @@ def proposedOwner() -> address:
 
 @view
 @external
-def maxAllowedLoans() -> uint256:
-    pass
-
-@view
-@external
 def maxAllowedLoanDuration() -> uint256:
-    pass
-
-@view
-@external
-def maxLoanAmount() -> uint256:
     pass
 
 @view
@@ -208,11 +161,6 @@ def isAcceptingLoans() -> bool:
 @view
 @external
 def isDeprecated() -> bool:
-    pass
-
-@view
-@external
-def whitelistedCollaterals(arg0: address) -> bool:
     pass
 
 @view
@@ -240,16 +188,6 @@ def liquidationsPeripheralContract() -> address:
 def liquidityControlsContract() -> address:
     pass
 
-@view
-@external
-def walletWhitelistEnabled() -> bool:
-    pass
-
-@view
-@external
-def walletsWhitelisted(arg0: address) -> bool:
-    pass
-
 @external
 def proposeOwner(_address: address):
     pass
@@ -259,27 +197,11 @@ def claimOwnership():
     pass
 
 @external
-def changeMaxAllowedLoans(_value: uint256):
-    pass
-
-@external
 def changeMaxAllowedLoanDuration(_value: uint256):
     pass
 
 @external
-def changeMaxLoanAmount(_value: uint256):
-    pass
-
-@external
 def changeInterestAccrualPeriod(_value: uint256):
-    pass
-
-@external
-def addCollateralToWhitelist(_address: address):
-    pass
-
-@external
-def removeCollateralFromWhitelist(_address: address):
     pass
 
 @external
@@ -296,18 +218,6 @@ def setLiquidationsPeripheralAddress(_address: address):
 
 @external
 def setLiquidityControlsAddress(_address: address):
-    pass
-
-@external
-def changeWalletsWhitelistStatus(_flag: bool):
-    pass
-
-@external
-def addWhitelistedWallet(_address: address):
-    pass
-
-@external
-def removeWhitelistedWallet(_address: address):
     pass
 
 @external
