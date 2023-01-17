@@ -5,13 +5,15 @@ from .types import InternalContract, DeploymentContext
 from .transactions import Transaction
 
 from brownie import (
+    LendingPoolCore,
+    LendingPoolLock,
+    LendingPoolPeripheral,
     CollateralVaultCore,
     CollateralVaultPeripheral,
     CryptoPunksMarketMock,
     CryptoPunksVaultCore,
-    LendingPoolCore,
-    LendingPoolLock,
-    LendingPoolPeripheral,
+    LoansCore,
+    Loans,
     LiquidationsCore,
     LiquidationsPeripheral,
     LiquidityControls,
