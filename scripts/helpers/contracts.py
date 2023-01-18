@@ -266,7 +266,7 @@ class LiquidationsPeripheralContract(InternalContract):
                 "collateral_vault_peripheral": Transaction.liquidationsperiph_set_cvperiph,
                 "nftxvaultfactory": Transaction.liquidationsperiph_set_nftxvaultfactory,
                 "nftxmarketplacezap": Transaction.liquidationsperiph_set_nftxmarketplacezap,
-                "sushirouter, ": Transaction.liquidationsperiph_set_sushirouter,
+                "sushirouter": Transaction.liquidationsperiph_set_sushirouter,
                 "wpunks": Transaction.liquidationsperiph_set_wpunks,
             },
         )
