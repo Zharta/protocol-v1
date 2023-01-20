@@ -185,7 +185,7 @@ class DeploymentManager:
         self.deploy(self.context.contract.keys(), dryrun=dryrun, save_state=save_state)
 
 def gas_cost(context):
-    return {'gas_price': '10 gwei'}
+    return {'gas_price': '32 gwei'}
 
 def main():
 
@@ -197,28 +197,14 @@ def main():
     lending_pool_core.contract = None
     del lending_pool_core.container[-1]
 
+    print(lending_pool_core.container)
+
     legacy_core = LegacyLendingPoolCoreContract(None)
     legacy_core.contract = legacy_core.container.at(lpc_address)
     dm.context.contract["legacy_lending_pool_core"] = legacy_core
 
     dm.context.config["lenders_with_active_locks"] = True
     dm.context.config["run_lpc_migration_01"] = True
-
-    changes_non_prod = {
-        "weth",
-        "loans_core",
-        "cool_cats",
-        "hashmasks",
-        "bakc",
-        "doodles",
-        "wow",
-        "mayc",
-        "veefriends",
-        "pudgy_penguins",
-        "bayc",
-        "wpunks",
-        "cryptopunks"
-    }
 
     changes_prod = {
         "lending_pool_core",
@@ -231,9 +217,7 @@ def main():
         "loans",
     }
 
-    changes = changes_prod if ENV == Environment.prod else (changes_prod | changes_non_prod)
-
-    dm.deploy(changes, dryrun=True, save_state=True)
+    dm.deploy(changes_prod, dryrun=True, save_state=True)
 
 
 def console():
