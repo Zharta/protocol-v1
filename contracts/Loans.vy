@@ -201,6 +201,10 @@ RESERVE_TYPE_HASH: constant(bytes32) = keccak256(RESERVE_TYPE_DEF)
 reserve_message_typehash: bytes32
 reserve_sig_domain_separator: bytes32
 
+DURATION_7_DAYS: constant(uint256) = 7776000
+DURATION_30_DAYS: constant(uint256) = 2592000
+DURATION_89_DAYS: constant(uint256) = 7689600
+
 
 @external
 def __init__(
@@ -292,7 +296,6 @@ def _withinCollectionShareLimit(_collaterals: DynArray[Collateral, 100]) -> bool
 
     return True
 
-
 @pure
 @internal
 def _loanPayableAmount(
@@ -303,7 +306,11 @@ def _loanPayableAmount(
     _timePassed: uint256,
     _interestAccrualPeriod: uint256
 ) -> uint256:
-    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (_timePassed + _interestAccrualPeriod)) / (10000 * _maxLoanDuration)
+    minimum_interest_period: uint256 = DURATION_30_DAYS
+    if _maxLoanDuration <= DURATION_89_DAYS:
+        minimum_interest_period = DURATION_7_DAYS
+
+    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (max(_timePassed, minimum_interest_period) + _interestAccrualPeriod)) / (10000 * _maxLoanDuration)
 
 
 @pure
