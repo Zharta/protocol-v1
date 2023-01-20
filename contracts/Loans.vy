@@ -133,6 +133,7 @@ event LoanCreated:
     wallet: address
     loanId: uint256
     erc20TokenContract: address
+    apr: uint256 # calculated from the interest to 360 days, in bps
 
 event LoanPayment:
     walletIndexed: indexed(address)
@@ -359,7 +360,7 @@ def _reserve(
 ) -> uint256:
     assert not self.isDeprecated, "contract is deprecated"
     assert self.isAcceptingLoans, "contract is not accepting loans"
-    assert block.timestamp <= _maturity, "maturity is in the past"
+    assert block.timestamp < _maturity, "maturity is in the past"
     assert block.timestamp <= _deadline, "deadline has passed"
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
@@ -404,7 +405,8 @@ def _reserve(
         msg.sender,
         msg.sender,
         newLoanId,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+        _interest * 360 / (_maturity - block.timestamp)
     )
 
     ILoansCore(self.loansCoreContract).updateLoanStarted(msg.sender, newLoanId)

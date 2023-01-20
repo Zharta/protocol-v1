@@ -93,6 +93,7 @@ event LoanCreated:
     wallet: address
     loanId: uint256
     erc20TokenContract: address
+    apr: uint256
 
 event LoanPayment:
     walletIndexed: indexed(address)
