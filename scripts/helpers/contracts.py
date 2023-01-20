@@ -209,7 +209,6 @@ class LoansPeripheralContract(InternalContract):
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         return [
-            31 * 86400,
             24 * 60 * 60,
             context["loans_core"].contract,
             context["lending_pool_peripheral"].contract,
