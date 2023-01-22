@@ -36,7 +36,6 @@ interface INonERC721Vault:
     def isApproved(_tokenId: uint256, _wallet: address) -> bool: view
 
 
-
 # Structs
 
 struct Collateral:
@@ -823,5 +822,3 @@ def settleDefault(_borrower: address, _loanId: uint256):
         loan.amount,
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
-
-

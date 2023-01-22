@@ -412,14 +412,6 @@ def _transferReceivedFunds(
 
 
 @internal
-def delete_receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256):
-    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
-    rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
-
-    self._transferReceivedFunds(_borrower, self, _amount, rewardsPool, rewardsProtocol, _investedAmount, "loan")
-
-
-@internal
 def _receiveFundsFromLiquidation(
     _borrower: address,
     _payer: address,
@@ -449,6 +441,7 @@ def _unwrap_and_send(_to: address, _amount: uint256):
     IWETH(self.erc20TokenContract).withdraw(_amount)
     send(_to, _amount)
     log PaymentSent(_to, _to, _amount)
+
 
 @internal
 def _wrap_and_approve(_to: address, _amount: uint256):
@@ -528,6 +521,7 @@ def __init__(
 @external
 @payable
 def __default__():
+    assert msg.sender == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, "msg.sender is not the WETH addr"
     log PaymentReceived(msg.sender, msg.sender, msg.value)
 
 
