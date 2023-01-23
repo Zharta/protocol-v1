@@ -196,7 +196,7 @@ ZHARTA_DOMAIN_NAME: constant(String[6]) = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
 COLLATERAL_TYPE_DEF: constant(String[66]) = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-RESERVE_TYPE_DEF: constant(String[196]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)" \
+RESERVE_TYPE_DEF: constant(String[210]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline,uint256 nonce)" \
                                           "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 DOMAIN_TYPE_HASH: constant(bytes32) = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
 COLLATERAL_TYPE_HASH: constant(bytes32) = keccak256(COLLATERAL_TYPE_DEF)
@@ -327,6 +327,7 @@ def _recoverReserveSigner(
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
     _deadline: uint256,
+    _nonce: uint256,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -346,6 +347,7 @@ def _recoverReserveSigner(
                 _maturity,
                 keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))),
                 _deadline,
+                _nonce
                 ))
 
     sig_hash: bytes32 = keccak256(concat(convert("\x19\x01", Bytes[2]), _abi_encode(self.reserve_sig_domain_separator, data_hash)))
@@ -361,6 +363,7 @@ def _reserve(
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
     _deadline: uint256,
+    _nonce: uint256,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -383,7 +386,11 @@ def _reserve(
     ), "max loans pool share surpassed"
     assert self._withinCollectionShareLimit(_collaterals), "max collection share surpassed"
 
-    signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
+    assert not ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _nonce), "loan already created"
+    if _nonce > 0:
+        assert ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _nonce - 1), "loan is not sequential"
+    
+    signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _deadline, _nonce, _v, _r, _s)
     assert signer == self.owner, "invalid message signature"
 
     newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
@@ -632,6 +639,7 @@ def reserveWeth(
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
     _deadline: uint256,
+    _nonce: uint256,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -650,7 +658,7 @@ def reserveWeth(
     @return The loan id
     """
 
-    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _nonce, _v, _r, _s)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsWeth(
         msg.sender,
@@ -667,6 +675,7 @@ def reserveEth(
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
     _deadline: uint256,
+    _nonce: uint256,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -685,7 +694,7 @@ def reserveEth(
     @return The loan id
     """
 
-    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _v, _r, _s)
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _nonce, _v, _r, _s)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsEth(
         msg.sender,
