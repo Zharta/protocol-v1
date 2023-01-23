@@ -1519,7 +1519,7 @@ def test_set_default_loan(
 
 
 @given(
-    tier=sampled_from([7, 30, 90]),
+    loan_duration=strategy('uint256', min_value=1, max_value=90),
     passed_time=strategy('uint8'),
     interest=strategy('uint256', max_value=10000),
 )
@@ -1535,13 +1535,13 @@ def test_payable_amount(
     borrower,
     investor,
     test_collaterals,
-    tier,
+    loan_duration,
     passed_time,
     interest, contracts_config
 ):
     amount = LOAN_AMOUNT
     now = int(dt.datetime.now().timestamp())
-    maturity = now + tier * 24 * 3600
+    maturity = now + loan_duration * 24 * 3600
 
     contract_owner.transfer(to=investor, amount=amount)
     lending_pool_peripheral_contract.depositEth({"from": investor, "value": amount*5})
@@ -1572,13 +1572,13 @@ def test_payable_amount(
     payable_amount = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.time())
 
     contract_time_passed = chain.time() - loan_details["startTime"]
-    loan_duration = maturity - loan_details["startTime"]
-    minimum_interest_period = 30*86400 if tier ==90 else 7*86400
+    loan_duration_in_contract = maturity - loan_details["startTime"]
+    minimum_interest_period = 30*86400 if loan_duration_in_contract > 30 else 7*86400
 
     payable_duration = max(
         minimum_interest_period,
         contract_time_passed + INTEREST_ACCRUAL_PERIOD - contract_time_passed % INTEREST_ACCRUAL_PERIOD
     )
-    due_amount = amount * (loan_duration * 10000 + interest * payable_duration) // (loan_duration * 10000)
+    due_amount = amount * (loan_duration_in_contract * 10000 + interest * payable_duration) // (loan_duration_in_contract * 10000)
 
     assert payable_amount == due_amount
