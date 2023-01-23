@@ -110,11 +110,6 @@ def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def lending_pool_legacy_core_contract(LegacyLendingPoolCore, erc20_contract, contract_owner):
-    yield LegacyLendingPoolCore.deploy(erc20_contract, {'from': contract_owner})
-
-
-@pytest.fixture(scope="module", autouse=True)
 def lending_pool_lock_contract(LendingPoolLock, erc20_contract, contract_owner):
     yield LendingPoolLock.deploy(erc20_contract, {'from': contract_owner})
 
@@ -236,7 +231,6 @@ def contracts_config(
     cryptopunks_vault_core_contract,
     erc20_contract,
     lending_pool_core_contract,
-    lending_pool_legacy_core_contract,
     lending_pool_lock_contract,
     lending_pool_peripheral_contract,
     liquidations_core_contract,
@@ -251,7 +245,6 @@ def contracts_config(
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
     cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
     lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_legacy_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_lock_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
     lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})

@@ -16,41 +16,6 @@ class Transaction:
         execute(context, "lending_pool_lock", "setLendingPoolPeripheralAddress", "lending_pool_peripheral", dryrun=dryrun)
 
     @staticmethod
-    def lpc_migration_migrate(context: DeploymentContext, dryrun: bool = False):
-        if not context["run_lpc_migration_01"]:
-            print("Skipping lpc_migration_01")
-            return
-        execute(context, "lending_pool_core", "proposeOwner", "lpc_migration_01", dryrun=dryrun)
-        execute(context, "legacy_lending_pool_core", "proposeOwner", "lpc_migration_01", dryrun=dryrun)
-        # next line is to make sure no more funds can be moved after migration started
-        execute(context, "lending_pool_core", "setLendingPoolPeripheralAddress", "lpc_migration_01", dryrun=dryrun)
-
-        lpcore = context["lending_pool_core"].contract
-        lpc_migration_01 = context["lpc_migration_01"].contract
-        for lender in lpc_migration_01.lendersArray():
-            funds = lpc_migration_01.funds(lender)
-            print(f"## lpcore.migrateLender({','.join(str(x) for x in [lender, funds[0], funds[1], funds[2], funds[3], funds[5]])})")
-            if not dryrun:
-                lpcore.migrateLender(lender, funds[0], funds[1], funds[2], funds[3], funds[5], {'from:': context.owner} | context.gas_options())
-
-        # execute(context, "lpc_migration_01", "migrate", dryrun=dryrun, options={"gas_limit":1200000,"allow_revert":True})
-        execute(context, "lpc_migration_01", "migrate", dryrun=dryrun)
-        execute(context, "lending_pool_core", "claimOwnership", dryrun=dryrun)
-
-    @staticmethod
-    def lplock_migrate(context: DeploymentContext, dryrun: bool = False):
-        lending_pool_lock = context["lending_pool_lock"].contract
-        legacy_lending_pool_core = context["legacy_lending_pool_core"].contract
-        lpc_migration_01 = context["lpc_migration_01"].contract
-        lenders_with_active_locks = [
-            lender for lender in lpc_migration_01.lendersArray()
-            if lpc_migration_01.lockPeriodEnd(lender) >= chain.time()
-        ] if context["lenders_with_active_locks"] else []
-        print(f"## lending_pool_lock.migrate(legacy_lending_pool_core, {lenders_with_active_locks})")
-        if not dryrun:
-            lending_pool_lock.migrate(legacy_lending_pool_core, lenders_with_active_locks, {"from": context.owner} | context.gas_options())
-
-    @staticmethod
     def lpperiph_set_loansperiph(context: DeploymentContext, dryrun: bool = False):
         execute(context, "lending_pool_peripheral", "setLoansPeripheralAddress", "loans", dryrun=dryrun)
 

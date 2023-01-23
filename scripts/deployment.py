@@ -18,13 +18,11 @@ from .helpers.types import (
 )
 from .helpers.contracts import (
     LendingPoolCoreContract,
-    LegacyLendingPoolCoreContract,
     LendingPoolLockContract,
     LendingPoolPeripheralContract,
     CollateralVaultCoreContract,
     CollateralVaultPeripheralContract,
     CryptoPunksVaultCoreContract,
-    LPCMigration01Contract,
     LoansCoreContract,
     LoansPeripheralContract,
     LiquidationsCoreContract,
@@ -62,7 +60,6 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         LiquidationsCoreContract(None),
         LiquidationsPeripheralContract(None),
         LiquidityControlsContract(None),
-        LPCMigration01Contract(None),
         WETH9MockContract(None) if env != Environment.prod else Token("weth", "token", None),
     ]]
 
@@ -184,41 +181,45 @@ class DeploymentManager:
     def deploy_all(self, dryrun=False, save_state=True):
         self.deploy(self.context.contract.keys(), dryrun=dryrun, save_state=save_state)
 
+
 def gas_cost(context):
+
     return {'gas_price': '32 gwei'}
+
 
 def main():
 
     dm = DeploymentManager(ENV)
     dm.context.gas_func = gas_cost
 
-    lending_pool_core = dm.context['lending_pool_core']
-    lpc_address = lending_pool_core.contract.address
-    lending_pool_core.contract = None
-    del lending_pool_core.container[-1]
-
-    print(lending_pool_core.container)
-
-    legacy_core = LegacyLendingPoolCoreContract(None)
-    legacy_core.contract = legacy_core.container.at(lpc_address)
-    dm.context.contract["legacy_lending_pool_core"] = legacy_core
-
-    dm.context.config["lenders_with_active_locks"] = True
-    dm.context.config["run_lpc_migration_01"] = True
-
-    changes_prod = {
-        "lending_pool_core",
-        "lending_pool_lock",
-        "lpc_migration_01",
-        "lending_pool_peripheral",
-        "liquidations_core",
-        "liquidations_peripheral",
-        "liquidity_controls",
-        "loans",
-    }
-
-    dm.deploy(changes_prod, dryrun=True, save_state=True)
+    changes = set()
+    dm.deploy(changes, dryrun=True)
 
 
 def console():
-    pass
+    dm = DeploymentManager(ENV)
+    cvp = dm.context["collateral_vault_peripheral"].contract
+    cvc = dm.context["collateral_vault_core"].contract
+    pvc = dm.context["cryptopunks_vault_core"].contract
+    lpc = dm.context["lending_pool_core"].contract
+    lpl = dm.context["lending_pool_lock"].contract
+    lpp = dm.context["lending_pool_peripheral"].contract
+    lp = dm.context["loans"].contract
+    lc = dm.context["loans_core"].contract
+    lic = dm.context["liquidations_core"].contract
+    lip = dm.context["liquidations_peripheral"].contract
+    ctrl = dm.context["liquidity_controls"].contract
+
+    weth = dm.context["weth"].contract
+
+    cats = dm.context["cool_cats"].contract
+    masks = dm.context["hashmasks"].contract
+    bakc = dm.context["bakc"].contract
+    doodles = dm.context["doodles"].contract
+    wow = dm.context["wow"].contract
+    mayc = dm.context["mayc"].contract
+    veefriends = dm.context["veefriends"].contract
+    penguins = dm.context["pudgy_penguins"].contract
+    bayc = dm.context["bayc"].contract
+    wpunks = dm.context["wpunks"].contract
+    punks = dm.context["cryptopunks"].contract
