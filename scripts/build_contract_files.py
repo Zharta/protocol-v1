@@ -203,3 +203,18 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
 
 if __name__ == "__main__":
     build_contract_files()
+
+    # Send message to EventBridge notification-bus to notify that the contracts were uploaded
+    # to S3
+    eventbridge = boto3.client("events")
+    eventbridge.put_events(
+        Entries=[
+            {
+                "EventBusName": f"notifications-{env}",
+                "Source": "contracts-uploader",
+                "DetailType": "new-contracts-published",
+                "Detail": json.dumps({})
+            }
+        ]
+    )
+
