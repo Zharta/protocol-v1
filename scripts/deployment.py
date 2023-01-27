@@ -17,17 +17,18 @@ from .helpers.types import (
     Token,
 )
 from .helpers.contracts import (
+    CollateralVaultCoreContract,
+    CollateralVaultPeripheralContract,
+    CryptoPunksMockContract,
+    CryptoPunksVaultCoreContract,
     LendingPoolCoreContract,
     LendingPoolLockContract,
     LendingPoolPeripheralContract,
-    CollateralVaultCoreContract,
-    CollateralVaultPeripheralContract,
-    CryptoPunksVaultCoreContract,
-    LoansCoreContract,
-    LoansPeripheralContract,
     LiquidationsCoreContract,
     LiquidationsPeripheralContract,
     LiquidityControlsContract,
+    LoansCoreContract,
+    LoansPeripheralContract,
     WETH9MockContract,
 )
 
@@ -66,41 +67,63 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
 
 def store_contracts(env: Environment, contracts: list[ContractConfig]):
     config_file = f"{Path.cwd()}/configs/{env.name}/contracts.json"
-    file_struct = {'tokens': {'WETH': {c.config_key(): {'contract': c.address()} for c in contracts}}}
+    file_struct = {
+        'tokens': {
+            'WETH': {
+                c.config_key(): {'contract': c.address()} for c in contracts if not c.nft
+            }
+        }
+    }
     with open(config_file, "w") as f:
         f.write(json.dumps(file_struct, indent=4, sort_keys=True))
 
 
+NFT_STORE_ORDER = [
+    "cool_cats",
+    "hashmasks",
+    "bakc",
+    "doodles",
+    "wow",
+    "mayc",
+    "veefriends",
+    "pudgy_penguins",
+    "bayc",
+    "wpunks",
+    "cryptopunks"
+]
+
 def load_nft_contracts(env: Environment) -> list[NFT]:
     config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
+    order_map = {v: i for i, v in enumerate(NFT_STORE_ORDER)}
     with open(config_file, "r") as f:
         contracts = json.load(f)
 
-    def load(name, pos):
-        if env != Environment.local:
-            return NFT(name, ERC721.at(contracts[pos]["contract"]), pos)
-        else:
-            return NFT(name, None, pos)
+    def load(contract: ContractConfig) -> ContractConfig:
+        idx = order_map[contract.config_key()]
+        address = contracts[idx]["contract"]
+        if address and env != Environment.local:
+            contract.contract = contract.container.at(address)
+        return contract
 
-    return [
-        load("cool_cats", 0),
-        load("hashmasks", 1),
-        load("bakc", 2),
-        load("doodles", 3),
-        load("wow", 4),
-        load("mayc", 5),
-        load("veefriends", 6),
-        load("pudgy_penguins", 7),
-        load("bayc", 8),
-        load("wpunks", 9),
-        load("cryptopunks", 10),
-        # NFT("newnft", ERC721.at(some_addr), 11),
-    ]
+    return [load(c) for c in [
+        NFT("cool_cats", None),
+        NFT("hashmasks", None),
+        NFT("bakc", None),
+        NFT("doodles", None),
+        NFT("wow", None),
+        NFT("mayc", None),
+        NFT("veefriends", None),
+        NFT("pudgy_penguins", None),
+        NFT("bayc", None),
+        NFT("wpunks", None),
+        CryptoPunksMockContract(None) if env != Environment.prod else NFT("cryptopunks", None),
+    ]]
 
 
 def store_nft_contracts(env: Environment, nfts: list[NFT]):
     config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
-    sorted_nfts = sorted(nfts, key=lambda nft: nft.config_order)
+    order_map = {v: i for i, v in enumerate(NFT_STORE_ORDER)}
+    sorted_nfts = sorted(nfts, key=lambda nft: order_map[nft.config_key()])
     file_struct = [{'contract': nft.address()} for nft in sorted_nfts]
 
     with open(config_file, "w") as f:
