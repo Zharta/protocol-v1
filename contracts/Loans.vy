@@ -89,12 +89,6 @@ event OwnerProposed:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxLoanDurationChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
@@ -177,7 +171,6 @@ event PaymentReceived:
 owner: public(address)
 proposedOwner: public(address)
 
-maxAllowedLoanDuration: public(uint256)
 interestAccrualPeriod: public(uint256)
 
 isAcceptingLoans: public(bool)
@@ -207,19 +200,16 @@ reserve_sig_domain_separator: bytes32
 
 @external
 def __init__(
-    _maxAllowedLoanDuration: uint256,
     _interestAccrualPeriod: uint256,
     _loansCoreContract: address,
     _lendingPoolPeripheralContract: address,
     _collateralVaultPeripheralContract: address
 ):
-    assert _maxAllowedLoanDuration > 0, "valor for max duration is 0"
     assert _loansCoreContract != empty(address), "address is the zero address"
     assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
     assert _collateralVaultPeripheralContract != empty(address), "address is the zero address"
 
     self.owner = msg.sender
-    self.maxAllowedLoanDuration = _maxAllowedLoanDuration
     self.interestAccrualPeriod = _interestAccrualPeriod
     self.loansCoreContract = _loansCoreContract
     self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
@@ -308,7 +298,7 @@ def _loanPayableAmount(
     _maxLoanDuration: uint256,
     _timePassed: uint256,
     _interestAccrualPeriod: uint256
-) -> uint256:   
+) -> uint256:
     return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (_timePassed + _interestAccrualPeriod)) / (10000 * _maxLoanDuration)
 
 
@@ -371,7 +361,6 @@ def _reserve(
     assert self.isAcceptingLoans, "contract is not accepting loans"
     assert block.timestamp <= _maturity, "maturity is in the past"
     assert block.timestamp <= _deadline, "deadline has passed"
-    assert _maturity - block.timestamp <= self.maxAllowedLoanDuration, "maturity exceeds the max allowed"
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
@@ -457,27 +446,6 @@ def claimOwnership():
 
     self.owner = self.proposedOwner
     self.proposedOwner = empty(address)
-
-
-@external
-def changeMaxAllowedLoanDuration(_value: uint256):
-    """
-    @notice Sets the max allowed loans duration per borrower, validated on loan creation
-    @dev Logs `MaxLoanDurationChanged` event
-    @param _value Sets the max allowed loans value in seconds
-    """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _value > 0, "value for max duration is 0"
-    assert _value != self.maxAllowedLoanDuration, "new max duration value is the same"
-
-    log MaxLoanDurationChanged(
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        self.maxAllowedLoanDuration,
-        _value,
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
-    )
-
-    self.maxAllowedLoanDuration = _value
 
 
 @external
@@ -623,7 +591,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
             loan.amount,
             loan.paidPrincipal,
             loan.interest,
-            self.maxAllowedLoanDuration,
+            loan.maturity - loan.startTime,
             timePassed,
             self.interestAccrualPeriod
         )
@@ -647,7 +615,7 @@ def reserveWeth(
     @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract owner.
     @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract owner of the implicit message consisting of the remaining parameters, in order for the loan to be created
     @param _amount The loan amount in wei
-    @param _interest The interest rate in bps (1/1000)
+    @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
     @param _collaterals The list of collaterals supporting the loan
     @param _deadline The deadline of validity for the signed message in unix epoch format
@@ -683,7 +651,7 @@ def reserveEth(
     @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract owner.
     @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract owner of the implicit message consisting of the remaining parameters, in order for the loan to be created
     @param _amount The loan amount in wei
-    @param _interest The interest rate in bps (1/1000)
+    @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
     @param _collaterals The list of collaterals supporting the loan
     @param _deadline The deadline of validity for the signed message in unix epoch format
@@ -732,7 +700,7 @@ def pay(_loanId: uint256):
         loan.amount,
         loan.paidPrincipal,
         loan.interest,
-        self.maxAllowedLoanDuration,
+        loan.maturity - loan.startTime,
         timePassed,
         self.interestAccrualPeriod
     )

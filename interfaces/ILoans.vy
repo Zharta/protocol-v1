@@ -49,12 +49,6 @@ event OwnerProposed:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxLoanDurationChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
@@ -145,11 +139,6 @@ def proposedOwner() -> address:
 
 @view
 @external
-def maxAllowedLoanDuration() -> uint256:
-    pass
-
-@view
-@external
 def interestAccrualPeriod() -> uint256:
     pass
 
@@ -194,10 +183,6 @@ def proposeOwner(_address: address):
 
 @external
 def claimOwnership():
-    pass
-
-@external
-def changeMaxAllowedLoanDuration(_value: uint256):
     pass
 
 @external

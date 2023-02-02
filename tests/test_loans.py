@@ -350,34 +350,6 @@ def test_claim_ownership(loans_peripheral_contract, contract_owner, borrower):
     assert event["proposedOwner"] == borrower
 
 
-def test_change_max_allowed_loan_duration_wrong_sender(
-    loans_peripheral_contract, borrower
-):
-    with brownie.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.changeMaxAllowedLoanDuration(
-            MAX_LOAN_DURATION - 1, {"from": borrower}
-        )
-
-
-def test_change_max_allowed_loan_duration(loans_peripheral_contract, contract_owner):
-    tx = loans_peripheral_contract.changeMaxAllowedLoanDuration(
-        MAX_LOAN_DURATION - 1, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION - 1
-
-    event = tx.events["MaxLoanDurationChanged"]
-    assert event["currentValue"] == MAX_LOAN_DURATION
-    assert event["newValue"] == MAX_LOAN_DURATION - 1
-
-    tx = loans_peripheral_contract.changeMaxAllowedLoanDuration(
-        MAX_LOAN_DURATION, {"from": contract_owner}
-    )
-    assert loans_peripheral_contract.maxAllowedLoanDuration() == MAX_LOAN_DURATION
-
-    event = tx.events["MaxLoanDurationChanged"]
-    assert event["currentValue"] == MAX_LOAN_DURATION - 1
-    assert event["newValue"] == MAX_LOAN_DURATION
-
 
 def test_set_lending_pool_address_not_owner(
     loans_peripheral_contract, lending_pool_peripheral_contract, borrower
@@ -539,29 +511,6 @@ def test_create_maturity_in_the_past(
     (v, r, s) = create_signature(maturity=maturity)
 
     with brownie.reverts("maturity is in the past"):
-        loans_peripheral_contract.reserveEth(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            maturity,
-            test_collaterals,
-            VALIDATION_DEADLINE,
-            0,
-            v,
-            r,
-            s,
-            {"from": borrower},
-        )
-
-
-def test_create_maturity_too_long(
-    loans_peripheral_contract,
-    create_signature,
-    borrower,
-    test_collaterals,
-):
-    maturity = int(dt.datetime.now().timestamp()) + MAX_LOAN_DURATION * 2
-    (v, r, s) = create_signature(maturity=maturity)
-    with brownie.reverts("maturity exceeds the max allowed"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
