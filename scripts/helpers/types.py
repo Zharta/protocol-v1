@@ -89,11 +89,8 @@ class ExternalContract(ContractConfig):
 
 class NFT(ExternalContract):
 
-    config_order: int
-
-    def __init__(self, name: str, contract: Optional[ProjectContract], config_order=0):
+    def __init__(self, name: str, contract: Optional[ProjectContract]):
         super().__init__(name, contract, ERC721, nft=True, container_name="ERC721")
-        self.config_order = config_order
 
 
 class Token(ExternalContract):

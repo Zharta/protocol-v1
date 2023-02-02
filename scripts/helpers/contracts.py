@@ -5,17 +5,18 @@ from .types import InternalContract, DeploymentContext
 from .transactions import Transaction
 
 from brownie import (
+    CollateralVaultCore,
+    CollateralVaultPeripheral,
+    CryptoPunksMarketMock,
+    CryptoPunksVaultCore,
     LendingPoolCore,
     LendingPoolLock,
     LendingPoolPeripheral,
-    CollateralVaultCore,
-    CollateralVaultPeripheral,
-    CryptoPunksVaultCore,
-    LoansCore,
-    Loans,
     LiquidationsCore,
     LiquidationsPeripheral,
     LiquidityControls,
+    Loans,
+    LoansCore,
     WETH9Mock,
 )
 
@@ -122,6 +123,23 @@ class WETH9MockContract(InternalContract):
 
     def config_key(self):
         return "token"
+
+
+@dataclass
+class CryptoPunksMockContract(InternalContract):
+
+    def __init__(self, contract: Optional[ProjectContract]):
+        super().__init__(
+            "cryptopunks",
+            contract,
+            CryptoPunksMarketMock,
+            container_name="CryptoPunksMarketMock",
+            deployment_deps=[],
+        )
+        self.nft = True
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return []
 
 
 @dataclass
