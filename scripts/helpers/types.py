@@ -42,7 +42,7 @@ class ContractConfig():
     deployment_deps: set[str] = field(default_factory=set)
     config_deps: dict[str, Callable] = field(default_factory=dict)
 
-    def deployable(self, contract: DeploymentContext) -> bool:
+    def deployable(self, context: DeploymentContext) -> bool:
         return False
 
     def deployment_dependencies(self) -> set[str]:

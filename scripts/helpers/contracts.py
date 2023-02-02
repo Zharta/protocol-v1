@@ -6,20 +6,17 @@ from .transactions import Transaction
 
 from brownie import (
     LendingPoolCore,
-    LegacyLendingPoolCore,
     LendingPoolLock,
     LendingPoolPeripheral,
     CollateralVaultCore,
     CollateralVaultPeripheral,
     CryptoPunksVaultCore,
-    LPCMigration01,
     LoansCore,
     Loans,
     LiquidationsCore,
     LiquidationsPeripheral,
     LiquidityControls,
     WETH9Mock,
-    web3
 )
 
 
@@ -92,21 +89,6 @@ class LendingPoolCoreContract(InternalContract):
 
 
 @dataclass
-class LegacyLendingPoolCoreContract(InternalContract):
-
-    def __init__(self, contract: Optional[ProjectContract]):
-        super().__init__(
-            "legacy_lending_pool_core",
-            contract,
-            LegacyLendingPoolCore,
-            container_name="LegacyLendingPoolCore",
-            deployment_deps=[],
-            config_deps={},
-            deployment_args_contracts=["weth"],
-        )
-
-
-@dataclass
 class LendingPoolLockContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -115,27 +97,11 @@ class LendingPoolLockContract(InternalContract):
             contract,
             LendingPoolLock,
             container_name="LendingPoolLock",
-            deployment_deps=["weth", "lpc_migration_01"],
+            deployment_deps=["weth"],
             config_deps={
                 "lending_pool_peripheral": Transaction.lplock_set_lpperiph,
-                "lenders_with_active_locks": Transaction.lplock_migrate
             },
             deployment_args_contracts=["weth"],
-        )
-
-
-@dataclass
-class LPCMigration01Contract(InternalContract):
-
-    def __init__(self, contract: Optional[ProjectContract]):
-        super().__init__(
-            "lpc_migration_01",
-            contract,
-            LPCMigration01,
-            container_name="LPCMigration01",
-            deployment_deps=["lending_pool_core", "legacy_lending_pool_core"],
-            config_deps={"run_lpc_migration_01": Transaction.lpc_migration_migrate},
-            deployment_args_contracts=["legacy_lending_pool_core", "lending_pool_core"],
         )
 
 
@@ -156,6 +122,7 @@ class WETH9MockContract(InternalContract):
 
     def config_key(self):
         return "token"
+
 
 @dataclass
 class LendingPoolPeripheralContract(InternalContract):
