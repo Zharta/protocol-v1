@@ -94,6 +94,9 @@ event LoanCreated:
     loanId: uint256
     erc20TokenContract: address
     apr: uint256
+    amount: uint256
+    duration: uint256
+    collaterals: DynArray[Collateral, 100]
 
 event LoanPayment:
     walletIndexed: indexed(address)

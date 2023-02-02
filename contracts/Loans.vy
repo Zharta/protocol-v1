@@ -134,6 +134,9 @@ event LoanCreated:
     loanId: uint256
     erc20TokenContract: address
     apr: uint256 # calculated from the interest to 360 days, in bps
+    amount: uint256
+    duration: uint256
+    collaterals: DynArray[Collateral, 100]
 
 event LoanPayment:
     walletIndexed: indexed(address)
@@ -406,7 +409,10 @@ def _reserve(
         msg.sender,
         newLoanId,
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-        _interest * 360 / (_maturity - block.timestamp)
+        _interest * 360 / (_maturity - block.timestamp),
+        _amount,
+        _maturity - block.timestamp,
+        _collaterals
     )
 
     ILoansCore(self.loansCoreContract).updateLoanStarted(msg.sender, newLoanId)
