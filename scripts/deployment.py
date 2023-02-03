@@ -89,7 +89,11 @@ NFT_STORE_ORDER = [
     "pudgy_penguins",
     "bayc",
     "wpunks",
-    "cryptopunks"
+    "cryptopunks",
+    "chromie",
+    "ringers",
+    "gazers",
+    "fidenza",
 ]
 
 def load_nft_contracts(env: Environment) -> list[NFT]:
@@ -100,7 +104,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
 
     def load(contract: ContractConfig) -> ContractConfig:
         idx = order_map[contract.config_key()]
-        address = contracts[idx]["contract"]
+        address = contracts[idx]["contract"] if idx < len(contracts) else None
         if address and env != Environment.local:
             contract.contract = contract.container.at(address)
         return contract
@@ -117,6 +121,10 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("bayc", None),
         NFT("wpunks", None),
         CryptoPunksMockContract(None) if env != Environment.prod else NFT("cryptopunks", None),
+        NFT("chromie", None),
+        NFT("ringers", None),
+        NFT("gazers", None),
+        NFT("fidenza", None),
     ]]
 
 
@@ -246,3 +254,7 @@ def console():
     bayc = dm.context["bayc"].contract
     wpunks = dm.context["wpunks"].contract
     punks = dm.context["cryptopunks"].contract
+    chromie = dm.context["chromie"].contract
+    ringers = dm.context["ringers"].contract
+    gazers = dm.context["gazers"].contract
+    fidenza = dm.context["fidenza"].contract
