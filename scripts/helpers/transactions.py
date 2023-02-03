@@ -124,7 +124,7 @@ class Transaction:
                 print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
                 contract_instance.changeMaxCollectionBorrowableAmount(*args)
             else:
-                print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current addres is already {address}")
+                print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_wei/1e18} eth")
 
 
 def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):

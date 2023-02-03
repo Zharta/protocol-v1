@@ -155,6 +155,8 @@ def load_borrowable_amounts(env: Environment) -> dict:
         "bayc": values["bayc"],
         "wpunks": values["wpunks"],
         "cryptopunks": values["punks"],
+        "chromie": values["chromie"],
+        "fidenza": values["fidenza"],
     }
 
 
@@ -223,7 +225,7 @@ def main():
     dm = DeploymentManager(ENV)
     dm.context.gas_func = gas_cost
 
-    changes = set()
+    changes = {"nft_borrowable_amounts"}
     dm.deploy(changes, dryrun=True)
 
 
