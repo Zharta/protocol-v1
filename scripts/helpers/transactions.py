@@ -45,7 +45,7 @@ class Transaction:
 
     @staticmethod
     def cvperiph_add_punksvault(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "collateral_vault_peripheral", "addVault", "cryptopunks", "cryptopunks_vault_core", dryrun=dryrun)
+        execute(context, "collateral_vault_peripheral", "addVault", "punk", "cryptopunks_vault_core", dryrun=dryrun)
 
     @staticmethod
     def loanscore_set_loansperiph(context: DeploymentContext, dryrun: bool = False):

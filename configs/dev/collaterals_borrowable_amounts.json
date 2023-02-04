@@ -1,15 +1,15 @@
 {
-    "wpunks": 750,
-    "punks": 750,
+    "wpunk": 750,
+    "punk": 750,
     "bayc": 500,
     "doodles": 50,
-    "pudgy_penguins": 35,
+    "ppg": 35,
     "mayc": 75,
-    "veefriends": 35,
+    "vft": 35,
     "bakc": 35,
     "wow": 25,
-    "cool_cats": 25,
-    "hashmasks": 5,
+    "cool": 25,
+    "hm": 5,
     "chromie": 200,
     "fidenza": 200
 }

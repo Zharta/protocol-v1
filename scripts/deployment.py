@@ -78,64 +78,58 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
         f.write(json.dumps(file_struct, indent=4, sort_keys=True))
 
 
-NFT_STORE_ORDER = [
-    "cool_cats",
-    "hashmasks",
-    "bakc",
-    "doodles",
-    "wow",
-    "mayc",
-    "veefriends",
-    "pudgy_penguins",
-    "bayc",
-    "wpunks",
-    "cryptopunks",
-    "chromie",
-    "ringers",
-    "gazers",
-    "fidenza",
-]
-
 def load_nft_contracts(env: Environment) -> list[NFT]:
-    config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
-    order_map = {v: i for i, v in enumerate(NFT_STORE_ORDER)}
+    config_file = f"{Path.cwd()}/configs/{env.name}/full-nfts.json"
     with open(config_file, "r") as f:
         contracts = json.load(f)
 
     def load(contract: ContractConfig) -> ContractConfig:
-        idx = order_map[contract.config_key()]
-        address = contracts[idx]["contract"] if idx < len(contracts) else None
+        address = contracts.get(contract.config_key(), {}).get("contract_address", None)
         if address and env != Environment.local:
             contract.contract = contract.container.at(address)
         return contract
 
     return [load(c) for c in [
-        NFT("cool_cats", None),
-        NFT("hashmasks", None),
+        NFT("cool", None),
+        NFT("hm", None),
         NFT("bakc", None),
         NFT("doodles", None),
         NFT("wow", None),
         NFT("mayc", None),
-        NFT("veefriends", None),
-        NFT("pudgy_penguins", None),
+        NFT("vft", None),
+        NFT("ppg", None),
         NFT("bayc", None),
-        NFT("wpunks", None),
-        CryptoPunksMockContract(None) if env != Environment.prod else NFT("cryptopunks", None),
+        NFT("wpunk", None),
+        CryptoPunksMockContract(None) if env != Environment.prod else NFT("punk", None),
         NFT("chromie", None),
         NFT("ringers", None),
         NFT("gazers", None),
         NFT("fidenza", None),
+        NFT("azuki", None),
+        NFT("otherdeed", None),
+        NFT("moonbirds", None),
+        NFT("clonex", None),
+        NFT("meebits", None),
+        NFT("beanz", None),
+        NFT("lilpudgys", None),
     ]]
 
 
 def store_nft_contracts(env: Environment, nfts: list[NFT]):
-    config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
-    order_map = {v: i for i, v in enumerate(NFT_STORE_ORDER)}
-    sorted_nfts = sorted(nfts, key=lambda nft: order_map[nft.config_key()])
-    file_struct = [{'contract': nft.address()} for nft in sorted_nfts]
+    config_file = f"{Path.cwd()}/configs/{env.name}/full-nfts.json"
+    with open(config_file, "r") as f:
+        file_data = json.load(f)
+
+    # write_data = {nft.config_key(): file_data.get(nft.config_key(), {}) | {"contract_address": nft.address()} for nft in nfts}
+    for nft in nfts:
+        key = nft.config_key()
+        if key in file_data:
+            file_data[key]["contract_address"] = nft.address()
+        else:
+            file_data[key] = {"contract_address": nft.address()}
 
     with open(config_file, "w") as f:
-        f.write(json.dumps(file_struct, indent=4))
+        f.write(json.dumps(file_data, indent=2, sort_keys=True))
 
 
 def load_borrowable_amounts(env: Environment) -> dict:
@@ -144,17 +138,17 @@ def load_borrowable_amounts(env: Environment) -> dict:
         values = json.load(f)
 
     return {
-        "cool_cats": values["cool_cats"],
-        "hashmasks": values["hashmasks"],
+        "cool": values["cool"],
+        "hm": values["hm"],
         "bakc": values["bakc"],
         "doodles": values["doodles"],
         "wow": values["wow"],
         "mayc": values["mayc"],
-        "veefriends": values["veefriends"],
-        "pudgy_penguins": values["pudgy_penguins"],
+        "vft": values["vft"],
+        "ppg": values["ppg"],
         "bayc": values["bayc"],
-        "wpunks": values["wpunks"],
-        "cryptopunks": values["punks"],
+        "wpunk": values["wpunk"],
+        "punk": values["punk"],
         "chromie": values["chromie"],
         "fidenza": values["fidenza"],
     }
@@ -225,8 +219,8 @@ def main():
     dm = DeploymentManager(ENV)
     dm.context.gas_func = gas_cost
 
-    changes = {"nft_borrowable_amounts"}
-    dm.deploy(changes, dryrun=True)
+    changes = set()
+    dm.deploy(changes, dryrun=False)
 
 
 def console():
@@ -245,17 +239,17 @@ def console():
 
     weth = dm.context["weth"].contract
 
-    cats = dm.context["cool_cats"].contract
-    masks = dm.context["hashmasks"].contract
+    cool = dm.context["cool"].contract
+    hm = dm.context["hm"].contract
     bakc = dm.context["bakc"].contract
     doodles = dm.context["doodles"].contract
     wow = dm.context["wow"].contract
     mayc = dm.context["mayc"].contract
-    veefriends = dm.context["veefriends"].contract
-    penguins = dm.context["pudgy_penguins"].contract
+    vft = dm.context["vft"].contract
+    ppg = dm.context["ppg"].contract
     bayc = dm.context["bayc"].contract
-    wpunks = dm.context["wpunks"].contract
-    punks = dm.context["cryptopunks"].contract
+    wpunk = dm.context["wpunk"].contract
+    punk = dm.context["punk"].contract
     chromie = dm.context["chromie"].contract
     ringers = dm.context["ringers"].contract
     gazers = dm.context["gazers"].contract
