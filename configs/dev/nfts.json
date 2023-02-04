@@ -1,47 +1,661 @@
-[
-    {
-        "contract": "0xC24fe74e87A4d14847d6fAcE826f5D67EB3873fe"
+{
+  "azuki": {
+    "collection_key": "azuki",
+    "contract_address": "0x5Eff7b75AA4B77Ab6D601903dbcAa16396a70000",
+    "debt_limit": 250,
+    "looksrare_url": "https://looksrare.org/collections/0xED5AF388653567Af2F388E6224dC7C4b3241C544",
+    "mapped_address": "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
+    "name": "[Internal] Azuki",
+    "opensea_url": "https://opensea.io/collection/azuki",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
     },
-    {
-        "contract": "0x4045d7cF98801c15cD2F98EEe778eD7e8577e365"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "bakc": {
+    "collection_key": "bakc",
+    "contract_address": "0x5D40fbeDbD7b4E47e16937ae585C09d08742D6E0",
+    "debt_limit": 35,
+    "looksrare_url": "https://looksrare.org/collections/0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
+    "mapped_address": "0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
+    "name": "[Internal] Bored Ape Kennel Club",
+    "opensea_url": "https://opensea.io/collection/bored-ape-kennel-club",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.4,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.8,
+        "ltv": 0.6
+      },
+      "90d": {
+        "apr": 0.3,
+        "ltv": 0.3
+      }
     },
-    {
-        "contract": "0x5D40fbeDbD7b4E47e16937ae585C09d08742D6E0"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "bayc": {
+    "collection_key": "bayc",
+    "contract_address": "0x86F1C6B55FaC900fAAfaEcE6F97BC570e17dA115",
+    "debt_limit": 500,
+    "looksrare_url": "https://looksrare.org/collections/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
+    "mapped_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
+    "name": "[Internal] Bored Ape Yacht Club",
+    "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.25,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.5,
+        "ltv": 0.7
+      },
+      "90d": {
+        "apr": 0.15,
+        "ltv": 0.4
+      }
     },
-    {
-        "contract": "0x0b73c1DcE10e5117ca7E69c5413A98d5e9535aaA"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "beanz": {
+    "collection_key": "beanz",
+    "contract_address": "0x922afe443DcEA878C2F6559D28b2fF943aB5D1c7",
+    "debt_limit": 50,
+    "looksrare_url": "https://looksrare.org/collections/0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
+    "mapped_address": "0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
+    "name": "[Internal] BEANZ Official",
+    "opensea_url": "https://opensea.io/collection/beanzofficial",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.5,
+        "ltv": 0.4
+      },
+      "7d": {
+        "apr": 0.9,
+        "ltv": 0.5
+      },
+      "90d": {
+        "apr": 0.35,
+        "ltv": 0.25
+      }
     },
-    {
-        "contract": "0xE8F70d45847360b945FAAA85FB1c68795A104203"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "chromie": {
+    "collection_key": "chromie",
+    "contract_address": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde",
+    "criteria": {
+      "max_id": 1000000,
+      "min_id": 0,
+      "type": "range"
     },
-    {
-        "contract": "0x3bD5D189030b57EB56340dF4Ae6EE4Da1dC38226"
+    "debt_limit": 75,
+    "looksrare_url": "https://looksrare.org/collections/0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
+    "mapped_address": "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
+    "name": "[Internal] Chromie Squiggle",
+    "opensea_url": "https://opensea.io/collection/chromie-squiggle-by-snowfro",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.25,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.5,
+        "ltv": 0.7
+      },
+      "90d": {
+        "apr": 0.15,
+        "ltv": 0.4
+      }
     },
-    {
-        "contract": "0xCBDFA45d571166C187Dd6Bfe7B5025A1244D98b5"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "clonex": {
+    "collection_key": "clonex",
+    "contract_address": "0xb82441620a45540DB3E26c1738eFfAa851df0b27",
+    "debt_limit": 150,
+    "looksrare_url": "https://looksrare.org/collections/0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
+    "mapped_address": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
+    "name": "[Internal] CLONE X",
+    "opensea_url": "https://opensea.io/collection/clonex",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
     },
-    {
-        "contract": "0x384Bf404Ccae355f4F81Db32740F6776aF38Eb2C"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "cool": {
+    "collection_key": "cool",
+    "contract_address": "0xC24fe74e87A4d14847d6fAcE826f5D67EB3873fe",
+    "debt_limit": 25,
+    "looksrare_url": "https://looksrare.org/collections/0x1A92f7381B9F03921564a437210bB9396471050C",
+    "mapped_address": "0x1A92f7381B9F03921564a437210bB9396471050C",
+    "name": "[Internal] Cool Cats",
+    "opensea_url": "https://opensea.io/collection/cool-cats-nft",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.5,
+        "ltv": 0.35
+      },
+      "7d": {
+        "apr": 0.9,
+        "ltv": 0.5
+      },
+      "90d": {
+        "apr": 0.35,
+        "ltv": 0.25
+      }
     },
-    {
-        "contract": "0x86F1C6B55FaC900fAAfaEcE6F97BC570e17dA115"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "doodles": {
+    "collection_key": "doodles",
+    "contract_address": "0x0b73c1DcE10e5117ca7E69c5413A98d5e9535aaA",
+    "debt_limit": 50,
+    "looksrare_url": "https://looksrare.org/collections/0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
+    "mapped_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
+    "name": "[Internal] Doodles",
+    "opensea_url": "https://opensea.io/collection/doodles-official",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.5
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
     },
-    {
-        "contract": "0x4d0E9ac73a87db64652eb848A5391fD62dF437bB"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "fidenza": {
+    "collection_key": "fidenza",
+    "contract_address": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde",
+    "criteria": {
+      "max_id": 79000000,
+      "min_id": 78000000,
+      "type": "range"
     },
-    {
-        "contract": "0xc61e48Bd953bfe933d72134dC2a366700BEc3a11"
+    "debt_limit": 75,
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Fidenza",
+    "opensea_url": "https://opensea.io/collection/fidenza-by-tyler-hobbs",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.25,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.5,
+        "ltv": 0.7
+      },
+      "90d": {
+        "apr": 0.15,
+        "ltv": 0.4
+      }
     },
-    {
-        "contract": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "gazers": {
+    "collection_key": "gazers",
+    "contract_address": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde",
+    "criteria": {
+      "max_id": 216000000,
+      "min_id": 215000000,
+      "type": "range"
     },
-    {
-        "contract": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde"
+    "debt_limit": 50,
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Gazers",
+    "opensea_url": "https://opensea.io/collection/gazers-by-matt-kane",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.5
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
     },
-    {
-        "contract": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde"
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "hm": {
+    "collection_key": "hm",
+    "contract_address": "0x4045d7cF98801c15cD2F98EEe778eD7e8577e365",
+    "debt_limit": 5,
+    "looksrare_url": "https://looksrare.org/collections/0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
+    "mapped_address": "0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
+    "name": "[Internal] Hashmasks",
+    "opensea_url": "https://opensea.io/collection/hashmasks",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.5,
+        "ltv": 0.35
+      },
+      "7d": {
+        "apr": 0.9,
+        "ltv": 0.5
+      },
+      "90d": {
+        "apr": 0.35,
+        "ltv": 0.25
+      }
     },
-    {
-        "contract": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde"
-    }
-]
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "lilpudgys": {
+    "collection_key": "lilpudgys",
+    "contract_address": "0x16dE56302b5C88e88b7D729B3134318F00ce2AAa",
+    "debt_limit": 15,
+    "looksrare_url": "https://looksrare.org/collections/0x524cAB2ec69124574082676e6F654a18df49A048",
+    "mapped_address": "0x524cAB2ec69124574082676e6F654a18df49A048",
+    "name": "[Internal] Lil Pudgys",
+    "opensea_url": "https://opensea.io/collection/lilpudgys",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.5,
+        "ltv": 0.4
+      },
+      "7d": {
+        "apr": 0.9,
+        "ltv": 0.5
+      },
+      "90d": {
+        "apr": 0.35,
+        "ltv": 0.25
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "mayc": {
+    "collection_key": "mayc",
+    "contract_address": "0x3bD5D189030b57EB56340dF4Ae6EE4Da1dC38226",
+    "debt_limit": 75,
+    "looksrare_url": "https://looksrare.org/collections/0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
+    "mapped_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
+    "name": "[Internal] Mutant Ape Yacht Club",
+    "opensea_url": "https://opensea.io/collection/mutant-ape-yacht-club",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.4,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.8,
+        "ltv": 0.6
+      },
+      "90d": {
+        "apr": 0.3,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "meebits": {
+    "collection_key": "meebits",
+    "contract_address": "0xf5B4C17913729F1BaBea236B8733ccC552260Ed4",
+    "debt_limit": 100,
+    "looksrare_url": "https://looksrare.org/collections/0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
+    "mapped_address": "0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
+    "name": "[Internal] Meebits",
+    "opensea_url": "https://opensea.io/collection/meebits",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.4,
+        "ltv": 0.5
+      },
+      "7d": {
+        "apr": 0.8,
+        "ltv": 0.6
+      },
+      "90d": {
+        "apr": 0.3,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "moonbirds": {
+    "collection_key": "moonbirds",
+    "contract_address": "0x50aC3CB8a6D104de70B61115008976ff4a62000a",
+    "debt_limit": 125,
+    "looksrare_url": "https://looksrare.org/collections/0x23581767a106ae21c074b2276D25e5C3e136a68b",
+    "mapped_address": "0x23581767a106ae21c074b2276D25e5C3e136a68b",
+    "name": "[Internal] Moonbirds",
+    "opensea_url": "https://opensea.io/collection/proof-moonbirds",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "otherdeed": {
+    "collection_key": "otherdeed",
+    "contract_address": "0x74011E46FFB04350371775843fc7d80FC7c5cCd3",
+    "debt_limit": 150,
+    "looksrare_url": "https://looksrare.org/collections/0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
+    "mapped_address": "0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
+    "name": "[Internal] Otherdeed for Otherside",
+    "opensea_url": "https://opensea.io/collection/otherdeed",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "ppg": {
+    "collection_key": "ppg",
+    "contract_address": "0x384Bf404Ccae355f4F81Db32740F6776aF38Eb2C",
+    "debt_limit": 35,
+    "looksrare_url": "https://looksrare.org/collections/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
+    "mapped_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
+    "name": "[Internal] Pudgy Penguins",
+    "opensea_url": "https://opensea.io/collection/pudgypenguins",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.5
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "punk": {
+    "collection_key": "punk",
+    "contract_address": "0xc61e48Bd953bfe933d72134dC2a366700BEc3a11",
+    "debt_limit": 750,
+    "looksrare_url": "https://looksrare.org/collections/0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
+    "mapped_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
+    "name": "[Internal] Cryptopunks",
+    "opensea_url": "https://opensea.io/collection/cryptopunks",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.25,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.5,
+        "ltv": 0.7
+      },
+      "90d": {
+        "apr": 0.15,
+        "ltv": 0.4
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "ringers": {
+    "collection_key": "ringers",
+    "contract_address": "0x44856180B1A1e90DB018dF87E9DA9ECCA4E86bde",
+    "criteria": {
+      "max_id": 14000000,
+      "min_id": 13000000,
+      "type": "range"
+    },
+    "debt_limit": 50,
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Ringers",
+    "opensea_url": "https://opensea.io/collection/ringers-by-dmitri-cherniak",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.5
+      },
+      "7d": {
+        "apr": 0.75,
+        "ltv": 0.65
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "vft": {
+    "collection_key": "vft",
+    "contract_address": "0xCBDFA45d571166C187Dd6Bfe7B5025A1244D98b5",
+    "debt_limit": 35,
+    "looksrare_url": "https://looksrare.org/collections/0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
+    "mapped_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
+    "name": "[Internal] VeeFriends",
+    "opensea_url": "https://opensea.io/collection/veefriends",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.4,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.8,
+        "ltv": 0.6
+      },
+      "90d": {
+        "apr": 0.3,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "wow": {
+    "collection_key": "wow",
+    "contract_address": "0xE8F70d45847360b945FAAA85FB1c68795A104203",
+    "debt_limit": 25,
+    "looksrare_url": "https://looksrare.org/collections/0xe785E82358879F061BC3dcAC6f0444462D4b5330",
+    "mapped_address": "0xe785E82358879F061BC3dcAC6f0444462D4b5330",
+    "name": "[Internal] World of Women",
+    "opensea_url": "https://opensea.io/collection/world-of-women-nft",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.4,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.8,
+        "ltv": 0.6
+      },
+      "90d": {
+        "apr": 0.3,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "wpunk": {
+    "appraisal_key": "punk",
+    "collection_key": "wpunk",
+    "contract_address": "0x4d0E9ac73a87db64652eb848A5391fD62dF437bB",
+    "debt_limit": 750,
+    "looksrare_url": "https://looksrare.org/collections/0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
+    "mapped_address": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
+    "name": "[Internal] Wrapped Cryptopunks",
+    "opensea_url": "https://opensea.io/collection/wrapped-cryptopunks",
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.25,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.5,
+        "ltv": 0.7
+      },
+      "90d": {
+        "apr": 0.15,
+        "ltv": 0.4
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  }
+}
