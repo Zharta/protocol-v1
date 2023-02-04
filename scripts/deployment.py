@@ -5,6 +5,8 @@ import os
 from typing import Any
 from brownie import ERC721, accounts, chain
 from pathlib import Path
+from operator import itemgetter
+from itertools import groupby
 
 from .helpers.dependency import DependencyManager
 from .helpers.types import (
@@ -133,25 +135,17 @@ def store_nft_contracts(env: Environment, nfts: list[NFT]):
 
 
 def load_borrowable_amounts(env: Environment) -> dict:
-    config_file = f"{Path.cwd()}/configs/{env.name}/collaterals_borrowable_amounts.json"
+    config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
     with open(config_file, "r") as f:
         values = json.load(f)
 
-    return {
-        "cool": values["cool"],
-        "hm": values["hm"],
-        "bakc": values["bakc"],
-        "doodles": values["doodles"],
-        "wow": values["wow"],
-        "mayc": values["mayc"],
-        "vft": values["vft"],
-        "ppg": values["ppg"],
-        "bayc": values["bayc"],
-        "wpunk": values["wpunk"],
-        "punk": values["punk"],
-        "chromie": values["chromie"],
-        "fidenza": values["fidenza"],
-    }
+    address = itemgetter("contract_address")
+    collection_key = itemgetter("collection_key")
+    limit = itemgetter("debt_limit")
+
+    collections = [v | {"collection_key": k} for k, v in values.items()]
+    max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
+    return {collection_key(c): limit(c) for c in max_collection_per_contract}
 
 
 class DeploymentManager:

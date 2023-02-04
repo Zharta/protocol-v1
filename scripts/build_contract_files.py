@@ -165,10 +165,8 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
 
         # Update nfts config with abi content but only for ERC721 contract
         if contract == "auxiliary/token/ERC721":
-            nfts_final = [
-                {"collection_key": key, "contract": nft["contract_address"], "abi": abi_python} for key,
-                nft in nfts.items()
-            ]
+            addresses = {nft["contract_address"] for key, nft in nfts.items()}
+            nfts_final = [{"contract": address, "abi": abi_python} for address in addresses]
 
         # Extract bytecode from compiled contract
         logger.info(f"Compiling {contract} binary file")
@@ -199,7 +197,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
 
     if write_to_s3:
         write_content_to_s3(config_file, json.dumps(config))
-        write_content_to_s3(nfts_file, json.dumps(nfts_final))
+        write_content_to_s3(Path("nfts.json"), json.dumps(nfts_final))
         if env != "local":
             write_collections_to_dynamodb(nfts)
 
