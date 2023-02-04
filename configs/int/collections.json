@@ -29,7 +29,7 @@
   },
   "bakc": {
     "contract_address": "0x448908B75e808107bbCB08D1Dcbbf6892c36C1D0",
-    "debt_limit": 35,
+    "debt_limit": 150,
     "looksrare_url": "https://looksrare.org/collections/0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "mapped_address": "0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "name": "[Goerli] Bored Ape Kennel Club",
@@ -57,7 +57,7 @@
   },
   "bayc": {
     "contract_address": "0x5B1c743e9e52dE70F787D0721EC072364A07A366",
-    "debt_limit": 500,
+    "debt_limit": 700,
     "looksrare_url": "https://looksrare.org/collections/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "mapped_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "name": "[Goerli] Bored Ape Yacht Club",
@@ -118,7 +118,7 @@
       "min_id": 0,
       "type": "range"
     },
-    "debt_limit": 75,
+    "debt_limit": 200,
     "looksrare_url": "https://looksrare.org/collections/0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
     "mapped_address": "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
     "name": "[Goerli] Chromie Squiggle",
@@ -174,7 +174,7 @@
   },
   "cool": {
     "contract_address": "0xcA2DDb50e71851b90dE1d615dbDA5A1604f44955",
-    "debt_limit": 25,
+    "debt_limit": 15,
     "looksrare_url": "https://looksrare.org/collections/0x1A92f7381B9F03921564a437210bB9396471050C",
     "mapped_address": "0x1A92f7381B9F03921564a437210bB9396471050C",
     "name": "[Goerli] Cool Cats",
@@ -202,7 +202,7 @@
   },
   "doodles": {
     "contract_address": "0xcA0b7d4ADcc467a6E41979fe40C831D90985b49D",
-    "debt_limit": 50,
+    "debt_limit": 125,
     "looksrare_url": "https://looksrare.org/collections/0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "mapped_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "name": "[Goerli] Doodles",
@@ -235,7 +235,7 @@
       "min_id": 78000000,
       "type": "range"
     },
-    "debt_limit": 75,
+    "debt_limit": 125,
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "name": "[Goerli] Fidenza",
@@ -352,7 +352,7 @@
   },
   "mayc": {
     "contract_address": "0xABba8D60904400e7c7B73D927C30d258A0D9Fe0C",
-    "debt_limit": 75,
+    "debt_limit": 250,
     "looksrare_url": "https://looksrare.org/collections/0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "mapped_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "name": "[Goerli] Mutant Ape Yacht Club",
@@ -464,7 +464,7 @@
   },
   "ppg": {
     "contract_address": "",
-    "debt_limit": 35,
+    "debt_limit": 125,
     "looksrare_url": "https://looksrare.org/collections/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "mapped_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "name": "[Goerli] Pudgy Penguins",
@@ -492,7 +492,7 @@
   },
   "punk": {
     "contract_address": "0x4269a4F80ECFA5ea03Ee51148503761507817323",
-    "debt_limit": 750,
+    "debt_limit": 850,
     "looksrare_url": "https://looksrare.org/collections/0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "mapped_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "name": "[Goerli] Cryptopunks",
@@ -553,7 +553,7 @@
   },
   "vft": {
     "contract_address": "0x8916213B67a1A3674fBa9c645D5dc99259508A30",
-    "debt_limit": 35,
+    "debt_limit": 5,
     "looksrare_url": "https://looksrare.org/collections/0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "mapped_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "name": "[Goerli] VeeFriends",
@@ -581,7 +581,7 @@
   },
   "wow": {
     "contract_address": "0xb06159962C18A01a8E142e7500CE403a60d6c3f8",
-    "debt_limit": 25,
+    "debt_limit": 5,
     "looksrare_url": "https://looksrare.org/collections/0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "mapped_address": "0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "name": "[Goerli] World of Women",
@@ -610,7 +610,7 @@
   "wpunk": {
     "appraisal_key": "punk",
     "contract_address": "0x6A238d5E956d1ABfcA414BEEBa4D98FcABA71eed",
-    "debt_limit": 750,
+    "debt_limit": 850,
     "looksrare_url": "https://looksrare.org/collections/0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "mapped_address": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "name": "[Goerli] Wrapped Cryptopunks",
