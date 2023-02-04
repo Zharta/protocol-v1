@@ -2,6 +2,7 @@ from vyper.cli.vyper_compile import compile_files
 from pathlib import Path
 from botocore.exceptions import ClientError
 from click.exceptions import BadParameter
+from decimal import Decimal
 
 import click
 import json
@@ -13,7 +14,9 @@ import hashlib
 env = os.environ.get("ENV", "dev")
 prefix = hashlib.sha256("zharta".encode()).hexdigest()[-5:]
 bucket_name = f"{prefix}-zharta-contracts-{env}"
+collections_table = f"collections-{env}"
 s3 = boto3.resource("s3")
+dynamodb = boto3.resource("dynamodb")
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -76,6 +79,36 @@ def write_content_to_s3(key: Path, data: str):
         logger.error(f"Error writing to S3: {e}")
 
 
+def write_collections_to_dynamodb(data: dict):
+    """Write collections to dynamodb collections table"""
+    try:
+        table = dynamodb.Table(collections_table)
+
+        for collection_key, collection_data in data.items():
+            indexed_attrs = list(enumerate(collection_data.items()))
+            update_expr = ", ".join(f"#k{i}=:v{i}" for i, (k, v) in indexed_attrs)
+            attrs = {f"#k{i}": k for i, (k, v) in indexed_attrs}
+            values = {f":v{i}": dynamo_type(v) for i, (k, v) in indexed_attrs}
+
+            table.update_item(
+                Key={"collection_key": collection_key},
+                UpdateExpression=f"SET {update_expr}",
+                ExpressionAttributeNames=attrs,
+                ExpressionAttributeValues=values,
+            )
+
+    except ClientError as e:
+        logger.error(f"Error writing to collections table: {e}")
+
+
+def dynamo_type(val):
+    if isinstance(val, float):
+        return Decimal(str(val))
+    elif isinstance(val, dict):
+        return {dynamo_type(k): dynamo_type(v) for k, v in val.items()}
+    return val
+
+
 @click.command()
 @click.option(
     "--write-to-s3",
@@ -99,7 +132,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     config_file = Path.cwd() / "configs" / env / "contracts.json"
     config = json.loads(read_file(config_file))
 
-    nfts_file = Path.cwd() / "configs" / env / "nfts.json"
+    nfts_file = Path.cwd() / "configs" / env / "collections.json"
     nfts = json.loads(read_file(nfts_file))
 
     if output_directory and not write_to_s3:
@@ -162,11 +195,13 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
             raise BadParameter("Invalid combination of parameters")
 
     config_file = Path(output_directory) / "contracts.json"
-    nfts_file = Path(output_directory) / "nfts.json"
+    nfts_file = Path(output_directory) / "collections.json"
 
     if write_to_s3:
         write_content_to_s3(config_file, json.dumps(config))
         write_content_to_s3(nfts_file, json.dumps(nfts_final))
+        if env != "local":
+            write_collections_to_dynamodb(nfts)
 
     elif not write_to_s3 and output_directory:
         write_content_to_file(config_file, json.dumps(config))

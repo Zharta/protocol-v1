@@ -79,7 +79,7 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
 
 
 def load_nft_contracts(env: Environment) -> list[NFT]:
-    config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
+    config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
     with open(config_file, "r") as f:
         contracts = json.load(f)
 
@@ -116,7 +116,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
 
 
 def store_nft_contracts(env: Environment, nfts: list[NFT]):
-    config_file = f"{Path.cwd()}/configs/{env.name}/nfts.json"
+    config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
     with open(config_file, "r") as f:
         file_data = json.load(f)
 
@@ -220,7 +220,7 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
-    dm.deploy(changes, dryrun=False)
+    dm.deploy(changes, dryrun=True)
 
 
 def console():
