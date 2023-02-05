@@ -1,5 +1,6 @@
 import json
 import logging
+import warnings
 import os
 
 from typing import Any
@@ -38,6 +39,7 @@ ENV = Environment[os.environ.get("ENV", "local")]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
+warnings.filterwarnings("ignore")
 
 
 def load_contracts(env: Environment) -> set[ContractConfig]:
@@ -214,6 +216,7 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
+    changes |= {"nft_borrowable_amounts"}
     dm.deploy(changes, dryrun=True)
 
 

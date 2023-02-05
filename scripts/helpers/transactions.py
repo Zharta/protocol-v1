@@ -118,6 +118,9 @@ class Transaction:
             value_wei = value_eth * 1e18
             address = context[nft].address()
             args = [True, address, value_wei, {"from": context.owner} | context.gas_options()]
+            if not address:
+                print(f"Skipping changeMaxCollectionBorrowableAmount for undeployed {nft}")
+                continue
             current_value = contract_instance.maxCollectionBorrowableAmount(address)
             if current_value != value_wei:
                 print(f"Changing MaxCollectionBorrowableAmount for {nft}, from {current_value/1e18} to {value_wei/1e18} eth")

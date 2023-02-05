@@ -166,7 +166,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         # Update nfts config with abi content but only for ERC721 contract
         if contract == "auxiliary/token/ERC721":
             addresses = {nft["contract_address"] for key, nft in nfts.items()}
-            nfts_final = [{"contract": address, "abi": abi_python} for address in addresses]
+            nfts_final = [{"contract": address, "abi": abi_python} for address in addresses if address]
 
         # Extract bytecode from compiled contract
         logger.info(f"Compiling {contract} binary file")
