@@ -49,12 +49,6 @@ event OwnerProposed:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxLoanDurationChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: uint256
@@ -99,6 +93,10 @@ event LoanCreated:
     wallet: address
     loanId: uint256
     erc20TokenContract: address
+    apr: uint256
+    amount: uint256
+    duration: uint256
+    collaterals: DynArray[Collateral, 100]
 
 event LoanPayment:
     walletIndexed: indexed(address)
@@ -141,11 +139,6 @@ def owner() -> address:
 @view
 @external
 def proposedOwner() -> address:
-    pass
-
-@view
-@external
-def maxAllowedLoanDuration() -> uint256:
     pass
 
 @view
@@ -194,10 +187,6 @@ def proposeOwner(_address: address):
 
 @external
 def claimOwnership():
-    pass
-
-@external
-def changeMaxAllowedLoanDuration(_value: uint256):
     pass
 
 @external

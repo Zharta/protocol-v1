@@ -9,7 +9,6 @@ import pytest
 import json
 
 
-MAX_LOAN_DURATION = 31 * 24 * 60 * 60 # 31 days
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.toWei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
@@ -145,7 +144,6 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
 @pytest.fixture(scope="module", autouse=True)
 def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
     yield Loans.deploy(
-        MAX_LOAN_DURATION,
         INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
         lending_pool_peripheral_contract,
@@ -157,7 +155,6 @@ def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_periphera
 @pytest.fixture(scope="module", autouse=True)
 def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
     yield Loans.deploy(
-        1,
         INTEREST_ACCRUAL_PERIOD,
         accounts[4],
         lending_pool_peripheral_contract,
