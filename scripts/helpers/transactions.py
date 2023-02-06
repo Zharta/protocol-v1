@@ -45,7 +45,7 @@ class Transaction:
 
     @staticmethod
     def cvperiph_add_punksvault(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "collateral_vault_peripheral", "addVault", "cryptopunks", "cryptopunks_vault_core", dryrun=dryrun)
+        execute(context, "collateral_vault_peripheral", "addVault", "punk", "cryptopunks_vault_core", dryrun=dryrun)
 
     @staticmethod
     def loanscore_set_loansperiph(context: DeploymentContext, dryrun: bool = False):
@@ -118,13 +118,17 @@ class Transaction:
             value_wei = value_eth * 1e18
             address = context[nft].address()
             args = [True, address, value_wei, {"from": context.owner} | context.gas_options()]
-            if dryrun:
+            if not address:
+                print(f"Skipping changeMaxCollectionBorrowableAmount for undeployed {nft}")
+                continue
+            current_value = contract_instance.maxCollectionBorrowableAmount(address)
+            if current_value != value_wei:
+                print(f"Changing MaxCollectionBorrowableAmount for {nft}, from {current_value/1e18} to {value_wei/1e18} eth")
                 print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
-            elif contract_instance.maxCollectionBorrowableAmount(address) != value_wei:
-                print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
-                contract_instance.changeMaxCollectionBorrowableAmount(*args)
+                if not dryrun:
+                    contract_instance.changeMaxCollectionBorrowableAmount(*args)
             else:
-                print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current addres is already {address}")
+                print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_wei/1e18} eth")
 
 
 def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):

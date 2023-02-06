@@ -49,11 +49,11 @@ class CryptoPunksVaultCoreContract(InternalContract):
             contract,
             CryptoPunksVaultCore,
             container_name="CryptoPunksVaultCore",
-            deployment_deps={"cryptopunks"},
+            deployment_deps={"punk"},
             config_deps={
                 "collateral_vault_peripheral": Transaction.punksvault_set_cvperiph,
             },
-            deployment_args_contracts=["cryptopunks"],
+            deployment_args_contracts=["punk"],
         )
 
 
@@ -132,7 +132,7 @@ class CryptoPunksMockContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
         super().__init__(
-            "cryptopunks",
+            "punk",
             contract,
             CryptoPunksMarketMock,
             container_name="CryptoPunksMarketMock",
