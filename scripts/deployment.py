@@ -17,13 +17,15 @@ from .helpers.types import (
     Token,
 )
 from .helpers.contracts import (
+    LendingPoolCoreContract,
+    LendingPoolLockContract,
+    LendingPoolPeripheralContract,
     CollateralVaultCoreContract,
     CollateralVaultPeripheralContract,
     CryptoPunksMockContract,
     CryptoPunksVaultCoreContract,
-    LendingPoolCoreContract,
-    LendingPoolLockContract,
-    LendingPoolPeripheralContract,
+    LoansCoreContract,
+    LoansPeripheralContract,
     LiquidationsCoreContract,
     LiquidationsPeripheralContract,
     LiquidityControlsContract,
