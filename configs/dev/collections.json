@@ -40,12 +40,12 @@
     "opensea_url": "https://opensea.io/collection/bored-ape-kennel-club",
     "pricing": {
       "interest_rate": 0.03287,
-      "max_ltv": 0.45
+      "max_ltv": 0.5
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.4,
-        "ltv": 0.45
+        "ltv": 0.5
       },
       "7d": {
         "apr": 0.8,
@@ -72,12 +72,12 @@
     "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
     "pricing": {
       "interest_rate": 0.02054,
-      "max_ltv": 0.55
+      "max_ltv": 0.6
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
-        "ltv": 0.55
+        "ltv": 0.6
       },
       "7d": {
         "apr": 0.5,
@@ -146,7 +146,7 @@
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
-        "ltv": 0.55
+        "ltv": 0.6
       },
       "7d": {
         "apr": 0.5,
@@ -205,12 +205,12 @@
     "opensea_url": "https://opensea.io/collection/cool-cats-nft",
     "pricing": {
       "interest_rate": 0.04109,
-      "max_ltv": 0.35
+      "max_ltv": 0.4
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
-        "ltv": 0.35
+        "ltv": 0.4
       },
       "7d": {
         "apr": 0.9,
@@ -237,12 +237,12 @@
     "opensea_url": "https://opensea.io/collection/doodles-official",
     "pricing": {
       "interest_rate": 0.02876,
-      "max_ltv": 0.5
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
-        "ltv": 0.5
+        "ltv": 0.55
       },
       "7d": {
         "apr": 0.75,
@@ -279,7 +279,7 @@
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
-        "ltv": 0.55
+        "ltv": 0.6
       },
       "7d": {
         "apr": 0.5,
@@ -316,7 +316,7 @@
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
-        "ltv": 0.5
+        "ltv": 0.55
       },
       "7d": {
         "apr": 0.75,
@@ -342,13 +342,13 @@
     "name": "[Internal] Hashmasks",
     "opensea_url": "https://opensea.io/collection/hashmasks",
     "pricing": {
-      "interest_rate": 0.04109,
-      "max_ltv": 0.35
+      "interest_rate": 0.0411,
+      "max_ltv": 0.4
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
-        "ltv": 0.35
+        "ltv": 0.4
       },
       "7d": {
         "apr": 0.9,
@@ -406,21 +406,21 @@
     "name": "[Internal] Mutant Ape Yacht Club",
     "opensea_url": "https://opensea.io/collection/mutant-ape-yacht-club",
     "pricing": {
-      "interest_rate": 0.03287,
-      "max_ltv": 0.45
+      "interest_rate": 0.0287,
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.4,
-        "ltv": 0.45
+        "apr": 0.35,
+        "ltv": 0.55
       },
       "7d": {
-        "apr": 0.8,
-        "ltv": 0.6
+        "apr": 0.75,
+        "ltv": 0.65
       },
       "90d": {
-        "apr": 0.3,
-        "ltv": 0.3
+        "apr": 0.25,
+        "ltv": 0.35
       }
     },
     "tiers": [
@@ -535,12 +535,12 @@
     "opensea_url": "https://opensea.io/collection/pudgypenguins",
     "pricing": {
       "interest_rate": 0.02876,
-      "max_ltv": 0.5
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
-        "ltv": 0.5
+        "ltv": 0.55
       },
       "7d": {
         "apr": 0.75,
@@ -567,12 +567,12 @@
     "opensea_url": "https://opensea.io/collection/cryptopunks",
     "pricing": {
       "interest_rate": 0.02054,
-      "max_ltv": 0.55
+      "max_ltv": 0.6
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
-        "ltv": 0.55
+        "ltv": 0.6
       },
       "7d": {
         "apr": 0.5,
@@ -609,7 +609,7 @@
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
-        "ltv": 0.5
+        "ltv": 0.55
       },
       "7d": {
         "apr": 0.75,
@@ -635,21 +635,21 @@
     "name": "[Internal] VeeFriends",
     "opensea_url": "https://opensea.io/collection/veefriends",
     "pricing": {
-      "interest_rate": 0.03287,
-      "max_ltv": 0.45
+      "interest_rate": 0.0411,
+      "max_ltv": 0.4
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.4,
-        "ltv": 0.45
+        "apr": 0.5,
+        "ltv": 0.4
       },
       "7d": {
-        "apr": 0.8,
-        "ltv": 0.6
+        "apr": 0.9,
+        "ltv": 0.5
       },
       "90d": {
-        "apr": 0.3,
-        "ltv": 0.3
+        "apr": 0.35,
+        "ltv": 0.25
       }
     },
     "tiers": [
@@ -667,21 +667,21 @@
     "name": "[Internal] World of Women",
     "opensea_url": "https://opensea.io/collection/world-of-women-nft",
     "pricing": {
-      "interest_rate": 0.03287,
-      "max_ltv": 0.45
+      "interest_rate": 0.0411,
+      "max_ltv": 0.4
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.4,
-        "ltv": 0.45
+        "apr": 0.5,
+        "ltv": 0.4
       },
       "7d": {
-        "apr": 0.8,
-        "ltv": 0.6
+        "apr": 0.9,
+        "ltv": 0.5
       },
       "90d": {
-        "apr": 0.3,
-        "ltv": 0.3
+        "apr": 0.35,
+        "ltv": 0.25
       }
     },
     "tiers": [
@@ -701,12 +701,12 @@
     "opensea_url": "https://opensea.io/collection/wrapped-cryptopunks",
     "pricing": {
       "interest_rate": 0.02054,
-      "max_ltv": 0.55
+      "max_ltv": 0.6
     },
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
-        "ltv": 0.55
+        "ltv": 0.6
       },
       "7d": {
         "apr": 0.5,
