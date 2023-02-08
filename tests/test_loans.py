@@ -1287,35 +1287,17 @@ def test_pay_loan(
     )
     loan_id = tx_create_loan.return_value
 
-    chain.mine(blocks=1, timedelta=10)
+    chain.mine(blocks=1, timedelta=14 * 86400)
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    amount_payable = loans_peripheral_contract.getLoanPayableAmount(
+    payable_amount = loans_peripheral_contract.getLoanPayableAmount(
         borrower, loan_id, chain.time()
     )
-
-    time_diff = Decimal(
-        chain.time()
-        - loan_details["startTime"]
-        - (chain.time() - loan_details["startTime"]) % INTEREST_ACCRUAL_PERIOD
-        + INTEREST_ACCRUAL_PERIOD
-    )
-
-    amount_paid = int(
-        Decimal(LOAN_AMOUNT)
-        * (
-            Decimal(10000) * Decimal(MAX_LOAN_DURATION)
-            + Decimal(LOAN_INTEREST) * time_diff
-        )
-        / (Decimal(10000) * Decimal(MAX_LOAN_DURATION))
-    )
-
-    assert amount_payable == amount_paid
 
     assert borrower.balance() == borrower_initial_balance + LOAN_AMOUNT
 
     tx_pay_loan = loans_peripheral_contract.pay(
-        loan_id, {"from": borrower, "value": amount_paid}
+        loan_id, {"from": borrower, "value": payable_amount}
     )
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
@@ -1323,7 +1305,7 @@ def test_pay_loan(
     assert (
         loans_core_contract.getLoanPaidPrincipal(borrower, loan_id)
         + loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id)
-        == amount_paid
+        == payable_amount
     )
     assert loan_details["paid"] == loans_core_contract.getLoanPaid(borrower, loan_id)
     assert loan_details["paidPrincipal"] == loans_core_contract.getLoanPaidPrincipal(
@@ -1346,13 +1328,13 @@ def test_pay_loan(
     assert loan_payment_event["loanId"] == loan_id
     assert (
         loan_payment_event["principal"] + loan_payment_event["interestAmount"]
-        == amount_paid
+        == payable_amount
     )
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert borrower.balance() + amount_paid == borrower_initial_balance + LOAN_AMOUNT
+    assert borrower.balance() + payable_amount == borrower_initial_balance + LOAN_AMOUNT
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -1403,19 +1385,14 @@ def test_pay_loan_already_paid(
         + INTEREST_ACCRUAL_PERIOD
     )
 
-    amount_paid = int(
-        Decimal(LOAN_AMOUNT)
-        * (
-            Decimal(10000) * Decimal(MAX_LOAN_DURATION)
-            + Decimal(LOAN_INTEREST) * time_diff
-        )
-        / (Decimal(10000) * Decimal(MAX_LOAN_DURATION))
+    payable_amount = loans_peripheral_contract.getLoanPayableAmount(
+        borrower, loan_id, chain.time()
     )
 
-    loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": amount_paid})
+    loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": payable_amount})
 
     with brownie.reverts("loan already paid"):
-        loans_peripheral_contract.pay(loan_id, {"from": borrower})
+        loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": payable_amount})
 
 
 def test_set_default_loan_wrong_sender(loans_peripheral_contract, investor, borrower):
@@ -1559,6 +1536,7 @@ def test_payable_amount(
         maturity,
         test_collaterals,
         VALIDATION_DEADLINE,
+        0,
         v,
         r,
         s,
@@ -1573,7 +1551,7 @@ def test_payable_amount(
 
     contract_time_passed = chain.time() - loan_details["startTime"]
     loan_duration_in_contract = maturity - loan_details["startTime"]
-    minimum_interest_period = 30*86400 if loan_duration_in_contract > 30 else 7*86400
+    minimum_interest_period = 30*86400 if loan_duration_in_contract > 30*86400 else 7*86400
 
     payable_duration = max(
         minimum_interest_period,
