@@ -11,6 +11,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -44,6 +45,7 @@
       "interest_rate": 0.03287,
       "max_ltv": 0.5
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.4,
@@ -77,6 +79,7 @@
       "interest_rate": 0.02054,
       "max_ltv": 0.6
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
@@ -110,6 +113,7 @@
       "interest_rate": 0.0411,
       "max_ltv": 0.4
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
@@ -148,6 +152,7 @@
       "interest_rate": 0.02055,
       "max_ltv": 0.6
     },
+    "floor_multiple_cap": 0.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
@@ -181,6 +186,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -214,6 +220,7 @@
       "interest_rate": 0.04109,
       "max_ltv": 0.4
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
@@ -247,6 +254,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -285,6 +293,7 @@
       "interest_rate": 0.02055,
       "max_ltv": 0.6
     },
+    "floor_multiple_cap": 0.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
@@ -323,6 +332,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 0.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -356,6 +366,7 @@
       "interest_rate": 0.0411,
       "max_ltv": 0.4
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
@@ -389,6 +400,7 @@
       "interest_rate": 0.0411,
       "max_ltv": 0.4
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
@@ -422,6 +434,7 @@
       "interest_rate": 0.0287,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -455,6 +468,7 @@
       "interest_rate": 0.03288,
       "max_ltv": 0.5
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.4,
@@ -488,6 +502,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -521,6 +536,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -554,6 +570,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -587,6 +604,7 @@
       "interest_rate": 0.02054,
       "max_ltv": 0.6
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
@@ -625,6 +643,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
+    "floor_multiple_cap": 0.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -658,6 +677,7 @@
       "interest_rate": 0.0411,
       "max_ltv": 0.4
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
@@ -691,6 +711,7 @@
       "interest_rate": 0.0411,
       "max_ltv": 0.4
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.5,
@@ -725,6 +746,7 @@
       "interest_rate": 0.02054,
       "max_ltv": 0.6
     },
+    "floor_multiple_cap": 3.0,
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
