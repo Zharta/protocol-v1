@@ -201,8 +201,7 @@ RESERVE_TYPE_HASH: constant(bytes32) = keccak256(RESERVE_TYPE_DEF)
 reserve_message_typehash: bytes32
 reserve_sig_domain_separator: bytes32
 
-DURATION_7_DAYS: constant(uint256) = 604800
-DURATION_30_DAYS: constant(uint256) = 2592000
+MINIMUM_INTEREST_PERIOD: constant(uint256) = 604800  # 7 days
 
 
 @external
@@ -305,10 +304,7 @@ def _loanPayableAmount(
     _timePassed: uint256,
     _interestAccrualPeriod: uint256
 ) -> uint256:
-    minimum_interest_period: uint256 = DURATION_7_DAYS
-    if _maxLoanDuration > DURATION_30_DAYS:
-        minimum_interest_period = DURATION_30_DAYS
-    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (max(_timePassed + _interestAccrualPeriod, minimum_interest_period))) / (10000 * _maxLoanDuration)
+    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (max(_timePassed + _interestAccrualPeriod, MINIMUM_INTEREST_PERIOD))) / (10000 * _maxLoanDuration)
 
 
 @pure

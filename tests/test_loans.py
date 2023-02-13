@@ -1551,7 +1551,7 @@ def test_payable_amount(
 
     contract_time_passed = chain.time() - loan_details["startTime"]
     loan_duration_in_contract = maturity - loan_details["startTime"]
-    minimum_interest_period = 30*86400 if loan_duration_in_contract > 30*86400 else 7*86400
+    minimum_interest_period = 7*86400
 
     payable_duration = max(
         minimum_interest_period,
