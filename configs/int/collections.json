@@ -244,7 +244,7 @@
   },
   "doodles": {
     "contract_address": "0xcA0b7d4ADcc467a6E41979fe40C831D90985b49D",
-    "debt_limit": 125,
+    "debt_limit": 35,
     "looksrare_url": "https://looksrare.org/collections/0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "mapped_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "name": "[Goerli] Doodles",
