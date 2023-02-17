@@ -24,10 +24,8 @@ interface INFTXVault:
 interface INFTXMarketplaceZap:
     def mintAndSell721WETH(vaultId: uint256, ids: DynArray[uint256, 1], minWethOut: uint256, path: DynArray[address, 2], to: address): nonpayable
 
-interface INonERC721Vault:
+interface IVault:
     def vaultName() -> String[30]: view
-    def collateralOwner(_tokenId: uint256) -> address: view
-    def isApproved(_tokenId: uint256, _wallet: address) -> bool: view
 
 interface CryptoPunksMarket:
     def offerPunkForSaleToAddress(punkIndex: uint256, minSalePriceInWei: uint256, toAddress: address): nonpayable
@@ -850,6 +848,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
 
     unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(_collateralAddress)
     autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(unwrappedCollateralAddress, _tokenId)
+    vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress, _tokenId)
 
     assert autoLiquidationPrice > 0, "NFTX liq price is 0 or none"
 
@@ -860,20 +859,19 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     if wrappedCollateral:
         self._unwrapCollateral(_collateralAddress, _tokenId)
 
-    vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
 
     if wrappedCollateral:
         if unwrappedCollateralAddress == self.cryptoPunksAddress:
             CryptoPunksMarket(unwrappedCollateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
         else:
             raise "Unsupported collateral"
-    elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreDefaultAddress():
-        IERC721(_collateralAddress).approve(
-            self.nftxMarketplaceZapAddress,
-            _tokenId
-        )
-    elif INonERC721Vault(vault).vaultName() == "cryptopunks":
+
+    elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreLegacyAddress() or IVault(vault).vaultName() == "ERC721":
+        IERC721(_collateralAddress).approve(self.nftxMarketplaceZapAddress, _tokenId)
+
+    elif IVault(vault).vaultName() == "cryptopunks":
         CryptoPunksMarket(_collateralAddress).offerPunkForSaleToAddress(_tokenId, 0, self.nftxMarketplaceZapAddress)
+
     else:
         raise "Unsupported collateral"
 
@@ -1002,5 +1000,5 @@ def storeERC721CollateralToVault(_collateralAddress: address, _tokenId: uint256)
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert IERC721(_collateralAddress).ownerOf(_tokenId) == self, "collateral not owned by contract"
 
-    vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress)
+    vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).vaultAddress(_collateralAddress, _tokenId)
     IERC721(_collateralAddress).safeTransferFrom(self, vault, _tokenId, b"")

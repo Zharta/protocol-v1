@@ -43,6 +43,7 @@ def create_signature_fixture(
 
     def _create_signature(
         collaterals=test_collaterals,
+        delegations=None,
         amount=LOAN_AMOUNT,
         interest=LOAN_INTEREST,
         maturity=MATURITY,
@@ -56,8 +57,11 @@ def create_signature_fixture(
         chain_id=1337,
     ):
 
+        if delegations is None:
+            delegations = [False] * len(collaterals)
+
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline,uint256 nonce)"
+        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool[] delegations,uint256 deadline,uint256 nonce)"
         collateral_type_def = (
             "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
         )
@@ -86,6 +90,7 @@ def create_signature_fixture(
                 "uint256",
                 "uint256",
                 "bytes32",
+                "bytes32",
                 "uint256",
                 "uint256",
             ],
@@ -107,6 +112,12 @@ def create_signature_fixture(
                             )
                             for c in collaterals
                         ],
+                    )
+                ),
+                keccak(
+                    encode_abi(
+                        ["bool"] * len(delegations),
+                        delegations,
                     )
                 ),
                 deadline,
@@ -185,6 +196,7 @@ def test_set_default_lender_zeroaddress(
         LOAN_INTEREST,
         maturity,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -266,6 +278,7 @@ def test_set_default_lender_zeroaddress(
         LOAN_INTEREST,
         maturity,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -470,6 +483,7 @@ def test_create_deprecated(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -495,6 +509,7 @@ def test_create_not_accepting_loans(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -519,6 +534,7 @@ def test_create_maturity_in_the_past(
             LOAN_INTEREST,
             maturity,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -553,6 +569,7 @@ def test_create_collaterals_not_owned(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -589,6 +606,7 @@ def test_create_loan_collateral_not_approved(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -631,6 +649,7 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
             LOAN_INTEREST,
             MATURITY,
             [(erc721_contract, k, 0) for k in range(5)],
+            [False] * 5,
             VALIDATION_DEADLINE,
             0,
             v,
@@ -664,6 +683,7 @@ def test_create_loan_unsufficient_funds_in_lp(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -708,6 +728,7 @@ def test_create_loan_outside_pool_share(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -752,6 +773,7 @@ def test_create_loan_outside_collection_share(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             VALIDATION_DEADLINE,
             0,
             v,
@@ -792,6 +814,7 @@ def test_create_loan(
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -883,6 +906,7 @@ def test_create_loan_wrong_signature(
                 LOAN_INTEREST,
                 MATURITY,
                 test_collaterals,
+                [False] * len(test_collaterals),
                 VALIDATION_DEADLINE,
                 0,
                 v,
@@ -924,6 +948,7 @@ def test_create_loan_past_signature_deadline(
             LOAN_INTEREST,
             MATURITY,
             test_collaterals,
+            [False] * len(test_collaterals),
             deadline_in_the_past,
             0,
             v,
@@ -968,6 +993,7 @@ def test_create_loan_within_pool_share(
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -1035,6 +1061,7 @@ def test_create_loan_within_collection_share(
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -1106,6 +1133,7 @@ def test_pay_loan_defaulted(
         LOAN_INTEREST,
         maturity,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -1221,6 +1249,7 @@ def test_pay_loan_insufficient_allowance(
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -1278,6 +1307,7 @@ def test_pay_loan(
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -1368,6 +1398,7 @@ def test_pay_loan_already_paid(
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -1442,6 +1473,7 @@ def test_set_default_loan(
         LOAN_INTEREST,
         maturity,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,
@@ -1535,6 +1567,7 @@ def test_payable_amount(
         interest,
         maturity,
         test_collaterals,
+        [False] * len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,

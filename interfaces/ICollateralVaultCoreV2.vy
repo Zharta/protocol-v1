@@ -1,12 +1,5 @@
 # Structs
 
-struct Offer:
-    isForSale: bool
-    punkIndex: uint256
-    seller: address
-    minValue: uint256
-    onlySellTo: address
-
 # Events
 
 event OwnershipTransferred:
@@ -44,17 +37,22 @@ def collateralVaultPeripheralAddress() -> address:
 
 @view
 @external
-def cryptoPunksMarketAddress() -> address:
-    pass
-
-@view
-@external
 def delegationRegistry() -> IDelegationRegistry:
     pass
 
 @view
 @external
 def vaultName() -> String[30]:
+    pass
+
+@view
+@external
+def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4:
+    pass
+
+@view
+@external
+def collateralOwner(_collateralAddress: address, _tokenId: uint256) -> address:
     pass
 
 @view
@@ -69,12 +67,7 @@ def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address
 
 @view
 @external
-def collateralOwner(_collateralAddress: address, _tokenId: uint256) -> address:
-    pass
-
-@view
-@external
-def isApproved(_tokenId: uint256, _wallet: address) -> bool:
+def isCollateralApprovedForWallet(_wallet: address, _collateralAddress: address, _tokenId: uint256) -> bool:
     pass
 
 @external

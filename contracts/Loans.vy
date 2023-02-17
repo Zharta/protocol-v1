@@ -31,11 +31,6 @@ interface ILendingPoolPeripheral:
 interface ILiquidationsPeripheral:
     def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
 
-interface INonERC721Vault:
-    def collateralOwner(_tokenId: uint256) -> address: view
-    def isApproved(_tokenId: uint256, _wallet: address) -> bool: view
-
-
 # Structs
 
 struct Collateral:
@@ -70,6 +65,7 @@ struct ReserveMessageContent:
     interest: uint256
     maturity: uint256
     collaterals: DynArray[Collateral, 100]
+    delegations: DynArray[bool, 100]
     deadline: uint256
 
 
@@ -192,7 +188,7 @@ ZHARTA_DOMAIN_NAME: constant(String[6]) = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
 COLLATERAL_TYPE_DEF: constant(String[66]) = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-RESERVE_TYPE_DEF: constant(String[210]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline,uint256 nonce)" \
+RESERVE_TYPE_DEF: constant(String[229]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool[] delegations,uint256 deadline,uint256 nonce)" \
                                           "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 DOMAIN_TYPE_HASH: constant(bytes32) = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
 COLLATERAL_TYPE_HASH: constant(bytes32) = keccak256(COLLATERAL_TYPE_DEF)
@@ -243,20 +239,13 @@ def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 
 
 @view
 @internal
-def _isCollateralApprovedForVault(_borrower: address, _vault: address, _contractAddress: address, _tokenId: uint256) -> bool:
-    is_erc721: bool = _vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).collateralVaultCoreDefaultAddress()
-    if is_erc721:
-        return IERC721(_contractAddress).isApprovedForAll(_borrower, _vault) or IERC721(_contractAddress).getApproved(_tokenId) == _vault
-    else:
-        return INonERC721Vault(_vault).isApproved(_tokenId, _vault)
-
-
-@view
-@internal
 def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
-        vault: address = ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).vaultAddress(collateral.contractAddress)
-        if not self._isCollateralApprovedForVault(_borrower, vault, collateral.contractAddress, collateral.tokenId):
+        if not ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).isCollateralApprovedForVault(
+            _borrower,
+            collateral.contractAddress,
+            collateral.tokenId
+        ):
             return False
     return True
 
@@ -320,6 +309,7 @@ def _recoverReserveSigner(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
+    _delegations: DynArray[bool, 100],
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -340,6 +330,7 @@ def _recoverReserveSigner(
                 _interest,
                 _maturity,
                 keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))),
+                keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_delegations))),
                 _deadline,
                 _nonce
                 ))
@@ -356,6 +347,7 @@ def _reserve(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
+    _delegations: DynArray[bool, 100],
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -369,6 +361,7 @@ def _reserve(
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
+    assert len(_collaterals) == len(_delegations), "invalid delegations length"
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
 
     assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
@@ -383,7 +376,7 @@ def _reserve(
     if _nonce > 0:
         assert ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _nonce - 1), "loan is not sequential"
     
-    signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _deadline, _nonce, _v, _r, _s)
+    signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _v, _r, _s)
     assert signer == self.owner, "invalid message signature"
 
     newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
@@ -394,6 +387,7 @@ def _reserve(
         _collaterals
     )
 
+    collateralIdx: uint256 = 0
     for collateral in _collaterals:
         ILoansCore(self.loansCoreContract).addCollateralToLoan(msg.sender, collateral, newLoanId)
         ILoansCore(self.loansCoreContract).updateCollaterals(collateral, False)
@@ -402,8 +396,10 @@ def _reserve(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId,
-            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
+            ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+            _delegations[collateralIdx]
         )
+        collateralIdx += 1
 
     log LoanCreated(
         msg.sender,
@@ -614,6 +610,7 @@ def reserveWeth(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
+    _delegations: DynArray[bool, 100],
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -627,6 +624,7 @@ def reserveWeth(
     @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
     @param _collaterals The list of collaterals supporting the loan
+    @param _delegations Wether to set the requesting wallet as a delegate for each collateral
     @param _deadline The deadline of validity for the signed message in unix epoch format
     @param _v recovery id for public key recover
     @param _r r value in ECDSA signature
@@ -634,7 +632,7 @@ def reserveWeth(
     @return The loan id
     """
 
-    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _nonce, _v, _r, _s)
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _v, _r, _s)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsWeth(
         msg.sender,
@@ -650,6 +648,7 @@ def reserveEth(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
+    _delegations: DynArray[bool, 100],
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -663,6 +662,7 @@ def reserveEth(
     @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
     @param _collaterals The list of collaterals supporting the loan
+    @param _delegations Wether to set the requesting wallet as a delegate for each collateral
     @param _deadline The deadline of validity for the signed message in unix epoch format
     @param _v recovery id for public key recover
     @param _r r value in ECDSA signature
@@ -670,7 +670,7 @@ def reserveEth(
     @return The loan id
     """
 
-    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _deadline, _nonce, _v, _r, _s)
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _v, _r, _s)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsEth(
         msg.sender,
@@ -808,3 +808,31 @@ def settleDefault(_borrower: address, _loanId: uint256):
         loan.amount,
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract()
     )
+
+
+@external
+def setDelegation(_loanId: uint256, _collateralAddress: address, _tokenId: uint256, _value: bool):
+
+    """
+    @notice Sets / unsets a delegation for some collateral of a given loan. Only available to unpaid loans until maturity is reached
+    @param _loanId The id of the loan to settle
+    @param _collateralAddress The contract address of the collateral
+    @param _tokenId The token id of the collateral
+    @param _value Wether to set or unset the token delegation
+    """
+
+    loan: Loan = ILoansCore(self.loansCoreContract).getLoan(msg.sender, _loanId)
+    assert loan.amount > 0, "invalid loan id"
+    assert block.timestamp <= loan.maturity, "loan maturity reached"
+    assert not loan.paid, "loan already paid"
+    
+    for collateral in loan.collaterals:
+        if collateral.contractAddress ==_collateralAddress and collateral.tokenId == _tokenId:
+            ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).setCollateralDelegation(
+                msg.sender,
+                _collateralAddress,
+                _tokenId,
+                ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
+                _value
+            )
+

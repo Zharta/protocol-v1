@@ -46,6 +46,7 @@ event CollateralStored:
     collateralAddress: address
     tokenId: uint256
     _from: address
+    delegate: address
 
 event CollateralFromLoanTransferred:
     collateralAddressIndexed: indexed(address)
@@ -87,6 +88,11 @@ def collateralVaultCoreDefaultAddress() -> address:
 
 @view
 @external
+def collateralVaultCoreLegacyAddress() -> address:
+    pass
+
+@view
+@external
 def collateralVaultCoreAddresses(arg0: address) -> address:
     pass
 
@@ -102,12 +108,17 @@ def liquidationsPeripheralAddress() -> address:
 
 @view
 @external
-def vaultAddress(_collateralAddress: address) -> address:
+def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address:
     pass
 
 @view
 @external
 def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool:
+    pass
+
+@view
+@external
+def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool:
     pass
 
 @external
@@ -139,7 +150,7 @@ def setLiquidationsPeripheralAddress(_address: address):
     pass
 
 @external
-def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address):
+def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _createDelegation: bool):
     pass
 
 @external
@@ -151,5 +162,10 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
     pass
 
 @external
-def approveBackstopBuyer(_address: address, _collateralAddress: address, _tokenId: uint256):
+def setCollateralDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _value: bool):
+    pass
+
+@view
+@external
+def collateralSupportsDelegation(_collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address) -> bool:
     pass

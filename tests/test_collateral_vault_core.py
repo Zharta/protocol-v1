@@ -90,7 +90,7 @@ def test_set_collateral_vault_address_peripheral_same_address(collateral_vault_c
 
 def test_store_collateral_wrong_sender(collateral_vault_core_contract, contract_owner):
     with brownie.reverts("msg.sender is not authorised"):
-        collateral_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": contract_owner})
+        collateral_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, contract_owner, {"from": contract_owner})
 
 
 def test_store_collateral(collateral_vault_core_contract, collateral_vault_peripheral_contract, erc721_contract, borrower, contract_owner):
@@ -99,14 +99,14 @@ def test_store_collateral(collateral_vault_core_contract, collateral_vault_perip
 
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
-    collateral_vault_core_contract.storeCollateral(borrower, erc721_contract, 0, {"from": collateral_vault_peripheral_contract})
+    collateral_vault_core_contract.storeCollateral(borrower, erc721_contract, 0, borrower, {"from": collateral_vault_peripheral_contract})
 
     assert erc721_contract.ownerOf(0) == collateral_vault_core_contract
 
 
 def test_transfer_collateral_wrong_sender(collateral_vault_core_contract, contract_owner):
     with brownie.reverts("msg.sender is not authorised"):
-        collateral_vault_core_contract.transferCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": contract_owner})
+        collateral_vault_core_contract.transferCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, contract_owner, {"from": contract_owner})
 
 
 def test_transfer_collateral(collateral_vault_core_contract, collateral_vault_peripheral_contract, erc721_contract, borrower, contract_owner):
@@ -115,10 +115,10 @@ def test_transfer_collateral(collateral_vault_core_contract, collateral_vault_pe
 
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
-    collateral_vault_core_contract.storeCollateral(borrower, erc721_contract, 0, {"from": collateral_vault_peripheral_contract})
+    collateral_vault_core_contract.storeCollateral(borrower, erc721_contract, 0, borrower, {"from": collateral_vault_peripheral_contract})
 
     assert erc721_contract.ownerOf(0) == collateral_vault_core_contract
 
-    collateral_vault_core_contract.transferCollateral(borrower, erc721_contract, 0, {"from": collateral_vault_peripheral_contract})
+    collateral_vault_core_contract.transferCollateral(borrower, erc721_contract, 0, borrower, {"from": collateral_vault_peripheral_contract})
 
     assert erc721_contract.ownerOf(0) == borrower
