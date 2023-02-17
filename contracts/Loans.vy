@@ -330,7 +330,7 @@ def _recoverReserveSigner(
                 _interest,
                 _maturity,
                 keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))),
-                keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_delegations))),
+                keccak256(slice(_abi_encode(_delegations), 32*2, 32*len(_delegations))),
                 _deadline,
                 _nonce
                 ))

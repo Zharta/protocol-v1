@@ -246,5 +246,5 @@ def settleDefault(_borrower: address, _loanId: uint256):
     pass
 
 @external
-def setDelegation(_loanId: uint256, _contractAddress: address, _tokenId: uint256, _value: bool):
+def setDelegation(_loanId: uint256, _collateralAddress: address, _tokenId: uint256, _value: bool):
     pass

@@ -114,12 +114,7 @@ def create_signature_fixture(
                         ],
                     )
                 ),
-                keccak(
-                    encode_abi(
-                        ["bool"] * len(delegations),
-                        delegations,
-                    )
-                ),
+                keccak(encode_abi(["bool"] * len(delegations), delegations)),
                 deadline,
                 nonce,
             ],
@@ -1188,6 +1183,7 @@ def test_pay_loan_insufficient_balance(
         LOAN_INTEREST,
         MATURITY,
         test_collaterals,
+        [False]*len(test_collaterals),
         VALIDATION_DEADLINE,
         0,
         v,

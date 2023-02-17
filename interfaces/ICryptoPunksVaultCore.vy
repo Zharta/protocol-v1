@@ -72,11 +72,6 @@ def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address
 def collateralOwner(_collateralAddress: address, _tokenId: uint256) -> address:
     pass
 
-@view
-@external
-def isApproved(_tokenId: uint256, _wallet: address) -> bool:
-    pass
-
 @external
 def proposeOwner(_address: address):
     pass
