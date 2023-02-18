@@ -1,11 +1,11 @@
 import datetime as dt
-import brownie
+import ape
 
 from web3 import Web3
 
 
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
-LOAN_AMOUNT = Web3.toWei(0.1, "ether")
+LOAN_AMOUNT = Web3.to_wei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 
 
@@ -14,7 +14,7 @@ def test_set_loans_peripheral(loans_core_contract, loans_peripheral_contract, co
     assert loans_core_contract.loansPeripheral() == loans_peripheral_contract
 
     event = tx.events["LoansPeripheralAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == loans_peripheral_contract
 
 
@@ -28,17 +28,17 @@ def test_initial_state(loans_core_contract, contract_owner):
 
 
 def test_propose_owner_wrong_sender(loans_core_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         loans_core_contract.proposeOwner(borrower, {"from": borrower})
 
 
 def test_propose_owner_zero_address(loans_core_contract, contract_owner):
-    with brownie.reverts("_address it the zero address"):
-        loans_core_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("_address it the zero address"):
+        loans_core_contract.proposeOwner(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_propose_owner_same_owner(loans_core_contract, contract_owner):
-    with brownie.reverts("proposed owner addr is the owner"):
+    with ape.reverts("proposed owner addr is the owner"):
         loans_core_contract.proposeOwner(contract_owner, {"from": contract_owner})
 
 
@@ -56,14 +56,14 @@ def test_propose_owner(loans_core_contract, loans_peripheral_contract, contract_
 def test_propose_owner_same_proposed(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
     loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    with brownie.reverts("proposed owner addr is the same"):
+    with ape.reverts("proposed owner addr is the same"):
         loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
 
 def test_claim_ownership_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
     loans_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    with brownie.reverts("msg.sender is not the proposed"):
+    with ape.reverts("msg.sender is not the proposed"):
         loans_core_contract.claimOwnership({"from": contract_owner})
 
 
@@ -73,7 +73,7 @@ def test_claim_ownership(loans_core_contract, loans_peripheral_contract, contrac
     tx = loans_core_contract.claimOwnership({"from": borrower})
 
     assert loans_core_contract.owner() == borrower
-    assert loans_core_contract.proposedOwner() == brownie.ZERO_ADDRESS
+    assert loans_core_contract.proposedOwner() == ape.ZERO_ADDRESS
 
     event = tx.events["OwnershipTransferred"]
     assert event["owner"] == contract_owner
@@ -81,23 +81,23 @@ def test_claim_ownership(loans_core_contract, loans_peripheral_contract, contrac
 
 
 def test_set_loans_peripheral_wrong_sender(loans_core_contract, loans_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": borrower})
 
 
 def test_set_loans_peripheral_zero_address(loans_core_contract, contract_owner):
-    with brownie.reverts("_address is the zero address"):
-        loans_core_contract.setLoansPeripheral(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("_address is the zero address"):
+        loans_core_contract.setLoansPeripheral(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_set_loans_peripheral_same_address(loans_core_contract, loans_peripheral_contract, contract_owner):
-    with brownie.reverts("new loans addr is the same"):
+    with ape.reverts("new loans addr is the same"):
         loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
 
 
 
 def test_add_loan_wrong_sender(loans_core_contract, contract_owner, borrower, test_collaterals):
-    with brownie.reverts("msg.sender is not the loans addr"):
+    with ape.reverts("msg.sender is not the loans addr"):
         loans_core_contract.addLoan(
             borrower,
             LOAN_AMOUNT,
@@ -149,7 +149,7 @@ def test_add_loan(loans_core_contract, loans_peripheral_contract, borrower, cont
 
 
 def test_update_paid_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    with brownie.reverts("msg.sender is not the loans addr"):
+    with ape.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updatePaidLoan(borrower, 0, {"from": contract_owner})
 
 
@@ -177,7 +177,7 @@ def test_update_paid_loan(loans_core_contract, loans_peripheral_contract, erc721
 
 
 def test_update_defaulted_loan_wrong_sender(loans_core_contract, loans_peripheral_contract, contract_owner, borrower):
-    with brownie.reverts("msg.sender is not the loans addr"):
+    with ape.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updateDefaultedLoan(borrower, 0, {"from": contract_owner})
 
 
@@ -222,7 +222,7 @@ def test_update_loan_started_wrong_sender(
 
     loan_id = tx_add_loan.return_value
 
-    with brownie.reverts("msg.sender is not the loans addr"):
+    with ape.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": contract_owner})
 
 
@@ -278,7 +278,7 @@ def test_update_paid_amount_wrong_sender(
 
     loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": loans_peripheral_contract})
 
-    with brownie.reverts("msg.sender is not the loans addr"):
+    with ape.reverts("msg.sender is not the loans addr"):
         loans_core_contract.updateLoanPaidAmount(borrower, loan_id, LOAN_AMOUNT, 0, {"from": contract_owner})
 
 

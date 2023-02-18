@@ -1,4 +1,4 @@
-import brownie
+import ape
 import os
 import pytest
 
@@ -10,17 +10,17 @@ def test_initial_state(collateral_vault_peripheral_contract, collateral_vault_co
 
 
 def test_propose_owner_wrong_sender(collateral_vault_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         collateral_vault_peripheral_contract.proposeOwner(borrower, {"from": borrower})
 
 
 def test_propose_owner_zero_address(collateral_vault_peripheral_contract, contract_owner):
-    with brownie.reverts("address it the zero address"):
-        collateral_vault_peripheral_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address it the zero address"):
+        collateral_vault_peripheral_contract.proposeOwner(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_propose_owner_same_owner(collateral_vault_peripheral_contract, contract_owner):
-    with brownie.reverts("proposed owner addr is the owner"):
+    with ape.reverts("proposed owner addr is the owner"):
         collateral_vault_peripheral_contract.proposeOwner(contract_owner, {"from": contract_owner})
 
 
@@ -38,14 +38,14 @@ def test_propose_owner(collateral_vault_peripheral_contract, contract_owner, bor
 def test_propose_owner_same_proposed(collateral_vault_peripheral_contract, contract_owner, borrower):
     collateral_vault_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
     
-    with brownie.reverts("proposed owner addr is the same"):
+    with ape.reverts("proposed owner addr is the same"):
         collateral_vault_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
 
 def test_claim_ownership_wrong_sender(collateral_vault_peripheral_contract, contract_owner, borrower):
     collateral_vault_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    with brownie.reverts("msg.sender is not the proposed"):
+    with ape.reverts("msg.sender is not the proposed"):
         collateral_vault_peripheral_contract.claimOwnership({"from": contract_owner})
 
 
@@ -55,7 +55,7 @@ def test_claim_ownership(collateral_vault_peripheral_contract, contract_owner, b
     tx = collateral_vault_peripheral_contract.claimOwnership({"from": borrower})
 
     assert collateral_vault_peripheral_contract.owner() == borrower
-    assert collateral_vault_peripheral_contract.proposedOwner() == brownie.ZERO_ADDRESS
+    assert collateral_vault_peripheral_contract.proposedOwner() == ape.ZERO_ADDRESS
 
     event = tx.events["OwnershipTransferred"]
     assert event["owner"] == contract_owner
@@ -63,17 +63,17 @@ def test_claim_ownership(collateral_vault_peripheral_contract, contract_owner, b
 
 
 def test_add_loans_peripheral_address_wrong_sender(collateral_vault_peripheral_contract, erc20_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, brownie.ZERO_ADDRESS, {"from": borrower})
+    with ape.reverts("msg.sender is not the owner"):
+        collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, ape.ZERO_ADDRESS, {"from": borrower})
 
 
 def test_add_loans_peripheral_address_zero_address(collateral_vault_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address is the zero addr"):
+        collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_add_loans_peripheral_address_not_contract(collateral_vault_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, contract_owner, {"from": contract_owner})
 
 
@@ -83,7 +83,7 @@ def test_add_loans_peripheral_address(collateral_vault_peripheral_contract, loan
     assert collateral_vault_peripheral_contract.loansPeripheralAddresses(erc20_contract) == loans_peripheral_contract
 
     event = tx.events["LoansPeripheralAddressAdded"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == loans_peripheral_contract
     assert event["erc20TokenContract"] == erc20_contract
 
@@ -93,27 +93,27 @@ def test_add_loans_peripheral_address_same_address(collateral_vault_peripheral_c
 
     assert collateral_vault_peripheral_contract.loansPeripheralAddresses(erc20_contract) == loans_peripheral_contract
 
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
 
 
 def test_remove_loans_peripheral_address_wrong_sender(collateral_vault_peripheral_contract, erc20_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         collateral_vault_peripheral_contract.removeLoansPeripheralAddress(erc20_contract, {"from": borrower})
 
 
 def test_remove_loans_peripheral_address_zero_address(collateral_vault_peripheral_contract, contract_owner):
-    with brownie.reverts("erc20TokenAddr is the zero addr"):
-        collateral_vault_peripheral_contract.removeLoansPeripheralAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("erc20TokenAddr is the zero addr"):
+        collateral_vault_peripheral_contract.removeLoansPeripheralAddress(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_remove_loans_peripheral_address_not_contract(collateral_vault_peripheral_contract, contract_owner):
-    with brownie.reverts("erc20TokenAddr is not a contract"):
+    with ape.reverts("erc20TokenAddr is not a contract"):
         collateral_vault_peripheral_contract.removeLoansPeripheralAddress(contract_owner, {"from": contract_owner})
 
 
 def test_remove_loans_peripheral_address_not_found(collateral_vault_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address not found"):
+    with ape.reverts("address not found"):
         collateral_vault_peripheral_contract.removeLoansPeripheralAddress(erc20_contract, {"from": contract_owner})
 
 
@@ -124,7 +124,7 @@ def test_remove_loans_peripheral_address(collateral_vault_peripheral_contract, l
 
     tx = collateral_vault_peripheral_contract.removeLoansPeripheralAddress(erc20_contract, {"from": contract_owner})
 
-    assert collateral_vault_peripheral_contract.loansPeripheralAddresses(erc20_contract) == brownie.ZERO_ADDRESS
+    assert collateral_vault_peripheral_contract.loansPeripheralAddresses(erc20_contract) == ape.ZERO_ADDRESS
 
     event = tx.events["LoansPeripheralAddressRemoved"]
     assert event["currentValue"] == loans_peripheral_contract
@@ -132,17 +132,17 @@ def test_remove_loans_peripheral_address(collateral_vault_peripheral_contract, l
 
 
 def test_set_collateral_vault_peripheral_address_wrong_sender(collateral_vault_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
-        collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(brownie.ZERO_ADDRESS, {"from": borrower})
+    with ape.reverts("msg.sender is not the owner"):
+        collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(ape.ZERO_ADDRESS, {"from": borrower})
 
 
 def test_set_collateral_vault_peripheral_address_zero_address(collateral_vault_peripheral_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address is the zero addr"):
+        collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_set_collateral_vault_peripheral_address_not_contract(collateral_vault_peripheral_contract, contract_owner):
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(contract_owner, {"from": contract_owner})
 
 
@@ -152,7 +152,7 @@ def test_set_collateral_vault_peripheral_address(collateral_vault_peripheral_con
     assert collateral_vault_peripheral_contract.liquidationsPeripheralAddress() == liquidations_peripheral_contract
 
     event = tx.events["LiquidationsPeripheralAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == liquidations_peripheral_contract
 
 
@@ -161,38 +161,38 @@ def test_set_collateral_vault_peripheral_address_same_address(collateral_vault_p
 
     assert collateral_vault_peripheral_contract.liquidationsPeripheralAddress() == liquidations_peripheral_contract
 
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
 
 def test_store_collateral_zero_values(collateral_vault_peripheral_contract, erc721_contract, borrower):
-    with brownie.reverts("address is the zero addr"):
+    with ape.reverts("address is the zero addr"):
         collateral_vault_peripheral_contract.storeCollateral(
-            brownie.ZERO_ADDRESS,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
-            brownie.ZERO_ADDRESS
+            ape.ZERO_ADDRESS
         )
 
-    with brownie.reverts("collat addr is the zero addr"):
+    with ape.reverts("collat addr is the zero addr"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
-            brownie.ZERO_ADDRESS
+            ape.ZERO_ADDRESS
         )
 
-    with brownie.reverts("address is the zero addr"):
+    with ape.reverts("address is the zero addr"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             erc721_contract,
             0,
-            brownie.ZERO_ADDRESS
+            ape.ZERO_ADDRESS
         )
 
 
 def test_store_collateral_not_contracts(collateral_vault_peripheral_contract, erc721_contract, borrower):
-    with brownie.reverts("collat addr is not a contract"):
+    with ape.reverts("collat addr is not a contract"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             borrower,
@@ -200,7 +200,7 @@ def test_store_collateral_not_contracts(collateral_vault_peripheral_contract, er
             borrower
         )
 
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             erc721_contract,
@@ -210,7 +210,7 @@ def test_store_collateral_not_contracts(collateral_vault_peripheral_contract, er
 
 
 def test_store_collateral_mapping_not_found(collateral_vault_peripheral_contract, erc721_contract, erc20_contract, borrower):
-    with brownie.reverts("mapping not found"):
+    with ape.reverts("mapping not found"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             erc721_contract,
@@ -222,7 +222,7 @@ def test_store_collateral_mapping_not_found(collateral_vault_peripheral_contract
 def test_store_collateral_wrong_sender(collateral_vault_peripheral_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
     
-    with brownie.reverts("msg.sender is not authorised"):
+    with ape.reverts("msg.sender is not authorised"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             erc721_contract,
@@ -234,7 +234,7 @@ def test_store_collateral_wrong_sender(collateral_vault_peripheral_contract, loa
 def test_store_collateral_not_nft_contract(collateral_vault_peripheral_contract, loans_peripheral_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
     
-    with brownie.reverts(""):
+    with ape.reverts(""):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             erc20_contract,
@@ -249,7 +249,7 @@ def test_store_collateral_wrong_owner(collateral_vault_peripheral_contract, loan
 
     erc721_contract.mint(contract_owner, 0, {"from": contract_owner})
 
-    with brownie.reverts("collateral not owned by wallet"):
+    with ape.reverts("collateral not owned by wallet"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             erc721_contract,
@@ -264,7 +264,7 @@ def test_store_collateral_not_approved(collateral_vault_peripheral_contract, loa
 
     erc721_contract.mint(borrower, 0, {"from": contract_owner})
 
-    with brownie.reverts("transfer is not approved"):
+    with ape.reverts("transfer is not approved"):
         collateral_vault_peripheral_contract.storeCollateral(
             borrower,
             erc721_contract,
@@ -334,33 +334,33 @@ def test_store_cryptopunk_collateral(
 
 
 def test_transfer_collateral_from_loan_zero_values(collateral_vault_peripheral_contract, erc721_contract, borrower):
-    with brownie.reverts("address is the zero addr"):
+    with ape.reverts("address is the zero addr"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
-            brownie.ZERO_ADDRESS,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
-            brownie.ZERO_ADDRESS
+            ape.ZERO_ADDRESS
         )
 
-    with brownie.reverts("collat addr is the zero addr"):
+    with ape.reverts("collat addr is the zero addr"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
-            brownie.ZERO_ADDRESS
+            ape.ZERO_ADDRESS
         )
 
-    with brownie.reverts("address is the zero addr"):
+    with ape.reverts("address is the zero addr"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
             erc721_contract,
             0,
-            brownie.ZERO_ADDRESS
+            ape.ZERO_ADDRESS
         )
 
 
 def test_transfer_collateral_from_loan_not_contracts(collateral_vault_peripheral_contract, erc721_contract, borrower):
-    with brownie.reverts("collat addr is not a contract"):
+    with ape.reverts("collat addr is not a contract"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
             borrower,
@@ -368,7 +368,7 @@ def test_transfer_collateral_from_loan_not_contracts(collateral_vault_peripheral
             borrower
         )
 
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
             erc721_contract,
@@ -378,7 +378,7 @@ def test_transfer_collateral_from_loan_not_contracts(collateral_vault_peripheral
 
 
 def test_transfer_collateral_from_loan_mapping_not_found(collateral_vault_peripheral_contract, erc721_contract, erc20_contract, borrower):
-    with brownie.reverts("mapping not found"):
+    with ape.reverts("mapping not found"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
             erc721_contract,
@@ -390,7 +390,7 @@ def test_transfer_collateral_from_loan_mapping_not_found(collateral_vault_periph
 def test_transfer_collateral_from_loan_wrong_sender(collateral_vault_peripheral_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
     
-    with brownie.reverts("msg.sender is not authorised"):
+    with ape.reverts("msg.sender is not authorised"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
             erc721_contract,
@@ -402,7 +402,7 @@ def test_transfer_collateral_from_loan_wrong_sender(collateral_vault_peripheral_
 def test_transfer_collateral_from_loan_not_nft_contract(collateral_vault_peripheral_contract, loans_peripheral_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
     
-    with brownie.reverts(""):
+    with ape.reverts(""):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
             erc20_contract,
@@ -417,7 +417,7 @@ def test_transfer_collateral_from_loan_wrong_owner(collateral_vault_peripheral_c
 
     erc721_contract.mint(contract_owner, 0, {"from": contract_owner})
 
-    with brownie.reverts("collateral not owned by CVCore"):
+    with ape.reverts("collateral not owned by CVCore"):
         collateral_vault_peripheral_contract.transferCollateralFromLoan(
             borrower,
             erc721_contract,
@@ -506,10 +506,10 @@ def test_transfer_cryptopunk_collateral_from_loan(
 
 
 def test_transfer_collateral_from_liquidation_wrong_sender(collateral_vault_peripheral_contract):
-    with brownie.reverts("msg.sender is not authorised"):
+    with ape.reverts("msg.sender is not authorised"):
         collateral_vault_peripheral_contract.transferCollateralFromLiquidation(
-            brownie.ZERO_ADDRESS,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0
         )
 
@@ -517,18 +517,18 @@ def test_transfer_collateral_from_liquidation_wrong_sender(collateral_vault_peri
 def test_transfer_collateral_from_liquidation_zero_values(collateral_vault_peripheral_contract, liquidations_peripheral_contract, borrower, contract_owner):
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
-    with brownie.reverts("address is the zero addr"):
+    with ape.reverts("address is the zero addr"):
         collateral_vault_peripheral_contract.transferCollateralFromLiquidation(
-            brownie.ZERO_ADDRESS,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
             {"from": liquidations_peripheral_contract}
         )
 
-    with brownie.reverts("collat addr is the zero addr"):
+    with ape.reverts("collat addr is the zero addr"):
         collateral_vault_peripheral_contract.transferCollateralFromLiquidation(
             borrower,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
             {"from": liquidations_peripheral_contract}
         )
@@ -537,7 +537,7 @@ def test_transfer_collateral_from_liquidation_zero_values(collateral_vault_perip
 def test_transfer_collateral_from_liquidation_not_contract(collateral_vault_peripheral_contract, liquidations_peripheral_contract, borrower, contract_owner):
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
-    with brownie.reverts("collat addr is not a contract"):
+    with ape.reverts("collat addr is not a contract"):
         collateral_vault_peripheral_contract.transferCollateralFromLiquidation(
             borrower,
             borrower,
@@ -549,7 +549,7 @@ def test_transfer_collateral_from_liquidation_not_contract(collateral_vault_peri
 def test_transfer_collateral_from_liquidation_not_nft_contract(collateral_vault_peripheral_contract, liquidations_peripheral_contract, erc20_contract, borrower, contract_owner):
     collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
     
-    with brownie.reverts(""):
+    with ape.reverts(""):
         collateral_vault_peripheral_contract.transferCollateralFromLiquidation(
             borrower,
             erc20_contract,
@@ -563,7 +563,7 @@ def test_transfer_collateral_from_liquidation_wrong_owner(collateral_vault_perip
 
     erc721_contract.mint(contract_owner, 0, {"from": contract_owner})
 
-    with brownie.reverts("collateral not owned by CVCore"):
+    with ape.reverts("collateral not owned by CVCore"):
         collateral_vault_peripheral_contract.transferCollateralFromLiquidation(
             borrower,
             erc721_contract,

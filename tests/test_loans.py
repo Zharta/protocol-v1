@@ -1,11 +1,11 @@
 import datetime as dt
-import brownie
+import ape
 import time
 
-from brownie.test import given, strategy
-from hypothesis import settings
+from hypothesis import settings,given
+from hypothesis import strategies as st
 from hypothesis.strategies import sampled_from
-from brownie.network import chain
+from ape import chain
 from decimal import Decimal
 from web3 import Web3
 
@@ -18,7 +18,7 @@ from eth_abi import encode_abi
 MAX_LOAN_DURATION = 31 * 24 * 60 * 60  # 31 days
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 VALIDATION_DEADLINE = int(dt.datetime.now().timestamp()) + 30 * 60 * 60
-LOAN_AMOUNT = Web3.toWei(0.1, "ether")
+LOAN_AMOUNT = Web3.to_wei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
@@ -39,7 +39,7 @@ def create_signature_fixture(
 
     # Can't use eth_account.messages.encode_structured_data (as of version 0.5.9) because dynamic arrays are not correctly hashed:
     # https://github.com/ethereum/eth-account/blob/v0.5.9/eth_account/_utils/structured_data/hashing.py#L236
-    # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be used when brownie allows eth-account==0.7.0
+    # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be used when ape allows eth-account==0.7.0
 
     def _create_signature(
         collaterals=test_collaterals,
@@ -177,7 +177,7 @@ def test_set_default_lender_zeroaddress(
         collateral_vault_core_contract, True, {"from": borrower}
     )
 
-    maturity = chain.time() + 10
+    maturity = chain.pending_timestamp + 10
     (v, r, s) = create_signature(maturity=maturity)
 
     tx_create_loan = loans_peripheral_contract.reserveEth(
@@ -196,7 +196,7 @@ def test_set_default_lender_zeroaddress(
 
     chain.mine(blocks=1, timedelta=15)
 
-    with brownie.reverts("BNPeriph is the zero address"):
+    with ape.reverts("BNPeriph is the zero address"):
         loans_peripheral_contract.settleDefault(
             borrower, loan_id, {"from": contract_owner}
         )
@@ -258,7 +258,7 @@ def test_set_default_lender_zeroaddress(
         collateral_vault_core_contract, True, {"from": borrower}
     )
 
-    maturity = chain.time() + 10
+    maturity = chain.pending_timestamp + 10
     (v, r, s) = create_signature(maturity=maturity)
 
     tx_create_loan = loans_peripheral_contract.reserveEth(
@@ -277,7 +277,7 @@ def test_set_default_lender_zeroaddress(
 
     chain.mine(blocks=1, timedelta=15)
 
-    with brownie.reverts("BNPeriph is the zero address"):
+    with ape.reverts("BNPeriph is the zero address"):
         loans_peripheral_contract.settleDefault(
             borrower, loan_id, {"from": contract_owner}
         )
@@ -295,19 +295,19 @@ def test_initial_state(loans_peripheral_contract, contract_owner):
 
 
 def test_propose_owner_wrong_sender(loans_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.proposeOwner(borrower, {"from": borrower})
 
 
 def test_propose_owner_zero_address(loans_peripheral_contract, contract_owner):
-    with brownie.reverts("_address it the zero address"):
+    with ape.reverts("_address it the zero address"):
         loans_peripheral_contract.proposeOwner(
-            brownie.ZERO_ADDRESS, {"from": contract_owner}
+            ape.ZERO_ADDRESS, {"from": contract_owner}
         )
 
 
 def test_propose_owner_same_owner(loans_peripheral_contract, contract_owner):
-    with brownie.reverts("proposed owner addr is the owner"):
+    with ape.reverts("proposed owner addr is the owner"):
         loans_peripheral_contract.proposeOwner(contract_owner, {"from": contract_owner})
 
 
@@ -327,7 +327,7 @@ def test_propose_owner_same_proposed(
 ):
     loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    with brownie.reverts("proposed owner addr is the same"):
+    with ape.reverts("proposed owner addr is the same"):
         loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
 
@@ -336,7 +336,7 @@ def test_claim_ownership_wrong_sender(
 ):
     loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    with brownie.reverts("msg.sender is not the proposed"):
+    with ape.reverts("msg.sender is not the proposed"):
         loans_peripheral_contract.claimOwnership({"from": contract_owner})
 
 
@@ -346,7 +346,7 @@ def test_claim_ownership(loans_peripheral_contract, contract_owner, borrower):
     tx = loans_peripheral_contract.claimOwnership({"from": borrower})
 
     assert loans_peripheral_contract.owner() == borrower
-    assert loans_peripheral_contract.proposedOwner() == brownie.ZERO_ADDRESS
+    assert loans_peripheral_contract.proposedOwner() == ape.ZERO_ADDRESS
 
     event = tx.events["OwnershipTransferred"]
     assert event["owner"] == contract_owner
@@ -357,7 +357,7 @@ def test_claim_ownership(loans_peripheral_contract, contract_owner, borrower):
 def test_set_lending_pool_address_not_owner(
     loans_peripheral_contract, lending_pool_peripheral_contract, borrower
 ):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.setLendingPoolPeripheralAddress(
             lending_pool_peripheral_contract, {"from": borrower}
         )
@@ -366,16 +366,16 @@ def test_set_lending_pool_address_not_owner(
 def test_set_lending_pool_address_zero_address(
     loans_peripheral_contract, contract_owner
 ):
-    with brownie.reverts("_address is the zero address"):
+    with ape.reverts("_address is the zero address"):
         loans_peripheral_contract.setLendingPoolPeripheralAddress(
-            brownie.ZERO_ADDRESS, {"from": contract_owner}
+            ape.ZERO_ADDRESS, {"from": contract_owner}
         )
 
 
 def test_set_lending_pool_address_not_contract(
     loans_peripheral_contract, contract_owner
 ):
-    with brownie.reverts("_address is not a contract"):
+    with ape.reverts("_address is not a contract"):
         loans_peripheral_contract.setLendingPoolPeripheralAddress(
             contract_owner, {"from": contract_owner}
         )
@@ -415,12 +415,12 @@ def test_set_lending_pool_address(
 
 
 def test_change_contract_status_wrong_sender(loans_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.changeContractStatus(False, {"from": borrower})
 
 
 def test_change_contract_status_same_status(loans_peripheral_contract, contract_owner):
-    with brownie.reverts("new contract status is the same"):
+    with ape.reverts("new contract status is the same"):
         loans_peripheral_contract.changeContractStatus(True, {"from": contract_owner})
 
 
@@ -434,7 +434,7 @@ def test_change_contract_status(loans_peripheral_contract, contract_owner):
 
 
 def test_deprecate_wrong_sender(loans_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.deprecate({"from": borrower})
 
 
@@ -451,7 +451,7 @@ def test_deprecate(loans_peripheral_contract, contract_owner):
 def test_deprecate_already_deprecated(loans_peripheral_contract, contract_owner):
     loans_peripheral_contract.deprecate({"from": contract_owner})
 
-    with brownie.reverts("contract is already deprecated"):
+    with ape.reverts("contract is already deprecated"):
         loans_peripheral_contract.deprecate({"from": contract_owner})
 
 
@@ -464,7 +464,7 @@ def test_create_deprecated(
 ):
     loans_peripheral_contract.deprecate({"from": contract_owner})
     (v, r, s) = create_signature()
-    with brownie.reverts("contract is deprecated"):
+    with ape.reverts("contract is deprecated"):
         tx_start_loan = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -489,7 +489,7 @@ def test_create_not_accepting_loans(
     loans_peripheral_contract.changeContractStatus(False, {"from": contract_owner})
     (v, r, s) = create_signature()
 
-    with brownie.reverts("contract is not accepting loans"):
+    with ape.reverts("contract is not accepting loans"):
         tx_start_loan = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -513,7 +513,7 @@ def test_create_maturity_in_the_past(
     maturity = int(dt.datetime.now().timestamp()) - 3600
     (v, r, s) = create_signature(maturity=maturity)
 
-    with brownie.reverts("maturity is in the past"):
+    with ape.reverts("maturity is in the past"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -547,7 +547,7 @@ def test_create_collaterals_not_owned(
     erc721_contract.mint(investor, 0, {"from": contract_owner})
     (v, r, s) = create_signature()
 
-    with brownie.reverts("msg.sender does not own all NFTs"):
+    with ape.reverts("msg.sender does not own all NFTs"):
         tx = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -583,7 +583,7 @@ def test_create_loan_collateral_not_approved(
 
     (v, r, s) = create_signature()
 
-    with brownie.reverts("not all NFTs are approved"):
+    with ape.reverts("not all NFTs are approved"):
         tx = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -625,7 +625,7 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
         collaterals=[(erc721_contract.address, k, 0) for k in range(5)]
     )
 
-    with brownie.reverts("amount in collats != than amount"):
+    with ape.reverts("amount in collats != than amount"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -658,7 +658,7 @@ def test_create_loan_unsufficient_funds_in_lp(
 
     (v, r, s) = create_signature()
 
-    with brownie.reverts("insufficient liquidity"):
+    with ape.reverts("insufficient liquidity"):
         tx = loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -702,7 +702,7 @@ def test_create_loan_outside_pool_share(
 
     (v, r, s) = create_signature()
 
-    with brownie.reverts("max loans pool share surpassed"):
+    with ape.reverts("max loans pool share surpassed"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -746,7 +746,7 @@ def test_create_loan_outside_collection_share(
 
     (v, r, s) = create_signature()
 
-    with brownie.reverts("max collection share surpassed"):
+    with ape.reverts("max collection share surpassed"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -877,7 +877,7 @@ def test_create_loan_wrong_signature(
     for (k, v) in signature_inconsistencies:
         print(f"creating signature with {k} = {v}")
         (v, r, s) = create_signature(**{k: v})
-        with brownie.reverts("invalid message signature"):
+        with ape.reverts("invalid message signature"):
             loans_peripheral_contract.reserveEth(
                 LOAN_AMOUNT,
                 LOAN_INTEREST,
@@ -918,7 +918,7 @@ def test_create_loan_past_signature_deadline(
     deadline_in_the_past = int(dt.datetime.now().timestamp()) - 1
     (v, r, s) = create_signature(deadline=deadline_in_the_past)
 
-    with brownie.reverts("deadline has passed"):
+    with ape.reverts("deadline has passed"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -1068,7 +1068,7 @@ def test_create_loan_within_collection_share(
 
 
 def test_pay_loan_not_issued(loans_peripheral_contract, borrower):
-    with brownie.reverts("loan not found"):
+    with ape.reverts("loan not found"):
         loans_peripheral_contract.pay(0, {"from": borrower})
 
 
@@ -1098,7 +1098,7 @@ def test_pay_loan_defaulted(
         collateral_vault_core_contract, True, {"from": borrower}
     )
 
-    maturity = chain.time() + 10
+    maturity = chain.pending_timestamp + 10
     (v, r, s) = create_signature(maturity=maturity)
 
     tx_create_loan = loans_peripheral_contract.reserveEth(
@@ -1122,7 +1122,7 @@ def test_pay_loan_defaulted(
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
     chain.mine(blocks=1, timedelta=15)
-    with brownie.reverts("loan maturity reached"):
+    with ape.reverts("loan maturity reached"):
         loans_peripheral_contract.pay(loan["id"], {"from": borrower})
 
 
@@ -1177,7 +1177,7 @@ def test_pay_loan_insufficient_balance(
 
     erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
 
-    with brownie.reverts("insufficient balance"):
+    with ape.reverts("insufficient balance"):
         loans_peripheral_contract.pay(loan_id, {"from": borrower})
 
     erc20_contract.transfer(borrower, transfer_amount, {"from": contract_owner})
@@ -1236,10 +1236,10 @@ def test_pay_loan_insufficient_allowance(
         lending_pool_core_contract, amount_paid / 2, {"from": borrower}
     )
 
-    with brownie.reverts("insufficient allowance"):
+    with ape.reverts("insufficient allowance"):
         loans_peripheral_contract.pay(loan_id, {"from": borrower})
 
-    with brownie.reverts("insufficient value received"):
+    with ape.reverts("insufficient value received"):
         loans_peripheral_contract.pay(
             loan_id, {"from": borrower, "value": amount_paid / 2}
         )
@@ -1291,7 +1291,7 @@ def test_pay_loan(
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
     payable_amount = loans_peripheral_contract.getLoanPayableAmount(
-        borrower, loan_id, chain.time()
+        borrower, loan_id, chain.pending_timestamp
     )
 
     assert borrower.balance() == borrower_initial_balance + LOAN_AMOUNT
@@ -1315,7 +1315,7 @@ def test_pay_loan(
         "paidInterestAmount"
     ] == loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id)
     assert (
-        loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.time())
+        loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.pending_timestamp)
         == 0
     )
 
@@ -1379,31 +1379,31 @@ def test_pay_loan_already_paid(
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
     time_diff = Decimal(
-        chain.time()
+        chain.pending_timestamp
         - loan_details["startTime"]
-        - (chain.time() - loan_details["startTime"]) % INTEREST_ACCRUAL_PERIOD
+        - (chain.pending_timestamp - loan_details["startTime"]) % INTEREST_ACCRUAL_PERIOD
         + INTEREST_ACCRUAL_PERIOD
     )
 
     payable_amount = loans_peripheral_contract.getLoanPayableAmount(
-        borrower, loan_id, chain.time()
+        borrower, loan_id, chain.pending_timestamp
     )
 
     loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": payable_amount})
 
-    with brownie.reverts("loan already paid"):
+    with ape.reverts("loan already paid"):
         loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": payable_amount})
 
 
 def test_set_default_loan_wrong_sender(loans_peripheral_contract, investor, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.settleDefault(borrower, 0, {"from": investor})
 
 
 def test_set_default_loan_not_started(
     loans_peripheral_contract, contract_owner, borrower
 ):
-    with brownie.reverts("loan not found"):
+    with ape.reverts("loan not found"):
         loans_peripheral_contract.settleDefault(borrower, 0, {"from": contract_owner})
 
 
@@ -1434,7 +1434,7 @@ def test_set_default_loan(
         collateral_vault_core_contract, True, {"from": borrower}
     )
 
-    maturity = chain.time() + 10
+    maturity = chain.pending_timestamp + 10
     (v, r, s) = create_signature(maturity=maturity)
 
     tx_create_loan = loans_peripheral_contract.reserveEth(
@@ -1457,7 +1457,7 @@ def test_set_default_loan(
 
     print(loans_core_contract.getLoanMaturity(borrower, loan_id))
     print(loans_core_contract.getLoanDefaulted(borrower, loan_id))
-    print(chain.time())
+    print(chain.pending_timestamp)
     print(loans_peripheral_contract.liquidationsPeripheralContract())
     print(liquidations_peripheral_contract)
 
@@ -1496,9 +1496,9 @@ def test_set_default_loan(
 
 
 @given(
-    loan_duration=strategy('uint256', min_value=1, max_value=90),
-    passed_time=strategy('uint8'),
-    interest=strategy('uint256', max_value=10000),
+    loan_duration=st.decimals(min_value=1, max_value=90),
+    passed_time=st.decimals(min_value=1, max_value=200),
+    interest=st.decimals(min_value=0, max_value=10000),
 )
 @settings(max_examples=5)
 def test_payable_amount(
@@ -1547,9 +1547,9 @@ def test_payable_amount(
     chain.mine(blocks=1, timedelta=passed_time * 86400)
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    payable_amount = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.time())
+    payable_amount = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.pending_timestamp)
 
-    contract_time_passed = chain.time() - loan_details["startTime"]
+    contract_time_passed = chain.pending_timestamp - loan_details["startTime"]
     loan_duration_in_contract = maturity - loan_details["startTime"]
     minimum_interest_period = 7*86400
 

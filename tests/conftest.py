@@ -1,8 +1,7 @@
 from datetime import datetime as dt
 from web3 import Web3
-import brownie
-from brownie import Contract
-from brownie.exceptions import ContractNotFound
+import ape
+from ape import project, Contract
 
 import conftest_base
 import pytest
@@ -10,7 +9,7 @@ import json
 
 
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
-LOAN_AMOUNT = Web3.toWei(0.1, "ether")
+LOAN_AMOUNT = Web3.to_wei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
@@ -36,8 +35,8 @@ erc721_contract = conftest_base.erc721_contract
 
 
 @pytest.fixture(scope="module", autouse=True)
-def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
-    yield CollateralVaultCore.deploy({"from": contract_owner})
+def collateral_vault_core_contract(contract_owner):
+    return contract_owner.deploy(project.CollateralVaultCore)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -54,12 +53,12 @@ def cryptopunks_market_contract(contract_owner):
             json.loads(abi),
             owner=contract_owner
         )
-    except ContractNotFound:
+    except Exception:
         return None
 
 
 @pytest.fixture(scope="module", autouse=True)
-def wpunks_contract(ERC721, contract_owner):
+def wpunks_contract(project, contract_owner):
     abi = """ [
         {"constant":false,"inputs":[{"internalType":"uint256","name":"punkIndex","type":"uint256"}],"name":"mint","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
         {"constant":false,"inputs":[],"name":"registerProxy","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
@@ -75,47 +74,48 @@ def wpunks_contract(ERC721, contract_owner):
             json.loads(abi),
             owner=contract_owner
         )
-    except ContractNotFound:
+    except Exception:
         return None
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hashmasks_contract(ERC721, contract_owner):
+def hashmasks_contract(project, contract_owner):
     try:
-        return ERC721.at("0xC2C747E0F7004F9E8817Db2ca4997657a7746928")
-    except ContractNotFound:
+        return project.ERC721.at("0xC2C747E0F7004F9E8817Db2ca4997657a7746928")
+    except Exception:
         return None
 
 
 @pytest.fixture(scope="module", autouse=True)
-def cryptopunks_vault_core_contract(CryptoPunksVaultCore, cryptopunks_market_contract, contract_owner):
-    cryptopunks_address = cryptopunks_market_contract.address if cryptopunks_market_contract else brownie.ZERO_ADDRESS
-    return CryptoPunksVaultCore.deploy(cryptopunks_address, {"from": contract_owner})
+def cryptopunks_vault_core_contract(project, cryptopunks_market_contract, contract_owner):
+    cryptopunks_address = cryptopunks_market_contract.address if cryptopunks_market_contract else ape.utils.ZERO_ADDRESS
+    return contract_owner.deploy(project.CryptoPunksVaultCore, cryptopunks_address)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_vault_core_contract, contract_owner):
-    yield CollateralVaultPeripheral.deploy(collateral_vault_core_contract, {"from": contract_owner})
+def collateral_vault_peripheral_contract(project, collateral_vault_core_contract, contract_owner):
+    yield contract_owner.deploy(project.CollateralVaultPeripheral, collateral_vault_core_contract)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loans_core_contract(LoansCore, contract_owner):
-    yield LoansCore.deploy({'from': contract_owner})
+def loans_core_contract(project, contract_owner):
+    return contract_owner.deploy(project.LoansCore)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def lending_pool_core_contract(LendingPoolCore, erc20_contract, contract_owner):
-    yield LendingPoolCore.deploy(erc20_contract, {'from': contract_owner})
+def lending_pool_core_contract(project, erc20_contract, contract_owner):
+    yield contract_owner.deploy(project.LendingPoolCore, erc20_contract)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def lending_pool_lock_contract(LendingPoolLock, erc20_contract, contract_owner):
-    yield LendingPoolLock.deploy(erc20_contract, {'from': contract_owner})
+def lending_pool_lock_contract(project, erc20_contract, contract_owner):
+    yield contract_owner.deploy(project.LendingPoolLock, erc20_contract)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_contract, lending_pool_lock_contract, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPoolPeripheral.deploy(
+def lending_pool_peripheral_contract(project, lending_pool_core_contract, lending_pool_lock_contract, erc20_contract, contract_owner, protocol_wallet):
+    return contract_owner.deploy(
+        project.LendingPoolPeripheral,
         lending_pool_core_contract,
         lending_pool_lock_contract,
         erc20_contract,
@@ -123,13 +123,13 @@ def lending_pool_peripheral_contract(LendingPoolPeripheral, lending_pool_core_co
         PROTOCOL_FEES_SHARE,
         MAX_CAPITAL_EFFICIENCY,
         False,
-        {'from': contract_owner}
     )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_core_contract, lending_pool_lock_contract, erc20_contract, contract_owner, protocol_wallet):
-    yield LendingPoolPeripheral.deploy(
+def lending_pool_peripheral_contract_aux(project, lending_pool_core_contract, lending_pool_lock_contract, erc20_contract, contract_owner, protocol_wallet):
+    return contract_owner.deploy(
+        project.LendingPoolPeripheral,
         lending_pool_core_contract,
         lending_pool_lock_contract,
         erc20_contract,
@@ -137,56 +137,56 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
         PROTOCOL_FEES_SHARE,
         MAX_CAPITAL_EFFICIENCY,
         False,
-        {'from': contract_owner}
     )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
-    yield Loans.deploy(
+def loans_peripheral_contract(project, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
+    return contract_owner.deploy(
+        project.Loans,
         INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
         lending_pool_peripheral_contract,
         collateral_vault_peripheral_contract,
-        {'from': contract_owner}
     )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
-    yield Loans.deploy(
+def loans_peripheral_contract_aux(project, lending_pool_peripheral_contract, contract_owner, accounts):
+    return contract_owner.deploy(
+        project.Loans,
         INTEREST_ACCRUAL_PERIOD,
         accounts[4],
         lending_pool_peripheral_contract,
         accounts[5],
-        {'from': contract_owner}
     )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def liquidations_core_contract(LiquidationsCore, contract_owner):
-    yield LiquidationsCore.deploy({"from": contract_owner})
+def liquidations_core_contract(project, contract_owner):
+    yield contract_owner.deploy(project.LiquidationsCore)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def liquidations_peripheral_contract(LiquidationsPeripheral, liquidations_core_contract, erc20_contract, contract_owner):
-    liquidations_peripheral_contract = LiquidationsPeripheral.deploy(
+def liquidations_peripheral_contract(project, liquidations_core_contract, erc20_contract, contract_owner):
+    liquidations_peripheral_contract = contract_owner.deploy(
+        project.LiquidationsPeripheral,
         liquidations_core_contract,
         GRACE_PERIOD_DURATION,
         LENDER_PERIOD_DURATION,
         AUCTION_DURATION,
         erc20_contract,
-        {"from": contract_owner}
     )
-    liquidations_peripheral_contract.setNFTXVaultFactoryAddress("0xBE86f647b167567525cCAAfcd6f881F1Ee558216", {"from": contract_owner})
-    liquidations_peripheral_contract.setNFTXMarketplaceZapAddress("0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d", {"from": contract_owner})
-    liquidations_peripheral_contract.setSushiRouterAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F", {"from": contract_owner})
+    liquidations_peripheral_contract.setNFTXVaultFactoryAddress("0xBE86f647b167567525cCAAfcd6f881F1Ee558216", sender=contract_owner)
+    liquidations_peripheral_contract.setNFTXMarketplaceZapAddress("0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d", sender=contract_owner)
+    liquidations_peripheral_contract.setSushiRouterAddress("0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F", sender=contract_owner)
     return liquidations_peripheral_contract
 
 
 @pytest.fixture(scope="module", autouse=True)
-def liquidity_controls_contract(LiquidityControls, contract_owner):
-    yield LiquidityControls.deploy(
+def liquidity_controls_contract(project, contract_owner):
+    return contract_owner.deploy(
+        project.LiquidityControls,
         False,
         MAX_POOL_SHARE,
         False,
@@ -194,7 +194,6 @@ def liquidity_controls_contract(LiquidityControls, contract_owner):
         False,
         MAX_LOANS_POOL_SHARE,
         False,
-        {"from": contract_owner}
     )
 
 
@@ -213,8 +212,8 @@ def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
         return result
     for k in range(5):
         owner = cryptopunks_market_contract.punkIndexToAddress(k)
-        brownie.network.rpc.unlock_account(owner)
-        cryptopunks_market_contract.transferPunk(borrower, k, {'from': owner})
+        ape.network.rpc.unlock_account(owner)
+        cryptopunks_market_contract.transferPunk(borrower, k, sender=owner)
         result.append((cryptopunks_market_contract, k, LOAN_AMOUNT // 5))
     return result
 
@@ -237,29 +236,24 @@ def contracts_config(
     loans_peripheral_contract,
     wpunks_contract,
 ):
-    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, {"from": contract_owner})
-    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_lock_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, {"from": contract_owner})
-    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-    liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": contract_owner})
-    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
-    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, {"from": contract_owner})
-    loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
-    loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, {"from": contract_owner})
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
+    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, sender=contract_owner)
+    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
+    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, sender=contract_owner)
+    lending_pool_lock_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, sender=contract_owner)
+    lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, sender=contract_owner)
+    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, sender=contract_owner)
+    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+    liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, sender=contract_owner)
+    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, sender=contract_owner)
+    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
+    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, sender=contract_owner)
+    loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+    loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, sender=contract_owner)
     if cryptopunks_market_contract is not None:
-        collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract, {"from": contract_owner})
-        liquidations_peripheral_contract.setCryptoPunksAddress(cryptopunks_market_contract, {"from": contract_owner})
+        collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract, sender=contract_owner)
+        liquidations_peripheral_contract.setCryptoPunksAddress(cryptopunks_market_contract, sender=contract_owner)
     if wpunks_contract is not None:
-        liquidations_peripheral_contract.setWrappedPunksAddress(wpunks_contract, {"from": contract_owner})
-
-
-@pytest.fixture(autouse=True)
-def isolation(fn_isolation):
-    pass
+        liquidations_peripheral_contract.setWrappedPunksAddress(wpunks_contract, sender=contract_owner)

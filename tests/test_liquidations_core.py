@@ -1,7 +1,7 @@
-from brownie.network import chain
+from ape import chain
 from web3 import Web3
 
-import brownie
+import ape
 import eth_abi
 
 
@@ -9,8 +9,8 @@ GRACE_PERIOD_DURATION = 172800 # 2 days
 LENDER_PERIOD_DURATION = 604800 # 15 days
 AUCTION_DURATION = 604800 # 15 days
 
-PRINCIPAL = Web3.toWei(1, "ether")
-INTEREST_AMOUNT = Web3.toWei(0.1, "ether")
+PRINCIPAL = Web3.to_wei(1, "ether")
+INTEREST_AMOUNT = Web3.to_wei(0.1, "ether")
 APR = 200
 
 
@@ -20,17 +20,17 @@ def test_initial_state(liquidations_core_contract, contract_owner,):
 
 
 def test_propose_owner_wrong_sender(liquidations_core_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_core_contract.proposeOwner(borrower, {"from": borrower})
 
 
 def test_propose_owner_zero_address(liquidations_core_contract, contract_owner):
-    with brownie.reverts("address it the zero address"):
-        liquidations_core_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address it the zero address"):
+        liquidations_core_contract.proposeOwner(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_propose_owner_same_owner(liquidations_core_contract, contract_owner):
-    with brownie.reverts("proposed owner addr is the owner"):
+    with ape.reverts("proposed owner addr is the owner"):
         liquidations_core_contract.proposeOwner(contract_owner, {"from": contract_owner})
 
 
@@ -48,14 +48,14 @@ def test_propose_owner(liquidations_core_contract, contract_owner, borrower):
 def test_propose_owner_same_proposed(liquidations_core_contract, contract_owner, borrower):
     liquidations_core_contract.proposeOwner(borrower, {"from": contract_owner})
     
-    with brownie.reverts("proposed owner addr is the same"):
+    with ape.reverts("proposed owner addr is the same"):
         liquidations_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
 
 def test_claim_ownership_wrong_sender(liquidations_core_contract, contract_owner, borrower):
     liquidations_core_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    with brownie.reverts("msg.sender is not the proposed"):
+    with ape.reverts("msg.sender is not the proposed"):
         liquidations_core_contract.claimOwnership({"from": contract_owner})
 
 
@@ -65,7 +65,7 @@ def test_claim_ownership(liquidations_core_contract, contract_owner, borrower):
     tx = liquidations_core_contract.claimOwnership({"from": borrower})
 
     assert liquidations_core_contract.owner() == borrower
-    assert liquidations_core_contract.proposedOwner() == brownie.ZERO_ADDRESS
+    assert liquidations_core_contract.proposedOwner() == ape.ZERO_ADDRESS
 
     event = tx.events["OwnershipTransferred"]
     assert event["owner"] == contract_owner
@@ -73,17 +73,17 @@ def test_claim_ownership(liquidations_core_contract, contract_owner, borrower):
 
 
 def test_set_liquidations_peripheral_address_wrong_sender(liquidations_core_contract, liquidations_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": borrower})
 
 
 def test_set_liquidations_peripheral_address_zero_address(liquidations_core_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        liquidations_core_contract.setLiquidationsPeripheralAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address is the zero addr"):
+        liquidations_core_contract.setLiquidationsPeripheralAddress(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_set_liquidations_peripheral_address_not_contract(liquidations_core_contract, contract_owner):
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         liquidations_core_contract.setLiquidationsPeripheralAddress(contract_owner, {"from": contract_owner})
 
 
@@ -93,7 +93,7 @@ def test_set_liquidations_peripheral_address(liquidations_core_contract, liquida
     assert liquidations_core_contract.liquidationsPeripheralAddress() == liquidations_peripheral_contract
 
     event = tx.events["LiquidationsPeripheralAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == liquidations_peripheral_contract
 
 
@@ -102,14 +102,14 @@ def test_set_liquidations_peripheral_address_same_address(liquidations_core_cont
 
     assert liquidations_core_contract.liquidationsPeripheralAddress() == liquidations_peripheral_contract
 
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
 
 def test_add_liquidation_wrong_sender(liquidations_core_contract, borrower):
-    with brownie.reverts("msg.sender is not LiqPeriph addr"):
+    with ape.reverts("msg.sender is not LiqPeriph addr"):
         liquidations_core_contract.addLiquidation(
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
             0,
             0,
@@ -119,10 +119,10 @@ def test_add_liquidation_wrong_sender(liquidations_core_contract, borrower):
             0,
             0,
             0,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             0,
-            brownie.ZERO_ADDRESS,
-            brownie.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
+            ape.ZERO_ADDRESS,
             {"from": borrower}
         )
 
@@ -135,7 +135,7 @@ def test_add_liquidation(liquidations_core_contract, liquidations_peripheral_con
     grace_period_price = PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 2) / 365
     liquidations_period_price = PRINCIPAL + INTEREST_AMOUNT + (PRINCIPAL * APR * 17) / 365
 
-    start_time = chain.time()
+    start_time = chain.pending_timestamp
     tx = liquidations_core_contract.addLiquidation(
         erc721_contract,
         0,
@@ -184,7 +184,7 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
 
     erc721_contract.mint(collateral_vault_peripheral_contract, 0, {"from": contract_owner})
 
-    start_time = chain.time()
+    start_time = chain.pending_timestamp
     liquidations_core_contract.addLiquidation(
         erc721_contract,
         0,
@@ -203,7 +203,7 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
         {"from": liquidations_peripheral_contract}
     )
 
-    with brownie.reverts("liquidation already exists"):
+    with ape.reverts("liquidation already exists"):
         liquidations_core_contract.addLiquidation(
             erc721_contract,
             0,
@@ -224,7 +224,7 @@ def test_add_liquidation_already_exists(liquidations_core_contract, liquidations
 
 
 def test_add_loan_to_liquidated_wrong_sender(liquidations_core_contract, loans_core_contract, contract_owner):
-    with brownie.reverts("msg.sender is not LiqPeriph addr"):
+    with ape.reverts("msg.sender is not LiqPeriph addr"):
         liquidations_core_contract.addLoanToLiquidated(contract_owner, loans_core_contract, 0, {"from": contract_owner})
 
 
@@ -237,14 +237,14 @@ def test_add_loan_to_liquidated(liquidations_core_contract, liquidations_periphe
 
 
 def test_remove_liquidation_wrong_sender(liquidations_core_contract, erc721_contract, contract_owner):
-    with brownie.reverts("msg.sender is not LiqPeriph addr"):
+    with ape.reverts("msg.sender is not LiqPeriph addr"):
         liquidations_core_contract.removeLiquidation(erc721_contract, 0, {"from": contract_owner})
 
 
 def test_remove_liquidation_not_found(liquidations_core_contract, liquidations_peripheral_contract, erc721_contract, contract_owner):
     liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, {"from": contract_owner})
 
-    with brownie.reverts("liquidation not found"):
+    with ape.reverts("liquidation not found"):
         liquidations_core_contract.removeLiquidation(erc721_contract, 0, {"from": liquidations_peripheral_contract})
 
 
@@ -253,7 +253,7 @@ def test_remove_liquidation(liquidations_core_contract, liquidations_peripheral_
 
     erc721_contract.mint(collateral_vault_peripheral_contract, 0, {"from": contract_owner})
 
-    start_time = chain.time()
+    start_time = chain.pending_timestamp
     liquidations_core_contract.addLiquidation(
         erc721_contract,
         0,
@@ -275,8 +275,8 @@ def test_remove_liquidation(liquidations_core_contract, liquidations_peripheral_
     tx = liquidations_core_contract.removeLiquidation(erc721_contract, 0, {"from": liquidations_peripheral_contract})
 
     liquidation = liquidations_core_contract.getLiquidation(erc721_contract, 0)
-    assert liquidation["collateralAddress"] == brownie.ZERO_ADDRESS
+    assert liquidation["collateralAddress"] == ape.ZERO_ADDRESS
     assert liquidation["startTime"] == 0
-    assert liquidation["borrower"] == brownie.ZERO_ADDRESS
-    assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
+    assert liquidation["borrower"] == ape.ZERO_ADDRESS
+    assert liquidation["erc20TokenContract"] == ape.ZERO_ADDRESS
 

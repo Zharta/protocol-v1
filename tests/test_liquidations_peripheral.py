@@ -1,9 +1,9 @@
 from decimal import Decimal
-from brownie.network import chain
+from ape import chain
 from datetime import datetime as dt
 from web3 import Web3
 
-import brownie
+import ape
 import eth_abi
 import os
 import pytest
@@ -14,7 +14,7 @@ LENDER_PERIOD_DURATION = 50
 AUCTION_DURATION = 50
 
 MATURITY = int(dt.now().timestamp()) + 30 * 24 * 60 * 60
-LOAN_AMOUNT = Web3.toWei(0.1, "ether")
+LOAN_AMOUNT = Web3.to_wei(0.1, "ether")
 LOAN_INTEREST = 250  # 2.5% in parts per 10000
 
 
@@ -24,7 +24,7 @@ def test_add_loans_core_address(liquidations_peripheral_contract, loans_core_con
     assert liquidations_peripheral_contract.loansCoreAddresses(erc20_contract) == loans_core_contract
 
     event = tx.events["LoansCoreAddressAdded"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == loans_core_contract
     assert event["erc20TokenContract"] == erc20_contract
 
@@ -34,12 +34,12 @@ def test_add_loans_core_address_same_address(liquidations_peripheral_contract, l
 
     assert liquidations_peripheral_contract.loansCoreAddresses(erc20_contract) == loans_core_contract
 
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": contract_owner})
 
 
 def test_remove_loans_core_address_not_found(liquidations_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address not found"):
+    with ape.reverts("address not found"):
         liquidations_peripheral_contract.removeLoansCoreAddress(erc20_contract, {"from": contract_owner})
 
 
@@ -50,7 +50,7 @@ def test_remove_loans_core_address(liquidations_peripheral_contract, loans_core_
 
     tx = liquidations_peripheral_contract.removeLoansCoreAddress(erc20_contract, {"from": contract_owner})
 
-    assert liquidations_peripheral_contract.loansCoreAddresses(erc20_contract) == brownie.ZERO_ADDRESS
+    assert liquidations_peripheral_contract.loansCoreAddresses(erc20_contract) == ape.ZERO_ADDRESS
 
     event = tx.events["LoansCoreAddressRemoved"]
     assert event["currentValue"] == loans_core_contract
@@ -63,7 +63,7 @@ def test_add_lending_pool_peripheral_address(liquidations_peripheral_contract, l
     assert liquidations_peripheral_contract.lendingPoolPeripheralAddresses(erc20_contract) == lending_pool_peripheral_contract
 
     event = tx.events["LendingPoolPeripheralAddressAdded"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == lending_pool_peripheral_contract
     assert event["erc20TokenContract"] == erc20_contract
 
@@ -73,12 +73,12 @@ def test_add_lending_pool_peripheral_address_same_address(liquidations_periphera
 
     assert liquidations_peripheral_contract.lendingPoolPeripheralAddresses(erc20_contract) == lending_pool_peripheral_contract
 
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": contract_owner})
 
 
 def test_remove_lending_pool_peripheral_address_not_found(liquidations_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address not found"):
+    with ape.reverts("address not found"):
         liquidations_peripheral_contract.removeLendingPoolPeripheralAddress(erc20_contract, {"from": contract_owner})
 
 
@@ -89,7 +89,7 @@ def test_remove_lending_pool_peripheral_address(liquidations_peripheral_contract
 
     tx = liquidations_peripheral_contract.removeLendingPoolPeripheralAddress(erc20_contract, {"from": contract_owner})
 
-    assert liquidations_peripheral_contract.lendingPoolPeripheralAddresses(erc20_contract) == brownie.ZERO_ADDRESS
+    assert liquidations_peripheral_contract.lendingPoolPeripheralAddresses(erc20_contract) == ape.ZERO_ADDRESS
 
     event = tx.events["LendingPoolPeripheralAddressRemoved"]
     assert event["currentValue"] == lending_pool_peripheral_contract
@@ -102,7 +102,7 @@ def test_set_collateral_vault_address(liquidations_peripheral_contract, collater
     assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
 
     event = tx.events["CollateralVaultPeripheralAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == collateral_vault_peripheral_contract
 
 
@@ -111,7 +111,7 @@ def test_set_collateral_vault_address_same_address(liquidations_peripheral_contr
 
     assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
 
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
 
@@ -121,7 +121,7 @@ def test_set_collateral_vault_address(liquidations_peripheral_contract, collater
     assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
 
     event = tx.events["CollateralVaultPeripheralAddressSet"]
-    assert event["currentValue"] == brownie.ZERO_ADDRESS
+    assert event["currentValue"] == ape.ZERO_ADDRESS
     assert event["newValue"] == collateral_vault_peripheral_contract
 
 
@@ -130,7 +130,7 @@ def test_set_collateral_vault_address_same_address(liquidations_peripheral_contr
 
     assert liquidations_peripheral_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract
 
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
 
@@ -148,17 +148,17 @@ def test_initial_state(liquidations_peripheral_contract, liquidations_core_contr
 
 
 def test_propose_owner_wrong_sender(liquidations_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.proposeOwner(borrower, {"from": borrower})
 
 
 def test_propose_owner_zero_address(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("address it the zero address"):
-        liquidations_peripheral_contract.proposeOwner(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address it the zero address"):
+        liquidations_peripheral_contract.proposeOwner(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_propose_owner_same_owner(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("proposed owner addr is the owner"):
+    with ape.reverts("proposed owner addr is the owner"):
         liquidations_peripheral_contract.proposeOwner(contract_owner, {"from": contract_owner})
 
 
@@ -176,14 +176,14 @@ def test_propose_owner(liquidations_peripheral_contract, contract_owner, borrowe
 def test_propose_owner_same_proposed(liquidations_peripheral_contract, contract_owner, borrower):
     liquidations_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
     
-    with brownie.reverts("proposed owner addr is the same"):
+    with ape.reverts("proposed owner addr is the same"):
         liquidations_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
 
 def test_claim_ownership_wrong_sender(liquidations_peripheral_contract, contract_owner, borrower):
     liquidations_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
 
-    with brownie.reverts("msg.sender is not the proposed"):
+    with ape.reverts("msg.sender is not the proposed"):
         liquidations_peripheral_contract.claimOwnership({"from": contract_owner})
 
 
@@ -193,7 +193,7 @@ def test_claim_ownership(liquidations_peripheral_contract, contract_owner, borro
     tx = liquidations_peripheral_contract.claimOwnership({"from": borrower})
 
     assert liquidations_peripheral_contract.owner() == borrower
-    assert liquidations_peripheral_contract.proposedOwner() == brownie.ZERO_ADDRESS
+    assert liquidations_peripheral_contract.proposedOwner() == ape.ZERO_ADDRESS
 
     event = tx.events["OwnershipTransferred"]
     assert event["owner"] == contract_owner
@@ -201,12 +201,12 @@ def test_claim_ownership(liquidations_peripheral_contract, contract_owner, borro
 
 
 def test_set_grace_period_duration_wrong_sender(liquidations_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.setGracePeriodDuration(0, {"from": borrower})
 
 
 def test_set_grace_period_duration_zero_value(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("duration is 0"):
+    with ape.reverts("duration is 0"):
         liquidations_peripheral_contract.setGracePeriodDuration(0, {"from": contract_owner})
 
 
@@ -223,17 +223,17 @@ def test_set_grace_period_duration(liquidations_peripheral_contract, contract_ow
 
 
 def test_set_grace_period_duration_same_value(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.setGracePeriodDuration(GRACE_PERIOD_DURATION, {"from": contract_owner})
 
 
 def test_set_lenders_period_duration_wrong_sender(liquidations_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.setLendersPeriodDuration(0, {"from": borrower})
 
 
 def test_set_lenders_period_duration_zero_value(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("duration is 0"):
+    with ape.reverts("duration is 0"):
         liquidations_peripheral_contract.setLendersPeriodDuration(0, {"from": contract_owner})
 
 
@@ -250,17 +250,17 @@ def test_set_lenders_period_duration(liquidations_peripheral_contract, contract_
 
 
 def test_set_lenders_period_duration_same_value(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.setLendersPeriodDuration(LENDER_PERIOD_DURATION, {"from": contract_owner})
 
 
 def test_set_auction_period_duration_wrong_sender(liquidations_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.setAuctionPeriodDuration(0, {"from": borrower})
 
 
 def test_set_auction_period_duration_zero_value(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("duration is 0"):
+    with ape.reverts("duration is 0"):
         liquidations_peripheral_contract.setAuctionPeriodDuration(0, {"from": contract_owner})
 
 
@@ -277,22 +277,22 @@ def test_set_auction_period_duration(liquidations_peripheral_contract, contract_
 
 
 def test_set_auction_period_duration_same_value(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.setAuctionPeriodDuration(AUCTION_DURATION, {"from": contract_owner})
 
 
 def test_set_liquidations_core_address_wrong_sender(liquidations_peripheral_contract, liquidations_core_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.setLiquidationsCoreAddress(liquidations_core_contract, {"from": borrower})
 
 
 def test_set_liquidations_core_address_zero_address(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        liquidations_peripheral_contract.setLiquidationsCoreAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address is the zero addr"):
+        liquidations_peripheral_contract.setLiquidationsCoreAddress(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_set_liquidations_core_address_not_contract(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         liquidations_peripheral_contract.setLiquidationsCoreAddress(contract_owner, {"from": contract_owner})
 
 
@@ -307,78 +307,78 @@ def test_set_liquidations_core_address(liquidations_peripheral_contract, liquida
 
 
 def test_set_liquidations_core_address_same_address(liquidations_peripheral_contract, liquidations_core_contract, contract_owner):
-    with brownie.reverts("new value is the same"):
+    with ape.reverts("new value is the same"):
         liquidations_peripheral_contract.setLiquidationsCoreAddress(liquidations_core_contract, {"from": contract_owner})
 
 
 def test_add_loans_core_address_wrong_sender(liquidations_peripheral_contract, loans_core_contract, erc20_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, {"from": borrower})
 
 
 def test_add_loans_core_address_zero_address(liquidations_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address is the zero addr"):
+        liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_add_loans_core_address_not_contract(liquidations_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, contract_owner, {"from": contract_owner})
 
 
 def test_remove_loans_core_address_wrong_sender(liquidations_peripheral_contract, erc20_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.removeLoansCoreAddress(erc20_contract, {"from": borrower})
 
 
 def test_remove_loans_core_address_zero_address(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("erc20TokenAddr is the zero addr"):
-        liquidations_peripheral_contract.removeLoansCoreAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("erc20TokenAddr is the zero addr"):
+        liquidations_peripheral_contract.removeLoansCoreAddress(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_remove_loans_core_address_not_contract(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("erc20TokenAddr is not a contract"):
+    with ape.reverts("erc20TokenAddr is not a contract"):
         liquidations_peripheral_contract.removeLoansCoreAddress(contract_owner, {"from": contract_owner})
 
 
 def test_add_lending_pool_peripheral_address_wrong_sender(liquidations_peripheral_contract, lending_pool_peripheral_contract, erc20_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, {"from": borrower})
 
 
 def test_add_lending_pool_peripheral_address_zero_address(liquidations_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address is the zero addr"):
+        liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_add_lending_pool_peripheral_address_not_contract(liquidations_peripheral_contract, erc20_contract, contract_owner):
-    with brownie.reverts("address is not a contract"):
+    with ape.reverts("address is not a contract"):
         liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, contract_owner, {"from": contract_owner})
 
 
 def test_remove_lending_pool_peripheral_address_wrong_sender(liquidations_peripheral_contract, erc20_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.removeLendingPoolPeripheralAddress(erc20_contract, {"from": borrower})
 
 
 def test_remove_lending_pool_peripheral_address_zero_address(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("erc20TokenAddr is the zero addr"):
-        liquidations_peripheral_contract.removeLendingPoolPeripheralAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("erc20TokenAddr is the zero addr"):
+        liquidations_peripheral_contract.removeLendingPoolPeripheralAddress(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_remove_lending_pool_peripheral_address_not_contract(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("erc20TokenAddr is not a contract"):
+    with ape.reverts("erc20TokenAddr is not a contract"):
         liquidations_peripheral_contract.removeLendingPoolPeripheralAddress(contract_owner, {"from": contract_owner})
 
 
 def test_set_collateral_vault_address_wrong_sender(liquidations_peripheral_contract, collateral_vault_peripheral_contract, borrower):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": borrower})
 
 
 def test_set_collateral_vault_address_zero_address(liquidations_peripheral_contract, contract_owner):
-    with brownie.reverts("address is the zero addr"):
-        liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(brownie.ZERO_ADDRESS, {"from": contract_owner})
+    with ape.reverts("address is the zero addr"):
+        liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(ape.ZERO_ADDRESS, {"from": contract_owner})
 
 
 def test_add_liquidation(liquidations_peripheral_contract, liquidations_core_contract, loans_peripheral_contract, loans_core_contract, collateral_vault_peripheral_contract, collateral_vault_core_contract, erc721_contract, erc20_contract, borrower, contract_owner):
@@ -456,7 +456,7 @@ def test_add_liquidation_loan_not_defaulted(liquidations_peripheral_contract, li
     )
     loan_id = tx_add_loan.return_value
 
-    with brownie.reverts("loan is not defaulted"):
+    with ape.reverts("loan is not defaulted"):
         liquidations_peripheral_contract.addLiquidation(
             borrower,
             loan_id,
@@ -600,7 +600,7 @@ def test_buy_nft_lender_period_grace_period(
         erc20_contract
     )
 
-    with brownie.reverts("liquidation in grace period"):
+    with ape.reverts("liquidation in grace period"):
         liquidations_peripheral_contract.buyNFTLenderPeriod(
             erc721_contract,
             0,
@@ -648,7 +648,7 @@ def test_buy_nft_lender_period_past_period(
 
     chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION + 1)
 
-    with brownie.reverts("liquidation out of lender period"):
+    with ape.reverts("liquidation out of lender period"):
         liquidations_peripheral_contract.buyNFTLenderPeriod(
             erc721_contract,
             0,
@@ -697,7 +697,7 @@ def test_buy_nft_lender_period_not_lender(
 
     chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION + 1)
 
-    with brownie.reverts("msg.sender is not a lender"):
+    with ape.reverts("msg.sender is not a lender"):
         liquidations_peripheral_contract.buyNFTLenderPeriod(
             erc721_contract,
             0,
@@ -759,10 +759,10 @@ def test_buy_nft_lender_period(
     )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-    assert liquidation["collateralAddress"] == brownie.ZERO_ADDRESS
+    assert liquidation["collateralAddress"] == ape.ZERO_ADDRESS
     assert liquidation["startTime"] == 0
-    assert liquidation["borrower"] == brownie.ZERO_ADDRESS
-    assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
+    assert liquidation["borrower"] == ape.ZERO_ADDRESS
+    assert liquidation["erc20TokenContract"] == ape.ZERO_ADDRESS
 
     event_liquidation_removed = tx.events["LiquidationRemoved"]
     assert event_liquidation_removed["liquidationId"] == liquidation_id
@@ -794,7 +794,7 @@ def test_admin_withdrawal_wrong_sender(
     borrower,
     contract_owner
 ):
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         liquidations_peripheral_contract.adminWithdrawal(
             contract_owner,
             erc721_contract,
@@ -873,10 +873,10 @@ def test_admin_withdrawal_wrong_sender(
 #     )
 
 #     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-#     assert liquidation["collateralAddress"] == brownie.ZERO_ADDRESS
+#     assert liquidation["collateralAddress"] == ape.ZERO_ADDRESS
 #     assert liquidation["startTime"] == 0
-#     assert liquidation["borrower"] == brownie.ZERO_ADDRESS
-#     assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
+#     assert liquidation["borrower"] == ape.ZERO_ADDRESS
+#     assert liquidation["erc20TokenContract"] == ape.ZERO_ADDRESS
 
 #     event_liquidation_removed = tx.events["LiquidationRemoved"]
 #     assert event_liquidation_removed["liquidationId"] == liquidation_id
@@ -994,11 +994,11 @@ def test_admin_liquidation(
     )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-    assert liquidation["lid"] == brownie.ZERO_ADDRESS
-    assert liquidation["collateralAddress"] == brownie.ZERO_ADDRESS
+    assert liquidation["lid"] == ape.ZERO_ADDRESS
+    assert liquidation["collateralAddress"] == ape.ZERO_ADDRESS
     assert liquidation["startTime"] == 0
-    assert liquidation["borrower"] == brownie.ZERO_ADDRESS
-    assert liquidation["erc20TokenContract"] == brownie.ZERO_ADDRESS
+    assert liquidation["borrower"] == ape.ZERO_ADDRESS
+    assert liquidation["erc20TokenContract"] == ape.ZERO_ADDRESS
 
     assert "LiquidationRemoved" not in tx.events
 
@@ -1052,7 +1052,7 @@ def test_admin_liquidation_fail_on_message_not_from_owner(
     collateral_address = liquidation['collateralAddress']
     token_id = liquidation['tokenId']
 
-    with brownie.reverts("msg.sender is not the owner"):
+    with ape.reverts("msg.sender is not the owner"):
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
@@ -1065,7 +1065,7 @@ def test_admin_liquidation_fail_on_message_not_from_owner(
         )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-    assert liquidation["lid"] != brownie.ZERO_ADDRESS
+    assert liquidation["lid"] != ape.ZERO_ADDRESS
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -1106,7 +1106,7 @@ def test_admin_liquidation_fail_on_collateral_in_vault(
 
     chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION-1)
 
-    with brownie.reverts("collateral still owned by vault"):
+    with ape.reverts("collateral still owned by vault"):
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
@@ -1119,7 +1119,7 @@ def test_admin_liquidation_fail_on_collateral_in_vault(
         )
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-    assert liquidation["lid"] != brownie.ZERO_ADDRESS
+    assert liquidation["lid"] != ape.ZERO_ADDRESS
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -1161,7 +1161,7 @@ def test_admin_liquidation_fail_on_collateral_in_liquidation(
     chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION)
     collateral_vault_peripheral_contract.transferCollateralFromLiquidation(contract_owner, collateral_address, token_id, {"from": liquidations_peripheral_contract})
 
-    with brownie.reverts("collateral still in liquidation"):
+    with ape.reverts("collateral still in liquidation"):
         tx = liquidations_peripheral_contract.adminLiquidation(
             LOAN_AMOUNT*7//10,
             LOAN_AMOUNT*1//10,
