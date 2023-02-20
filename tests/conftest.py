@@ -1,6 +1,6 @@
 import ape
 import boa
-from web3 import Web3
+from web3 import Web3, eth
 from datetime import datetime as dt
 from .conftest_base import get_last_event
 
@@ -33,11 +33,23 @@ def accounts():
     return _accounts
 
 
-@pytest.fixture(scope="session", autouse=True)
-def contract_owner(accounts):
-    boa.env.eoa = accounts[0]  # avoid all the pranks in test setups
-    return accounts[0]
+@pytest.fixture(scope="session")
+def owner_account():
+    return eth.Account.create()
 
+
+@pytest.fixture(scope="session")
+def not_contract_owner_account():
+    return eth.Account.create()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def contract_owner(accounts, owner_account):
+    # boa.env.eoa = accounts[0]  # avoid all the pranks in test setups
+    # return accounts[0]
+    boa.env.eoa = owner_account.address
+    boa.env.set_balance(owner_account.address, 10**21)
+    return owner_account.address
 
 @pytest.fixture(scope="session")
 def investor(accounts):
@@ -55,15 +67,10 @@ def protocol_wallet(accounts):
 
 
 @pytest.fixture(scope="session")
-def not_contract_owner(accounts):
-    return accounts[4]
-
-
-@pytest.fixture(scope="session")
 def erc20_contract(contract_owner, accounts):
     erc20 = boa.load_partial("tests/stubs/ERC20.vy").at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
     for account in accounts:
-        erc20.mint(account, 10**20)
+        erc20.deposit(sender=account, value=10**19)
     return erc20
 
 
@@ -213,7 +220,7 @@ def liquidity_controls_contract(contract_owner):
 def test_collaterals(erc721_contract):
     result = []
     for k in range(5):
-        result.append((erc721_contract.address, k, LOAN_AMOUNT / 5))
+        result.append((erc721_contract.address, k, LOAN_AMOUNT // 5))
     return result
 
 
@@ -230,7 +237,7 @@ def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
     return result
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def contracts_config(
     collateral_vault_core_contract,
     collateral_vault_peripheral_contract,
@@ -248,24 +255,27 @@ def contracts_config(
     loans_peripheral_contract,
     wpunks_contract,
 ):
-    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
-    collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, sender=contract_owner)
-    collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
-    cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
-    lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, sender=contract_owner)
-    lending_pool_lock_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, sender=contract_owner)
-    lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
-    lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, sender=contract_owner)
-    lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, sender=contract_owner)
-    liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
-    liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, sender=contract_owner)
-    liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, sender=contract_owner)
-    liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
-    loans_core_contract.setLoansPeripheral(loans_peripheral_contract, sender=contract_owner)
-    loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
-    loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, sender=contract_owner)
-    if cryptopunks_market_contract is not None:
-        collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract, sender=contract_owner)
-        liquidations_peripheral_contract.setCryptoPunksAddress(cryptopunks_market_contract, sender=contract_owner)
-    if wpunks_contract is not None:
-        liquidations_peripheral_contract.setWrappedPunksAddress(wpunks_contract, sender=contract_owner)
+    with boa.env.anchor():
+        collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
+        collateral_vault_peripheral_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract, sender=contract_owner)
+        collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+        cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
+        lending_pool_core_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, sender=contract_owner)
+        lending_pool_lock_contract.setLendingPoolPeripheralAddress(lending_pool_peripheral_contract, sender=contract_owner)
+        lending_pool_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+        lending_pool_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, sender=contract_owner)
+        lending_pool_peripheral_contract.setLoansPeripheralAddress(loans_peripheral_contract, sender=contract_owner)
+        liquidations_core_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+        liquidations_peripheral_contract.addLendingPoolPeripheralAddress(erc20_contract, lending_pool_peripheral_contract, sender=contract_owner)
+        liquidations_peripheral_contract.addLoansCoreAddress(erc20_contract, loans_core_contract, sender=contract_owner)
+        liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
+        loans_core_contract.setLoansPeripheral(loans_peripheral_contract, sender=contract_owner)
+        loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_peripheral_contract, sender=contract_owner)
+        loans_peripheral_contract.setLiquidityControlsAddress(liquidity_controls_contract, sender=contract_owner)
+        if cryptopunks_market_contract is not None:
+            collateral_vault_peripheral_contract.addVault(cryptopunks_market_contract, cryptopunks_vault_core_contract, sender=contract_owner)
+            liquidations_peripheral_contract.setCryptoPunksAddress(cryptopunks_market_contract, sender=contract_owner)
+        if wpunks_contract is not None:
+            liquidations_peripheral_contract.setWrappedPunksAddress(wpunks_contract, sender=contract_owner)
+        yield
+

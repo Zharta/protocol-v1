@@ -1,5 +1,6 @@
 import boa
-from ..conftest import ZERO_ADDRESS
+
+from ..conftest_base import ZERO_ADDRESS, get_last_event, checksummed
 
 
 def test_initial_state(collateral_vault_core_contract, contract_owner):
@@ -24,15 +25,13 @@ def test_propose_owner_same_owner(collateral_vault_core_contract, contract_owner
 
 def test_propose_owner(collateral_vault_core_contract, contract_owner, borrower):
     collateral_vault_core_contract.proposeOwner(borrower, sender=contract_owner)
-    event = collateral_vault_core_contract.get_logs()[-1]
+    event = get_last_event(collateral_vault_core_contract, name="OwnerProposed")
 
     assert collateral_vault_core_contract.owner() == contract_owner
     assert collateral_vault_core_contract.proposedOwner() == borrower
 
-    # assert event["owner"] == contract_owner
-    # assert event["proposedOwner"] == borrower
-    assert event.args[0] == contract_owner
-    assert event.args[1] == borrower
+    assert event.owner == contract_owner
+    assert event.proposedOwner == borrower
 
 
 def test_propose_owner_same_proposed(collateral_vault_core_contract, contract_owner, borrower):
@@ -53,15 +52,13 @@ def test_claim_ownership(collateral_vault_core_contract, contract_owner, borrowe
     collateral_vault_core_contract.proposeOwner(borrower, sender=contract_owner)
 
     collateral_vault_core_contract.claimOwnership(sender=borrower)
-    event = collateral_vault_core_contract.get_logs()[0]
+    event = get_last_event(collateral_vault_core_contract, name="OwnershipTransferred")
 
     assert collateral_vault_core_contract.owner() == borrower
     assert collateral_vault_core_contract.proposedOwner() == ZERO_ADDRESS
 
-    # assert event["owner"] == contract_owner
-    # assert event["proposedOwner"] == borrower
-    assert event.args[0] == contract_owner
-    assert event.args[1] == borrower
+    assert event.owner == contract_owner
+    assert event.proposedOwner == borrower
 
 
 def test_set_collateral_vault_peripheral_address_wrong_sender(collateral_vault_core_contract, collateral_vault_peripheral_contract, borrower):
@@ -75,16 +72,13 @@ def test_set_collateral_vault_address_peripheral_zero_address(collateral_vault_c
 
 
 def test_set_collateral_vault_peripheral_address(collateral_vault_core_contract, collateral_vault_peripheral_contract, contract_owner):
-    with boa.env.anchor():
-        collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
-        event = collateral_vault_core_contract.get_logs()[0]
+    collateral_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, sender=contract_owner)
+    event = get_last_event(collateral_vault_core_contract, name="CollateralVaultPeripheralAddressSet")
 
-        assert collateral_vault_core_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract.address
+    assert collateral_vault_core_contract.collateralVaultPeripheralAddress() == collateral_vault_peripheral_contract.address
 
-        # assert event["currentValue"] == ZERO_ADDRESS
-        # assert event["newValue"] == collateral_vault_peripheral_contract
-        assert event.args[0] == ZERO_ADDRESS
-        assert event.args[1] == collateral_vault_peripheral_contract.address
+    assert event.currentValue == ZERO_ADDRESS
+    assert event.newValue == collateral_vault_peripheral_contract.address
 
 
 

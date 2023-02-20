@@ -12,6 +12,7 @@ boa.reset_env()
 boa.env.fork(url=os.environ["BOA_FORK_RPC_URL"])
 
 
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 def get_last_event(contract: boa.vyper.contract.VyperContract, name: str = None):
     matching_events = [e for e in contract.get_logs() if name is None or name == e.event_type.name]
@@ -46,3 +47,21 @@ class EventWrapper():
         if isinstance(_type, vyper.semantics.types.value.address.AddressDefinition):
             return Web3.toChecksumAddress(v)
         return v
+
+
+# TODO: find a better way to do this. also would be useful to get structs attrs by name
+def checksummed(obj, vyper_type=None):
+    if vyper_type is None and hasattr(obj, "_vyper_type"):
+        vyper_type = obj._vyper_type
+    print(f"checksummed {obj=} {vyper_type=} {type(obj).__name__=}")
+    # if type(obj).__name__ ==  "tuple_wrapper":  # ad-hoc type from boa.vyper.contract
+    if isinstance(vyper_type, vyper.codegen.types.types.DArrayType):
+        # return list(checksummed(x, obj._vyper_type.subtype) for x in obj)
+        return list(checksummed(x, vyper_type.subtype) for x in obj)
+    elif isinstance(vyper_type, vyper.codegen.types.types.StructType):
+        return tuple(checksummed(*arg) for arg in zip(obj, vyper_type.tuple_members()))
+    elif isinstance(vyper_type, vyper.codegen.types.types.BaseType):
+        return Web3.toChecksumAddress(obj) if vyper_type.typ == 'address' else obj
+    else:
+        return obj
+

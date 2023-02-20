@@ -1,11 +1,10 @@
 import datetime as dt
-import ape
+import boa
 import time
 
 from hypothesis import settings,given
 from hypothesis import strategies as st
 from hypothesis.strategies import sampled_from
-from ape import chain
 from decimal import Decimal
 from web3 import Web3
 
@@ -14,6 +13,8 @@ from eth_account.messages import SignableMessage, HexBytes
 from eth_account import Account
 from eth_utils import keccak
 from eth_abi import encode_abi
+
+from ..conftest_base import ZERO_ADDRESS, get_last_event, checksummed
 
 MAX_LOAN_DURATION = 31 * 24 * 60 * 60  # 31 days
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
@@ -33,13 +34,11 @@ MAX_LOANS_POOL_SHARE = 1500  # parts per 10000, e.g. 2.5% is 250 parts per 10000
 
 
 @pytest.fixture(name="create_signature", scope="module", autouse=True)
-def create_signature_fixture(
-    test_collaterals, loans_peripheral_contract, contract_owner, borrower
-):
+def create_signature_fixture(test_collaterals, loans_peripheral_contract, owner_account, borrower):
 
     # Can't use eth_account.messages.encode_structured_data (as of version 0.5.9) because dynamic arrays are not correctly hashed:
     # https://github.com/ethereum/eth-account/blob/v0.5.9/eth_account/_utils/structured_data/hashing.py#L236
-    # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be used when ape allows eth-account==0.7.0
+    # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be used when brownie allows eth-account==0.7.0
 
     def _create_signature(
         collaterals=test_collaterals,
@@ -49,11 +48,11 @@ def create_signature_fixture(
         deadline=VALIDATION_DEADLINE,
         nonce=0,
         borrower=borrower,
-        signer=contract_owner,
+        signer=owner_account,
         verifier=loans_peripheral_contract,
         domain_name="Zharta",
         domain_version="1",
-        chain_id=1337,
+        chain_id=boa.env.chain.chain_id,
     ):
 
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
@@ -91,7 +90,7 @@ def create_signature_fixture(
             ],
             [
                 reserve_type_hash,
-                borrower.address,
+                borrower,
                 amount,
                 interest,
                 maturity,
@@ -117,7 +116,7 @@ def create_signature_fixture(
         message_hash = keccak(struct_instance)
         signed_message = Account.sign_message(
             SignableMessage(HexBytes(b"\x01"), domain_hash, message_hash),
-            private_key=signer.private_key,
+            private_key=signer.privateKey,
         )
         return (signed_message.v, signed_message.r, signed_message.s)
 
@@ -142,45 +141,45 @@ def test_set_default_lender_zeroaddress(
     test_collaterals,
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(
-        lending_pool_peripheral_contract, {"from": contract_owner}
+        lending_pool_peripheral_contract, sender=contract_owner
     )
     lending_pool_peripheral_contract.setLoansPeripheralAddress(
-        loans_peripheral_contract, {"from": contract_owner}
+        loans_peripheral_contract, sender=contract_owner
     )
     lending_pool_peripheral_contract.setLiquidityControlsAddress(
-        liquidity_controls_contract, {"from": contract_owner}
+        liquidity_controls_contract, sender=contract_owner
     )
     loans_peripheral_contract.setLiquidityControlsAddress(
-        liquidity_controls_contract, {"from": contract_owner}
+        liquidity_controls_contract, sender=contract_owner
     )
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(
-        collateral_vault_peripheral_contract, {"from": contract_owner}
+        collateral_vault_peripheral_contract, sender=contract_owner
     )
     collateral_vault_peripheral_contract.addLoansPeripheralAddress(
-        erc20_contract, loans_peripheral_contract, {"from": contract_owner}
+        erc20_contract, loans_peripheral_contract, sender=contract_owner
     )
     loans_core_contract.setLoansPeripheral(
-        loans_peripheral_contract, {"from": contract_owner}
+        loans_peripheral_contract, sender=contract_owner
     )
     lending_pool_lock_contract.setLendingPoolPeripheralAddress(
-        lending_pool_peripheral_contract, {"from": contract_owner}
+        lending_pool_peripheral_contract, sender=contract_owner
     )
 
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
-    maturity = chain.pending_timestamp + 10
+    # maturity = chain.pending_timestamp + 10
+    maturity = boa.eval("block.timestamp") + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,
@@ -190,19 +189,17 @@ def test_set_default_lender_zeroaddress(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
-    chain.mine(blocks=1, timedelta=15)
+    boa.env.time_travel(seconds=15)
 
-    with ape.reverts("BNPeriph is the zero address"):
+    with boa.reverts("BNPeriph is the zero address"):
         loans_peripheral_contract.settleDefault(
-            borrower, loan_id, {"from": contract_owner}
+            borrower, loan_id, sender=contract_owner
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_set_default_lender_zeroaddress(
     loans_peripheral_contract,
     create_signature,
@@ -221,47 +218,46 @@ def test_set_default_lender_zeroaddress(
     test_collaterals,
 ):
     lending_pool_core_contract.setLendingPoolPeripheralAddress(
-        lending_pool_peripheral_contract, {"from": contract_owner}
+        lending_pool_peripheral_contract, sender=contract_owner
     )
     lending_pool_lock_contract.setLendingPoolPeripheralAddress(
-        lending_pool_peripheral_contract, {"from": contract_owner}
+        lending_pool_peripheral_contract, sender=contract_owner
     )
     lending_pool_peripheral_contract.setLoansPeripheralAddress(
-        loans_peripheral_contract, {"from": contract_owner}
+        loans_peripheral_contract, sender=contract_owner
     )
     lending_pool_peripheral_contract.setLiquidityControlsAddress(
-        liquidity_controls_contract, {"from": contract_owner}
+        liquidity_controls_contract, sender=contract_owner
     )
     loans_peripheral_contract.setLiquidityControlsAddress(
-        liquidity_controls_contract, {"from": contract_owner}
+        liquidity_controls_contract, sender=contract_owner
     )
 
     collateral_vault_core_contract.setCollateralVaultPeripheralAddress(
-        collateral_vault_peripheral_contract, {"from": contract_owner}
+        collateral_vault_peripheral_contract, sender=contract_owner
     )
     collateral_vault_peripheral_contract.addLoansPeripheralAddress(
-        erc20_contract, loans_peripheral_contract, {"from": contract_owner}
+        erc20_contract, loans_peripheral_contract, sender=contract_owner
     )
 
     loans_core_contract.setLoansPeripheral(
-        loans_peripheral_contract, {"from": contract_owner}
+        loans_peripheral_contract, sender=contract_owner
     )
 
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
-    maturity = chain.pending_timestamp + 10
+    maturity = boa.eval("block.timestamp") + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,
@@ -271,15 +267,14 @@ def test_set_default_lender_zeroaddress(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
-    chain.mine(blocks=1, timedelta=15)
+    boa.env.time_travel(seconds=15)
 
-    with ape.reverts("BNPeriph is the zero address"):
+    with boa.reverts("BNPeriph is the zero address"):
         loans_peripheral_contract.settleDefault(
-            borrower, loan_id, {"from": contract_owner}
+            borrower, loan_id, sender=contract_owner
         )
 
 
@@ -295,89 +290,87 @@ def test_initial_state(loans_peripheral_contract, contract_owner):
 
 
 def test_propose_owner_wrong_sender(loans_peripheral_contract, borrower):
-    with ape.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.proposeOwner(borrower, {"from": borrower})
+    with boa.reverts("msg.sender is not the owner"):
+        loans_peripheral_contract.proposeOwner(borrower, sender=borrower)
 
 
 def test_propose_owner_zero_address(loans_peripheral_contract, contract_owner):
-    with ape.reverts("_address it the zero address"):
+    with boa.reverts("_address it the zero address"):
         loans_peripheral_contract.proposeOwner(
-            ape.ZERO_ADDRESS, {"from": contract_owner}
+            ZERO_ADDRESS, sender=contract_owner
         )
 
 
 def test_propose_owner_same_owner(loans_peripheral_contract, contract_owner):
-    with ape.reverts("proposed owner addr is the owner"):
-        loans_peripheral_contract.proposeOwner(contract_owner, {"from": contract_owner})
+    with boa.reverts("proposed owner addr is the owner"):
+        loans_peripheral_contract.proposeOwner(contract_owner, sender=contract_owner)
 
 
 def test_propose_owner(loans_peripheral_contract, contract_owner, borrower):
-    tx = loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+    loans_peripheral_contract.proposeOwner(borrower, sender=contract_owner)
+    event = get_last_event(loans_peripheral_contract, name="OwnerProposed")
 
     assert loans_peripheral_contract.proposedOwner() == borrower
     assert loans_peripheral_contract.owner() == contract_owner
-
-    event = tx.events["OwnerProposed"]
-    assert event["owner"] == contract_owner
-    assert event["proposedOwner"] == borrower
+    assert event.owner == contract_owner
+    assert event.proposedOwner == borrower
 
 
 def test_propose_owner_same_proposed(
     loans_peripheral_contract, contract_owner, borrower
 ):
-    loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+    loans_peripheral_contract.proposeOwner(borrower, sender=contract_owner)
 
-    with ape.reverts("proposed owner addr is the same"):
-        loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+    with boa.reverts("proposed owner addr is the same"):
+        loans_peripheral_contract.proposeOwner(borrower, sender=contract_owner)
 
 
 def test_claim_ownership_wrong_sender(
     loans_peripheral_contract, contract_owner, borrower
 ):
-    loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+    loans_peripheral_contract.proposeOwner(borrower, sender=contract_owner)
 
-    with ape.reverts("msg.sender is not the proposed"):
-        loans_peripheral_contract.claimOwnership({"from": contract_owner})
+    with boa.reverts("msg.sender is not the proposed"):
+        loans_peripheral_contract.claimOwnership(sender=contract_owner)
 
 
 def test_claim_ownership(loans_peripheral_contract, contract_owner, borrower):
-    loans_peripheral_contract.proposeOwner(borrower, {"from": contract_owner})
+    loans_peripheral_contract.proposeOwner(borrower, sender=contract_owner)
 
-    tx = loans_peripheral_contract.claimOwnership({"from": borrower})
+    loans_peripheral_contract.claimOwnership(sender=borrower)
+    event = get_last_event(loans_peripheral_contract, name="OwnershipTransferred")
 
     assert loans_peripheral_contract.owner() == borrower
-    assert loans_peripheral_contract.proposedOwner() == ape.ZERO_ADDRESS
-
-    event = tx.events["OwnershipTransferred"]
-    assert event["owner"] == contract_owner
-    assert event["proposedOwner"] == borrower
+    assert loans_peripheral_contract.proposedOwner() == ZERO_ADDRESS
+    assert event.owner == contract_owner
+    assert event.proposedOwner == borrower
 
 
 
 def test_set_lending_pool_address_not_owner(
     loans_peripheral_contract, lending_pool_peripheral_contract, borrower
 ):
-    with ape.reverts("msg.sender is not the owner"):
+    with boa.reverts("msg.sender is not the owner"):
         loans_peripheral_contract.setLendingPoolPeripheralAddress(
-            lending_pool_peripheral_contract, {"from": borrower}
+            lending_pool_peripheral_contract, sender=borrower
         )
 
 
 def test_set_lending_pool_address_zero_address(
     loans_peripheral_contract, contract_owner
 ):
-    with ape.reverts("_address is the zero address"):
+    with boa.reverts("_address is the zero address"):
         loans_peripheral_contract.setLendingPoolPeripheralAddress(
-            ape.ZERO_ADDRESS, {"from": contract_owner}
+            ZERO_ADDRESS, sender=contract_owner
         )
 
 
 def test_set_lending_pool_address_not_contract(
     loans_peripheral_contract, contract_owner
 ):
-    with ape.reverts("_address is not a contract"):
+    with boa.reverts("_address is not a contract"):
         loans_peripheral_contract.setLendingPoolPeripheralAddress(
-            contract_owner, {"from": contract_owner}
+            contract_owner, sender=contract_owner
         )
 
 
@@ -387,72 +380,68 @@ def test_set_lending_pool_address(
     lending_pool_peripheral_contract_aux,
     contract_owner,
 ):
-    tx = loans_peripheral_contract.setLendingPoolPeripheralAddress(
-        lending_pool_peripheral_contract_aux, {"from": contract_owner}
+    loans_peripheral_contract.setLendingPoolPeripheralAddress(
+        lending_pool_peripheral_contract_aux, sender=contract_owner
     )
+    event = get_last_event(loans_peripheral_contract, name="LendingPoolPeripheralAddressSet")
 
     assert (
         loans_peripheral_contract.lendingPoolPeripheralContract()
-        == lending_pool_peripheral_contract_aux
+        == lending_pool_peripheral_contract_aux.address
     )
 
-    event = tx.events["LendingPoolPeripheralAddressSet"]
-    assert event["currentValue"] == lending_pool_peripheral_contract
-    assert event["newValue"] == lending_pool_peripheral_contract_aux
+    assert event.currentValue == lending_pool_peripheral_contract.address
+    assert event.newValue == lending_pool_peripheral_contract_aux.address
 
-    tx = loans_peripheral_contract.setLendingPoolPeripheralAddress(
-        lending_pool_peripheral_contract, {"from": contract_owner}
+    loans_peripheral_contract.setLendingPoolPeripheralAddress(
+        lending_pool_peripheral_contract, sender=contract_owner
     )
+    event = get_last_event(loans_peripheral_contract, name="LendingPoolPeripheralAddressSet")
 
-    assert (
-        loans_peripheral_contract.lendingPoolPeripheralContract()
-        == lending_pool_peripheral_contract
-    )
+    assert loans_peripheral_contract.lendingPoolPeripheralContract() == lending_pool_peripheral_contract.address
 
-    event = tx.events["LendingPoolPeripheralAddressSet"]
-    assert event["currentValue"] == lending_pool_peripheral_contract_aux
-    assert event["newValue"] == lending_pool_peripheral_contract
+    assert event.currentValue == lending_pool_peripheral_contract_aux.address
+    assert event.newValue == lending_pool_peripheral_contract.address
 
 
 def test_change_contract_status_wrong_sender(loans_peripheral_contract, borrower):
-    with ape.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.changeContractStatus(False, {"from": borrower})
+    with boa.reverts("msg.sender is not the owner"):
+        loans_peripheral_contract.changeContractStatus(False, sender=borrower)
 
 
 def test_change_contract_status_same_status(loans_peripheral_contract, contract_owner):
-    with ape.reverts("new contract status is the same"):
-        loans_peripheral_contract.changeContractStatus(True, {"from": contract_owner})
+    with boa.reverts("new contract status is the same"):
+        loans_peripheral_contract.changeContractStatus(True, sender=contract_owner)
 
 
 def test_change_contract_status(loans_peripheral_contract, contract_owner):
-    tx = loans_peripheral_contract.changeContractStatus(False, {"from": contract_owner})
+    loans_peripheral_contract.changeContractStatus(False, sender=contract_owner)
+    event = get_last_event(loans_peripheral_contract, name="ContractStatusChanged")
 
     assert not loans_peripheral_contract.isAcceptingLoans()
 
-    event = tx.events["ContractStatusChanged"]
-    assert not event["value"]
+    assert not event.value
 
 
 def test_deprecate_wrong_sender(loans_peripheral_contract, borrower):
-    with ape.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.deprecate({"from": borrower})
+    with boa.reverts("msg.sender is not the owner"):
+        loans_peripheral_contract.deprecate(sender=borrower)
 
 
 def test_deprecate(loans_peripheral_contract, contract_owner):
-    tx = loans_peripheral_contract.deprecate({"from": contract_owner})
+    loans_peripheral_contract.deprecate(sender=contract_owner)
+    event = get_last_event(loans_peripheral_contract, name="ContractDeprecated")
 
     assert loans_peripheral_contract.isDeprecated() == True
     assert loans_peripheral_contract.isAcceptingLoans() == False
-
-    event = tx.events["ContractDeprecated"]
     assert event is not None
 
 
 def test_deprecate_already_deprecated(loans_peripheral_contract, contract_owner):
-    loans_peripheral_contract.deprecate({"from": contract_owner})
+    loans_peripheral_contract.deprecate(sender=contract_owner)
 
-    with ape.reverts("contract is already deprecated"):
-        loans_peripheral_contract.deprecate({"from": contract_owner})
+    with boa.reverts("contract is already deprecated"):
+        loans_peripheral_contract.deprecate(sender=contract_owner)
 
 
 def test_create_deprecated(
@@ -462,10 +451,10 @@ def test_create_deprecated(
     borrower,
     test_collaterals,
 ):
-    loans_peripheral_contract.deprecate({"from": contract_owner})
+    loans_peripheral_contract.deprecate(sender=contract_owner)
     (v, r, s) = create_signature()
-    with ape.reverts("contract is deprecated"):
-        tx_start_loan = loans_peripheral_contract.reserveEth(
+    with boa.reverts("contract is deprecated"):
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -475,7 +464,7 @@ def test_create_deprecated(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
@@ -486,11 +475,11 @@ def test_create_not_accepting_loans(
     borrower,
     test_collaterals,
 ):
-    loans_peripheral_contract.changeContractStatus(False, {"from": contract_owner})
+    loans_peripheral_contract.changeContractStatus(False, sender=contract_owner)
     (v, r, s) = create_signature()
 
-    with ape.reverts("contract is not accepting loans"):
-        tx_start_loan = loans_peripheral_contract.reserveEth(
+    with boa.reverts("contract is not accepting loans"):
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -500,7 +489,7 @@ def test_create_not_accepting_loans(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
@@ -513,7 +502,7 @@ def test_create_maturity_in_the_past(
     maturity = int(dt.datetime.now().timestamp()) - 3600
     (v, r, s) = create_signature(maturity=maturity)
 
-    with ape.reverts("maturity is in the past"):
+    with boa.reverts("maturity is in the past"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -524,11 +513,10 @@ def test_create_maturity_in_the_past(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_collaterals_not_owned(
     loans_peripheral_contract,
     create_signature,
@@ -539,16 +527,13 @@ def test_create_collaterals_not_owned(
     borrower,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
+    lending_pool_peripheral_contract.depositEth(sender=investor, value=Web3.to_wei(1, "ether"))
 
-    erc721_contract.mint(investor, 0, {"from": contract_owner})
+    erc721_contract.mint(investor, 0)
     (v, r, s) = create_signature()
 
-    with ape.reverts("msg.sender does not own all NFTs"):
-        tx = loans_peripheral_contract.reserveEth(
+    with boa.reverts("msg.sender does not own all NFTs"):
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -558,11 +543,10 @@ def test_create_collaterals_not_owned(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_collateral_not_approved(
     loans_peripheral_contract,
     create_signature,
@@ -573,18 +557,17 @@ def test_create_loan_collateral_not_approved(
     borrower,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
 
     (v, r, s) = create_signature()
 
-    with ape.reverts("not all NFTs are approved"):
-        tx = loans_peripheral_contract.reserveEth(
+    with boa.reverts("not all NFTs are approved"):
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -594,11 +577,10 @@ def test_create_loan_collateral_not_approved(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_sum_collaterals_amounts_not_amount(
     loans_peripheral_contract,
     create_signature,
@@ -609,34 +591,27 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
     investor,
     borrower,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
+    lending_pool_peripheral_contract.depositEth(sender=investor, value=Web3.to_wei(1, "ether"))
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k)
 
-    erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
-    )
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract.address, True, sender=borrower)
 
-    (v, r, s) = create_signature(
-        collaterals=[(erc721_contract.address, k, 0) for k in range(5)]
-    )
+    (v, r, s) = create_signature(collaterals=[(erc721_contract.address, k, 0) for k in range(5)])
 
-    with ape.reverts("amount in collats != than amount"):
+    with boa.reverts("amount in collats != than amount"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
-            [(erc721_contract, k, 0) for k in range(5)],
+            [(erc721_contract.address, k, 0) for k in range(5)],
             VALIDATION_DEADLINE,
             0,
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
@@ -650,16 +625,16 @@ def test_create_loan_unsufficient_funds_in_lp(
     test_collaterals,
 ):
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
 
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     (v, r, s) = create_signature()
 
-    with ape.reverts("insufficient liquidity"):
-        tx = loans_peripheral_contract.reserveEth(
+    with boa.reverts("insufficient liquidity"):
+        loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
             MATURITY,
@@ -669,11 +644,10 @@ def test_create_loan_unsufficient_funds_in_lp(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_outside_pool_share(
     loans_peripheral_contract,
     create_signature,
@@ -687,22 +661,21 @@ def test_create_loan_outside_pool_share(
     test_collaterals,
 ):
     liquidity_controls_contract.changeMaxLoansPoolShareConditions(
-        True, MAX_LOANS_POOL_SHARE, {"from": contract_owner}
+        True, MAX_LOANS_POOL_SHARE, sender=contract_owner
     )
-    contract_owner.transfer(to=investor, amount=Web3.toWei(15, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": LOAN_AMOUNT * 2}
+        sender=investor, value= LOAN_AMOUNT * 2
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     (v, r, s) = create_signature()
 
-    with ape.reverts("max loans pool share surpassed"):
+    with boa.reverts("max loans pool share surpassed"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -713,11 +686,10 @@ def test_create_loan_outside_pool_share(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_outside_collection_share(
     loans_peripheral_contract,
     create_signature,
@@ -731,22 +703,21 @@ def test_create_loan_outside_collection_share(
     test_collaterals,
 ):
     liquidity_controls_contract.changeMaxCollectionBorrowableAmount(
-        True, erc721_contract, LOAN_AMOUNT / 10, {"from": contract_owner}
+        True, erc721_contract, LOAN_AMOUNT // 10, sender=contract_owner
     )
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     (v, r, s) = create_signature()
 
-    with ape.reverts("max collection share surpassed"):
+    with boa.reverts("max collection share surpassed"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -757,11 +728,10 @@ def test_create_loan_outside_collection_share(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan(
     loans_peripheral_contract,
     create_signature,
@@ -774,20 +744,19 @@ def test_create_loan(
     investor,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -797,34 +766,32 @@ def test_create_loan(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
+    event = get_last_event(loans_peripheral_contract, name="LoanCreated")
 
-    loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    assert loan_details["id"] == loan_id
-    assert loan_details["amount"] == LOAN_AMOUNT
-    assert loan_details["interest"] == LOAN_INTEREST
-    assert loan_details["paidPrincipal"] == 0
-    assert loan_details["paidInterestAmount"] == 0
-    assert loan_details["maturity"] == MATURITY
-    assert len(loan_details["collaterals"]) == 5
-    assert loan_details["collaterals"] == test_collaterals
-    assert loan_details["started"] == True
-    assert loan_details["invalidated"] == False
-    assert loan_details["paid"] == False
-    assert loan_details["defaulted"] == False
-    assert loan_details["canceled"] == False
+    loan_details = checksummed(loans_core_contract.getLoan(borrower, loan_id))
+    assert loan_details[0] == loan_id
+    assert loan_details[1] == LOAN_AMOUNT
+    assert loan_details[2] == LOAN_INTEREST
+    assert loan_details[3] == MATURITY
+    assert len(loan_details[5]) == 5
+    assert loan_details[5] == test_collaterals
+    assert loan_details[6] == 0
+    assert loan_details[7] == 0
+    assert loan_details[8] == True
+    assert loan_details[9] == False
+    assert loan_details[10] == False
+    assert loan_details[11] == False
+    assert loan_details[12] == False
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract.address
 
-    event = tx_create_loan.events["LoanCreated"]
-    assert event["wallet"] == borrower
-    assert event["loanId"] == 0
+    assert event.wallet == borrower
+    assert event.loanId == 0
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_wrong_signature(
     loans_peripheral_contract,
     create_signature,
@@ -834,23 +801,22 @@ def test_create_loan_wrong_signature(
     liquidity_controls_contract,
     erc721_contract,
     contract_owner,
-    not_contract_owner,
+    not_contract_owner_account,
     borrower,
     investor,
     test_collaterals,
 ):
     liquidity_controls_contract.changeMaxLoansPoolShareConditions(
-        True, MAX_LOANS_POOL_SHARE, {"from": contract_owner}
+        True, MAX_LOANS_POOL_SHARE, sender=contract_owner
     )
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     signature_inconsistencies = [
@@ -868,7 +834,7 @@ def test_create_loan_wrong_signature(
         ("collaterals", [(c[0], c[1] + 1, c[2]) for c in test_collaterals]),
         ("collaterals", [(c[0], c[1], c[2] // 10) for c in test_collaterals]),
         ("collaterals", test_collaterals[1:]),
-        ("signer", not_contract_owner),
+        ("signer", not_contract_owner_account),
         ("verifier", loans_core_contract),
         ("domain_name", "Other"),
         ("domain_version", "2"),
@@ -877,7 +843,7 @@ def test_create_loan_wrong_signature(
     for (k, v) in signature_inconsistencies:
         print(f"creating signature with {k} = {v}")
         (v, r, s) = create_signature(**{k: v})
-        with ape.reverts("invalid message signature"):
+        with boa.reverts("invalid message signature"):
             loans_peripheral_contract.reserveEth(
                 LOAN_AMOUNT,
                 LOAN_INTEREST,
@@ -888,11 +854,10 @@ def test_create_loan_wrong_signature(
                 v,
                 r,
                 s,
-                {"from": borrower},
+                sender=borrower,
             )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_past_signature_deadline(
     loans_peripheral_contract,
     create_signature,
@@ -904,21 +869,21 @@ def test_create_loan_past_signature_deadline(
     investor,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
-    deadline_in_the_past = int(dt.datetime.now().timestamp()) - 1
+    # deadline_in_the_past = int(dt.datetime.now().timestamp()) - 1
+    deadline_in_the_past = boa.eval("block.timestamp") - 10
     (v, r, s) = create_signature(deadline=deadline_in_the_past)
 
-    with ape.reverts("deadline has passed"):
+    with boa.reverts("deadline has passed"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -929,11 +894,10 @@ def test_create_loan_past_signature_deadline(
             v,
             r,
             s,
-            {"from": borrower},
+            sender=borrower,
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_within_pool_share(
     loans_peripheral_contract,
     create_signature,
@@ -948,22 +912,21 @@ def test_create_loan_within_pool_share(
     test_collaterals,
 ):
     liquidity_controls_contract.changeMaxLoansPoolShareConditions(
-        True, MAX_LOANS_POOL_SHARE, {"from": contract_owner}
+        True, MAX_LOANS_POOL_SHARE, sender=contract_owner
     )
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -973,34 +936,32 @@ def test_create_loan_within_pool_share(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
-    loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    assert loan_details["id"] == loan_id
-    assert loan_details["amount"] == LOAN_AMOUNT
-    assert loan_details["interest"] == LOAN_INTEREST
-    assert loan_details["paidPrincipal"] == 0
-    assert loan_details["paidInterestAmount"] == 0
-    assert loan_details["maturity"] == MATURITY
-    assert len(loan_details["collaterals"]) == 5
-    assert loan_details["collaterals"] == test_collaterals
-    assert loan_details["started"] == True
-    assert loan_details["invalidated"] == False
-    assert loan_details["paid"] == False
-    assert loan_details["defaulted"] == False
-    assert loan_details["canceled"] == False
+    event = get_last_event(loans_peripheral_contract, name="LoanCreated")
 
+    loan_details = checksummed(loans_core_contract.getLoan(borrower, loan_id))
+    assert loan_details[0] == loan_id
+    assert loan_details[1] == LOAN_AMOUNT
+    assert loan_details[2] == LOAN_INTEREST
+    assert loan_details[3] == MATURITY
+    assert len(loan_details[5]) == 5
+    assert loan_details[5] == test_collaterals
+    assert loan_details[6] == 0
+    assert loan_details[7] == 0
+    assert loan_details[8] == True
+    assert loan_details[9] == False
+    assert loan_details[10] == False
+    assert loan_details[11] == False
+    assert loan_details[12] == False
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract.address
 
-    event = tx_create_loan.events["LoanCreated"]
-    assert event["wallet"] == borrower
-    assert event["loanId"] == 0
+    assert event.wallet == borrower
+    assert event.loanId == 0
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_within_collection_share(
     loans_peripheral_contract,
     create_signature,
@@ -1015,22 +976,21 @@ def test_create_loan_within_collection_share(
     test_collaterals,
 ):
     liquidity_controls_contract.changeMaxCollectionBorrowableAmount(
-        True, erc721_contract, LOAN_AMOUNT, {"from": contract_owner}
+        True, erc721_contract, LOAN_AMOUNT, sender=contract_owner
     )
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1040,39 +1000,36 @@ def test_create_loan_within_collection_share(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
+    event = get_last_event(loans_peripheral_contract, name="LoanCreated")
 
-    loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    assert loan_details["id"] == loan_id
-    assert loan_details["amount"] == LOAN_AMOUNT
-    assert loan_details["interest"] == LOAN_INTEREST
-    assert loan_details["paidPrincipal"] == 0
-    assert loan_details["paidInterestAmount"] == 0
-    assert loan_details["maturity"] == MATURITY
-    assert len(loan_details["collaterals"]) == 5
-    assert loan_details["collaterals"] == test_collaterals
-    assert loan_details["started"] == True
-    assert loan_details["invalidated"] == False
-    assert loan_details["paid"] == False
-    assert loan_details["defaulted"] == False
-    assert loan_details["canceled"] == False
+    loan_details = checksummed(loans_core_contract.getLoan(borrower, loan_id))
+    assert loan_details[1] == LOAN_AMOUNT
+    assert loan_details[2] == LOAN_INTEREST
+    assert loan_details[3] == MATURITY
+    assert len(loan_details[5]) == 5
+    assert loan_details[5] == test_collaterals
+    assert loan_details[6] == 0
+    assert loan_details[7] == 0
+    assert loan_details[8] == True
+    assert loan_details[9] == False
+    assert loan_details[10] == False
+    assert loan_details[11] == False
+    assert loan_details[12] == False
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract.address
 
-    event = tx_create_loan.events["LoanCreated"]
-    assert event["wallet"] == borrower
-    assert event["loanId"] == 0
+    assert event.wallet == borrower
+    assert event.loanId == 0
 
 
 def test_pay_loan_not_issued(loans_peripheral_contract, borrower):
-    with ape.reverts("loan not found"):
-        loans_peripheral_contract.pay(0, {"from": borrower})
+    with boa.reverts("loan not found"):
+        loans_peripheral_contract.pay(0, sender=borrower)
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_defaulted(
     loans_peripheral_contract,
     create_signature,
@@ -1087,21 +1044,20 @@ def test_pay_loan_defaulted(
     borrower,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
-    maturity = chain.pending_timestamp + 10
+    maturity = boa.eval("block.timestamp") + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,
@@ -1111,22 +1067,20 @@ def test_pay_loan_defaulted(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
     loan = loans_core_contract.getLoan(borrower, loan_id)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
-    erc20_contract.mint(borrower, amount_paid, {"from": contract_owner})
-    erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
+    # erc20_contract.mint(borrower, amount_paid, sender=contract_owner)
+    erc20_contract.approve(lending_pool_core_contract, amount_paid, sender=borrower)
 
-    chain.mine(blocks=1, timedelta=15)
-    with ape.reverts("loan maturity reached"):
-        loans_peripheral_contract.pay(loan["id"], {"from": borrower})
+    boa.env.time_travel(seconds=15)
+    with boa.reverts("loan maturity reached"):
+        loans_peripheral_contract.pay(loan[0], sender=borrower)
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_insufficient_balance(
     loans_peripheral_contract,
     create_signature,
@@ -1140,22 +1094,21 @@ def test_pay_loan_insufficient_balance(
     investor,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveWeth(
+    loan_id = loans_peripheral_contract.reserveWeth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1165,25 +1118,23 @@ def test_pay_loan_insufficient_balance(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
     initial_borrower_amount = erc20_contract.balanceOf(borrower)
     transfer_amount = initial_borrower_amount - LOAN_AMOUNT
-    erc20_contract.transfer(contract_owner, transfer_amount, {"from": borrower})
+    erc20_contract.transfer(contract_owner, transfer_amount, sender=borrower)
 
     assert erc20_contract.balanceOf(borrower) == LOAN_AMOUNT
 
-    erc20_contract.approve(lending_pool_core_contract, amount_paid, {"from": borrower})
+    erc20_contract.approve(lending_pool_core_contract, amount_paid, sender=borrower)
 
-    with ape.reverts("insufficient balance"):
-        loans_peripheral_contract.pay(loan_id, {"from": borrower})
+    with boa.reverts("insufficient balance"):
+        loans_peripheral_contract.pay(loan_id, sender=borrower)
 
-    erc20_contract.transfer(borrower, transfer_amount, {"from": contract_owner})
+    erc20_contract.transfer(borrower, transfer_amount, sender=contract_owner)
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_insufficient_allowance(
     loans_peripheral_contract,
     create_signature,
@@ -1197,26 +1148,21 @@ def test_pay_loan_insufficient_allowance(
     investor,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
+    lending_pool_peripheral_contract.depositEth(sender=investor, value=Web3.to_wei(1, "ether"))
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
-    )
+        erc721_contract.mint(borrower, k)
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, sender=borrower)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
-    erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT, {"from": contract_owner})
+    # erc20_contract.mint(borrower, amount_paid - LOAN_AMOUNT)
 
-    borrower_initial_balance = borrower.balance()
+    borrower_initial_balance = boa.env.get_balance(borrower)
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1226,26 +1172,21 @@ def test_pay_loan_insufficient_allowance(
         v,
         r,
         s,
-        {"from": borrower},
-    )
-    loan_id = tx_create_loan.return_value
-
-    assert borrower.balance() == borrower_initial_balance + LOAN_AMOUNT
-
-    erc20_contract.approve(
-        lending_pool_core_contract, amount_paid / 2, {"from": borrower}
+        sender=borrower,
     )
 
-    with ape.reverts("insufficient allowance"):
-        loans_peripheral_contract.pay(loan_id, {"from": borrower})
+    assert boa.env.get_balance(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
-    with ape.reverts("insufficient value received"):
-        loans_peripheral_contract.pay(
-            loan_id, {"from": borrower, "value": amount_paid / 2}
-        )
+    erc20_contract.approve(lending_pool_core_contract, amount_paid // 2, sender=borrower)
+    print(f"{erc20_contract.balanceOf(borrower)/1e18=}")
+
+    with boa.reverts("insufficient allowance"):
+        loans_peripheral_contract.pay(loan_id, sender=borrower)
+
+    with boa.reverts("insufficient value received"):
+        loans_peripheral_contract.pay(loan_id, sender=borrower, value=amount_paid // 2)
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1258,22 +1199,18 @@ def test_pay_loan(
     investor,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
-    lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
-    )
+    lending_pool_peripheral_contract.depositEth(sender=investor, value=Web3.to_wei(1, "ether"))
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
-    )
+        erc721_contract.mint(borrower, k)
 
-    borrower_initial_balance = borrower.balance()
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, sender=borrower)
+
+    borrower_initial_balance = boa.env.get_balance(borrower)
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1283,22 +1220,22 @@ def test_pay_loan(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
-    chain.mine(blocks=1, timedelta=14 * 86400)
+    boa.env.time_travel(seconds=14 * 86400)
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
     payable_amount = loans_peripheral_contract.getLoanPayableAmount(
-        borrower, loan_id, chain.pending_timestamp
+        borrower, loan_id, boa.eval("block.timestamp")
     )
 
-    assert borrower.balance() == borrower_initial_balance + LOAN_AMOUNT
+    assert boa.env.get_balance(borrower) == borrower_initial_balance + LOAN_AMOUNT
 
-    tx_pay_loan = loans_peripheral_contract.pay(
-        loan_id, {"from": borrower, "value": payable_amount}
-    )
+    loans_peripheral_contract.pay(loan_id, sender=borrower, value=payable_amount)
+    loan_paid_event = get_last_event(loans_peripheral_contract, name="LoanPaid")
+    loan_payment_event = get_last_event(loans_peripheral_contract, name="LoanPayment")
+
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
     assert loans_core_contract.getLoanPaid(borrower, loan_id)
@@ -1307,37 +1244,28 @@ def test_pay_loan(
         + loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id)
         == payable_amount
     )
-    assert loan_details["paid"] == loans_core_contract.getLoanPaid(borrower, loan_id)
-    assert loan_details["paidPrincipal"] == loans_core_contract.getLoanPaidPrincipal(
+    assert loan_details[10] == loans_core_contract.getLoanPaid(borrower, loan_id)
+    assert loan_details[6] == loans_core_contract.getLoanPaidPrincipal(
         borrower, loan_id
     )
-    assert loan_details[
-        "paidInterestAmount"
-    ] == loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id)
+    assert loan_details[7] == loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id)
     assert (
-        loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.pending_timestamp)
+        loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, boa.eval("block.timestamp"))
         == 0
     )
 
-    loan_paid_event = tx_pay_loan.events["LoanPaid"]
-    assert loan_paid_event["wallet"] == borrower
-    assert loan_paid_event["loanId"] == loan_id
-
-    loan_payment_event = tx_pay_loan.events["LoanPayment"]
-    assert loan_payment_event["wallet"] == borrower
-    assert loan_payment_event["loanId"] == loan_id
-    assert (
-        loan_payment_event["principal"] + loan_payment_event["interestAmount"]
-        == payable_amount
-    )
+    assert loan_paid_event.wallet == borrower
+    assert loan_paid_event.loanId == loan_id
+    assert loan_payment_event.wallet == borrower
+    assert loan_payment_event.loanId == loan_id
+    assert loan_payment_event.principal + loan_payment_event.interestAmount == payable_amount
 
     for collateral in test_collaterals:
         assert erc721_contract.ownerOf(collateral[1]) == borrower
 
-    assert borrower.balance() + payable_amount == borrower_initial_balance + LOAN_AMOUNT
+    assert boa.env.get_balance(borrower) + payable_amount == borrower_initial_balance + LOAN_AMOUNT
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_already_paid(
     loans_peripheral_contract,
     create_signature,
@@ -1350,20 +1278,19 @@ def test_pay_loan_already_paid(
     investor,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1373,41 +1300,39 @@ def test_pay_loan_already_paid(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
     time_diff = Decimal(
-        chain.pending_timestamp
-        - loan_details["startTime"]
-        - (chain.pending_timestamp - loan_details["startTime"]) % INTEREST_ACCRUAL_PERIOD
+        boa.eval("block.timestamp")
+        - loan_details[4]
+        - (boa.eval("block.timestamp") - loan_details[4]) % INTEREST_ACCRUAL_PERIOD
         + INTEREST_ACCRUAL_PERIOD
     )
 
     payable_amount = loans_peripheral_contract.getLoanPayableAmount(
-        borrower, loan_id, chain.pending_timestamp
+        borrower, loan_id, boa.eval("block.timestamp")
     )
 
-    loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": payable_amount})
+    loans_peripheral_contract.pay(loan_id, sender=borrower, value= payable_amount)
 
-    with ape.reverts("loan already paid"):
-        loans_peripheral_contract.pay(loan_id, {"from": borrower, "value": payable_amount})
+    with boa.reverts("loan already paid"):
+        loans_peripheral_contract.pay(loan_id, sender=borrower, value= payable_amount)
 
 
 def test_set_default_loan_wrong_sender(loans_peripheral_contract, investor, borrower):
-    with ape.reverts("msg.sender is not the owner"):
-        loans_peripheral_contract.settleDefault(borrower, 0, {"from": investor})
+    with boa.reverts("msg.sender is not the owner"):
+        loans_peripheral_contract.settleDefault(borrower, 0, sender=investor)
 
 
 def test_set_default_loan_not_started(
     loans_peripheral_contract, contract_owner, borrower
 ):
-    with ape.reverts("loan not found"):
-        loans_peripheral_contract.settleDefault(borrower, 0, {"from": contract_owner})
+    with boa.reverts("loan not found"):
+        loans_peripheral_contract.settleDefault(borrower, 0, sender=contract_owner)
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_set_default_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1423,21 +1348,20 @@ def test_set_default_loan(
     borrower,
     test_collaterals,
 ):
-    contract_owner.transfer(to=investor, amount=Web3.toWei(1, "ether"))
     lending_pool_peripheral_contract.depositEth(
-        {"from": investor, "value": Web3.toWei(1, "ether")}
+        sender=investor, value= Web3.to_wei(1, "ether")
     )
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
     erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
+        collateral_vault_core_contract, True, sender=borrower
     )
 
-    maturity = chain.pending_timestamp + 10
+    maturity = boa.eval("block.timestamp") + 10
     (v, r, s) = create_signature(maturity=maturity)
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         maturity,
@@ -1447,60 +1371,57 @@ def test_set_default_loan(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
     loan = loans_core_contract.getLoan(borrower, loan_id)
 
-    chain.mine(blocks=1, timedelta=15)
+    boa.env.time_travel(seconds=15)
 
     print(loans_core_contract.getLoanMaturity(borrower, loan_id))
     print(loans_core_contract.getLoanDefaulted(borrower, loan_id))
-    print(chain.pending_timestamp)
+    print(boa.eval("block.timestamp"))
     print(loans_peripheral_contract.liquidationsPeripheralContract())
     print(liquidations_peripheral_contract)
 
-    loans_peripheral_contract.settleDefault(borrower, loan_id, {"from": contract_owner})
+    loans_peripheral_contract.settleDefault(borrower, loan_id, sender=contract_owner)
 
     assert loans_core_contract.getLoanDefaulted(borrower, loan_id)
 
     for collateral in test_collaterals:
-        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract
+        assert erc721_contract.ownerOf(collateral[1]) == collateral_vault_core_contract.address
 
-        liquidation = liquidations_core_contract.getLiquidation(
-            collateral[0], collateral[1]
-        )
+        liquidation = checksummed(liquidations_core_contract.getLiquidation(collateral[0], collateral[1]))
 
         interest_amount = int(
             Decimal(collateral[2])
-            * Decimal(loan["interest"] * Decimal(loan["maturity"] - loan["startTime"]))
+            * Decimal(loan[2] * Decimal(loan[3] - loan[4]))
             / Decimal(25920000000)
         )
         apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
-        assert liquidation["collateralAddress"] == collateral[0]
-        assert liquidation["tokenId"] == collateral[1]
-        assert liquidation["principal"] == collateral[2]
-        assert liquidation["interestAmount"] == interest_amount
-        assert liquidation["apr"] == apr
-        assert liquidation["gracePeriodPrice"] == Decimal(collateral[2]) + Decimal(
+        assert liquidation[1] == collateral[0]
+        assert liquidation[2] == collateral[1]
+        assert liquidation[6] == collateral[2]
+        assert liquidation[7] == interest_amount
+        assert liquidation[8] == apr
+        assert liquidation[9] == Decimal(collateral[2]) + Decimal(
             interest_amount
-        ) + int(min(0.025 * collateral[2], Web3.toWei(0.2, "ether")))
-        assert liquidation["lenderPeriodPrice"] == Decimal(collateral[2]) + Decimal(
+        ) + int(min(0.025 * collateral[2], Web3.to_wei(0.2, "ether")))
+        assert liquidation[10] == Decimal(collateral[2]) + Decimal(
             interest_amount
-        ) + int(min(0.025 * collateral[2], Web3.toWei(0.2, "ether")))
-        assert liquidation["borrower"] == borrower
-        assert liquidation["erc20TokenContract"] == erc20_contract
-        assert not liquidation["inAuction"]
+        ) + int(min(0.025 * collateral[2], Web3.to_wei(0.2, "ether")))
+        assert liquidation[11] == borrower
+        assert liquidation[14] == erc20_contract.address
+        assert not liquidation[15]
 
 
 @given(
-    loan_duration=st.decimals(min_value=1, max_value=90),
-    passed_time=st.decimals(min_value=1, max_value=200),
-    interest=st.decimals(min_value=0, max_value=10000),
+    loan_duration=st.integers(min_value=1, max_value=90),
+    passed_time=st.integers(min_value=1, max_value=200),
+    interest=st.integers(min_value=0, max_value=10000),
 )
-@settings(max_examples=5)
+@settings(max_examples=5, deadline=1500)
 def test_payable_amount(
     loans_peripheral_contract,
     create_signature,
@@ -1520,17 +1441,16 @@ def test_payable_amount(
     now = int(dt.datetime.now().timestamp())
     maturity = now + loan_duration * 24 * 3600
 
-    contract_owner.transfer(to=investor, amount=amount)
-    lending_pool_peripheral_contract.depositEth({"from": investor, "value": amount*5})
+    lending_pool_peripheral_contract.depositEth(sender=investor, value= amount*5)
 
     for k in range(5):
-        erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+        erc721_contract.mint(borrower, k, sender=contract_owner)
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, sender=borrower)
 
 
     (v, r, s) = create_signature(maturity=maturity, interest=interest)
 
-    tx_create_loan = loans_peripheral_contract.reserveEth(
+    loan_id = loans_peripheral_contract.reserveEth(
         amount,
         interest,
         maturity,
@@ -1540,17 +1460,16 @@ def test_payable_amount(
         v,
         r,
         s,
-        {"from": borrower},
+        sender=borrower,
     )
-    loan_id = tx_create_loan.return_value
 
-    chain.mine(blocks=1, timedelta=passed_time * 86400)
+    boa.env.time_travel(seconds=passed_time * 86400)
 
     loan_details = loans_core_contract.getLoan(borrower, loan_id)
-    payable_amount = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.pending_timestamp)
+    payable_amount = loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, boa.eval("block.timestamp"))
 
-    contract_time_passed = chain.pending_timestamp - loan_details["startTime"]
-    loan_duration_in_contract = maturity - loan_details["startTime"]
+    contract_time_passed = boa.eval("block.timestamp") - loan_details[4]
+    loan_duration_in_contract = maturity - loan_details[4]
     minimum_interest_period = 7*86400
 
     payable_duration = max(

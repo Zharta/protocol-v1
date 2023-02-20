@@ -12,6 +12,14 @@ event Approval:
     spender: indexed(address)
     value: uint256
 
+event Deposit:
+    wallet: indexed(address)
+    value: uint256
+
+event Withdrawal:
+    wallet: indexed(address)
+    value: uint256
+
 # Functions
 
 @view
@@ -57,13 +65,23 @@ def approve(_spender: address, _value: uint256) -> bool:
     return False
 
 @external
-def mint(_to: address, _value: uint256):
+@payable
+def deposit():
     pass
 
 @external
-def burn(_value: uint256):
+def withdraw(amount: uint256):
     pass
 
-@external
-def burnFrom(_to: address, _value: uint256):
-    pass
+
+# @external
+# def mint(_to: address, _value: uint256):
+#     pass
+# 
+# @external
+# def burn(_value: uint256):
+#     pass
+# 
+# @external
+# def burnFrom(_to: address, _value: uint256):
+#     pass
