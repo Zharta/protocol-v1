@@ -1,47 +1,48 @@
 import pytest
+import boa
+import vyper
+import os
 from web3 import Web3
+from functools import cached_property
 
 
-@pytest.fixture(scope="module", autouse=True)
-def contract_owner(accounts):
-    # owner = accounts["0xbb4b8e7e4375d27f27518ac7f8c6db473fdc3a10a42389cf984c87bc7a1fce1b"]
-    # accounts[0].transfer(owner, 8*10**20)
-    return accounts[0]
+boa.interpret.set_cache_dir()
+boa.env.enable_gas_profiling()
+boa.reset_env()
+boa.env.fork(url=os.environ["BOA_FORK_RPC_URL"])
 
 
-@pytest.fixture(scope="module", autouse=True)
-def investor(accounts):
-    yield accounts[1]
+
+def get_last_event(contract: boa.vyper.contract.VyperContract, name: str = None):
+    matching_events = [e for e in contract.get_logs() if name is None or name == e.event_type.name]
+    return EventWrapper(matching_events[-1])
 
 
-@pytest.fixture(scope="module", autouse=True)
-def borrower(accounts):
-    yield accounts[2]
+class EventWrapper():
 
+    def __init__(self, event: boa.vyper.event.Event):
+        self.event = event
+        self.event_name = event.event_type.name
 
-@pytest.fixture(scope="module", autouse=True)
-def protocol_wallet(accounts):
-    yield accounts[3]
+    def __getattr__(self, name):
+        if name in self.args_dict:
+            return self.args_dict[name]
+        else:
+            raise AttributeError(f"No attr {name} in {self.event_name}. Event data is {self.event}")
 
-@pytest.fixture(scope="module", autouse=True)
-def not_contract_owner(accounts):
-    return accounts[4]
+    @cached_property
+    def args_dict(self):
+        # print(f"{self.event=} {self.event.event_type.arguments=}")
+        args = self.event.event_type.arguments.keys()
+        indexed = self.event.event_type.indexed
+        topic_values = (v for v in self.event.topics)
+        args_values = (v for v in self.event.args)
+        _args = [(arg, next(topic_values) if indexed[i] else next(args_values)) for i, arg in enumerate(args)]
+        # print(f"build event args {dict(_args)}")
 
-@pytest.fixture(scope="module", autouse=True)
-def erc20_contract(project, contract_owner, borrower, investor):
-    try:
-        _erc20 = project.WETH9Mock.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
-        _erc20.transfer(contract_owner, 100 * 10**18, sender=_erc20)
-        _erc20.transfer(borrower, 100 * 10**18, sender=_erc20)
-        _erc20.transfer(investor, 100 * 10**18, sender=_erc20)
-    except Exception:
-        _erc20 = contract_owner.deploy(project.WETH9Mock, "WrappedEther", "WETH", 18, 1000 * 10 ** 18)
-        _erc20.transfer(contract_owner, 100 * 10**18, sender=contract_owner)
-        _erc20.transfer(borrower, 100 * 10**18, sender=contract_owner)
-        _erc20.transfer(investor, 100 * 10**18, sender=contract_owner)
-    return _erc20
+        return {k: self._format_value(v, self.event.event_type.arguments[k]) for k, v in _args}
 
-
-@pytest.fixture(scope="module", autouse=True)
-def erc721_contract(project, contract_owner):
-    yield contract_owner.deploy(project.ERC721)
+    def _format_value(self, v, _type):
+        if isinstance(_type, vyper.semantics.types.value.address.AddressDefinition):
+            return Web3.toChecksumAddress(v)
+        return v
