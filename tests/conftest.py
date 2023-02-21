@@ -88,18 +88,12 @@ def collateral_vault_core_contract(contract_owner):
 
 @pytest.fixture(scope="session")
 def cryptopunks_market_contract(contract_owner):
-    try:
-        return boa.load_partial("tests/stubs/CryptoPunksMarketStub.vy").at("0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB")
-    except Exception:
-        return None
+    return boa.load_partial("tests/stubs/CryptoPunksMarketStub.vy").at("0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB")
 
 
 @pytest.fixture(scope="session")
 def wpunks_contract(contract_owner):
-    try:
-        return boa.load_partial("tests/stubs/WrappedPunkStub.vy").at("0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6")
-    except Exception:
-        return None
+    return boa.load_partial("tests/stubs/WrappedPunkStub.vy").at("0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6")
 
 
 @pytest.fixture(scope="session")
@@ -228,13 +222,11 @@ def test_collaterals(erc721_contract):
 @pytest.fixture(scope="session")
 def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
     result = []
-    if cryptopunks_market_contract is None:
-        return result
     for k in range(5):
         owner = cryptopunks_market_contract.punkIndexToAddress(k)
         with boa.env.prank(owner):
             cryptopunks_market_contract.transferPunk(borrower, k, sender=owner)
-        result.append((cryptopunks_market_contract, k, LOAN_AMOUNT // 5))
+        result.append((cryptopunks_market_contract.address, k, LOAN_AMOUNT // 5))
     return result
 
 

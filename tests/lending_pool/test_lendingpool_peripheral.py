@@ -546,7 +546,6 @@ def test_deposit_twice(
 
     chain_time = boa.eval("block.timestamp")
 
-    # chain.mine(blocks=1, timedelta=LOCK_PERIOD_DURATION / 2)
     boa.env.time_travel(seconds=LOCK_PERIOD_DURATION // 2)
 
     amount2 = Web3.to_wei(0.5, "ether")

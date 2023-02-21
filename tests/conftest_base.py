@@ -16,12 +16,12 @@ ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 def get_last_event(contract: boa.vyper.contract.VyperContract, name: str = None):
-    matching_events = [e for e in contract.get_logs() if name is None or name == e.event_type.name]
+    matching_events = [e for e in contract.get_logs() if isinstance(e, boa.vyper.event.Event) and (name is None or name == e.event_type.name)]
     return EventWrapper(matching_events[-1])
 
 
 def get_events(contract: boa.vyper.contract.VyperContract, name: str = None):
-    return [EventWrapper(e) for e in contract.get_logs() if name is None or name == e.event_type.name]
+    return [EventWrapper(e) for e in contract.get_logs() if isinstance(e, boa.vyper.event.Event) and (name is None or name == e.event_type.name)]
 
 
 class EventWrapper():
@@ -44,13 +44,15 @@ class EventWrapper():
         topic_values = (v for v in self.event.topics)
         args_values = (v for v in self.event.args)
         _args = [(arg, next(topic_values) if indexed[i] else next(args_values)) for i, arg in enumerate(args)]
-        # print(f"build event args {dict(_args)}")
 
         return {k: self._format_value(v, self.event.event_type.arguments[k]) for k, v in _args}
 
     def _format_value(self, v, _type):
+        # print(f"_format_value {v=} {_type=} {type(v).__name__=} {type(_type)=}")
         if isinstance(_type, vyper.semantics.types.value.address.AddressDefinition):
             return Web3.toChecksumAddress(v)
+        elif isinstance(_type, vyper.semantics.types.value.bytes_fixed.Bytes32Definition):
+            return f"0x{v.hex()}"
         return v
 
 
@@ -58,15 +60,18 @@ class EventWrapper():
 def checksummed(obj, vyper_type=None):
     if vyper_type is None and hasattr(obj, "_vyper_type"):
         vyper_type = obj._vyper_type
-    print(f"checksummed {obj=} {vyper_type=} {type(obj).__name__=}")
-    # if type(obj).__name__ ==  "tuple_wrapper":  # ad-hoc type from boa.vyper.contract
+    print(f"checksummed {obj=} {vyper_type=} {type(obj).__name__=} {type(vyper_type)=}")
+
     if isinstance(vyper_type, vyper.codegen.types.types.DArrayType):
-        # return list(checksummed(x, obj._vyper_type.subtype) for x in obj)
         return list(checksummed(x, vyper_type.subtype) for x in obj)
+
     elif isinstance(vyper_type, vyper.codegen.types.types.StructType):
         return tuple(checksummed(*arg) for arg in zip(obj, vyper_type.tuple_members()))
-    elif isinstance(vyper_type, vyper.codegen.types.types.BaseType):
-        return Web3.toChecksumAddress(obj) if vyper_type.typ == 'address' else obj
-    else:
-        return obj
 
+    elif isinstance(vyper_type, vyper.codegen.types.types.BaseType):
+        if vyper_type.typ == 'address':
+            return Web3.toChecksumAddress(obj)
+        elif vyper_type.typ == 'bytes32':
+            return f"0x{obj.hex()}"
+
+    return obj
