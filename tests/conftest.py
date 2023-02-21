@@ -71,6 +71,7 @@ def erc20_contract(contract_owner, accounts):
     erc20 = boa.load_partial("tests/stubs/ERC20.vy").at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
     for account in accounts:
         erc20.deposit(sender=account, value=10**19)
+    erc20.deposit(sender=contract_owner, value=10**19)
     return erc20
 
 

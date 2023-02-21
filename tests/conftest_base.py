@@ -14,9 +14,14 @@ boa.env.fork(url=os.environ["BOA_FORK_RPC_URL"])
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
+
 def get_last_event(contract: boa.vyper.contract.VyperContract, name: str = None):
     matching_events = [e for e in contract.get_logs() if name is None or name == e.event_type.name]
     return EventWrapper(matching_events[-1])
+
+
+def get_events(contract: boa.vyper.contract.VyperContract, name: str = None):
+    return [EventWrapper(e) for e in contract.get_logs() if name is None or name == e.event_type.name]
 
 
 class EventWrapper():

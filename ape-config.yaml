@@ -1,0 +1,5 @@
+name: zharta-protocol
+
+plugins:
+  - name: vyper
+  - name: foundry
