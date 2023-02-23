@@ -160,7 +160,7 @@ proposedOwner: public(address)
 loansContract: public(address)
 lendingPoolCoreContract: public(address)
 lendingPoolLockContract: public(address)
-erc20TokenContract: public(address)
+erc20TokenContract: public(immutable(address))
 liquidationsPeripheralContract: public(address)
 liquidityControlsContract: public(address)
 
@@ -181,7 +181,7 @@ whitelistedAddresses: public(HashMap[address, bool])
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20(self.erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = IERC20(erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
@@ -295,9 +295,9 @@ def _deposit(_amount: uint256, _payer: address):
         self.isPoolInvesting = True
 
         log InvestingStatusChanged(
-            self.erc20TokenContract,
+            erc20TokenContract,
             True,
-            self.erc20TokenContract
+            erc20TokenContract
         )
 
     lockPeriodEnd: uint256 = 0
@@ -309,7 +309,7 @@ def _deposit(_amount: uint256, _payer: address):
 
     ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, lockPeriodAmount, lockPeriodEnd)
 
-    log Deposit(msg.sender, msg.sender, _amount, self.erc20TokenContract)
+    log Deposit(msg.sender, msg.sender, _amount, erc20TokenContract)
 
 
 @internal
@@ -325,15 +325,15 @@ def _withdraw(_amount: uint256, _receiver: address):
         self.isPoolInvesting = False
 
         log InvestingStatusChanged(
-            self.erc20TokenContract,
+            erc20TokenContract,
             False,
-            self.erc20TokenContract
+            erc20TokenContract
         )
 
     if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _receiver, _amount):
         raise "error withdrawing funds"
 
-    log Withdrawal(msg.sender, msg.sender, _amount, self.erc20TokenContract)
+    log Withdrawal(msg.sender, msg.sender, _amount, erc20TokenContract)
 
 
 @internal
@@ -350,15 +350,15 @@ def _sendFunds(_to: address, _receiver: address, _amount: uint256):
         self.isPoolInvesting = False
 
         log InvestingStatusChanged(
-            self.erc20TokenContract,
+            erc20TokenContract,
             False,
-            self.erc20TokenContract
+            erc20TokenContract
         )
 
     if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_receiver, _amount):
         raise "error sending funds in LPCore"
 
-    log FundsTransfer(_to, _to, _amount, self.erc20TokenContract)
+    log FundsTransfer(_to, _to, _amount, erc20TokenContract)
 
 
 @internal
@@ -387,9 +387,9 @@ def _transferReceivedFunds(
         self.isPoolInvesting = True
 
         log InvestingStatusChanged(
-            self.erc20TokenContract,
+            erc20TokenContract,
             True,
-            self.erc20TokenContract
+            erc20TokenContract
         )
 
     if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_payer, _amount, _rewardsPool, _investedAmount):
@@ -406,7 +406,7 @@ def _transferReceivedFunds(
         _rewardsPool,
         _rewardsProtocol,
         _investedAmount,
-        self.erc20TokenContract,
+        erc20TokenContract,
         _origin
     )
 
@@ -438,16 +438,16 @@ def _receiveFundsFromLiquidation(
 
 @internal
 def _unwrap_and_send(_to: address, _amount: uint256):
-    IWETH(self.erc20TokenContract).withdraw(_amount)
+    IWETH(erc20TokenContract).withdraw(_amount)
     send(_to, _amount)
     log PaymentSent(_to, _to, _amount)
 
 
 @internal
 def _wrap_and_approve(_to: address, _amount: uint256):
-    IWETH(self.erc20TokenContract).deposit(value=_amount)
-    log PaymentSent(self.erc20TokenContract, self.erc20TokenContract, _amount)
-    IERC20(self.erc20TokenContract).approve(_to, _amount)
+    IWETH(erc20TokenContract).deposit(value=_amount)
+    log PaymentSent(erc20TokenContract, erc20TokenContract, _amount)
+    IERC20(erc20TokenContract).approve(_to, _amount)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -508,7 +508,7 @@ def __init__(
     self.owner = msg.sender
     self.lendingPoolCoreContract = _lendingPoolCoreContract
     self.lendingPoolLockContract = _lendingPoolLockContract
-    self.erc20TokenContract = _erc20TokenContract
+    erc20TokenContract = _erc20TokenContract
     self.protocolWallet = _protocolWallet
     self.protocolFeesShare = _protocolFeesShare
     self.maxCapitalEfficienty = _maxCapitalEfficienty
@@ -521,7 +521,7 @@ def __init__(
 @external
 @payable
 def __default__():
-    assert msg.sender == 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, "msg.sender is not the WETH addr"
+    assert msg.sender == erc20TokenContract, "msg.sender is not the WETH addr"
     log PaymentReceived(msg.sender, msg.sender, msg.value)
 
 
@@ -539,7 +539,7 @@ def proposeOwner(_address: address):
         _address,
         self.owner,
         _address,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
 
@@ -552,7 +552,7 @@ def claimOwnership():
         self.proposedOwner,
         self.owner,
         self.proposedOwner,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     self.owner = self.proposedOwner
@@ -566,10 +566,10 @@ def changeMaxCapitalEfficiency(_value: uint256):
     assert _value != self.maxCapitalEfficienty, "new value is the same"
 
     log MaxCapitalEfficiencyChanged(
-        self.erc20TokenContract,
+        erc20TokenContract,
         self.maxCapitalEfficienty,
         _value,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     self.maxCapitalEfficienty = _value
@@ -582,10 +582,10 @@ def changeProtocolWallet(_address: address):
     assert _address != self.protocolWallet, "new value is the same"
 
     log ProtocolWalletChanged(
-        self.erc20TokenContract,
+        erc20TokenContract,
         self.protocolWallet,
         _address,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     self.protocolWallet = _address
@@ -598,10 +598,10 @@ def changeProtocolFeesShare(_value: uint256):
     assert _value != self.protocolFeesShare, "new value is the same"
 
     log ProtocolFeesShareChanged(
-        self.erc20TokenContract,
+        erc20TokenContract,
         self.protocolFeesShare,
         _value,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     self.protocolFeesShare = _value
@@ -615,10 +615,10 @@ def setLoansPeripheralAddress(_address: address):
     assert _address != self.loansContract, "new value is the same"
 
     log LoansPeripheralAddressSet(
-        self.erc20TokenContract,
+        erc20TokenContract,
         self.loansContract,
         _address,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     self.loansContract = _address
@@ -632,10 +632,10 @@ def setLiquidationsPeripheralAddress(_address: address):
     assert _address != self.liquidationsPeripheralContract, "new value is the same"
 
     log LiquidationsPeripheralAddressSet(
-        self.erc20TokenContract,
+        erc20TokenContract,
         self.liquidationsPeripheralContract,
         _address,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     self.liquidationsPeripheralContract = _address
@@ -649,10 +649,10 @@ def setLiquidityControlsAddress(_address: address):
     assert _address != self.liquidityControlsContract, "new value is the same"
 
     log LiquidityControlsAddressSet(
-        self.erc20TokenContract,
+        erc20TokenContract,
         self.liquidityControlsContract,
         _address,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     self.liquidityControlsContract = _address
@@ -666,9 +666,9 @@ def changeWhitelistStatus(_flag: bool):
     self.whitelistEnabled = _flag
 
     log WhitelistStatusChanged(
-        self.erc20TokenContract,
+        erc20TokenContract,
         _flag,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
 
@@ -682,9 +682,9 @@ def addWhitelistedAddress(_address: address):
     self.whitelistedAddresses[_address] = True
 
     log WhitelistAddressAdded(
-        self.erc20TokenContract,
+        erc20TokenContract,
         _address,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
 
@@ -698,9 +698,9 @@ def removeWhitelistedAddress(_address: address):
     self.whitelistedAddresses[_address] = False
 
     log WhitelistAddressRemoved(
-        self.erc20TokenContract,
+        erc20TokenContract,
         _address,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
 
@@ -714,24 +714,24 @@ def changePoolStatus(_flag: bool):
         self.isPoolInvesting = False
 
         log InvestingStatusChanged(
-            self.erc20TokenContract,
+            erc20TokenContract,
             False,
-            self.erc20TokenContract
+            erc20TokenContract
         )
 
     if _flag and not self.isPoolInvesting and self._poolHasFundsToInvestAfterWithdraw(0):
         self.isPoolInvesting = True
 
         log InvestingStatusChanged(
-            self.erc20TokenContract,
+            erc20TokenContract,
             True,
-            self.erc20TokenContract
+            erc20TokenContract
         )
 
     log ContractStatusChanged(
-        self.erc20TokenContract,
+        erc20TokenContract,
         _flag,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
 
@@ -745,20 +745,20 @@ def deprecate():
     self.isPoolInvesting = False
 
     log ContractStatusChanged(
-        self.erc20TokenContract,
+        erc20TokenContract,
         False,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     log InvestingStatusChanged(
-        self.erc20TokenContract,
+        erc20TokenContract,
         False,
-        self.erc20TokenContract
+        erc20TokenContract
     )
 
     log ContractDeprecated(
-        self.erc20TokenContract,
-        self.erc20TokenContract
+        erc20TokenContract,
+        erc20TokenContract
     )
 
 

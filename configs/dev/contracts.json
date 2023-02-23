@@ -11,7 +11,7 @@
                 "contract": "0xFd87ceEa79b211268Fb182a48E43644543c08709"
             },
             "lending_pool": {
-                "contract": "0x7BCbd5DCBE1d42458D8C5b2397C68d1819BE8066"
+                "contract": "0xb3A8F627dFB009FaB86b05F54359194afFA0eF6F"
             },
             "lending_pool_core": {
                 "contract": "0x6a21483D01cFb6FAf0D5346C1e781337425D713B"
@@ -29,7 +29,7 @@
                 "contract": "0xA83Fad7514B39b12C0bAcA71e0A7cc63D2Ff1941"
             },
             "loans": {
-                "contract": "0xaE4059E2E23958f627eF75d2467343F4d8838709"
+                "contract": "0x5DbAb869F93e8d77ee3A0D5335714aC94B171416"
             },
             "loans_core": {
                 "contract": "0x286677F2b204be093ABBee3e35074352b339243B"
