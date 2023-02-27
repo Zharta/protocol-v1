@@ -288,7 +288,7 @@ class LiquidationsPeripheralContract(InternalContract):
                 "nftxvaultfactory": Transaction.liquidationsperiph_set_nftxvaultfactory,
                 "nftxmarketplacezap": Transaction.liquidationsperiph_set_nftxmarketplacezap,
                 "sushirouter": Transaction.liquidationsperiph_set_sushirouter,
-                "punk": Transaction.liquidationsperiph_set_wpunks,
+                "wpunk": Transaction.liquidationsperiph_set_wpunks,
             },
         )
 

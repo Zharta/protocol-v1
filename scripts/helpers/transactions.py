@@ -97,7 +97,7 @@ class Transaction:
 
     @staticmethod
     def liquidationsperiph_set_wpunks(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_peripheral", "setWrappedPunksAddress", "punk", dryrun=dryrun)
+        execute(context, "liquidations_peripheral", "setWrappedPunksAddress", "wpunk", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_set_nftxvaultfactory(context: DeploymentContext, dryrun: bool = False):
