@@ -1,6 +1,6 @@
 from typing import Callable
 from collections import defaultdict
-from .types import DeploymentContext, InternalContract, ContractConfig
+from .basetypes import DeploymentContext, InternalContract, ContractConfig
 from .transactions import Transaction
 
 

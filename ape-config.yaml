@@ -3,3 +3,10 @@ name: zharta-protocol
 plugins:
   - name: vyper
   - name: foundry
+  - name: alchemy
+  - name: ganache
+
+foundry:
+  port: 8555
+  gas-price: 0
+

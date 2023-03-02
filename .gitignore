@@ -7,5 +7,6 @@ build/
 reports/
 .DS_Store
 .venv
+.build
 node_modules/
 .vscode

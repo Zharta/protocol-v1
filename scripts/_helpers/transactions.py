@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
-from .types import DeploymentContext, Environment
-from brownie import chain
+from .basetypes import DeploymentContext, Environment
 
 
 @dataclass
@@ -30,6 +28,10 @@ class Transaction:
     @staticmethod
     def cvcore_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
         execute(context, "collateral_vault_core", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
+
+    @staticmethod
+    def cvcore2_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
+        execute(context, "collateral_vault_core2", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
 
     @staticmethod
     def punksvault_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
@@ -93,7 +95,7 @@ class Transaction:
 
     @staticmethod
     def liquidationsperiph_set_wpunks(context: DeploymentContext, dryrun: bool = False):
-        execute(context, "liquidations_peripheral", "setWrappedPunksAddress", "wpunks", dryrun=dryrun)
+        execute(context, "liquidations_peripheral", "setWrappedPunksAddress", "punk", dryrun=dryrun)
 
     @staticmethod
     def liquidationsperiph_set_nftxvaultfactory(context: DeploymentContext, dryrun: bool = False):
@@ -115,18 +117,19 @@ class Transaction:
         nft_borrowable_amounts = context["nft_borrowable_amounts"]
         contract_instance = context["liquidity_controls"].contract
         for nft, value_eth in nft_borrowable_amounts.items():
-            value_wei = value_eth * 1e18
+            value_wei = value_eth * 10**18
             address = context[nft].address()
-            args = [True, address, value_wei, {"from": context.owner} | context.gas_options()]
+            args = [True, address, value_wei]
+            kwargs = {"sender": context.owner} |  context.gas_options()
             if not address:
                 print(f"Skipping changeMaxCollectionBorrowableAmount for undeployed {nft}")
                 continue
             current_value = contract_instance.maxCollectionBorrowableAmount(address)
             if current_value != value_wei:
                 print(f"Changing MaxCollectionBorrowableAmount for {nft}, from {current_value/1e18} to {value_wei/1e18} eth")
-                print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
+                print(f"## liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)})")
                 if not dryrun:
-                    contract_instance.changeMaxCollectionBorrowableAmount(*args)
+                    contract_instance.changeMaxCollectionBorrowableAmount(*args, **kwargs)
             else:
                 print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_wei/1e18} eth")
 
@@ -137,4 +140,4 @@ def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun:
     if not dryrun:
         function = getattr(contract_instance, func)
         deploy_args = [context[a].address() for a in args]
-        return function(*deploy_args, {"from": context.owner} | context.gas_options() | (options or {}))
+        return function(*deploy_args, **({"sender": context.owner} | context.gas_options() | (options or {})))

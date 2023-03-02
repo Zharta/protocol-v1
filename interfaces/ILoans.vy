@@ -228,11 +228,11 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
     pass
 
 @external
-def reserveWeth(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
+def reserveWeth(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _nonce: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
     pass
 
 @external
-def reserveEth(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
+def reserveEth(_amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100], _deadline: uint256, _nonce: uint256, _v: uint256, _r: uint256, _s: uint256) -> uint256:
     pass
 
 @payable

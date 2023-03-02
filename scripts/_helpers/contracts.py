@@ -1,36 +1,20 @@
 from typing import Optional, Any
-from brownie.network.contract import ProjectContract
+from ape.contracts.base import ContractInstance
 from dataclasses import dataclass
-from .types import InternalContract, DeploymentContext
+from .basetypes import InternalContract, DeploymentContext
 from .transactions import Transaction
 
-from brownie import (
-    LendingPoolCore,
-    LendingPoolLock,
-    LendingPoolPeripheral,
-    CollateralVaultCore,
-    CollateralVaultPeripheral,
-    CryptoPunksMarketMock,
-    CryptoPunksVaultCore,
-    LoansCore,
-    Loans,
-    LiquidationsCore,
-    LiquidationsPeripheral,
-    LiquidityControls,
-    Loans,
-    LoansCore,
-    WETH9Mock,
-)
+from ape import project
 
 
 @dataclass
 class CollateralVaultCoreContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "collateral_vault_core",
             contract,
-            CollateralVaultCore,
+            project.CollateralVaultCore,
             container_name="CollateralVaultCore",
             deployment_deps={},
             config_deps={
@@ -40,19 +24,38 @@ class CollateralVaultCoreContract(InternalContract):
         )
 
 
+# @dataclass
+# class CollateralVaultCoreV2Contract(InternalContract):
+
+#     def __init__(self, contract: Optional[ContractInstance]):
+#         super().__init__(
+#             "collateral_vault_core2",
+#             contract,
+#             project.CollateralVaultCoreV2,
+#             container_name="CollateralVaultCoreV2",
+#             deployment_deps={"delegation_registry"},
+#             config_deps={
+#                 "collateral_vault_peripheral": Transaction.cvcore2_set_cvperiph,
+#             },
+#             deployment_args_contracts=["delegation_registry"],
+#         )
+
+
 @dataclass
 class CryptoPunksVaultCoreContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "cryptopunks_vault_core",
             contract,
-            CryptoPunksVaultCore,
+            project.CryptoPunksVaultCore,
             container_name="CryptoPunksVaultCore",
             deployment_deps={"punk"},
+            # deployment_deps={"punk", "delegation_registry"},
             config_deps={
                 "collateral_vault_peripheral": Transaction.punksvault_set_cvperiph,
             },
+            # deployment_args_contracts=["punk", "delegation_registry"],
             deployment_args_contracts=["punk"],
         )
 
@@ -60,18 +63,20 @@ class CryptoPunksVaultCoreContract(InternalContract):
 @dataclass
 class CollateralVaultPeripheralContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "collateral_vault_peripheral",
             contract,
-            CollateralVaultPeripheral,
+            project.CollateralVaultPeripheral,
             container_name="CollateralVaultPeripheral",
+            # deployment_deps={"collateral_vault_core", "collateral_vault_core2"},
             deployment_deps={"collateral_vault_core"},
             config_deps={
                 "liquidations_peripheral": Transaction.cvperiph_set_liquidationsperiph,
                 "loans": Transaction.cvperiph_add_loansperiph,
                 "cryptopunks_vault_core": Transaction.cvperiph_add_punksvault,
             },
+            # deployment_args_contracts=["collateral_vault_core2", "collateral_vault_core"],
             deployment_args_contracts=["collateral_vault_core"],
         )
 
@@ -79,11 +84,11 @@ class CollateralVaultPeripheralContract(InternalContract):
 @dataclass
 class LendingPoolCoreContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "lending_pool_core",
             contract,
-            LendingPoolCore,
+            project.LendingPoolCore,
             container_name="LendingPoolCore",
             deployment_deps=["weth"],
             config_deps={"lending_pool_peripheral": Transaction.lpcore_set_lpperiph},
@@ -94,11 +99,11 @@ class LendingPoolCoreContract(InternalContract):
 @dataclass
 class LendingPoolLockContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "lending_pool_lock",
             contract,
-            LendingPoolLock,
+            project.LendingPoolLock,
             container_name="LendingPoolLock",
             deployment_deps=["weth"],
             config_deps={
@@ -111,11 +116,11 @@ class LendingPoolLockContract(InternalContract):
 @dataclass
 class WETH9MockContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "weth",
             contract,
-            WETH9Mock,
+            project.WETH9Mock,
             container_name="WETH9Mock",
             deployment_deps=[],
         )
@@ -130,11 +135,11 @@ class WETH9MockContract(InternalContract):
 @dataclass
 class CryptoPunksMockContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "punk",
             contract,
-            CryptoPunksMarketMock,
+            project.CryptoPunksMarketMock,
             container_name="CryptoPunksMarketMock",
             deployment_deps=[],
         )
@@ -144,14 +149,30 @@ class CryptoPunksMockContract(InternalContract):
         return []
 
 
+# @dataclass
+# class DelegationRegistryMockContract(InternalContract):
+
+#     def __init__(self, contract: Optional[ContractInstance]):
+#         super().__init__(
+#             "delegation_registry",
+#             contract,
+#             project.DelegationRegistryMock,
+#             container_name="DelegationRegistryMock",
+#             deployment_deps=[],
+#         )
+
+#     def deployment_args(self, context: DeploymentContext) -> list[Any]:
+#         return []
+
+
 @dataclass
 class LendingPoolPeripheralContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "lending_pool_peripheral",
             contract,
-            LendingPoolPeripheral,
+            project.LendingPoolPeripheral,
             container_name="LendingPoolPeripheral",
             deployment_deps={"lending_pool_core", "lending_pool_lock", "weth"},
             config_deps={
@@ -179,11 +200,11 @@ class LendingPoolPeripheralContract(InternalContract):
 @dataclass
 class LoansCoreContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "loans_core",
             contract,
-            LoansCore,
+            project.LoansCore,
             container_name="LoansCore",
             deployment_deps={},
             config_deps={"loans": Transaction.loanscore_set_loansperiph},
@@ -194,11 +215,11 @@ class LoansCoreContract(InternalContract):
 @dataclass
 class LoansPeripheralContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "loans",
             contract,
-            Loans,
+            project.Loans,
             container_name="Loans",
             deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral"},
             config_deps={
@@ -221,11 +242,11 @@ class LoansPeripheralContract(InternalContract):
 @dataclass
 class LiquidationsCoreContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "liquidations_core",
             contract,
-            LiquidationsCore,
+            project.LiquidationsCore,
             container_name="LiquidationsCore",
             deployment_deps={},
             config_deps={
@@ -238,11 +259,11 @@ class LiquidationsCoreContract(InternalContract):
 @dataclass
 class LiquidationsPeripheralContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "liquidations_peripheral",
             contract,
-            LiquidationsPeripheral,
+            project.LiquidationsPeripheral,
             container_name="LiquidationsPeripheral",
             deployment_deps={"liquidations_core", "weth", "collateral_vault_peripheral"},
             config_deps={
@@ -253,7 +274,7 @@ class LiquidationsPeripheralContract(InternalContract):
                 "nftxvaultfactory": Transaction.liquidationsperiph_set_nftxvaultfactory,
                 "nftxmarketplacezap": Transaction.liquidationsperiph_set_nftxmarketplacezap,
                 "sushirouter": Transaction.liquidationsperiph_set_sushirouter,
-                "wpunks": Transaction.liquidationsperiph_set_wpunks,
+                "punk": Transaction.liquidationsperiph_set_wpunks,
             },
         )
 
@@ -270,11 +291,11 @@ class LiquidationsPeripheralContract(InternalContract):
 @dataclass
 class LiquidityControlsContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract]):
+    def __init__(self, contract: Optional[ContractInstance]):
         super().__init__(
             "liquidity_controls",
             contract,
-            LiquidityControls,
+            project.LiquidityControls,
             container_name="LiquidityControls",
             deployment_deps={},
             config_deps={"nft_borrowable_amounts": Transaction.liquiditycontrols_change_collectionborrowableamounts},
