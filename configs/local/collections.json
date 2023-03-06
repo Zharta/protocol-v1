@@ -152,7 +152,7 @@
       "interest_rate": 0.02055,
       "max_ltv": 0.6
     },
-    "floor_multiple_cap": 0.0,
+    "floor_multiple_cap": null,
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
@@ -293,7 +293,7 @@
       "interest_rate": 0.02055,
       "max_ltv": 0.6
     },
-    "floor_multiple_cap": 0.0,
+    "floor_multiple_cap": null,
     "tier_pricing": {
       "30d": {
         "apr": 0.25,
@@ -332,7 +332,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
-    "floor_multiple_cap": 0.0,
+    "floor_multiple_cap": null,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -643,7 +643,7 @@
       "interest_rate": 0.02877,
       "max_ltv": 0.55
     },
-    "floor_multiple_cap": 0.0,
+    "floor_multiple_cap": null,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
