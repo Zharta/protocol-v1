@@ -866,7 +866,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         else:
             raise "Unsupported collateral"
 
-    elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreLegacyAddress() or IVault(vault).vaultName() == "ERC721":
+    elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreLegacyAddress() or IVault(vault).vaultName() == "erc721":
         IERC721(_collateralAddress).approve(self.nftxMarketplaceZapAddress, _tokenId)
 
     elif IVault(vault).vaultName() == "cryptopunks":

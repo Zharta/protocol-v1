@@ -33,7 +33,7 @@ event CollateralVaultPeripheralAddressSet:
 
 # Global variables
 
-vaultName: constant(String[30]) = "ERC721"
+vaultName: constant(String[30]) = "erc721"
 
 owner: public(address)
 proposedOwner: public(address)

@@ -110,8 +110,6 @@ collateralVaultCoreLegacyAddress: public(address)
 collateralVaultCoreAddresses: public(HashMap[address, address])
 loansPeripheralAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
 liquidationsPeripheralAddress: public(address) # mapping between ERC20 contract and LoansCore
-# legacyAssets: public(HashMap[bytes32, bool])
-# legacyAssetsCount: public(uint256)
 
 
 ##### INTERNAL METHODS #####

@@ -188,7 +188,7 @@ ZHARTA_DOMAIN_NAME: constant(String[6]) = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
 COLLATERAL_TYPE_DEF: constant(String[66]) = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-RESERVE_TYPE_DEF: constant(String[229]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool[] delegations,uint256 deadline,uint256 nonce)" \
+RESERVE_TYPE_DEF: constant(String[227]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce)" \
                                           "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 DOMAIN_TYPE_HASH: constant(bytes32) = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
 COLLATERAL_TYPE_HASH: constant(bytes32) = keccak256(COLLATERAL_TYPE_DEF)
@@ -309,7 +309,7 @@ def _recoverReserveSigner(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
-    _delegations: DynArray[bool, 100],
+    _delegations: bool,
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -330,7 +330,7 @@ def _recoverReserveSigner(
                 _interest,
                 _maturity,
                 keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))),
-                keccak256(slice(_abi_encode(_delegations), 32*2, 32*len(_delegations))),
+                _delegations,
                 _deadline,
                 _nonce
                 ))
@@ -347,7 +347,7 @@ def _reserve(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
-    _delegations: DynArray[bool, 100],
+    _delegations: bool,
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -361,7 +361,6 @@ def _reserve(
     assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
-    assert len(_collaterals) == len(_delegations), "invalid delegations length"
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
 
     assert ILiquidityControls(self.liquidityControlsContract).withinLoansPoolShareLimit(
@@ -387,7 +386,6 @@ def _reserve(
         _collaterals
     )
 
-    collateralIdx: uint256 = 0
     for collateral in _collaterals:
         ILoansCore(self.loansCoreContract).addCollateralToLoan(msg.sender, collateral, newLoanId)
         ILoansCore(self.loansCoreContract).updateCollaterals(collateral, False)
@@ -397,9 +395,8 @@ def _reserve(
             collateral.contractAddress,
             collateral.tokenId,
             ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
-            _delegations[collateralIdx]
+            _delegations
         )
-        collateralIdx += 1
 
     log LoanCreated(
         msg.sender,
@@ -610,7 +607,7 @@ def reserveWeth(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
-    _delegations: DynArray[bool, 100],
+    _delegations: bool,
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -624,7 +621,7 @@ def reserveWeth(
     @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
     @param _collaterals The list of collaterals supporting the loan
-    @param _delegations Wether to set the requesting wallet as a delegate for each collateral
+    @param _delegations Wether to set the requesting wallet as a delegate for all collaterals
     @param _deadline The deadline of validity for the signed message in unix epoch format
     @param _v recovery id for public key recover
     @param _r r value in ECDSA signature
@@ -648,7 +645,7 @@ def reserveEth(
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
-    _delegations: DynArray[bool, 100],
+    _delegations: bool,
     _deadline: uint256,
     _nonce: uint256,
     _v: uint256,
@@ -662,7 +659,7 @@ def reserveEth(
     @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
     @param _collaterals The list of collaterals supporting the loan
-    @param _delegations Wether to set the requesting wallet as a delegate for each collateral
+    @param _delegations Wether to set the requesting wallet as a delegate for all collaterals
     @param _deadline The deadline of validity for the signed message in unix epoch format
     @param _v recovery id for public key recover
     @param _r r value in ECDSA signature
