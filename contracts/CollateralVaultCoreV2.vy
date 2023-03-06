@@ -139,22 +139,22 @@ def setCollateralVaultPeripheralAddress(_address: address):
 
 
 @external
-def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegate_wallet: address):
+def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegateWallet: address):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
 
     IERC721(_collateralAddress).safeTransferFrom(_wallet, self, _tokenId, b"")
-    if _delegate_wallet != empty(address):
-        self._setDelegation(_delegate_wallet, _collateralAddress, _tokenId, True)
+    if _delegateWallet != empty(address):
+        self._setDelegation(_delegateWallet, _collateralAddress, _tokenId, True)
 
 
 @external
-def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegate_wallet: address):
+def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegateWallet: address):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
-    assert _delegate_wallet != empty(address), "delegate is zero addr"
+    assert _delegateWallet != empty(address), "delegate is zero addr"
     assert self._collateralOwner(_collateralAddress, _tokenId) == self, "collateral not owned by vault"
 
     IERC721(_collateralAddress).safeTransferFrom(self, _wallet, _tokenId, b"")
-    self._setDelegation(_delegate_wallet, _collateralAddress, _tokenId, False)
+    self._setDelegation(_delegateWallet, _collateralAddress, _tokenId, False)
 
 
 @external
