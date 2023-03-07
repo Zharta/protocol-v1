@@ -355,7 +355,7 @@
     "whitelisted": true
   },
   "gundead": {
-    "contract_address": "",
+    "contract_address": "0xAbD69F935A755809fE447E065503de8e1Ab321DE",
     "debt_limit": 5,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
@@ -423,7 +423,7 @@
     "whitelisted": true
   },
   "invsble": {
-    "contract_address": "",
+    "contract_address": "0x597035B0087fa018452Ab05C27b435d1e60C5A3B",
     "debt_limit": 5,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x59468516a8259058baD1cA5F8f4BFF190d30E066",
@@ -695,7 +695,7 @@
     "whitelisted": true
   },
   "quirkies": {
-    "contract_address": "",
+    "contract_address": "0x83Fc4B71586189B1D1Fe33206F6c9f533fDB13C6",
     "debt_limit": 5,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
@@ -729,7 +729,7 @@
     "whitelisted": true
   },
   "rektguy": {
-    "contract_address": "",
+    "contract_address": "0xe586C9af73d4B3BF248F876c0912628828157514",
     "debt_limit": 75,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xB852c6b5892256C264Cc2C888eA462189154D8d7",
@@ -763,7 +763,7 @@
     "whitelisted": true
   },
   "renga": {
-    "contract_address": "",
+    "contract_address": "0x73f3AcD0CC0cc1e1f9a30a601b034E7785c51129",
     "debt_limit": 40,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
@@ -836,7 +836,7 @@
     "whitelisted": true
   },
   "spaceriders": {
-    "contract_address": "",
+    "contract_address": "0xF0fFA1c3717EBE596c04Dc5c7680dD9f8cfD5D5C",
     "debt_limit": 2.5,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
@@ -870,7 +870,7 @@
     "whitelisted": true
   },
   "theplague": {
-    "contract_address": "",
+    "contract_address": "0x01ed716c6029C5f23F5b7fcCa35dF4aFc19eC397",
     "debt_limit": 2.5,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
@@ -938,7 +938,7 @@
     "whitelisted": true
   },
   "wgame": {
-    "contract_address": "",
+    "contract_address": "0xE3aF8Dc3373be2202A18305E9f7B355e6Bd7B93c",
     "debt_limit": 10,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
@@ -972,7 +972,7 @@
     "whitelisted": true
   },
   "wgamefarmer": {
-    "contract_address": "",
+    "contract_address": "0xbB6796909b8eD20b230bb5d758467522Cf07CcF9",
     "debt_limit": 10,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xBDa2481db91fc0F942eD3F53De378Ba45ba9d17E",
@@ -1006,7 +1006,7 @@
     "whitelisted": true
   },
   "wgameland": {
-    "contract_address": "",
+    "contract_address": "0x07fD2B40bf05780ccDcE936CA1c02695431511Cc",
     "debt_limit": 5,
     "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x2C88aA0956bC9813505d73575f653F69ADa60923",
