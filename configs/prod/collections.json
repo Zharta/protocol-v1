@@ -70,28 +70,28 @@
   "bayc": {
     "contract_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "debt_limit": 700,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "mapped_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "name": "Bored Ape Yacht Club",
     "opensea_slug": "boredapeyachtclub",
     "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
     "pricing": {
-      "interest_rate": 0.02054,
-      "max_ltv": 0.6
+      "interest_rate": 0.01438,
+      "max_ltv": 0.65
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.25,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.65
       },
       "7d": {
-        "apr": 0.5,
-        "ltv": 0.7
+        "apr": 0.35,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.4
+        "apr": 0.095,
+        "ltv": 0.45
       }
     },
     "tiers": [
@@ -595,28 +595,28 @@
   "punk": {
     "contract_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "debt_limit": 850,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "mapped_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "name": "Cryptopunks",
     "opensea_slug": "cryptopunks",
     "opensea_url": "https://opensea.io/collection/cryptopunks",
     "pricing": {
-      "interest_rate": 0.02054,
-      "max_ltv": 0.6
+      "interest_rate": 0.01438,
+      "max_ltv": 0.65
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.25,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.65
       },
       "7d": {
-        "apr": 0.5,
-        "ltv": 0.7
+        "apr": 0.35,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.4
+        "apr": 0.095,
+        "ltv": 0.45
       }
     },
     "tiers": [
