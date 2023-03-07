@@ -12,6 +12,9 @@ interface CryptoPunksMarket:
     def punkIndexToAddress(punkIndex: uint256) -> address: view
     def offerPunkForSaleToAddress(punkIndex: uint256, minSalePriceInWei: uint256, toAddress: address): nonpayable
 
+interface IDelegationRegistry:
+    def delegateForToken(delegate: address, contract_: address, tokenId: uint256, value_: bool): nonpayable
+
 
 # Structs
 
@@ -49,8 +52,13 @@ proposedOwner: public(address)
 vaultName: constant(String[30]) = "cryptopunks"
 collateralVaultPeripheralAddress: public(address)
 cryptoPunksMarketAddress: public(address)
+delegationRegistry: public(IDelegationRegistry)
 
 ##### INTERNAL METHODS #####
+
+@internal
+def _setDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _value: bool):
+    self.delegationRegistry.delegateForToken(_wallet, _collateralAddress, _tokenId, _value)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -60,28 +68,37 @@ cryptoPunksMarketAddress: public(address)
 def vaultName() -> String[30]:
     return vaultName
 
+@view
+@external
+def ownsCollateral(_collateralAddress: address, _tokenId: uint256) -> bool:
+    return _collateralAddress == self.cryptoPunksMarketAddress and CryptoPunksMarket(self.cryptoPunksMarketAddress).punkIndexToAddress(_tokenId) == self
+
 
 @view
 @external
-def collateralOwner(_tokenId: uint256) -> address:
-    return CryptoPunksMarket(self.cryptoPunksMarketAddress).punkIndexToAddress(_tokenId)
-
-@view
-@external
-def isApproved(_tokenId: uint256, _wallet: address) -> bool:
+def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool:
+    assert _collateralAddress == self.cryptoPunksMarketAddress, "invalid collateral for vault"
     offer: Offer = CryptoPunksMarket(self.cryptoPunksMarketAddress).punksOfferedForSale(_tokenId)
     return (
         offer.isForSale and
         offer.punkIndex == _tokenId and
         offer.minValue == 0 and
-        (offer.onlySellTo == empty(address) or offer.onlySellTo == _wallet)
+        (offer.onlySellTo == empty(address) or offer.onlySellTo == self)
     )
+
+@view
+@external
+def collateralOwner(_collateralAddress: address, _tokenId: uint256) -> address:
+    assert _collateralAddress == self.cryptoPunksMarketAddress, "invalid collateral for vault"
+    return CryptoPunksMarket(self.cryptoPunksMarketAddress).punkIndexToAddress(_tokenId)
+
 
 ##### EXTERNAL METHODS - WRITE #####
 @external
-def __init__(_cryptoPunksMarketAddress: address):
+def __init__(_cryptoPunksMarketAddress: address, _delegationRegistryAddress: address):
     self.owner = msg.sender
     self.cryptoPunksMarketAddress = _cryptoPunksMarketAddress
+    self.delegationRegistry = IDelegationRegistry(_delegationRegistryAddress)
 
 
 @external
@@ -131,7 +148,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
 
 
 @external
-def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256):
+def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegate_wallet: address):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
     assert _collateralAddress == self.cryptoPunksMarketAddress, "address not supported by vault"
 
@@ -145,18 +162,23 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
 
     CryptoPunksMarket(_collateralAddress).buyPunk(_tokenId)
 
+    if _delegate_wallet != empty(address):
+        self._setDelegation(_delegate_wallet, _collateralAddress, _tokenId, True)
 
 @external
-def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256):
+def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegate_wallet: address):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
     assert _collateralAddress == self.cryptoPunksMarketAddress, "address not supported by vault"
     assert CryptoPunksMarket(_collateralAddress).punkIndexToAddress(_tokenId) == self, "collateral not owned by vault"
+    assert _delegate_wallet != empty(address), "delegate is zero addr"
 
     CryptoPunksMarket(_collateralAddress).transferPunk(_wallet, _tokenId)
+    self._setDelegation(_delegate_wallet, _collateralAddress, _tokenId, False)
 
 
 @external
-def approveOperator(_address: address, _collateralAddress: address, _tokenId: uint256):
+def setDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _value: bool):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
-    assert _collateralAddress == self.cryptoPunksMarketAddress, "address not supported by vault"
-    CryptoPunksMarket(_collateralAddress).offerPunkForSaleToAddress(_tokenId, 0, _address) 
+
+    self._setDelegation(_wallet, _collateralAddress, _tokenId, _value)
+

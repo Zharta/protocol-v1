@@ -35,10 +35,6 @@ erc20_contract = conftest_base.erc20_contract
 erc721_contract = conftest_base.erc721_contract
 
 
-@pytest.fixture(scope="module", autouse=True)
-def collateral_vault_core_contract(CollateralVaultCore, contract_owner):
-    yield CollateralVaultCore.deploy({"from": contract_owner})
-
 
 @pytest.fixture(scope="module", autouse=True)
 def cryptopunks_market_contract(contract_owner):
@@ -88,14 +84,70 @@ def hashmasks_contract(ERC721, contract_owner):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def cryptopunks_vault_core_contract(CryptoPunksVaultCore, cryptopunks_market_contract, contract_owner):
+def cryptopunks_vault_core_contract(CryptoPunksVaultCore, cryptopunks_market_contract, delegation_registry_contract, contract_owner):
     cryptopunks_address = cryptopunks_market_contract.address if cryptopunks_market_contract else brownie.ZERO_ADDRESS
-    return CryptoPunksVaultCore.deploy(cryptopunks_address, {"from": contract_owner})
+    return CryptoPunksVaultCore.deploy(cryptopunks_address, delegation_registry_contract, {"from": contract_owner})
 
 
 @pytest.fixture(scope="module", autouse=True)
-def collateral_vault_peripheral_contract(CollateralVaultPeripheral, collateral_vault_core_contract, contract_owner):
-    yield CollateralVaultPeripheral.deploy(collateral_vault_core_contract, {"from": contract_owner})
+def delegation_registry_contract(ERC721, contract_owner):
+    abi = """ [
+      {
+        "inputs": [
+          {"internalType": "address", "name": "delegate", "type": "address"},
+          {"internalType": "address", "name": "vault", "type": "address"},
+          {"internalType": "address", "name": "contract_", "type": "address"},
+          {"internalType": "uint256", "name": "tokenId", "type": "uint256"}
+        ],
+        "name": "checkDelegateForToken",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {"internalType": "address", "name": "delegate", "type": "address"},
+          {"internalType": "address", "name": "contract_", "type": "address"},
+          {"internalType": "uint256", "name": "tokenId", "type": "uint256"},
+          {"internalType": "bool", "name": "value", "type": "bool"}
+        ],
+        "name": "delegateForToken",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ] """
+    try:
+        return Contract.from_abi(
+            "DelegationRegistry",
+            "0x00000000000076A84feF008CDAbe6409d2FE638B",
+            json.loads(abi),
+            owner=contract_owner
+        )
+    except ContractNotFound:
+        return None
+
+
+@pytest.fixture(scope="module", autouse=True)
+def collateral_vault_core_contract(CollateralVaultCoreV2, contract_owner, delegation_registry_contract):
+    yield CollateralVaultCoreV2.deploy(delegation_registry_contract, {"from": contract_owner})
+
+@pytest.fixture(scope="module", autouse=True)
+def collateral_vault_core_legacy_contract(CollateralVaultCore, contract_owner):
+    yield CollateralVaultCore.deploy({"from": contract_owner})
+
+@pytest.fixture(scope="module", autouse=True)
+def collateral_vault_peripheral_contract(
+    CollateralVaultPeripheral,
+    collateral_vault_core_contract,
+    collateral_vault_core_legacy_contract,
+    contract_owner
+):
+    yield CollateralVaultPeripheral.deploy(
+        collateral_vault_core_contract,
+        collateral_vault_core_legacy_contract,
+        {"from": contract_owner}
+    )
 
 
 @pytest.fixture(scope="module", autouse=True)

@@ -82,7 +82,7 @@ def test_set_collateral_vault_peripheral_address(cryptopunks_vault_core_contract
 
 def test_store_collateral_wrong_sender(cryptopunks_vault_core_contract, contract_owner):
     with brownie.reverts("msg.sender is not authorised"):
-        cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": contract_owner})
+        cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, contract_owner, {"from": contract_owner})
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -93,7 +93,7 @@ def test_store_collateral_invalid_contract(cryptopunks_vault_core_contract, coll
     cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
     with brownie.reverts("address not supported by vault"):
-        cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": collateral_vault_peripheral_contract})
+        cryptopunks_vault_core_contract.storeCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, contract_owner, {"from": collateral_vault_peripheral_contract})
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -108,7 +108,7 @@ def test_store_collateral(
     cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, cryptopunks_vault_core_contract, {"from": borrower})
     cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
-    cryptopunks_vault_core_contract.storeCollateral(borrower, cryptopunks_market_contract, 0, {"from": collateral_vault_peripheral_contract})
+    cryptopunks_vault_core_contract.storeCollateral(borrower, cryptopunks_market_contract, 0, borrower, {"from": collateral_vault_peripheral_contract})
 
     assert cryptopunks_market_contract.punkIndexToAddress(0) == cryptopunks_vault_core_contract
     cryptopunks_market_contract.transferPunk(borrower, 0, {'from': cryptopunks_vault_core_contract})
@@ -116,7 +116,7 @@ def test_store_collateral(
 
 def test_transfer_collateral_wrong_sender(cryptopunks_vault_core_contract, contract_owner):
     with brownie.reverts("msg.sender is not authorised"):
-        cryptopunks_vault_core_contract.transferCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, {"from": contract_owner})
+        cryptopunks_vault_core_contract.transferCollateral(contract_owner, brownie.ZERO_ADDRESS, 0, contract_owner, {"from": contract_owner})
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -131,8 +131,8 @@ def test_transfer_collateral(
     cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, cryptopunks_vault_core_contract, {"from": borrower})
     cryptopunks_vault_core_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
-    cryptopunks_vault_core_contract.storeCollateral(borrower, cryptopunks_market_contract, 0, {"from": collateral_vault_peripheral_contract})
+    cryptopunks_vault_core_contract.storeCollateral(borrower, cryptopunks_market_contract, 0, borrower, {"from": collateral_vault_peripheral_contract})
     assert cryptopunks_market_contract.punkIndexToAddress(0) == cryptopunks_vault_core_contract
 
-    cryptopunks_vault_core_contract.transferCollateral(borrower, cryptopunks_market_contract, 0, {"from": collateral_vault_peripheral_contract})
+    cryptopunks_vault_core_contract.transferCollateral(borrower, cryptopunks_market_contract, 0, borrower, {"from": collateral_vault_peripheral_contract})
     assert cryptopunks_market_contract.punkIndexToAddress(0) == borrower

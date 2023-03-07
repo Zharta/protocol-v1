@@ -9,9 +9,11 @@ from brownie import (
     LendingPoolLock,
     LendingPoolPeripheral,
     CollateralVaultCore,
+    CollateralVaultCoreV2,
     CollateralVaultPeripheral,
     CryptoPunksMarketMock,
     CryptoPunksVaultCore,
+    DelegationRegistryMock,
     LoansCore,
     Loans,
     LiquidationsCore,
@@ -41,6 +43,23 @@ class CollateralVaultCoreContract(InternalContract):
 
 
 @dataclass
+class CollateralVaultCoreV2Contract(InternalContract):
+
+    def __init__(self, contract: Optional[ProjectContract]):
+        super().__init__(
+            "collateral_vault_core2",
+            contract,
+            CollateralVaultCoreV2,
+            container_name="CollateralVaultCoreV2",
+            deployment_deps={"delegation_registry"},
+            config_deps={
+                "collateral_vault_peripheral": Transaction.cvcore2_set_cvperiph,
+            },
+            deployment_args_contracts=["delegation_registry"],
+        )
+
+
+@dataclass
 class CryptoPunksVaultCoreContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
@@ -49,11 +68,11 @@ class CryptoPunksVaultCoreContract(InternalContract):
             contract,
             CryptoPunksVaultCore,
             container_name="CryptoPunksVaultCore",
-            deployment_deps={"punk"},
+            deployment_deps={"punk", "delegation_registry"},
             config_deps={
                 "collateral_vault_peripheral": Transaction.punksvault_set_cvperiph,
             },
-            deployment_args_contracts=["punk"],
+            deployment_args_contracts=["punk", "delegation_registry"],
         )
 
 
@@ -66,13 +85,13 @@ class CollateralVaultPeripheralContract(InternalContract):
             contract,
             CollateralVaultPeripheral,
             container_name="CollateralVaultPeripheral",
-            deployment_deps={"collateral_vault_core"},
+            deployment_deps={"collateral_vault_core", "collateral_vault_core2"},
             config_deps={
                 "liquidations_peripheral": Transaction.cvperiph_set_liquidationsperiph,
                 "loans": Transaction.cvperiph_add_loansperiph,
                 "cryptopunks_vault_core": Transaction.cvperiph_add_punksvault,
             },
-            deployment_args_contracts=["collateral_vault_core"],
+            deployment_args_contracts=["collateral_vault_core2", "collateral_vault_core"],
         )
 
 
@@ -139,6 +158,22 @@ class CryptoPunksMockContract(InternalContract):
             deployment_deps=[],
         )
         self.nft = True
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return []
+
+
+@dataclass
+class DelegationRegistryMockContract(InternalContract):
+
+    def __init__(self, contract: Optional[ProjectContract]):
+        super().__init__(
+            "delegation_registry",
+            contract,
+            DelegationRegistryMock,
+            container_name="DelegationRegistryMock",
+            deployment_deps=[],
+        )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         return []

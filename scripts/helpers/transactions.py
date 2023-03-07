@@ -32,6 +32,10 @@ class Transaction:
         execute(context, "collateral_vault_core", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
 
     @staticmethod
+    def cvcore2_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
+        execute(context, "collateral_vault_core2", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
+
+    @staticmethod
     def punksvault_set_cvperiph(context: DeploymentContext, dryrun: bool = False):
         execute(context, "cryptopunks_vault_core", "setCollateralVaultPeripheralAddress", "collateral_vault_peripheral", dryrun=dryrun)
 

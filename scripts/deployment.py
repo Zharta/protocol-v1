@@ -24,9 +24,11 @@ from .helpers.contracts import (
     LendingPoolLockContract,
     LendingPoolPeripheralContract,
     CollateralVaultCoreContract,
+    CollateralVaultCoreV2Contract,
     CollateralVaultPeripheralContract,
     CryptoPunksMockContract,
     CryptoPunksVaultCoreContract,
+    DelegationRegistryMockContract,
     LoansCoreContract,
     LoansPeripheralContract,
     LiquidationsCoreContract,
@@ -60,6 +62,7 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         LendingPoolLockContract(None),
         LendingPoolPeripheralContract(None),
         CollateralVaultCoreContract(None),
+        CollateralVaultCoreV2Contract(None),
         CollateralVaultPeripheralContract(None),
         CryptoPunksVaultCoreContract(None),
         LoansCoreContract(None),
@@ -176,6 +179,10 @@ class DeploymentManager:
             GenericExternalContract("nftxmarketplacezap", "0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d"),
             GenericExternalContract("sushirouter", "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"),
         ]
+        if self.env in [Environment.local, Environment.dev]:
+            other.append(DelegationRegistryMockContract(None))
+        else:
+            other.append(GenericExternalContract("delegation_registry", "0x00000000000076A84feF008CDAbe6409d2FE638B"),)
         return {c.name: c for c in nfts + contracts + other}
 
     def _get_configs(self) -> dict[str, Any]:
@@ -226,6 +233,7 @@ def console():
     dm = DeploymentManager(ENV)
     cvp = dm.context["collateral_vault_peripheral"].contract
     cvc = dm.context["collateral_vault_core"].contract
+    cvc2 = dm.context["collateral_vault_core2"].contract
     pvc = dm.context["cryptopunks_vault_core"].contract
     lpc = dm.context["lending_pool_core"].contract
     lpl = dm.context["lending_pool_lock"].contract
@@ -237,6 +245,7 @@ def console():
     ctrl = dm.context["liquidity_controls"].contract
 
     weth = dm.context["weth"].contract
+    delegate = dm.context["delegation_registry"].contract
 
     cool = dm.context["cool"].contract
     hm = dm.context["hm"].contract
@@ -253,3 +262,4 @@ def console():
     ringers = dm.context["ringers"].contract
     gazers = dm.context["gazers"].contract
     fidenza = dm.context["fidenza"].contract
+    beanz = dm.context["beanz"].contract
