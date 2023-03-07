@@ -42,7 +42,7 @@ ZHARTA_DOMAIN_NAME: constant(String[6])    = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
 COLLATERAL_TYPE_DEF: constant(String[66])  = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-RESERVE_TYPE_DEF: constant(String[179])    = "ReserveMessageContent(uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,uint256 deadline)" \
+RESERVE_TYPE_DEF: constant(String[229]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool[] delegations,uint256 deadline,uint256 nonce)" \
                                              "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 DOMAIN_TYPE_HASH: constant(bytes32)        = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
 COLLATERAL_TYPE_HASH: constant(bytes32)    = keccak256(COLLATERAL_TYPE_DEF)
@@ -64,11 +64,14 @@ def chain_id() -> uint256:
 
 @external
 def loans_reserve(
+    _borrower: address,
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
     _collaterals: DynArray[Collateral, 100],
+    _delegations: DynArray[bool, 100],
     _deadline: uint256,
+    _nonce: uint256,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -94,14 +97,18 @@ def loans_reserve(
     for c in _collaterals:
         collaterals_data_hash.append(keccak256(_abi_encode(COLLATERAL_TYPE_HASH, c.contractAddress, c.tokenId, c.amount)))
     log SignatureFragment("collaterals_data_hash", keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))))
+    log SignatureFragment("delegations_data_hash", keccak256(slice(_abi_encode(_delegations), 32*2, 32*len(_delegations))))
 
     data_hash: bytes32 = keccak256(_abi_encode(
                 RESERVE_TYPE_HASH,
+                _borrower,
                 _amount,
                 _interest,
                 _maturity,
                 keccak256(slice(_abi_encode(collaterals_data_hash), 32*2, 32*len(_collaterals))),
+                keccak256(slice(_abi_encode(_delegations), 32*2, 32*len(_delegations))),
                 _deadline,
+                _nonce,
                 ))
     log SignatureFragment("data_hash", data_hash)
 

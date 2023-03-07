@@ -43,7 +43,7 @@ contracts = [
 # the contract vyper file name
 contracts_mapped = {
     "CryptoPunksVaultCore": "cryptopunks_vault_core",
-    "CollateralVaultCore": "collateral_vault_core",
+    "CollateralVaultCoreV2": "collateral_vault_core",
     "CollateralVaultPeripheral": "collateral_vault_peripheral",
     "LendingPoolCore": "lending_pool_core",
     "LendingPoolLock": "lending_pool_lock",
@@ -109,6 +109,13 @@ def dynamo_type(val):
     return val
 
 
+def migration_patch(config):
+    """ temporary adjustement to abstract the collateral vault core migration from the apis """
+    weth_config = config["tokens"]["WETH"]
+    if "collateral_vault_core2" in weth_config:
+        weth_config["collateral_vault_core"] = weth_config["collateral_vault_core2"]
+        del weth_config["collateral_vault_core2"]
+
 @click.command()
 @click.option(
     "--write-to-s3",
@@ -131,6 +138,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     # get contract addresses config file
     config_file = Path.cwd() / "configs" / env / "contracts.json"
     config = json.loads(read_file(config_file))
+    migration_patch(config)
 
     nfts_file = Path.cwd() / "configs" / env / "collections.json"
     nfts = json.loads(read_file(nfts_file))
