@@ -2,28 +2,28 @@
   "azuki": {
     "contract_address": "0xb291024F4b2E4C3767A96aB44566a8e93cC828C5",
     "debt_limit": 250,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xED5AF388653567Af2F388E6224dC7C4b3241C544",
     "mapped_address": "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
     "name": "[Internal] Azuki",
     "opensea_slug": "azuki",
     "opensea_url": "https://opensea.io/collection/azuki",
     "pricing": {
-      "interest_rate": 0.02877,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -36,28 +36,28 @@
   "bakc": {
     "contract_address": "0xEFDE7eC452f9A203559896F64267809E248D044f",
     "debt_limit": 150,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "mapped_address": "0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "name": "[Internal] Bored Ape Kennel Club",
     "opensea_slug": "bored-ape-kennel-club",
     "opensea_url": "https://opensea.io/collection/bored-ape-kennel-club",
     "pricing": {
-      "interest_rate": 0.03287,
-      "max_ltv": 0.5
+      "interest_rate": 0.01643,
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.4,
-        "ltv": 0.5
-      },
-      "7d": {
-        "apr": 0.8,
+        "apr": 0.2,
         "ltv": 0.6
       },
+      "7d": {
+        "apr": 0.4,
+        "ltv": 0.675
+      },
       "90d": {
-        "apr": 0.3,
-        "ltv": 0.3
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -70,28 +70,28 @@
   "bayc": {
     "contract_address": "0xC6D563d5c2243b27e7294511063f563ED701EA2C",
     "debt_limit": 700,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "mapped_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "name": "[Internal] Bored Ape Yacht Club",
     "opensea_slug": "boredapeyachtclub",
     "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
     "pricing": {
-      "interest_rate": 0.02054,
-      "max_ltv": 0.6
+      "interest_rate": 0.01438,
+      "max_ltv": 0.65
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.25,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.65
       },
       "7d": {
-        "apr": 0.5,
-        "ltv": 0.7
+        "apr": 0.35,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.4
+        "apr": 0.095,
+        "ltv": 0.45
       }
     },
     "tiers": [
@@ -104,28 +104,28 @@
   "beanz": {
     "contract_address": "0xFb7C5F938835aE34aF48c278C6763E134907Acdb",
     "debt_limit": 50,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
     "mapped_address": "0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
     "name": "[Internal] BEANZ Official",
     "opensea_slug": "beanzofficial",
     "opensea_url": "https://opensea.io/collection/beanzofficial",
     "pricing": {
-      "interest_rate": 0.0411,
-      "max_ltv": 0.4
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.5,
-        "ltv": 0.4
+        "apr": 0.35,
+        "ltv": 0.45
       },
       "7d": {
-        "apr": 0.9,
-        "ltv": 0.5
+        "apr": 0.7,
+        "ltv": 0.525
       },
       "90d": {
-        "apr": 0.35,
-        "ltv": 0.25
+        "apr": 0.25,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -150,21 +150,21 @@
     "opensea_slug": "chromie-squiggle-by-snowfro",
     "opensea_url": "https://opensea.io/collection/chromie-squiggle-by-snowfro",
     "pricing": {
-      "interest_rate": 0.02055,
-      "max_ltv": 0.6
+      "interest_rate": 0.01438,
+      "max_ltv": 0.65
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.25,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.65
       },
       "7d": {
-        "apr": 0.5,
-        "ltv": 0.7
+        "apr": 0.35,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.4
+        "apr": 0.095,
+        "ltv": 0.45
       }
     },
     "tiers": [
@@ -177,28 +177,28 @@
   "clonex": {
     "contract_address": "0x342216ff4b4D6899DDE6535D6E50b6Db71654bc4",
     "debt_limit": 150,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
     "mapped_address": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
     "name": "[Internal] CLONE X",
     "opensea_slug": "clonex",
     "opensea_url": "https://opensea.io/collection/clonex",
     "pricing": {
-      "interest_rate": 0.02877,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -211,28 +211,28 @@
   "cool": {
     "contract_address": "0xD537bF4b795b7D07Bd5F4bAf7017e3ce8360B1DE",
     "debt_limit": 15,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x1A92f7381B9F03921564a437210bB9396471050C",
     "mapped_address": "0x1A92f7381B9F03921564a437210bB9396471050C",
     "name": "[Internal] Cool Cats",
     "opensea_slug": "cool-cats-nft",
     "opensea_url": "https://opensea.io/collection/cool-cats-nft",
     "pricing": {
-      "interest_rate": 0.04109,
-      "max_ltv": 0.4
+      "interest_rate": 0.0226,
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.5,
-        "ltv": 0.4
+        "apr": 0.275,
+        "ltv": 0.55
       },
       "7d": {
-        "apr": 0.9,
-        "ltv": 0.5
+        "apr": 0.6,
+        "ltv": 0.625
       },
       "90d": {
-        "apr": 0.35,
-        "ltv": 0.25
+        "apr": 0.185,
+        "ltv": 0.35
       }
     },
     "tiers": [
@@ -244,29 +244,29 @@
   },
   "doodles": {
     "contract_address": "0x8BE16B874F47371C42498b499837Ed87D7661E86",
-    "debt_limit": 35,
-    "floor_multiple_cap": 3.0,
+    "debt_limit": 125,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "mapped_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "name": "[Internal] Doodles",
     "opensea_slug": "doodles-official",
     "opensea_url": "https://opensea.io/collection/doodles-official",
     "pricing": {
-      "interest_rate": 0.02876,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -291,21 +291,21 @@
     "opensea_slug": "fidenza-by-tyler-hobbs",
     "opensea_url": "https://opensea.io/collection/fidenza-by-tyler-hobbs",
     "pricing": {
-      "interest_rate": 0.02055,
-      "max_ltv": 0.6
+      "interest_rate": 0.01438,
+      "max_ltv": 0.65
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.25,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.65
       },
       "7d": {
-        "apr": 0.5,
-        "ltv": 0.7
+        "apr": 0.35,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.4
+        "apr": 0.095,
+        "ltv": 0.45
       }
     },
     "tiers": [
@@ -330,21 +330,55 @@
     "opensea_slug": "gazers-by-matt-kane",
     "opensea_url": "https://opensea.io/collection/gazers-by-matt-kane",
     "pricing": {
-      "interest_rate": 0.02877,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
+      },
+      "90d": {
+        "apr": 0.095,
+        "ltv": 0.4
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "gundead": {
+    "contract_address": "",
+    "debt_limit": 5,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
+    "mapped_address": "0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
+    "name": "[Internal] Genuine Undead",
+    "opensea_slug": "genuine-undead",
+    "opensea_url": "https://opensea.io/collection/genuine-undead",
+    "pricing": {
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
       },
       "90d": {
         "apr": 0.25,
-        "ltv": 0.35
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -357,28 +391,62 @@
   "hm": {
     "contract_address": "0xaA7e46855e0506401214c9b1C35f3d889669609e",
     "debt_limit": 5,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
     "mapped_address": "0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
     "name": "[Internal] Hashmasks",
     "opensea_slug": "hashmasks",
     "opensea_url": "https://opensea.io/collection/hashmasks",
     "pricing": {
-      "interest_rate": 0.0411,
-      "max_ltv": 0.4
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.5,
-        "ltv": 0.4
+        "apr": 0.35,
+        "ltv": 0.45
       },
       "7d": {
-        "apr": 0.9,
-        "ltv": 0.5
+        "apr": 0.7,
+        "ltv": 0.525
       },
       "90d": {
-        "apr": 0.35,
-        "ltv": 0.25
+        "apr": 0.25,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "invsble": {
+    "contract_address": "",
+    "debt_limit": 5,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0x59468516a8259058baD1cA5F8f4BFF190d30E066",
+    "mapped_address": "0x59468516a8259058baD1cA5F8f4BFF190d30E066",
+    "name": "[Internal] Invisible Friends",
+    "opensea_slug": "invisiblefriends",
+    "opensea_url": "https://opensea.io/collection/invisiblefriends",
+    "pricing": {
+      "interest_rate": 0.0226,
+      "max_ltv": 0.55
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.275,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.6,
+        "ltv": 0.625
+      },
+      "90d": {
+        "apr": 0.185,
+        "ltv": 0.35
       }
     },
     "tiers": [
@@ -391,28 +459,28 @@
   "lilpudgys": {
     "contract_address": "0x0e19E87b363DD7a3af5c45C95ab6885367251B94",
     "debt_limit": 15,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x524cAB2ec69124574082676e6F654a18df49A048",
     "mapped_address": "0x524cAB2ec69124574082676e6F654a18df49A048",
     "name": "[Internal] Lil Pudgys",
     "opensea_slug": "lilpudgys",
     "opensea_url": "https://opensea.io/collection/lilpudgys",
     "pricing": {
-      "interest_rate": 0.0411,
-      "max_ltv": 0.4
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.5,
-        "ltv": 0.4
+        "apr": 0.35,
+        "ltv": 0.45
       },
       "7d": {
-        "apr": 0.9,
-        "ltv": 0.5
+        "apr": 0.7,
+        "ltv": 0.525
       },
       "90d": {
-        "apr": 0.35,
-        "ltv": 0.25
+        "apr": 0.25,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -425,28 +493,28 @@
   "mayc": {
     "contract_address": "0xEfE66132727f3831AB4E020357B5Bf615076Df6A",
     "debt_limit": 250,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "mapped_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "name": "[Internal] Mutant Ape Yacht Club",
     "opensea_slug": "mutant-ape-yacht-club",
     "opensea_url": "https://opensea.io/collection/mutant-ape-yacht-club",
     "pricing": {
-      "interest_rate": 0.0287,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -459,28 +527,28 @@
   "meebits": {
     "contract_address": "0x4B0FccF53589c1F185B35db88bB315a0bBF9a3e0",
     "debt_limit": 100,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
     "mapped_address": "0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
     "name": "[Internal] Meebits",
     "opensea_slug": "meebits",
     "opensea_url": "https://opensea.io/collection/meebits",
     "pricing": {
-      "interest_rate": 0.03288,
-      "max_ltv": 0.5
+      "interest_rate": 0.01643,
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.4,
-        "ltv": 0.5
-      },
-      "7d": {
-        "apr": 0.8,
+        "apr": 0.2,
         "ltv": 0.6
       },
+      "7d": {
+        "apr": 0.4,
+        "ltv": 0.675
+      },
       "90d": {
-        "apr": 0.3,
-        "ltv": 0.3
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -493,28 +561,28 @@
   "moonbirds": {
     "contract_address": "0x1aa96efd2B002541E830CB7f60e473AA24e31F9A",
     "debt_limit": 125,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x23581767a106ae21c074b2276D25e5C3e136a68b",
     "mapped_address": "0x23581767a106ae21c074b2276D25e5C3e136a68b",
     "name": "[Internal] Moonbirds",
     "opensea_slug": "proof-moonbirds",
     "opensea_url": "https://opensea.io/collection/proof-moonbirds",
     "pricing": {
-      "interest_rate": 0.02877,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -527,28 +595,28 @@
   "otherdeed": {
     "contract_address": "0x70bC6D873D110Da59a9c49E7485a27B0F605E5db",
     "debt_limit": 150,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
     "mapped_address": "0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
     "name": "[Internal] Otherdeed for Otherside",
     "opensea_slug": "otherdeed",
     "opensea_url": "https://opensea.io/collection/otherdeed",
     "pricing": {
-      "interest_rate": 0.02877,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -561,28 +629,28 @@
   "ppg": {
     "contract_address": "0x4e3E7dC9D84dA7BE8f017f4C36153A61341736d4",
     "debt_limit": 125,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "mapped_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "name": "[Internal] Pudgy Penguins",
     "opensea_slug": "pudgypenguins",
     "opensea_url": "https://opensea.io/collection/pudgypenguins",
     "pricing": {
-      "interest_rate": 0.02876,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.095,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -595,28 +663,130 @@
   "punk": {
     "contract_address": "0x2acC1AbFdC76E48e49c91f55512066B4DD6555Dd",
     "debt_limit": 850,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "mapped_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "name": "[Internal] Cryptopunks",
     "opensea_slug": "cryptopunks",
     "opensea_url": "https://opensea.io/collection/cryptopunks",
     "pricing": {
-      "interest_rate": 0.02054,
-      "max_ltv": 0.6
+      "interest_rate": 0.01438,
+      "max_ltv": 0.65
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.25,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.65
       },
       "7d": {
-        "apr": 0.5,
-        "ltv": 0.7
+        "apr": 0.35,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.4
+        "apr": 0.095,
+        "ltv": 0.45
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "quirkies": {
+    "contract_address": "",
+    "debt_limit": 5,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
+    "mapped_address": "0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
+    "name": "[Internal] Quirkies Originals",
+    "opensea_slug": "quirkiesoriginals",
+    "opensea_url": "https://opensea.io/collection/quirkiesoriginals",
+    "pricing": {
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "rektguy": {
+    "contract_address": "",
+    "debt_limit": 75,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0xB852c6b5892256C264Cc2C888eA462189154D8d7",
+    "mapped_address": "0xB852c6b5892256C264Cc2C888eA462189154D8d7",
+    "name": "[Internal] rektguy",
+    "opensea_slug": "rektguy",
+    "opensea_url": "https://opensea.io/collection/rektguy",
+    "pricing": {
+      "interest_rate": 0.0226,
+      "max_ltv": 0.55
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.275,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.6,
+        "ltv": 0.625
+      },
+      "90d": {
+        "apr": 0.185,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "renga": {
+    "contract_address": "",
+    "debt_limit": 40,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
+    "mapped_address": "0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
+    "name": "[Internal] RENGA",
+    "opensea_slug": "renga",
+    "opensea_url": "https://opensea.io/collection/renga",
+    "pricing": {
+      "interest_rate": 0.0226,
+      "max_ltv": 0.55
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.275,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.6,
+        "ltv": 0.625
+      },
+      "90d": {
+        "apr": 0.185,
+        "ltv": 0.35
       }
     },
     "tiers": [
@@ -641,21 +811,89 @@
     "opensea_slug": "ringers-by-dmitri-cherniak",
     "opensea_url": "https://opensea.io/collection/ringers-by-dmitri-cherniak",
     "pricing": {
-      "interest_rate": 0.02877,
+      "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.55
+        "apr": 0.2,
+        "ltv": 0.6
       },
       "7d": {
-        "apr": 0.75,
-        "ltv": 0.65
+        "apr": 0.4,
+        "ltv": 0.675
+      },
+      "90d": {
+        "apr": 0.095,
+        "ltv": 0.4
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "spaceriders": {
+    "contract_address": "",
+    "debt_limit": 2.5,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
+    "mapped_address": "0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
+    "name": "[Internal] Space Riders NFT",
+    "opensea_slug": "spaceridersnft",
+    "opensea_url": "https://opensea.io/collection/spaceridersnft",
+    "pricing": {
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
       },
       "90d": {
         "apr": 0.25,
-        "ltv": 0.35
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "theplague": {
+    "contract_address": "",
+    "debt_limit": 2.5,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
+    "mapped_address": "0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
+    "name": "[Internal] The Plague NFT",
+    "opensea_slug": "the-plague",
+    "opensea_url": "https://opensea.io/collection/the-plague",
+    "pricing": {
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -668,28 +906,130 @@
   "vft": {
     "contract_address": "0xa1910C6e0Fbd0E38cfBabAeC5D1C1D539F81CC63",
     "debt_limit": 5,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "mapped_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "name": "[Internal] VeeFriends",
     "opensea_slug": "veefriends",
     "opensea_url": "https://opensea.io/collection/veefriends",
     "pricing": {
-      "interest_rate": 0.0411,
-      "max_ltv": 0.4
+      "interest_rate": 0.0226,
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.5,
-        "ltv": 0.4
+        "apr": 0.275,
+        "ltv": 0.55
       },
       "7d": {
-        "apr": 0.9,
-        "ltv": 0.5
+        "apr": 0.6,
+        "ltv": 0.625
       },
       "90d": {
+        "apr": 0.185,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "wgame": {
+    "contract_address": "",
+    "debt_limit": 10,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
+    "mapped_address": "0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
+    "name": "[Internal] Wolf Game",
+    "opensea_slug": "wolf-game",
+    "opensea_url": "https://opensea.io/collection/wolf-game",
+    "pricing": {
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
+    },
+    "tier_pricing": {
+      "30d": {
         "apr": 0.35,
-        "ltv": 0.25
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "wgamefarmer": {
+    "contract_address": "",
+    "debt_limit": 10,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0xBDa2481db91fc0F942eD3F53De378Ba45ba9d17E",
+    "mapped_address": "0xBDa2481db91fc0F942eD3F53De378Ba45ba9d17E",
+    "name": "[Internal] Wolf Game - Farmer",
+    "opensea_slug": "wolf-game-farmer",
+    "opensea_url": "https://opensea.io/collection/wolf-game-farmer",
+    "pricing": {
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "wgameland": {
+    "contract_address": "",
+    "debt_limit": 5,
+    "floor_multiple_cap": null,
+    "looksrare_url": "https://looksrare.org/collections/0x2C88aA0956bC9813505d73575f653F69ADa60923",
+    "mapped_address": "0x2C88aA0956bC9813505d73575f653F69ADa60923",
+    "name": "[Internal] Wolf Game - Genesis Land",
+    "opensea_slug": "wolf-game-land",
+    "opensea_url": "https://opensea.io/collection/wolf-game-land",
+    "pricing": {
+      "interest_rate": 0.02876,
+      "max_ltv": 0.45
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -702,28 +1042,28 @@
   "wow": {
     "contract_address": "0x93F6bA0E6DcB1Ec0F1aBD80Be31e025d6e64Ad97",
     "debt_limit": 5,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "mapped_address": "0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "name": "[Internal] World of Women",
     "opensea_slug": "world-of-women-nft",
     "opensea_url": "https://opensea.io/collection/world-of-women-nft",
     "pricing": {
-      "interest_rate": 0.0411,
-      "max_ltv": 0.4
+      "interest_rate": 0.0226,
+      "max_ltv": 0.55
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.5,
-        "ltv": 0.4
+        "apr": 0.275,
+        "ltv": 0.55
       },
       "7d": {
-        "apr": 0.9,
-        "ltv": 0.5
+        "apr": 0.6,
+        "ltv": 0.625
       },
       "90d": {
-        "apr": 0.35,
-        "ltv": 0.25
+        "apr": 0.185,
+        "ltv": 0.35
       }
     },
     "tiers": [
@@ -737,28 +1077,28 @@
     "appraisal_key": "punk",
     "contract_address": "0x0AC45e945A008D3fc19da8f591be8601C1F63130",
     "debt_limit": 850,
-    "floor_multiple_cap": 3.0,
+    "floor_multiple_cap": null,
     "looksrare_url": "https://looksrare.org/collections/0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "mapped_address": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "name": "[Internal] Wrapped Cryptopunks",
     "opensea_slug": "wrapped-cryptopunks",
     "opensea_url": "https://opensea.io/collection/wrapped-cryptopunks",
     "pricing": {
-      "interest_rate": 0.02054,
-      "max_ltv": 0.6
+      "interest_rate": 0.01438,
+      "max_ltv": 0.65
     },
     "tier_pricing": {
       "30d": {
-        "apr": 0.25,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.65
       },
       "7d": {
-        "apr": 0.5,
-        "ltv": 0.7
+        "apr": 0.35,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.4
+        "apr": 0.095,
+        "ltv": 0.45
       }
     },
     "tiers": [
