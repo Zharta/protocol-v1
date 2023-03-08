@@ -121,6 +121,16 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("meebits", None),
         NFT("beanz", None),
         NFT("lilpudgys", None),
+        NFT("gundead", None),
+        NFT("invsble", None),
+        NFT("quirkies", None),
+        NFT("rektguy", None),
+        NFT("renga", None),
+        NFT("spaceriders", None),
+        NFT("theplague", None),
+        NFT("wgame", None),
+        NFT("wgamefarmer", None),
+        NFT("wgameland", None),
     ]]
 
 
@@ -263,3 +273,14 @@ def console():
     gazers = dm.context["gazers"].contract
     fidenza = dm.context["fidenza"].contract
     beanz = dm.context["beanz"].contract
+    
+    gundead = dm.context["gundead"].contract
+    invsble = dm.context["invsble"].contract
+    quirkies = dm.context["quirkies"].contract
+    rektguy = dm.context["rektguy"].contract
+    renga = dm.context["renga"].contract
+    spaceriders = dm.context["spaceriders"].contract
+    theplague = dm.context["theplague"].contract
+    wgame = dm.context["wgame"].contract
+    wgamefarmer = dm.context["wgamefarmer"].contract
+    wgameland = dm.context["wgameland"].contract
