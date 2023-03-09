@@ -25,6 +25,7 @@ logger.setLevel(logging.INFO)
 contracts = [
     "CryptoPunksVaultCore",
     "CollateralVaultCore",
+    "CollateralVaultCoreV2",
     "CollateralVaultPeripheral",
     "LendingPoolCore",
     "LendingPoolLock",
@@ -37,6 +38,7 @@ contracts = [
     "auxiliary/token/ERC20",
     "auxiliary/token/ERC721",
     "debug/SignatureDebug",
+    "auxiliary/delegate/DelegationRegistryMock",
 ]
 
 # A map between the contract name on the contracts addresses configuration file and
@@ -56,6 +58,7 @@ contracts_mapped = {
     "auxiliary/token/ERC20": "token",
     "auxiliary/token/ERC721": "ERC721",
     "debug/SignatureDebug": "signature_debug",
+    "auxiliary/delegate/DelegationRegistryMock": "delegation_registry",
 }
 
 

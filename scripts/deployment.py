@@ -273,7 +273,10 @@ def console():
     gazers = dm.context["gazers"].contract
     fidenza = dm.context["fidenza"].contract
     beanz = dm.context["beanz"].contract
-    
+    clonex = dm.context["clonex"].contract
+    lilpudgys = dm.context["lilpudgys"].contract
+    meebits = dm.context["meebits"].contract
+
     gundead = dm.context["gundead"].contract
     invsble = dm.context["invsble"].contract
     quirkies = dm.context["quirkies"].contract

@@ -4,11 +4,17 @@
             "collateral_vault_core": {
                 "contract": "0x64B334435888bb5E44D890a7B319981c4Bb4B47d"
             },
+            "collateral_vault_core2": {
+                "contract": "0x03e667dCd8643D6181F3995f3F12DE93eEEe3392"
+            },
             "collateral_vault_peripheral": {
-                "contract": "0xFB87C36009603855163ABe3BbF512D3F58fd3819"
+                "contract": "0xe568a2E0E17D4b8c1F34AF26C43c6a4a99427193"
             },
             "cryptopunks_vault_core": {
-                "contract": "0xFd87ceEa79b211268Fb182a48E43644543c08709"
+                "contract": "0x3C1164C04551A609490c3020045953642c391323"
+            },
+            "delegation_registry": {
+                "contract": "0x4576eA2DB1EB9CC509FfDA3aAbEe65f2CB0b1B85"
             },
             "lending_pool": {
                 "contract": "0xb3A8F627dFB009FaB86b05F54359194afFA0eF6F"
@@ -23,13 +29,13 @@
                 "contract": "0x7e4ED6273177126c48503850a526B45bed16E747"
             },
             "liquidations_peripheral": {
-                "contract": "0xA2ea57c9C7ED08D48F5d92Dd774b6Fe55465d86f"
+                "contract": "0xD861908F78C56E2618e492BaA8E4FbB82344eE21"
             },
             "liquidity_controls": {
                 "contract": "0xA83Fad7514B39b12C0bAcA71e0A7cc63D2Ff1941"
             },
             "loans": {
-                "contract": "0x5DbAb869F93e8d77ee3A0D5335714aC94B171416"
+                "contract": "0x18dA949ed535FE1cf038D628D03E19E857821FaB"
             },
             "loans_core": {
                 "contract": "0x286677F2b204be093ABBee3e35074352b339243B"
