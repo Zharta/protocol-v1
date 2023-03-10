@@ -71,6 +71,7 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         LiquidationsPeripheralContract(None),
         LiquidityControlsContract(None),
         WETH9MockContract(None) if env != Environment.prod else Token("weth", "token", None),
+        DelegationRegistryMockContract(None),
     ]]
 
 
@@ -189,10 +190,6 @@ class DeploymentManager:
             GenericExternalContract("nftxmarketplacezap", "0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d"),
             GenericExternalContract("sushirouter", "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"),
         ]
-        if self.env in [Environment.local, Environment.dev]:
-            other.append(DelegationRegistryMockContract(None))
-        else:
-            other.append(GenericExternalContract("delegation_registry", "0x00000000000076A84feF008CDAbe6409d2FE638B"),)
         return {c.name: c for c in nfts + contracts + other}
 
     def _get_configs(self) -> dict[str, Any]:

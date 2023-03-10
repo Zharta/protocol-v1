@@ -10,6 +10,9 @@
             "cryptopunks_vault_core": {
                 "contract": "0x94925030F48aDfc3e4A65a2E0A7444733406c144"
             },
+            "delegation_registry": {
+                "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B"
+            },
             "lending_pool": {
                 "contract": "0x6474Ab1B56b47bC26Ba8cB471d566B8CC528F308"
             },
