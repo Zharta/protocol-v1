@@ -1638,3 +1638,64 @@ def test_payable_amount(
     due_amount = amount * (loan_duration_in_contract * 10000 + interest * payable_duration) // (loan_duration_in_contract * 10000)
 
     assert payable_amount == due_amount
+
+
+@given(
+    genesis_token=strategy('uint256', min_value=0, max_value=2),
+    use_delegation=strategy('bool'),
+)
+def test_genesis_pass_validation(
+    loans_peripheral_contract,
+    create_signature,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    collateral_vault_core_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals,
+    contracts_config,
+    genesis_contract,
+    delegation_registry_contract,
+    genesis_token,
+    use_delegation,
+):
+    amount = LOAN_AMOUNT
+    now = int(dt.datetime.now().timestamp())
+    maturity = now + 7 * 24 * 3600
+    interest = 15
+
+    lending_pool_peripheral_contract.depositEth({"from": investor, "value": amount*5})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    genesis_vault = investor.address if use_delegation else brownie.ZERO_ADDRESS
+    if genesis_token > 0:
+        genesis_contract.mint(genesis_vault or borrower, genesis_token, {"from": contract_owner})
+    if use_delegation:
+        delegation_registry_contract.delegateForToken(borrower, genesis_contract, genesis_token, True, {'from': genesis_vault})
+
+    (v, r, s) = create_signature(maturity=maturity, interest=interest)
+
+    tx_create_loan = loans_peripheral_contract.reserveEth(
+        amount,
+        interest,
+        maturity,
+        test_collaterals,
+        False,
+        VALIDATION_DEADLINE,
+        0,
+        genesis_token,
+        genesis_vault,
+        v,
+        r,
+        s,
+        {"from": borrower},
+    )
+
+    event = tx_create_loan.events["LoanCreated"]
+    assert event["genesisToken"] == genesis_token
+    assert event["genesisVault"] == genesis_vault
