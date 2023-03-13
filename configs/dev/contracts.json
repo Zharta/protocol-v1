@@ -8,7 +8,7 @@
                 "contract": "0x03e667dCd8643D6181F3995f3F12DE93eEEe3392"
             },
             "collateral_vault_peripheral": {
-                "contract": "0xe568a2E0E17D4b8c1F34AF26C43c6a4a99427193"
+                "contract": "0xB5d35c386e9C098Fd9D88a9e4cd54E6006095824"
             },
             "cryptopunks_vault_core": {
                 "contract": "0x3C1164C04551A609490c3020045953642c391323"
@@ -29,13 +29,13 @@
                 "contract": "0x7e4ED6273177126c48503850a526B45bed16E747"
             },
             "liquidations_peripheral": {
-                "contract": "0xD861908F78C56E2618e492BaA8E4FbB82344eE21"
+                "contract": "0xd57DC8C6F9F8e65Ae96Cd7A50401c1fEA8bFF4e8"
             },
             "liquidity_controls": {
                 "contract": "0xA83Fad7514B39b12C0bAcA71e0A7cc63D2Ff1941"
             },
             "loans": {
-                "contract": "0x18dA949ed535FE1cf038D628D03E19E857821FaB"
+                "contract": "0xa6433106C5274B9161814c0bcee648783809dFDE"
             },
             "loans_core": {
                 "contract": "0x286677F2b204be093ABBee3e35074352b339243B"

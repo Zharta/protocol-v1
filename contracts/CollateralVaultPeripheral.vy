@@ -339,7 +339,7 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
 
     if vault == self.collateralVaultCoreLegacyAddress:
         assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
-        assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
+        assert IERC721(_collateralAddress).ownerOf(_tokenId) == vault, "collateral not owned by CVCore"
         ILegacyVault(vault).transferCollateral(_wallet, _collateralAddress, _tokenId)
     else:
         IVault(vault).transferCollateral(_wallet, _collateralAddress, _tokenId, _wallet)
@@ -372,7 +372,7 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
     vault : address = self._getVaultAddress(_collateralAddress, _tokenId)
     if vault == self.collateralVaultCoreLegacyAddress:
         assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
-        assert IERC721(_collateralAddress).ownerOf(_tokenId) == self.collateralVaultCoreDefaultAddress, "collateral not owned by CVCore"
+        assert IERC721(_collateralAddress).ownerOf(_tokenId) == vault, "collateral not owned by CVCore"
         ILegacyVault(vault).transferCollateral(_wallet, _collateralAddress, _tokenId)
     else:
         IVault(vault).transferCollateral(_wallet, _collateralAddress, _tokenId, _wallet)
