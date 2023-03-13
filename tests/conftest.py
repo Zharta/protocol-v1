@@ -129,8 +129,8 @@ def delegation_registry_contract(ERC721, contract_owner):
 
 
 @pytest.fixture(scope="module")
-def genesis_contract(ERC721, contract_owner):
-    yield ERC721.deploy({"from": contract_owner})
+def genesis_contract(GenesisPass, contract_owner):
+    yield GenesisPass.deploy(contract_owner, {"from": contract_owner})
 
 
 @pytest.fixture(scope="module", autouse=True)
