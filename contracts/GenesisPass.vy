@@ -121,8 +121,8 @@ def transferFrom(_from: address, _to: address, _tokenId: uint256):
     """
     @notice Only allows transfers from the distribution wallet setted in the contract constructor to allow distribution of pre minted tokens
     """
-    assert msg.sender == distributor, "not supported"
-    assert msg.sender == _from, "not supported"
+    assert msg.sender == distributor, "sender not allowed"
+    assert msg.sender == _from, "_from not sender"
     assert _to != ZERO_ADDRESS, "to is zero addr"
     assert self.idToOwner[_tokenId] == distributor, "token not owned"
 
@@ -165,6 +165,7 @@ def mint(_to: address, _tokenId: uint256) -> bool:
     @return A boolean that indicates if the operation was successful
     """
     assert msg.sender == self.minter, "sender is not minter"
+    assert _tokenId != 0, "invalid token id"
     assert _to != ZERO_ADDRESS, "to is zero addr"
     assert self.idToOwner[_tokenId] == ZERO_ADDRESS, "token already minted"
 
