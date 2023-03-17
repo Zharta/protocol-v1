@@ -11,7 +11,7 @@ from brownie import (
     CryptoPunksMarketMock,
     CryptoPunksVaultCore,
     DelegationRegistryMock,
-    ERC721,
+    GenesisPass,
     LendingPoolCore,
     LendingPoolLock,
     LendingPoolPeripheral,
@@ -336,11 +336,13 @@ class GenesisContract(InternalContract):
         super().__init__(
             "genesis",
             contract,
-            ERC721,
-            container_name="ERC721",
+            GenesisPass,
+            container_name="GenesisPass",
             deployment_deps={},
             config_deps={},
             deployment_args_contracts=[],
         )
 
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return [context.owner]
 

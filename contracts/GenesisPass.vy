@@ -42,7 +42,7 @@ distributor: immutable(address)
 
 totalSupply: public(uint256)
 
-BASE_URL: constant(String[7]) = "ipfs://"
+BASE_URL: constant(String[32]) = "https://genesis.zharta.io/token/"
 
 INITIAL_SUPPLY: constant(uint256) = 100
 
@@ -110,7 +110,7 @@ def isApprovedForAll(_owner: address, _operator: address) -> bool:
 
 @view
 @external
-def tokenURI(tokenId: uint256) -> String[132]:
+def tokenURI(tokenId: uint256) -> String[110]:
     return concat(BASE_URL, uint2str(tokenId))
 
 

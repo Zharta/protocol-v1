@@ -253,6 +253,7 @@ def console():
 
     weth = dm.context["weth"].contract
     delegate = dm.context["delegation_registry"].contract
+    genesis = dm.context["genesis"].contract
 
     cool = dm.context["cool"].contract
     hm = dm.context["hm"].contract
