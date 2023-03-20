@@ -78,11 +78,11 @@ def setCollateralVaultPeripheralAddress(_address: address):
     pass
 
 @external
-def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegate_wallet: address):
+def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegateWallet: address):
     pass
 
 @external
-def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegate_wallet: address):
+def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegateWallet: address):
     pass
 
 @external
