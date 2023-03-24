@@ -49,6 +49,8 @@ def create_signature_fixture(
         maturity=MATURITY,
         deadline=VALIDATION_DEADLINE,
         nonce=0,
+        genesis_token=0,
+        genesis_vault=brownie.ZERO_ADDRESS,
         borrower=borrower,
         signer=contract_owner,
         verifier=loans_peripheral_contract,
@@ -58,7 +60,7 @@ def create_signature_fixture(
     ):
 
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce)"
+        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken,address genesisVault)"
         collateral_type_def = (
             "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
         )
@@ -90,6 +92,8 @@ def create_signature_fixture(
                 "bool",
                 "uint256",
                 "uint256",
+                "uint256",
+                "address",
             ],
             [
                 reserve_type_hash,
@@ -114,6 +118,8 @@ def create_signature_fixture(
                 delegations,
                 deadline,
                 nonce,
+                genesis_token,
+                genesis_vault,
             ],
         )
 
@@ -191,6 +197,8 @@ def test_set_default_lender_zeroaddress(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -273,6 +281,8 @@ def test_set_default_lender_zeroaddress(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -478,6 +488,8 @@ def test_create_deprecated(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -504,6 +516,8 @@ def test_create_not_accepting_loans(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -529,6 +543,8 @@ def test_create_maturity_in_the_past(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -564,6 +580,8 @@ def test_create_collaterals_not_owned(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -601,6 +619,8 @@ def test_create_loan_collateral_not_approved(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -644,6 +664,8 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -678,6 +700,8 @@ def test_create_loan_unsufficient_funds_in_lp(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -723,6 +747,8 @@ def test_create_loan_outside_pool_share(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -768,6 +794,8 @@ def test_create_loan_outside_collection_share(
             False,
             VALIDATION_DEADLINE,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -809,6 +837,8 @@ def test_create_loan(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -901,6 +931,8 @@ def test_create_loan_wrong_signature(
                 False,
                 VALIDATION_DEADLINE,
                 0,
+                0,
+                brownie.ZERO_ADDRESS,
                 v,
                 r,
                 s,
@@ -943,6 +975,8 @@ def test_create_loan_past_signature_deadline(
             False,
             deadline_in_the_past,
             0,
+            0,
+            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -988,6 +1022,8 @@ def test_create_loan_within_pool_share(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1056,6 +1092,8 @@ def test_create_loan_within_collection_share(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1128,6 +1166,8 @@ def test_pay_loan_defaulted(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1183,6 +1223,8 @@ def test_pay_loan_insufficient_balance(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1245,6 +1287,8 @@ def test_pay_loan_insufficient_allowance(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1303,6 +1347,8 @@ def test_pay_loan(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1394,6 +1440,8 @@ def test_pay_loan_already_paid(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1469,6 +1517,8 @@ def test_set_default_loan(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1563,6 +1613,8 @@ def test_payable_amount(
         False,
         VALIDATION_DEADLINE,
         0,
+        0,
+        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1586,3 +1638,71 @@ def test_payable_amount(
     due_amount = amount * (loan_duration_in_contract * 10000 + interest * payable_duration) // (loan_duration_in_contract * 10000)
 
     assert payable_amount == due_amount
+
+
+@given(
+    genesis_token=strategy('uint256', min_value=0, max_value=2),
+    use_delegation=strategy('bool'),
+)
+def test_genesis_pass_validation(
+    loans_peripheral_contract,
+    create_signature,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    collateral_vault_core_contract,
+    erc721_contract,
+    contract_owner,
+    borrower,
+    investor,
+    test_collaterals,
+    contracts_config,
+    genesis_contract,
+    delegation_registry_contract,
+    genesis_token,
+    use_delegation,
+):
+    amount = LOAN_AMOUNT
+    now = int(dt.datetime.now().timestamp())
+    maturity = now + 7 * 24 * 3600
+    interest = 15
+
+    lending_pool_peripheral_contract.depositEth({"from": investor, "value": amount*5})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
+
+    genesis_vault = investor if use_delegation else None
+    genesis_vault_address = genesis_vault.address if genesis_vault else brownie.ZERO_ADDRESS
+    genesis_token_wallet = genesis_vault if genesis_vault else borrower
+
+    print(f"{genesis_token=} {use_delegation=} {genesis_vault=} {genesis_vault_address=} {genesis_token_wallet=} {borrower=}")
+
+    if genesis_token > 0:
+        # genesis_contract.mint(genesis_vault or borrower, genesis_token, {"from": contract_owner})
+        genesis_contract.transferFrom(contract_owner, genesis_token_wallet, genesis_token, {"from": contract_owner})
+
+    (v, r, s) = create_signature(maturity=maturity, interest=interest, genesis_token=genesis_token, genesis_vault=genesis_vault_address)
+
+    if genesis_vault:
+        delegation_registry_contract.delegateForToken(borrower, genesis_contract, genesis_token, True, {'from': genesis_vault})
+
+    tx_create_loan = loans_peripheral_contract.reserveEth(
+        amount,
+        interest,
+        maturity,
+        test_collaterals,
+        False,
+        VALIDATION_DEADLINE,
+        0,
+        genesis_token,
+        genesis_vault_address,
+        v,
+        r,
+        s,
+        {"from": borrower},
+    )
+
+    event = tx_create_loan.events["LoanCreated"]
+    assert event["genesisToken"] == genesis_token
+    assert event["genesisVault"] == genesis_vault_address

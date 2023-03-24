@@ -16,6 +16,9 @@
             "delegation_registry": {
                 "contract": "0x4576eA2DB1EB9CC509FfDA3aAbEe65f2CB0b1B85"
             },
+            "genesis": {
+                "contract": "0xE800950c09Bba2134E200137264cee6544AFaAc5"
+            },
             "lending_pool": {
                 "contract": "0xb3A8F627dFB009FaB86b05F54359194afFA0eF6F"
             },
@@ -35,7 +38,7 @@
                 "contract": "0xA83Fad7514B39b12C0bAcA71e0A7cc63D2Ff1941"
             },
             "loans": {
-                "contract": "0x888F85e4259c80cb64e34Ef6CD460E5b5a81092c"
+                "contract": "0xe5Ac1150F4177Fa9e88907308B69549de138625D"
             },
             "loans_core": {
                 "contract": "0x286677F2b204be093ABBee3e35074352b339243B"

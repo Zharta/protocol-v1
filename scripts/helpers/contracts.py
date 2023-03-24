@@ -5,17 +5,16 @@ from .types import InternalContract, DeploymentContext
 from .transactions import Transaction
 
 from brownie import (
-    LendingPoolCore,
-    LendingPoolLock,
-    LendingPoolPeripheral,
     CollateralVaultCore,
     CollateralVaultCoreV2,
     CollateralVaultPeripheral,
     CryptoPunksMarketMock,
     CryptoPunksVaultCore,
     DelegationRegistryMock,
-    LoansCore,
-    Loans,
+    GenesisPass,
+    LendingPoolCore,
+    LendingPoolLock,
+    LendingPoolPeripheral,
     LiquidationsCore,
     LiquidationsPeripheral,
     LiquidityControls,
@@ -235,13 +234,14 @@ class LoansPeripheralContract(InternalContract):
             contract,
             Loans,
             container_name="Loans",
-            deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral"},
+            deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis", "delegation_registry"},
             config_deps={
                 "liquidations_peripheral": Transaction.loansperiph_set_liquidationsperiph,
                 "liquidity_controls": Transaction.loansperiph_set_liquiditycontrols,
                 "lending_pool_peripheral": Transaction.loansperiph_set_lpperiph,
                 "collateral_vault_peripheral": Transaction.loansperiph_set_cvperiph,
             },
+            deployment_args_contracts=["loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis", "delegation_registry"],
         )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
@@ -250,6 +250,8 @@ class LoansPeripheralContract(InternalContract):
             context["loans_core"].contract,
             context["lending_pool_peripheral"].contract,
             context["collateral_vault_peripheral"].contract,
+            context["genesis"].contract,
+            context["delegation_registry"].contract,
         ]
 
 
@@ -325,3 +327,22 @@ class LiquidityControlsContract(InternalContract):
             1500,
             False,
         ]
+
+
+@dataclass
+class GenesisContract(InternalContract):
+
+    def __init__(self, contract: Optional[ProjectContract]):
+        super().__init__(
+            "genesis",
+            contract,
+            GenesisPass,
+            container_name="GenesisPass",
+            deployment_deps={},
+            config_deps={},
+            deployment_args_contracts=[],
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return [context.owner]
+

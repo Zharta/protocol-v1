@@ -153,7 +153,7 @@ class InternalContract(ContractConfig):
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
         print_args = [*self.deployment_args_contracts, self.deployment_options(context)]
-        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)}")
+        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)})")
         args = [*self.deployment_args(context), self.deployment_options(context)]
         if not dryrun:
             self.contract = self.container.deploy(*args)

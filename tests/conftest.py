@@ -128,6 +128,11 @@ def delegation_registry_contract(ERC721, contract_owner):
         return None
 
 
+@pytest.fixture(scope="module")
+def genesis_contract(GenesisPass, contract_owner):
+    yield GenesisPass.deploy(contract_owner, {"from": contract_owner})
+
+
 @pytest.fixture(scope="module", autouse=True)
 def collateral_vault_core_contract(CollateralVaultCoreV2, contract_owner, delegation_registry_contract):
     yield CollateralVaultCoreV2.deploy(delegation_registry_contract, {"from": contract_owner})
@@ -194,23 +199,35 @@ def lending_pool_peripheral_contract_aux(LendingPoolPeripheral, lending_pool_cor
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loans_peripheral_contract(Loans, loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, contract_owner):
+def loans_peripheral_contract(
+    Loans,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    collateral_vault_peripheral_contract,
+    genesis_contract,
+    delegation_registry_contract,
+    contract_owner
+):
     yield Loans.deploy(
         INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
         lending_pool_peripheral_contract,
         collateral_vault_peripheral_contract,
+        genesis_contract,
+        delegation_registry_contract,
         {'from': contract_owner}
     )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, accounts):
+def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contract_owner, accounts, genesis_contract, delegation_registry_contract):
     yield Loans.deploy(
         INTEREST_ACCRUAL_PERIOD,
         accounts[4],
         lending_pool_peripheral_contract,
         accounts[5],
+        genesis_contract,
+        delegation_registry_contract,
         {'from': contract_owner}
     )
 

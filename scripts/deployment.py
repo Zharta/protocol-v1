@@ -20,17 +20,16 @@ from .helpers.types import (
     Token,
 )
 from .helpers.contracts import (
-    LendingPoolCoreContract,
-    LendingPoolLockContract,
-    LendingPoolPeripheralContract,
     CollateralVaultCoreContract,
     CollateralVaultCoreV2Contract,
     CollateralVaultPeripheralContract,
     CryptoPunksMockContract,
     CryptoPunksVaultCoreContract,
     DelegationRegistryMockContract,
-    LoansCoreContract,
-    LoansPeripheralContract,
+    GenesisContract,
+    LendingPoolCoreContract,
+    LendingPoolLockContract,
+    LendingPoolPeripheralContract,
     LiquidationsCoreContract,
     LiquidationsPeripheralContract,
     LiquidityControlsContract,
@@ -65,6 +64,7 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         CollateralVaultCoreV2Contract(None),
         CollateralVaultPeripheralContract(None),
         CryptoPunksVaultCoreContract(None),
+        GenesisContract(None),
         LoansCoreContract(None),
         LoansPeripheralContract(None),
         LiquidationsCoreContract(None),
@@ -253,6 +253,7 @@ def console():
 
     weth = dm.context["weth"].contract
     delegate = dm.context["delegation_registry"].contract
+    genesis = dm.context["genesis"].contract
 
     cool = dm.context["cool"].contract
     hm = dm.context["hm"].contract
