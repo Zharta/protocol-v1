@@ -21,6 +21,16 @@ event ApprovalForAll:
 
 @view
 @external
+def wallet(arg0: address) -> DynArray[uint256, 65536]:
+    pass
+
+@view
+@external
+def isApprovedForAll(arg0: address, arg1: address) -> bool:
+    pass
+
+@view
+@external
 def totalSupply() -> uint256:
     pass
 
@@ -36,7 +46,7 @@ def symbol() -> String[3]:
 
 @pure
 @external
-def supportsInterface(interface_id: bytes4) -> bool:
+def supportsInterface(interfaceID: bytes4) -> bool:
     pass
 
 @view
@@ -56,12 +66,17 @@ def getApproved(_tokenId: uint256) -> address:
 
 @view
 @external
-def isApprovedForAll(_owner: address, _operator: address) -> bool:
+def tokenURI(tokenId: uint256) -> String[110]:
     pass
 
-@view
 @external
-def tokenURI(tokenId: uint256) -> String[110]:
+@view
+def tokenByIndex(_index: uint256) -> uint256:
+    pass
+
+@external
+@view
+def tokenOfOwnerByIndex(_owner: address, _index: uint256) -> uint256:
     pass
 
 @external
@@ -69,7 +84,7 @@ def transferFrom(_from: address, _to: address, _tokenId: uint256):
     pass
 
 @external
-def safeTransferFrom(_from: address, _to: address, _tokenId: uint256, _data: Bytes[1024]):
+def safeTransferFrom(_from: address, _to: address, _tokenId: uint256, data: Bytes[1024]):
     pass
 
 @external
@@ -81,5 +96,5 @@ def setApprovalForAll(_operator: address, _approved: bool):
     pass
 
 @external
-def mint(_to: address, _tokenId: uint256) -> bool:
+def mint(_to: address) -> uint256:
     pass
