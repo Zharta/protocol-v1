@@ -134,9 +134,10 @@ def _transferFrom(_from: address, _to: address, _tokenId: uint256):
          Throws if `_tokenId` is not a valid NFT.
     """
 
+    assert _from != empty(address), "_from is zero addr"
     assert self._isApprovedOrOwner(msg.sender, _tokenId), "sender not owner nor approved"
     assert _from == self.tokenOwner[_tokenId], "_from is not owner"
-    assert _to != ZERO_ADDRESS, "_to is zero addr"
+    assert _to != empty(address), "_to is zero addr"
 
     self.tokenOwner[_tokenId] = _to
     self.tokenApprovals[_tokenId] = empty(address)
@@ -177,7 +178,7 @@ def balanceOf(_owner: address) -> uint256:
     @return The number of NFTs owned by `_owner`, possibly zero
     """
 
-    assert _owner != ZERO_ADDRESS, "owner is zero addr"
+    assert _owner != empty(address), "owner is zero addr"
     return self.walletSupply[_owner]
 
 
@@ -193,7 +194,7 @@ def ownerOf(_tokenId: uint256) -> address:
     """
 
     owner: address = self.tokenOwner[_tokenId]
-    assert owner != ZERO_ADDRESS, "owner is zero addr"
+    assert owner != empty(address), "owner is zero addr"
     return owner
 
 
@@ -208,7 +209,7 @@ def getApproved(_tokenId: uint256) -> address:
     @return The approved address for this NFT, or the zero address if there is none
     """
 
-    assert self.tokenOwner[_tokenId] != ZERO_ADDRESS, "token not minted"
+    assert self.tokenOwner[_tokenId] != empty(address), "token not minted"
     return self.tokenApprovals[_tokenId]
 
 
@@ -339,14 +340,15 @@ def mint(_to: address) -> uint256:
     @return The minted token id
     """
     assert msg.sender == self.minter, "sender is not minter"
-    assert _to != ZERO_ADDRESS, "to is zero addr"
+    assert _to != empty(address), "to is zero addr"
 
-    _tokenId: uint256 = self.totalSupply
     self.totalSupply = unsafe_add(self.totalSupply, 1)
+    _tokenId: uint256 = self.totalSupply
 
     self.walletSupply[_to] = unsafe_add(self.walletSupply[_to], 1)
     self.tokenOwner[_tokenId] = _to
+    self._addTokenToEnumeration(_to, _tokenId)
 
-    log Transfer(ZERO_ADDRESS, _to, _tokenId)
+    log Transfer(empty(address), _to, _tokenId)
     return _tokenId
 
