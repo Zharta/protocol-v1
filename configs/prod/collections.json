@@ -2,7 +2,7 @@
   "azuki": {
     "contract_address": "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
     "debt_limit": 250,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xED5AF388653567Af2F388E6224dC7C4b3241C544",
     "mapped_address": "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
     "name": "Azuki",
@@ -36,7 +36,7 @@
   "bakc": {
     "contract_address": "0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "debt_limit": 150,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "mapped_address": "0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "name": "Bored Ape Kennel Club",
@@ -70,7 +70,7 @@
   "bayc": {
     "contract_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "debt_limit": 700,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "mapped_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "name": "Bored Ape Yacht Club",
@@ -104,7 +104,7 @@
   "beanz": {
     "contract_address": "0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
     "debt_limit": 50,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
     "mapped_address": "0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
     "name": "BEANZ Official",
@@ -143,7 +143,7 @@
       "type": "range"
     },
     "debt_limit": 200,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
     "mapped_address": "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
     "name": "Chromie Squiggle",
@@ -177,7 +177,7 @@
   "clonex": {
     "contract_address": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
     "debt_limit": 150,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
     "mapped_address": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
     "name": "CLONE X",
@@ -211,7 +211,7 @@
   "cool": {
     "contract_address": "0x1A92f7381B9F03921564a437210bB9396471050C",
     "debt_limit": 15,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x1A92f7381B9F03921564a437210bB9396471050C",
     "mapped_address": "0x1A92f7381B9F03921564a437210bB9396471050C",
     "name": "Cool Cats",
@@ -245,7 +245,7 @@
   "doodles": {
     "contract_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "debt_limit": 125,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "mapped_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "name": "Doodles",
@@ -284,7 +284,7 @@
       "type": "range"
     },
     "debt_limit": 125,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "name": "Fidenza",
@@ -323,7 +323,7 @@
       "type": "range"
     },
     "debt_limit": 50,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "name": "Gazers",
@@ -357,7 +357,7 @@
   "gundead": {
     "contract_address": "0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
     "debt_limit": 5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
     "mapped_address": "0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
     "name": "Genuine Undead",
@@ -391,7 +391,7 @@
   "hm": {
     "contract_address": "0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
     "debt_limit": 5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
     "mapped_address": "0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
     "name": "Hashmasks",
@@ -425,7 +425,7 @@
   "invsble": {
     "contract_address": "0x59468516a8259058baD1cA5F8f4BFF190d30E066",
     "debt_limit": 5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x59468516a8259058baD1cA5F8f4BFF190d30E066",
     "mapped_address": "0x59468516a8259058baD1cA5F8f4BFF190d30E066",
     "name": "Invisible Friends",
@@ -459,7 +459,7 @@
   "lilpudgys": {
     "contract_address": "0x524cAB2ec69124574082676e6F654a18df49A048",
     "debt_limit": 15,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x524cAB2ec69124574082676e6F654a18df49A048",
     "mapped_address": "0x524cAB2ec69124574082676e6F654a18df49A048",
     "name": "Lil Pudgys",
@@ -493,7 +493,7 @@
   "mayc": {
     "contract_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "debt_limit": 250,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "mapped_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "name": "Mutant Ape Yacht Club",
@@ -527,7 +527,7 @@
   "meebits": {
     "contract_address": "0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
     "debt_limit": 100,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
     "mapped_address": "0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
     "name": "Meebits",
@@ -561,7 +561,7 @@
   "moonbirds": {
     "contract_address": "0x23581767a106ae21c074b2276D25e5C3e136a68b",
     "debt_limit": 125,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x23581767a106ae21c074b2276D25e5C3e136a68b",
     "mapped_address": "0x23581767a106ae21c074b2276D25e5C3e136a68b",
     "name": "Moonbirds",
@@ -629,7 +629,7 @@
   "ppg": {
     "contract_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "debt_limit": 125,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "mapped_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "name": "Pudgy Penguins",
@@ -663,7 +663,7 @@
   "punk": {
     "contract_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "debt_limit": 850,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "mapped_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "name": "Cryptopunks",
@@ -697,7 +697,7 @@
   "quirkies": {
     "contract_address": "0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
     "debt_limit": 5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
     "mapped_address": "0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
     "name": "Quirkies Originals",
@@ -731,7 +731,7 @@
   "rektguy": {
     "contract_address": "0xB852c6b5892256C264Cc2C888eA462189154D8d7",
     "debt_limit": 75,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xB852c6b5892256C264Cc2C888eA462189154D8d7",
     "mapped_address": "0xB852c6b5892256C264Cc2C888eA462189154D8d7",
     "name": "rektguy",
@@ -765,7 +765,7 @@
   "renga": {
     "contract_address": "0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
     "debt_limit": 40,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
     "mapped_address": "0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
     "name": "RENGA",
@@ -804,7 +804,7 @@
       "type": "range"
     },
     "debt_limit": 50,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "name": "Ringers",
@@ -838,7 +838,7 @@
   "spaceriders": {
     "contract_address": "0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
     "debt_limit": 2.5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
     "mapped_address": "0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
     "name": "Space Riders NFT",
@@ -872,7 +872,7 @@
   "theplague": {
     "contract_address": "0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
     "debt_limit": 2.5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
     "mapped_address": "0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
     "name": "The Plague NFT",
@@ -906,7 +906,7 @@
   "vft": {
     "contract_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "debt_limit": 5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "mapped_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "name": "VeeFriends",
@@ -940,7 +940,7 @@
   "wgame": {
     "contract_address": "0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
     "debt_limit": 10,
-    "floor_multiple_cap": 10,
+    "floor_multiple_cap": 7.5,
     "looksrare_url": "https://looksrare.org/collections/0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
     "mapped_address": "0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
     "name": "Wolf Game",
@@ -1042,7 +1042,7 @@
   "wow": {
     "contract_address": "0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "debt_limit": 5,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "mapped_address": "0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "name": "World of Women",
@@ -1077,7 +1077,7 @@
     "appraisal_key": "punk",
     "contract_address": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "debt_limit": 850,
-    "floor_multiple_cap": 2,
+    "floor_multiple_cap": 1.5,
     "looksrare_url": "https://looksrare.org/collections/0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "mapped_address": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "name": "Wrapped Cryptopunks",
