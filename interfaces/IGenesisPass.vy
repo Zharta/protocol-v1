@@ -21,7 +21,7 @@ event ApprovalForAll:
 
 @view
 @external
-def wallet(arg0: address) -> DynArray[uint256, 65536]:
+def wallet(arg0: address) -> DynArray[uint256, 4294967296]:
     pass
 
 @view
@@ -93,8 +93,4 @@ def approve(_approved: address, _tokenId: uint256):
 
 @external
 def setApprovalForAll(_operator: address, _approved: bool):
-    pass
-
-@external
-def mint(_to: address) -> uint256:
     pass

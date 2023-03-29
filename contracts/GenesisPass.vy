@@ -50,17 +50,12 @@ tokenApprovals: HashMap[uint256, address]
 # @dev Mapping from owner to operator approvals.
 isApprovedForAll: public(HashMap[address, HashMap[address, bool]])
 
-# @dev Address of minter, who can mint a token
-minter: address
-
-# @dev Address of minter, who can mint a token
+# @dev Address receiving the initially minted tokens
 distributor: immutable(address)
 
-totalSupply: public(uint256)
+totalSupply: public(constant(uint256)) = 100
 
 BASE_URL: constant(String[32]) = "https://genesis.zharta.io/token/"
-
-INITIAL_SUPPLY: constant(uint256) = 100
 
 SUPPORTED_INTERFACES: constant(bytes4[4]) = [
     0x01ffc9a7, # ERC165 interface ID of ERC165
@@ -82,13 +77,10 @@ def __init__(_initialMintWallet: address):
     name = "Zharta Genesis Pass"
     symbol = "ZGP"
 
-    self.minter = msg.sender
-
-    for i in range(1, INITIAL_SUPPLY+1):
+    for i in range(1, totalSupply+1):
         self.tokenOwner[i] = _initialMintWallet
         self._addTokenToEnumeration(_initialMintWallet, i)
-    self.walletSupply[_initialMintWallet] = INITIAL_SUPPLY
-    self.totalSupply = INITIAL_SUPPLY
+    self.walletSupply[_initialMintWallet] = totalSupply
 
 
 ## Internal View Functions
@@ -237,7 +229,7 @@ def tokenByIndex(_index: uint256) -> uint256:
     @return The token identifier for the `_index`th NFT, (sort order not specified)
     """
 
-    assert _index < self.totalSupply, "index out of bounds"
+    assert _index < totalSupply, "index out of bounds"
     return unsafe_add(_index, 1)
 
 
@@ -330,25 +322,3 @@ def setApprovalForAll(_operator: address, _approved: bool):
 
     self.isApprovedForAll[msg.sender][_operator] = _approved
     log ApprovalForAll(msg.sender, _operator, _approved)
-
-
-@external
-def mint(_to: address) -> uint256:
-    """
-    @notice Mints a new token, only allows minting by the minter, set in the constructor as the contract deployer
-    @param _to The address that will receive the minted token
-    @return The minted token id
-    """
-    assert msg.sender == self.minter, "sender is not minter"
-    assert _to != empty(address), "to is zero addr"
-
-    self.totalSupply = unsafe_add(self.totalSupply, 1)
-    _tokenId: uint256 = self.totalSupply
-
-    self.walletSupply[_to] = unsafe_add(self.walletSupply[_to], 1)
-    self.tokenOwner[_tokenId] = _to
-    self._addTokenToEnumeration(_to, _tokenId)
-
-    log Transfer(empty(address), _to, _tokenId)
-    return _tokenId
-
