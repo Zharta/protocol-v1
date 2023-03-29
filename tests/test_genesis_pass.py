@@ -34,16 +34,6 @@ class StatefulGenesisPass(RuleBasedStateMachine):
         self.tokens = {id: self.distributor for id in range(1, 101)}
         print(f"{self.owner=} {self.distributor=}")
 
-    def rule_mint(self, token_id="token_id_st", minter="account_st", receiver="account_st"):
-        if token_id > 0 and token_id not in self.tokens and minter == self.owner:
-            tx = self.genesis_contract.mint(receiver, token_id, {'from': minter})
-            assert tx.return_value
-            assert self.genesis_contract.ownerOf(token_id) == receiver
-            self.tokens[token_id] = receiver
-        else:
-            with brownie.reverts():
-                self.genesis_contract.mint(receiver, token_id, {'from': minter})
-
     def rule_transfer(self, token_id="token_id_st", distributor="account_st", receiver="account_st"):
         if self.tokens.get(token_id) == distributor and distributor == self.distributor:
             tx = self.genesis_contract.transferFrom(distributor, receiver, token_id, {'from': distributor})
