@@ -50,7 +50,6 @@ def create_signature_fixture(
         deadline=VALIDATION_DEADLINE,
         nonce=0,
         genesis_token=0,
-        genesis_vault=brownie.ZERO_ADDRESS,
         borrower=borrower,
         signer=contract_owner,
         verifier=loans_peripheral_contract,
@@ -60,7 +59,7 @@ def create_signature_fixture(
     ):
 
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken,address genesisVault)"
+        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)"
         collateral_type_def = (
             "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
         )
@@ -93,7 +92,6 @@ def create_signature_fixture(
                 "uint256",
                 "uint256",
                 "uint256",
-                "address",
             ],
             [
                 reserve_type_hash,
@@ -119,7 +117,6 @@ def create_signature_fixture(
                 deadline,
                 nonce,
                 genesis_token,
-                genesis_vault,
             ],
         )
 
@@ -1642,7 +1639,6 @@ def test_payable_amount(
 
 @given(
     genesis_token=strategy('uint256', min_value=0, max_value=2),
-    use_delegation=strategy('bool'),
 )
 def test_genesis_pass_validation(
     loans_peripheral_contract,
@@ -1672,20 +1668,12 @@ def test_genesis_pass_validation(
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    genesis_vault = investor if use_delegation else None
-    genesis_vault_address = genesis_vault.address if genesis_vault else brownie.ZERO_ADDRESS
-    genesis_token_wallet = genesis_vault if genesis_vault else borrower
-
-    print(f"{genesis_token=} {use_delegation=} {genesis_vault=} {genesis_vault_address=} {genesis_token_wallet=} {borrower=}")
+    print(f"{genesis_token=} {borrower=}")
 
     if genesis_token > 0:
-        # genesis_contract.mint(genesis_vault or borrower, genesis_token, {"from": contract_owner})
-        genesis_contract.transferFrom(contract_owner, genesis_token_wallet, genesis_token, {"from": contract_owner})
+        genesis_contract.transferFrom(contract_owner, borrower, genesis_token, {"from": contract_owner})
 
-    (v, r, s) = create_signature(maturity=maturity, interest=interest, genesis_token=genesis_token, genesis_vault=genesis_vault_address)
-
-    if genesis_vault:
-        delegation_registry_contract.delegateForToken(borrower, genesis_contract, genesis_token, True, {'from': genesis_vault})
+    (v, r, s) = create_signature(maturity=maturity, interest=interest, genesis_token=genesis_token)
 
     tx_create_loan = loans_peripheral_contract.reserveEth(
         amount,
@@ -1696,7 +1684,6 @@ def test_genesis_pass_validation(
         VALIDATION_DEADLINE,
         0,
         genesis_token,
-        genesis_vault_address,
         v,
         r,
         s,
@@ -1705,4 +1692,3 @@ def test_genesis_pass_validation(
 
     event = tx_create_loan.events["LoanCreated"]
     assert event["genesisToken"] == genesis_token
-    assert event["genesisVault"] == genesis_vault_address
