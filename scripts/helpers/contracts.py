@@ -202,7 +202,7 @@ class LendingPoolPeripheralContract(InternalContract):
             context["weth"].contract,
             context.owner,
             2500,
-            7000,
+            8000,
             False,
         ]
 
