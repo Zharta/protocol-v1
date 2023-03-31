@@ -191,7 +191,7 @@ ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
 COLLATERAL_TYPE_DEF: constant(String[66]) = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 RESERVE_TYPE_DEF: constant(String[269]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals," \
-                                          "bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken,address genesisVault)" \
+                                          "bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)" \
                                           "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 DOMAIN_TYPE_HASH: constant(bytes32) = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
 COLLATERAL_TYPE_HASH: constant(bytes32) = keccak256(COLLATERAL_TYPE_DEF)
