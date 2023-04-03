@@ -147,7 +147,7 @@
       "type": "range"
     },
     "debt_limit": 200,
-    "floor_multiple_cap": 1.5,
+    "floor_multiple_cap": 315,
     "looksrare_url": "https://looksrare.org/collections/0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
     "mapped_address": "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
     "name": "[Internal] Chromie Squiggle",
@@ -292,7 +292,7 @@
       "type": "range"
     },
     "debt_limit": 125,
-    "floor_multiple_cap": 1.5,
+    "floor_multiple_cap": 1830,
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "name": "[Internal] Fidenza",
@@ -332,7 +332,7 @@
       "type": "range"
     },
     "debt_limit": 50,
-    "floor_multiple_cap": 1.5,
+    "floor_multiple_cap": 540,
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "name": "[Internal] Gazers",
@@ -827,7 +827,7 @@
       "type": "range"
     },
     "debt_limit": 50,
-    "floor_multiple_cap": 1.5,
+    "floor_multiple_cap": 1110,
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "name": "[Internal] Ringers",
