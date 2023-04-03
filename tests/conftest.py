@@ -214,7 +214,6 @@ def loans_peripheral_contract(
         lending_pool_peripheral_contract,
         collateral_vault_peripheral_contract,
         genesis_contract,
-        delegation_registry_contract,
         {'from': contract_owner}
     )
 
@@ -227,7 +226,6 @@ def loans_peripheral_contract_aux(Loans, lending_pool_peripheral_contract, contr
         lending_pool_peripheral_contract,
         accounts[5],
         genesis_contract,
-        delegation_registry_contract,
         {'from': contract_owner}
     )
 

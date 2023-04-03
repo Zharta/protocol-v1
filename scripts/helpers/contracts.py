@@ -234,14 +234,14 @@ class LoansPeripheralContract(InternalContract):
             contract,
             Loans,
             container_name="Loans",
-            deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis", "delegation_registry"},
+            deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis"},
             config_deps={
                 "liquidations_peripheral": Transaction.loansperiph_set_liquidationsperiph,
                 "liquidity_controls": Transaction.loansperiph_set_liquiditycontrols,
                 "lending_pool_peripheral": Transaction.loansperiph_set_lpperiph,
                 "collateral_vault_peripheral": Transaction.loansperiph_set_cvperiph,
             },
-            deployment_args_contracts=["loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis", "delegation_registry"],
+            deployment_args_contracts=["loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis"],
         )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
@@ -251,7 +251,6 @@ class LoansPeripheralContract(InternalContract):
             context["lending_pool_peripheral"].contract,
             context["collateral_vault_peripheral"].contract,
             context["genesis"].contract,
-            context["delegation_registry"].contract,
         ]
 
 

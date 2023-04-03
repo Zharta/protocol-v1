@@ -31,9 +31,6 @@ interface ILendingPoolPeripheral:
 interface ILiquidationsPeripheral:
     def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
 
-interface IDelegationRegistry:
-    def checkDelegateForToken(delegate: address, vault: address , contract: address , tokenId: uint256) -> bool: view
-
 # Structs
 
 struct Collateral:
@@ -137,7 +134,6 @@ event LoanCreated:
     duration: uint256
     collaterals: DynArray[Collateral, 100]
     genesisToken: uint256
-    genesisVault: address
 
 event LoanPayment:
     walletIndexed: indexed(address)
@@ -187,7 +183,6 @@ collateralVaultPeripheralContract: public(address)
 liquidationsPeripheralContract: public(address)
 liquidityControlsContract: public(address)
 genesisContract: public(address)
-delegationRegistryContract: public(address)
 
 collectionsAmount: HashMap[address, uint256] # aux variable
 
@@ -196,7 +191,7 @@ ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
 COLLATERAL_TYPE_DEF: constant(String[66]) = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 RESERVE_TYPE_DEF: constant(String[269]) = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals," \
-                                          "bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken,address genesisVault)" \
+                                          "bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)" \
                                           "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 DOMAIN_TYPE_HASH: constant(bytes32) = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
 COLLATERAL_TYPE_HASH: constant(bytes32) = keccak256(COLLATERAL_TYPE_DEF)
@@ -214,14 +209,12 @@ def __init__(
     _loansCoreContract: address,
     _lendingPoolPeripheralContract: address,
     _collateralVaultPeripheralContract: address,
-    _genesisContract: address,
-    _delegationRegistryContract: address
+    _genesisContract: address
 ):
     assert _loansCoreContract != empty(address), "address is the zero address"
     assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
     assert _collateralVaultPeripheralContract != empty(address), "address is the zero address"
     assert _genesisContract != empty(address), "address is the zero address"
-    assert _delegationRegistryContract != empty(address), "address is the zero address"
 
     self.owner = msg.sender
     self.interestAccrualPeriod = _interestAccrualPeriod
@@ -229,7 +222,6 @@ def __init__(
     self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
     self.collateralVaultPeripheralContract = _collateralVaultPeripheralContract
     self.genesisContract = _genesisContract
-    self.delegationRegistryContract = _delegationRegistryContract
     self.isAcceptingLoans = True
 
     self.reserve_sig_domain_separator = keccak256(
@@ -315,14 +307,6 @@ def _loanPayableAmount(
 def _computePeriodPassedInSeconds(_recentTimestamp: uint256, _olderTimestamp: uint256, _period: uint256) -> uint256:
     return (_recentTimestamp - _olderTimestamp) - ((_recentTimestamp - _olderTimestamp) % _period)
 
-@internal
-def _isGenesisTokenValid(_borrower: address, _genesisToken: uint256, _genesisVault: address) -> bool:
-    if _genesisVault == empty(address):
-        return IERC721(self.genesisContract).ownerOf(_genesisToken) == _borrower
-    else:
-        return IERC721(self.genesisContract).ownerOf(_genesisToken) == _genesisVault and IDelegationRegistry(self.delegationRegistryContract).checkDelegateForToken(_borrower, _genesisVault, self.genesisContract, _genesisToken)
-
-
 
 @internal
 def _recoverReserveSigner(
@@ -335,7 +319,6 @@ def _recoverReserveSigner(
     _deadline: uint256,
     _nonce: uint256,
     _genesisToken: uint256,
-    _genesisVault: address,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -357,8 +340,7 @@ def _recoverReserveSigner(
                 _delegations,
                 _deadline,
                 _nonce,
-                _genesisToken,
-                _genesisVault
+                _genesisToken
                 ))
 
     sig_hash: bytes32 = keccak256(concat(convert("\x19\x01", Bytes[2]), _abi_encode(self.reserve_sig_domain_separator, data_hash)))
@@ -377,7 +359,6 @@ def _reserve(
     _deadline: uint256,
     _nonce: uint256,
     _genesisToken: uint256,
-    _genesisVault: address,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -403,10 +384,10 @@ def _reserve(
     if _nonce > 0:
         assert ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _nonce - 1), "loan is not sequential"
     
-    signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _genesisVault, _v, _r, _s)
+    signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
     assert signer == self.owner, "invalid message signature"
 
-    assert _genesisToken == 0 or self._isGenesisTokenValid(msg.sender, _genesisToken, _genesisVault), "genesisToken not owned"
+    assert _genesisToken == 0 or IERC721(self.genesisContract).ownerOf(_genesisToken) == msg.sender, "genesisToken not owned"
 
     newLoanId: uint256 = ILoansCore(self.loansCoreContract).addLoan(
         msg.sender,
@@ -437,8 +418,7 @@ def _reserve(
         _amount,
         _maturity - block.timestamp,
         _collaterals,
-        _genesisToken,
-        _genesisVault
+        _genesisToken
     )
 
     ILoansCore(self.loansCoreContract).updateLoanStarted(msg.sender, newLoanId)
@@ -643,7 +623,6 @@ def reserveWeth(
     _deadline: uint256,
     _nonce: uint256,
     _genesisToken: uint256,
-    _genesisVault: address,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -657,13 +636,14 @@ def reserveWeth(
     @param _collaterals The list of collaterals supporting the loan
     @param _delegations Wether to set the requesting wallet as a delegate for all collaterals
     @param _deadline The deadline of validity for the signed message in unix epoch format
+    @param _genesisToken The optional Genesis Pass token used to determine the loan conditions, must be > 0
     @param _v recovery id for public key recover
     @param _r r value in ECDSA signature
     @param _s s value in ECDSA signature
     @return The loan id
     """
 
-    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _genesisVault, _v, _r, _s)
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsWeth(
         msg.sender,
@@ -683,7 +663,6 @@ def reserveEth(
     _deadline: uint256,
     _nonce: uint256,
     _genesisToken: uint256,
-    _genesisVault: address,
     _v: uint256,
     _r: uint256,
     _s: uint256
@@ -698,14 +677,13 @@ def reserveEth(
     @param _delegations Wether to set the requesting wallet as a delegate for all collaterals
     @param _deadline The deadline of validity for the signed message in unix epoch format
     @param _genesisToken The optional Genesis Pass token used to determine the loan conditions, must be > 0
-    @param _genesisVault The optional vault owning the Genesis Pass token if the signing wallet is a delegate for that token
     @param _v recovery id for public key recover
     @param _r r value in ECDSA signature
     @param _s s value in ECDSA signature
     @return The loan id
     """
 
-    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _genesisVault, _v, _r, _s)
+    newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
     ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsEth(
         msg.sender,

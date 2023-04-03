@@ -50,7 +50,6 @@ def create_signature_fixture(
         deadline=VALIDATION_DEADLINE,
         nonce=0,
         genesis_token=0,
-        genesis_vault=brownie.ZERO_ADDRESS,
         borrower=borrower,
         signer=contract_owner,
         verifier=loans_peripheral_contract,
@@ -60,7 +59,7 @@ def create_signature_fixture(
     ):
 
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken,address genesisVault)"
+        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)"
         collateral_type_def = (
             "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
         )
@@ -93,7 +92,6 @@ def create_signature_fixture(
                 "uint256",
                 "uint256",
                 "uint256",
-                "address",
             ],
             [
                 reserve_type_hash,
@@ -119,7 +117,6 @@ def create_signature_fixture(
                 deadline,
                 nonce,
                 genesis_token,
-                genesis_vault,
             ],
         )
 
@@ -198,7 +195,6 @@ def test_set_default_lender_zeroaddress(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -282,7 +278,6 @@ def test_set_default_lender_zeroaddress(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -489,7 +484,6 @@ def test_create_deprecated(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -517,7 +511,6 @@ def test_create_not_accepting_loans(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -544,7 +537,6 @@ def test_create_maturity_in_the_past(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -581,7 +573,6 @@ def test_create_collaterals_not_owned(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -620,7 +611,6 @@ def test_create_loan_collateral_not_approved(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -665,7 +655,6 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -701,7 +690,6 @@ def test_create_loan_unsufficient_funds_in_lp(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -748,7 +736,6 @@ def test_create_loan_outside_pool_share(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -795,7 +782,6 @@ def test_create_loan_outside_collection_share(
             VALIDATION_DEADLINE,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -838,7 +824,6 @@ def test_create_loan(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -932,7 +917,6 @@ def test_create_loan_wrong_signature(
                 VALIDATION_DEADLINE,
                 0,
                 0,
-                brownie.ZERO_ADDRESS,
                 v,
                 r,
                 s,
@@ -976,7 +960,6 @@ def test_create_loan_past_signature_deadline(
             deadline_in_the_past,
             0,
             0,
-            brownie.ZERO_ADDRESS,
             v,
             r,
             s,
@@ -1023,7 +1006,6 @@ def test_create_loan_within_pool_share(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1093,7 +1075,6 @@ def test_create_loan_within_collection_share(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1167,7 +1148,6 @@ def test_pay_loan_defaulted(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1224,7 +1204,6 @@ def test_pay_loan_insufficient_balance(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1288,7 +1267,6 @@ def test_pay_loan_insufficient_allowance(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1348,7 +1326,6 @@ def test_pay_loan(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1441,7 +1418,6 @@ def test_pay_loan_already_paid(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1518,7 +1494,6 @@ def test_set_default_loan(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1614,7 +1589,6 @@ def test_payable_amount(
         VALIDATION_DEADLINE,
         0,
         0,
-        brownie.ZERO_ADDRESS,
         v,
         r,
         s,
@@ -1642,7 +1616,6 @@ def test_payable_amount(
 
 @given(
     genesis_token=strategy('uint256', min_value=0, max_value=2),
-    use_delegation=strategy('bool'),
 )
 def test_genesis_pass_validation(
     loans_peripheral_contract,
@@ -1659,7 +1632,6 @@ def test_genesis_pass_validation(
     genesis_contract,
     delegation_registry_contract,
     genesis_token,
-    use_delegation,
 ):
     amount = LOAN_AMOUNT
     now = int(dt.datetime.now().timestamp())
@@ -1672,20 +1644,12 @@ def test_genesis_pass_validation(
         erc721_contract.mint(borrower, k, {"from": contract_owner})
     erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
 
-    genesis_vault = investor if use_delegation else None
-    genesis_vault_address = genesis_vault.address if genesis_vault else brownie.ZERO_ADDRESS
-    genesis_token_wallet = genesis_vault if genesis_vault else borrower
-
-    print(f"{genesis_token=} {use_delegation=} {genesis_vault=} {genesis_vault_address=} {genesis_token_wallet=} {borrower=}")
+    print(f"{genesis_token=} {borrower=}")
 
     if genesis_token > 0:
-        # genesis_contract.mint(genesis_vault or borrower, genesis_token, {"from": contract_owner})
-        genesis_contract.transferFrom(contract_owner, genesis_token_wallet, genesis_token, {"from": contract_owner})
+        genesis_contract.transferFrom(contract_owner, borrower, genesis_token, {"from": contract_owner})
 
-    (v, r, s) = create_signature(maturity=maturity, interest=interest, genesis_token=genesis_token, genesis_vault=genesis_vault_address)
-
-    if genesis_vault:
-        delegation_registry_contract.delegateForToken(borrower, genesis_contract, genesis_token, True, {'from': genesis_vault})
+    (v, r, s) = create_signature(maturity=maturity, interest=interest, genesis_token=genesis_token)
 
     tx_create_loan = loans_peripheral_contract.reserveEth(
         amount,
@@ -1696,8 +1660,6 @@ def test_genesis_pass_validation(
         VALIDATION_DEADLINE,
         0,
         genesis_token,
-        genesis_vault_address,
-        v,
         r,
         s,
         {"from": borrower},
@@ -1705,4 +1667,3 @@ def test_genesis_pass_validation(
 
     event = tx_create_loan.events["LoanCreated"]
     assert event["genesisToken"] == genesis_token
-    assert event["genesisVault"] == genesis_vault_address
