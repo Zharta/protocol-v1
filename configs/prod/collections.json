@@ -644,6 +644,41 @@
     ],
     "whitelisted": true
   },
+  "otherdeedkoda": {
+    "contract_address": "0xE012Baf811CF9c05c408e879C399960D1f305903",
+    "debt_limit": 50,
+    "floor_multiple_cap": 1,
+    "looksrare_url": "https://looksrare.org/collections/0xE012Baf811CF9c05c408e879C399960D1f305903",
+    "mapped_address": "0xE012Baf811CF9c05c408e879C399960D1f305903",
+    "name": "Otherside Koda",
+    "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
+    "opensea_slug": "otherside-koda",
+    "opensea_url": "https://opensea.io/collection/otherside-koda",
+    "pricing": {
+      "interest_rate": 0.01643,
+      "max_ltv": 0.55
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.2,
+        "ltv": 0.6
+      },
+      "7d": {
+        "apr": 0.4,
+        "ltv": 0.675
+      },
+      "90d": {
+        "apr": 0.095,
+        "ltv": 0.4
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
   "ppg": {
     "contract_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "debt_limit": 125,
