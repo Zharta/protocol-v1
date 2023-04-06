@@ -132,6 +132,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("wgame", None),
         NFT("wgamefarmer", None),
         NFT("wgameland", None),
+        NFT("otherdeedkoda", None),
     ]]
 
 
@@ -285,3 +286,4 @@ def console():
     wgame = dm.context["wgame"].contract
     wgamefarmer = dm.context["wgamefarmer"].contract
     wgameland = dm.context["wgameland"].contract
+    otherdeedkoda = dm.context["otherdeedkoda"].contract
