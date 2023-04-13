@@ -665,7 +665,11 @@
   "otherdeed": {
     "appraisal_method": "otherdeeds",
     "contract_address": "0x70bC6D873D110Da59a9c49E7485a27B0F605E5db",
-    "debt_limit": 150,
+    "criteria": {
+      "set_name": "kodas",
+      "type": "token_not_in_set"
+    },
+    "debt_limit": 25,
     "floor_multiple_cap": 1.0,
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
@@ -709,6 +713,46 @@
     "name": "[Internal] Otherdeed Expanded",
     "opensea_slug": "otherdeed-expanded",
     "opensea_url": "https://opensea.io/collection/otherdeed-expanded",
+    "pricing": {
+      "interest_rate": 0.01643,
+      "max_ltv": 0.55
+    },
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.2,
+        "ltv": 0.6
+      },
+      "7d": {
+        "apr": 0.4,
+        "ltv": 0.675
+      },
+      "90d": {
+        "apr": 0.095,
+        "ltv": 0.4
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "otherdeedkoda": {
+    "appraisal_method": "otherdeeds",
+    "contract_address": "0x70bC6D873D110Da59a9c49E7485a27B0F605E5db",
+    "criteria": {
+      "set_name": "kodas",
+      "type": "token_in_set"
+    },
+    "debt_limit": 50,
+    "floor_multiple_cap": 1.0,
+    "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
+    "looksrare_url": "https://looksrare.org/collections/0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
+    "mapped_address": "0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
+    "name": "[Internal] Otherdeed for Otherside",
+    "opensea_slug": "otherdeed",
+    "opensea_url": "https://opensea.io/collection/otherdeed",
     "pricing": {
       "interest_rate": 0.01643,
       "max_ltv": 0.55
