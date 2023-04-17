@@ -14,6 +14,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -50,6 +51,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -86,6 +88,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -122,6 +125,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -163,6 +167,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -199,6 +204,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -235,6 +241,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -271,6 +278,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -307,6 +315,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -348,6 +357,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 78000000,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -389,6 +399,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 215000000,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -425,6 +436,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -461,6 +473,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -497,6 +510,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -533,6 +547,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -569,6 +584,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -605,6 +621,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -641,6 +658,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -681,6 +699,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -717,6 +736,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 804,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -757,6 +777,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 15,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -793,6 +814,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -829,6 +851,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -865,6 +888,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -901,6 +925,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -937,6 +962,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -973,6 +999,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -1014,6 +1041,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 13000000,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -1050,6 +1078,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1086,6 +1115,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1122,6 +1152,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -1158,6 +1189,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1194,6 +1226,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1230,6 +1263,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1266,6 +1300,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -1303,6 +1338,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
