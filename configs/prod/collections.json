@@ -962,7 +962,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
-    "simulation_token_id": 1,
+    "simulation_token_id": 2,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -1102,11 +1102,11 @@
   },
   "theplague": {
     "appraisal_method": "standard",
-    "contract_address": "0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
+    "contract_address": "0xC379e535CaFf250a01CAa6C3724Ed1359Fe5c29B",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
     "image_url": "https://i.seadn.io/gcs/files/4577987a5ca45ca5118b2e31559ee4d1.jpg",
-    "looksrare_url": "https://looksrare.org/collections/0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
+    "looksrare_url": "https://looksrare.org/collections/0xC379e535CaFf250a01CAa6C3724Ed1359Fe5c29B",
     "mapped_address": "0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
     "name": "The Plague NFT",
     "opensea_slug": "the-plague",
