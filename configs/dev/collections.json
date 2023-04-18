@@ -1338,7 +1338,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
-    "simulation_token_id": 1,
+    "simulation_token_id": 1012,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
