@@ -138,19 +138,13 @@ def collateral_vault_core_contract(CollateralVaultCoreV2, contract_owner, delega
     yield CollateralVaultCoreV2.deploy(delegation_registry_contract, {"from": contract_owner})
 
 @pytest.fixture(scope="module", autouse=True)
-def collateral_vault_core_legacy_contract(CollateralVaultCore, contract_owner):
-    yield CollateralVaultCore.deploy({"from": contract_owner})
-
-@pytest.fixture(scope="module", autouse=True)
 def collateral_vault_peripheral_contract(
     CollateralVaultPeripheral,
     collateral_vault_core_contract,
-    collateral_vault_core_legacy_contract,
     contract_owner
 ):
     yield CollateralVaultPeripheral.deploy(
         collateral_vault_core_contract,
-        collateral_vault_core_legacy_contract,
         {"from": contract_owner}
     )
 

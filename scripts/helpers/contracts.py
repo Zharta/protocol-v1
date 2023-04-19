@@ -5,7 +5,6 @@ from .types import InternalContract, DeploymentContext
 from .transactions import Transaction
 
 from brownie import (
-    CollateralVaultCore,
     CollateralVaultCoreV2,
     CollateralVaultPeripheral,
     CryptoPunksMarketMock,
@@ -25,34 +24,17 @@ from brownie import (
 
 
 @dataclass
-class CollateralVaultCoreContract(InternalContract):
+class CollateralVaultCoreV2Contract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract]):
         super().__init__(
             "collateral_vault_core",
             contract,
-            CollateralVaultCore,
-            container_name="CollateralVaultCore",
-            deployment_deps={},
-            config_deps={
-                "collateral_vault_peripheral": Transaction.cvcore_set_cvperiph,
-            },
-            deployment_args_contracts=[],
-        )
-
-
-@dataclass
-class CollateralVaultCoreV2Contract(InternalContract):
-
-    def __init__(self, contract: Optional[ProjectContract]):
-        super().__init__(
-            "collateral_vault_core2",
-            contract,
             CollateralVaultCoreV2,
             container_name="CollateralVaultCoreV2",
             deployment_deps={"delegation_registry"},
             config_deps={
-                "collateral_vault_peripheral": Transaction.cvcore2_set_cvperiph,
+                "collateral_vault_peripheral": Transaction.cvcore_set_cvperiph,
             },
             deployment_args_contracts=["delegation_registry"],
         )
@@ -84,13 +66,13 @@ class CollateralVaultPeripheralContract(InternalContract):
             contract,
             CollateralVaultPeripheral,
             container_name="CollateralVaultPeripheral",
-            deployment_deps={"collateral_vault_core", "collateral_vault_core2"},
+            deployment_deps={"collateral_vault_core"},
             config_deps={
                 "liquidations_peripheral": Transaction.cvperiph_set_liquidationsperiph,
                 "loans": Transaction.cvperiph_add_loansperiph,
                 "cryptopunks_vault_core": Transaction.cvperiph_add_punksvault,
             },
-            deployment_args_contracts=["collateral_vault_core2", "collateral_vault_core"],
+            deployment_args_contracts=["collateral_vault_core"],
         )
 
 

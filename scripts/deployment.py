@@ -20,7 +20,6 @@ from .helpers.types import (
     Token,
 )
 from .helpers.contracts import (
-    CollateralVaultCoreContract,
     CollateralVaultCoreV2Contract,
     CollateralVaultPeripheralContract,
     CryptoPunksMockContract,
@@ -60,7 +59,6 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
         LendingPoolCoreContract(None),
         LendingPoolLockContract(None),
         LendingPoolPeripheralContract(None),
-        CollateralVaultCoreContract(None),
         CollateralVaultCoreV2Contract(None),
         CollateralVaultPeripheralContract(None),
         CryptoPunksVaultCoreContract(None),
