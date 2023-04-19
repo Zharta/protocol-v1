@@ -14,6 +14,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -50,6 +51,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -86,6 +88,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -122,6 +125,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -163,6 +167,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -199,6 +204,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -235,6 +241,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -263,7 +270,7 @@
     "floor_multiple_cap": 1.0,
     "image_url": "https://i.seadn.io/gcs/files/c6cb0b1d6f2ab61c0efacf00e62e2230.jpg",
     "looksrare_url": "https://looksrare.org/collections/0x8821bee2ba0df28761afff119d66390d594cd280",
-    "mapped_address": "0x8821bee2ba0df28761afff119d66390d594cd280",
+    "mapped_address": "0x8821BeE2ba0dF28761AffF119D66390D594CD280",
     "name": "[Internal] DeGods",
     "opensea_slug": "degods",
     "opensea_url": "https://opensea.io/collection/degods",
@@ -271,6 +278,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -296,7 +304,7 @@
     "appraisal_method": "standard",
     "contract_address": "0x8BE16B874F47371C42498b499837Ed87D7661E86",
     "debt_limit": 125,
-    "floor_multiple_cap": 1.5,
+    "floor_multiple_cap": 1.0,
     "image_url": "https://i.seadn.io/gae/7B0qai02OdHA8P_EOVK672qUliyjQdQDGNrACxs7WnTgZAkJa_wWURnIFKeOh5VTf8cfTqW3wQpozGedaC9mteKphEOtztls02RlWQ",
     "looksrare_url": "https://looksrare.org/collections/0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "mapped_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
@@ -307,6 +315,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -348,6 +357,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 78000000,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -389,6 +399,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 215000000,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -425,6 +436,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -461,6 +473,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -497,6 +510,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -533,6 +547,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -569,6 +584,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -605,6 +621,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -641,6 +658,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -681,6 +699,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -717,6 +736,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 804,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -750,13 +770,14 @@
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
     "mapped_address": "0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
-    "name": "[Internal] Otherdeed for Otherside",
+    "name": "[Internal] Otherdeed for Otherside (Kodas)",
     "opensea_slug": "otherdeed",
     "opensea_url": "https://opensea.io/collection/otherdeed",
     "pricing": {
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 15,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -793,6 +814,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -829,6 +851,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -865,6 +888,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
@@ -901,6 +925,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -937,6 +962,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 2,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -973,6 +999,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -1014,6 +1041,7 @@
       "interest_rate": 0.01643,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 13000000,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -1050,6 +1078,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1086,6 +1115,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1122,6 +1152,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -1158,6 +1189,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1194,6 +1226,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1230,6 +1263,7 @@
       "interest_rate": 0.02876,
       "max_ltv": 0.45
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
@@ -1266,6 +1300,7 @@
       "interest_rate": 0.0226,
       "max_ltv": 0.55
     },
+    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.275,
@@ -1303,6 +1338,7 @@
       "interest_rate": 0.01438,
       "max_ltv": 0.65
     },
+    "simulation_token_id": 1012,
     "tier_pricing": {
       "30d": {
         "apr": 0.175,
