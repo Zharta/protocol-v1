@@ -10,10 +10,6 @@
     "name": "[Internal] Azuki",
     "opensea_slug": "azuki",
     "opensea_url": "https://opensea.io/collection/azuki",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -34,7 +30,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 250,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "bakc": {
     "appraisal_method": "standard",
@@ -47,10 +64,6 @@
     "name": "[Internal] Bored Ape Kennel Club",
     "opensea_slug": "bored-ape-kennel-club",
     "opensea_url": "https://opensea.io/collection/bored-ape-kennel-club",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -71,7 +84,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 150,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "bayc": {
     "appraisal_method": "standard",
@@ -84,10 +118,6 @@
     "name": "[Internal] Bored Ape Yacht Club",
     "opensea_slug": "boredapeyachtclub",
     "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
-    "pricing": {
-      "interest_rate": 0.01438,
-      "max_ltv": 0.65
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -108,7 +138,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 700,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.175,
+            "ltv": 0.65
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.725
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.45
+          }
+        }
+      }
+    }
   },
   "beanz": {
     "appraisal_method": "standard",
@@ -121,10 +172,6 @@
     "name": "[Internal] BEANZ Official",
     "opensea_slug": "beanzofficial",
     "opensea_url": "https://opensea.io/collection/beanzofficial",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -145,7 +192,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 50,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "chromie": {
     "appraisal_method": "standard",
@@ -163,10 +231,6 @@
     "name": "[Internal] Chromie Squiggle",
     "opensea_slug": "chromie-squiggle-by-snowfro",
     "opensea_url": "https://opensea.io/collection/chromie-squiggle-by-snowfro",
-    "pricing": {
-      "interest_rate": 0.01438,
-      "max_ltv": 0.65
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -187,7 +251,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 200,
+        "floor_multiple_cap": 315,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.175,
+            "ltv": 0.65
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.725
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.45
+          }
+        }
+      }
+    }
   },
   "clonex": {
     "appraisal_method": "standard",
@@ -200,10 +285,6 @@
     "name": "[Internal] CLONE X",
     "opensea_slug": "clonex",
     "opensea_url": "https://opensea.io/collection/clonex",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -224,7 +305,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 150,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "cool": {
     "appraisal_method": "standard",
@@ -237,10 +339,6 @@
     "name": "[Internal] Cool Cats",
     "opensea_slug": "cool-cats-nft",
     "opensea_url": "https://opensea.io/collection/cool-cats-nft",
-    "pricing": {
-      "interest_rate": 0.0226,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -261,7 +359,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 15,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.275,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.625
+          },
+          "90d": {
+            "apr": 0.185,
+            "ltv": 0.35
+          }
+        }
+      }
+    }
   },
   "degods": {
     "appraisal_method": "floor_price",
@@ -274,10 +393,6 @@
     "name": "[Internal] DeGods",
     "opensea_slug": "degods",
     "opensea_url": "https://opensea.io/collection/degods",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -298,7 +413,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 50,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "doodles": {
     "appraisal_method": "standard",
@@ -311,10 +447,6 @@
     "name": "[Internal] Doodles",
     "opensea_slug": "doodles-official",
     "opensea_url": "https://opensea.io/collection/doodles-official",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -335,7 +467,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 125,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "fidenza": {
     "appraisal_method": "standard",
@@ -353,10 +506,6 @@
     "name": "[Internal] Fidenza",
     "opensea_slug": "fidenza-by-tyler-hobbs",
     "opensea_url": "https://opensea.io/collection/fidenza-by-tyler-hobbs",
-    "pricing": {
-      "interest_rate": 0.01438,
-      "max_ltv": 0.65
-    },
     "simulation_token_id": 78000000,
     "tier_pricing": {
       "30d": {
@@ -377,7 +526,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 125,
+        "floor_multiple_cap": 1830,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.175,
+            "ltv": 0.65
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.725
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.45
+          }
+        }
+      }
+    }
   },
   "gazers": {
     "appraisal_method": "standard",
@@ -395,10 +565,6 @@
     "name": "[Internal] Gazers",
     "opensea_slug": "gazers-by-matt-kane",
     "opensea_url": "https://opensea.io/collection/gazers-by-matt-kane",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 215000000,
     "tier_pricing": {
       "30d": {
@@ -419,7 +585,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 50,
+        "floor_multiple_cap": 540,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "gundead": {
     "appraisal_method": "standard",
@@ -432,10 +619,6 @@
     "name": "[Internal] Genuine Undead",
     "opensea_slug": "genuine-undead",
     "opensea_url": "https://opensea.io/collection/genuine-undead",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -456,7 +639,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "hm": {
     "appraisal_method": "standard",
@@ -469,10 +673,6 @@
     "name": "[Internal] Hashmasks",
     "opensea_slug": "hashmasks",
     "opensea_url": "https://opensea.io/collection/hashmasks",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -493,7 +693,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "invsble": {
     "appraisal_method": "standard",
@@ -506,10 +727,6 @@
     "name": "[Internal] Invisible Friends",
     "opensea_slug": "invisiblefriends",
     "opensea_url": "https://opensea.io/collection/invisiblefriends",
-    "pricing": {
-      "interest_rate": 0.0226,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -530,7 +747,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.275,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.625
+          },
+          "90d": {
+            "apr": 0.185,
+            "ltv": 0.35
+          }
+        }
+      }
+    }
   },
   "lilpudgys": {
     "appraisal_method": "standard",
@@ -543,10 +781,6 @@
     "name": "[Internal] Lil Pudgys",
     "opensea_slug": "lilpudgys",
     "opensea_url": "https://opensea.io/collection/lilpudgys",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -567,7 +801,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 15,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "mayc": {
     "appraisal_method": "standard",
@@ -580,10 +835,6 @@
     "name": "[Internal] Mutant Ape Yacht Club",
     "opensea_slug": "mutant-ape-yacht-club",
     "opensea_url": "https://opensea.io/collection/mutant-ape-yacht-club",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -604,7 +855,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 250,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "meebits": {
     "appraisal_method": "standard",
@@ -617,10 +889,6 @@
     "name": "[Internal] Meebits",
     "opensea_slug": "meebits",
     "opensea_url": "https://opensea.io/collection/meebits",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -641,7 +909,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 100,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "moonbirds": {
     "appraisal_method": "standard",
@@ -654,10 +943,6 @@
     "name": "[Internal] Moonbirds",
     "opensea_slug": "proof-moonbirds",
     "opensea_url": "https://opensea.io/collection/proof-moonbirds",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -678,7 +963,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 125,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "otherdeed": {
     "appraisal_method": "otherdeeds",
@@ -695,10 +1001,6 @@
     "name": "[Internal] Otherdeed for Otherside",
     "opensea_slug": "otherdeed",
     "opensea_url": "https://opensea.io/collection/otherdeed",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -719,7 +1021,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 25,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "otherdeedexpanded": {
     "appraisal_method": "floor_price",
@@ -732,10 +1055,6 @@
     "name": "[Internal] Otherdeed Expanded",
     "opensea_slug": "otherdeed-expanded",
     "opensea_url": "https://opensea.io/collection/otherdeed-expanded",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 804,
     "tier_pricing": {
       "30d": {
@@ -756,7 +1075,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 25,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "otherdeedkoda": {
     "appraisal_method": "otherdeeds",
@@ -773,10 +1113,6 @@
     "name": "[Internal] Otherdeed for Otherside (Kodas)",
     "opensea_slug": "otherdeed",
     "opensea_url": "https://opensea.io/collection/otherdeed",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 15,
     "tier_pricing": {
       "30d": {
@@ -797,7 +1133,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 50,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "othersidekoda": {
     "appraisal_method": "floor_price",
@@ -810,10 +1167,6 @@
     "name": "[Internal] Otherside Koda",
     "opensea_slug": "otherside-koda",
     "opensea_url": "https://opensea.io/collection/otherside-koda",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -834,7 +1187,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 50,
+        "floor_multiple_cap": 1,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "ppg": {
     "appraisal_method": "standard",
@@ -847,10 +1221,6 @@
     "name": "[Internal] Pudgy Penguins",
     "opensea_slug": "pudgypenguins",
     "opensea_url": "https://opensea.io/collection/pudgypenguins",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -871,7 +1241,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 125,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "punk": {
     "appraisal_method": "punks",
@@ -884,10 +1275,6 @@
     "name": "[Internal] Cryptopunks",
     "opensea_slug": "cryptopunks",
     "opensea_url": "https://opensea.io/collection/cryptopunks",
-    "pricing": {
-      "interest_rate": 0.01438,
-      "max_ltv": 0.65
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -908,7 +1295,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 850,
+        "floor_multiple_cap": 1.1,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.175,
+            "ltv": 0.65
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.725
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.45
+          }
+        }
+      }
+    }
   },
   "quirkies": {
     "appraisal_method": "standard",
@@ -921,10 +1329,6 @@
     "name": "[Internal] Quirkies Originals",
     "opensea_slug": "quirkiesoriginals",
     "opensea_url": "https://opensea.io/collection/quirkiesoriginals",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -945,7 +1349,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "rektguy": {
     "appraisal_method": "standard",
@@ -958,10 +1383,6 @@
     "name": "[Internal] rektguy",
     "opensea_slug": "rektguy",
     "opensea_url": "https://opensea.io/collection/rektguy",
-    "pricing": {
-      "interest_rate": 0.0226,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 2,
     "tier_pricing": {
       "30d": {
@@ -982,7 +1403,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 75,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.275,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.625
+          },
+          "90d": {
+            "apr": 0.185,
+            "ltv": 0.35
+          }
+        }
+      }
+    }
   },
   "renga": {
     "appraisal_method": "standard",
@@ -995,10 +1437,6 @@
     "name": "[Internal] RENGA",
     "opensea_slug": "renga",
     "opensea_url": "https://opensea.io/collection/renga",
-    "pricing": {
-      "interest_rate": 0.0226,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1019,7 +1457,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 40,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.275,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.625
+          },
+          "90d": {
+            "apr": 0.185,
+            "ltv": 0.35
+          }
+        }
+      }
+    }
   },
   "ringers": {
     "appraisal_method": "standard",
@@ -1037,10 +1496,6 @@
     "name": "[Internal] Ringers",
     "opensea_slug": "ringers-by-dmitri-cherniak",
     "opensea_url": "https://opensea.io/collection/ringers-by-dmitri-cherniak",
-    "pricing": {
-      "interest_rate": 0.01643,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 13000000,
     "tier_pricing": {
       "30d": {
@@ -1061,7 +1516,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 50,
+        "floor_multiple_cap": 1110,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.2,
+            "ltv": 0.6
+          },
+          "7d": {
+            "apr": 0.4,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.4
+          }
+        }
+      }
+    }
   },
   "spaceriders": {
     "appraisal_method": "standard",
@@ -1074,10 +1550,6 @@
     "name": "[Internal] Space Riders NFT",
     "opensea_slug": "spaceridersnft",
     "opensea_url": "https://opensea.io/collection/spaceridersnft",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1098,7 +1570,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 2.5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "theplague": {
     "appraisal_method": "standard",
@@ -1111,10 +1604,6 @@
     "name": "[Internal] The Plague NFT",
     "opensea_slug": "the-plague",
     "opensea_url": "https://opensea.io/collection/the-plague",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1135,7 +1624,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 2.5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "vft": {
     "appraisal_method": "standard",
@@ -1148,10 +1658,6 @@
     "name": "[Internal] VeeFriends",
     "opensea_slug": "veefriends",
     "opensea_url": "https://opensea.io/collection/veefriends",
-    "pricing": {
-      "interest_rate": 0.0226,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1172,7 +1678,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.275,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.625
+          },
+          "90d": {
+            "apr": 0.185,
+            "ltv": 0.35
+          }
+        }
+      }
+    }
   },
   "wgame": {
     "appraisal_method": "standard",
@@ -1185,10 +1712,6 @@
     "name": "[Internal] Wolf Game",
     "opensea_slug": "wolf-game",
     "opensea_url": "https://opensea.io/collection/wolf-game",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1209,7 +1732,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 10,
+        "floor_multiple_cap": 7.5,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "wgamefarmer": {
     "appraisal_method": "standard",
@@ -1222,10 +1766,6 @@
     "name": "[Internal] Wolf Game - Farmer",
     "opensea_slug": "wolf-game-farmer",
     "opensea_url": "https://opensea.io/collection/wolf-game-farmer",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1246,7 +1786,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 10,
+        "floor_multiple_cap": 5,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "wgameland": {
     "appraisal_method": "standard",
@@ -1259,10 +1820,6 @@
     "name": "[Internal] Wolf Game - Genesis Land",
     "opensea_slug": "wolf-game-land",
     "opensea_url": "https://opensea.io/collection/wolf-game-land",
-    "pricing": {
-      "interest_rate": 0.02876,
-      "max_ltv": 0.45
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1283,7 +1840,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 5,
+        "floor_multiple_cap": 5,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.525
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.3
+          }
+        }
+      }
+    }
   },
   "wow": {
     "appraisal_method": "standard",
@@ -1296,10 +1874,6 @@
     "name": "[Internal] World of Women",
     "opensea_slug": "world-of-women-nft",
     "opensea_url": "https://opensea.io/collection/world-of-women-nft",
-    "pricing": {
-      "interest_rate": 0.0226,
-      "max_ltv": 0.55
-    },
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1320,7 +1894,28 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 5,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.275,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.625
+          },
+          "90d": {
+            "apr": 0.185,
+            "ltv": 0.35
+          }
+        }
+      }
+    }
   },
   "wpunk": {
     "appraisal_key": "punk",
@@ -1334,10 +1929,6 @@
     "name": "[Internal] Wrapped Cryptopunks",
     "opensea_slug": "wrapped-cryptopunks",
     "opensea_url": "https://opensea.io/collection/wrapped-cryptopunks",
-    "pricing": {
-      "interest_rate": 0.01438,
-      "max_ltv": 0.65
-    },
     "simulation_token_id": 1012,
     "tier_pricing": {
       "30d": {
@@ -1358,6 +1949,27 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": true,
+    "conditions": {
+      "WETH": {
+        "whitelisted": true,
+        "debt_limit": 850,
+        "floor_multiple_cap": 1.1,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.175,
+            "ltv": 0.65
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.725
+          },
+          "90d": {
+            "apr": 0.095,
+            "ltv": 0.45
+          }
+        }
+      }
+    }
   }
 }
