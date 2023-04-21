@@ -1,38 +1,91 @@
 {
     "tokens": {
-        "WETH": {
+        "USDC": {
             "collateral_vault_core": {
-                "contract": "0x4F2788608E0aE6810756e33CEA67545d5C3d0CA9"
-            },
-            "cryptopunks_vault_core": {
-                "contract": "0xDaE7b378150cDf1061A4Fc2d0AcEDa8C9b364D9B"
+                "contract": "0xFE0F4Cf81B5c0a6Fd65a610FD9488F33aE9095cB"
             },
             "collateral_vault_peripheral": {
-                "contract": "0xDE74ad60cf97019138C7B2Af9941F8eBA2e6CB98"
+                "contract": "0x4e3E7dC9D84dA7BE8f017f4C36153A61341736d4"
             },
-            "lending_pool_core" : {
-                "contract": "0xb6286fAFd0451320ad6A8143089b216C2152c025"
+            "cryptopunks_vault_core": {
+                "contract": "0x1aa96efd2B002541E830CB7f60e473AA24e31F9A"
+            },
+            "delegation_registry": {
+                "contract": "0x741e3E1f81041c62C2A97d0b6E567AcaB09A6232"
+            },
+            "genesis": {
+                "contract": "0x8b1B440724DCe2EE9779B58af841Ec59F545838B"
             },
             "lending_pool": {
-                "contract": "0xE56814BEBb259C729ee1512f9342c5fe1A33eD38"
+                "contract": "0x93F6bA0E6DcB1Ec0F1aBD80Be31e025d6e64Ad97"
             },
-            "liquidations_peripheral": {
-                "contract": "0x9c254345d0eED5C5446912194923028ee115bDb5"
+            "lending_pool_core": {
+                "contract": "0xEFDE7eC452f9A203559896F64267809E248D044f"
+            },
+            "lending_pool_lock": {
+                "contract": "0x5847798CE8c89e3Fff59AE5fA30BEC0d406b5687"
             },
             "liquidations_core": {
-                "contract": "0x26f15335BB1C6a4C0B660eDd694a0555A9F1cce3"
+                "contract": "0x4B0FccF53589c1F185B35db88bB315a0bBF9a3e0"
+            },
+            "liquidations_peripheral": {
+                "contract": "0xEfE66132727f3831AB4E020357B5Bf615076Df6A"
             },
             "liquidity_controls": {
-                "contract": "0x61310B2957B340feba7c8e31198681A307A934B9"
+                "contract": "0x70bC6D873D110Da59a9c49E7485a27B0F605E5db"
             },
             "loans": {
-                "contract": "0x8aEf30CB6dE5FE30A1358d748592601f8d471596"
+                "contract": "0x342216ff4b4D6899DDE6535D6E50b6Db71654bc4"
             },
             "loans_core": {
-                "contract": "0x88628B0E39f044dD3Ac6924310b1B84ce8a26Ec1"
+                "contract": "0xbc8eCccb89650c3E796e803CB009BF9b898CB359"
             },
             "token": {
-                "contract": "0x7c376f5f0c6e535459F934254Cdd92Af4e1fde53"
+                "contract": "0x0AC45e945A008D3fc19da8f591be8601C1F63130"
+            }
+        },
+        "WETH": {
+            "collateral_vault_core": {
+                "contract": "0xa1910C6e0Fbd0E38cfBabAeC5D1C1D539F81CC63"
+            },
+            "collateral_vault_peripheral": {
+                "contract": "0xFb7C5F938835aE34aF48c278C6763E134907Acdb"
+            },
+            "cryptopunks_vault_core": {
+                "contract": "0xb291024F4b2E4C3767A96aB44566a8e93cC828C5"
+            },
+            "delegation_registry": {
+                "contract": "0x741e3E1f81041c62C2A97d0b6E567AcaB09A6232"
+            },
+            "genesis": {
+                "contract": "0x8b1B440724DCe2EE9779B58af841Ec59F545838B"
+            },
+            "lending_pool": {
+                "contract": "0xD537bF4b795b7D07Bd5F4bAf7017e3ce8360B1DE"
+            },
+            "lending_pool_core": {
+                "contract": "0xaA7e46855e0506401214c9b1C35f3d889669609e"
+            },
+            "lending_pool_lock": {
+                "contract": "0x0e19E87b363DD7a3af5c45C95ab6885367251B94"
+            },
+            "liquidations_core": {
+                "contract": "0x4B0FccF53589c1F185B35db88bB315a0bBF9a3e0"
+            },
+            "liquidations_peripheral": {
+                "contract": "0xEfE66132727f3831AB4E020357B5Bf615076Df6A"
+            },
+            "liquidity_controls": {
+                "contract": "0x286677F2b204be093ABBee3e35074352b339243B"
+            },
+            "loans": {
+                "contract": "0xa5659Fa683b71C907cd346397c694b93aFF40b51"
+            },
+            "loans_core": {
+                "contract": "0xC6D563d5c2243b27e7294511063f563ED701EA2C"
+            },
+            "token": {
+                "contract": "0x0C60536783db9ED5A2B216970B10FF2243d317dD"
             }
         }
     }

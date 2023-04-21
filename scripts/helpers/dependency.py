@@ -14,9 +14,9 @@ class DependencyManager:
 
     def _build_dependencies(self) -> tuple[dict, dict]:
         internal_contracts = [c for c in self.context.contract.values() if isinstance(c, InternalContract)]
-        dep_dependencies_set = {(dep, c.name) for c in internal_contracts for dep in c.deployment_dependencies()}
+        dep_dependencies_set = {(dep, c.key()) for c in internal_contracts for dep in c.deployment_dependencies()}
         config_dependencies_set1 = {(k, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
-        config_dependencies_set2 = {(c.name, v) for c in internal_contracts for k, v in c.config_dependencies().items()}
+        config_dependencies_set2 = {(c.key(), v) for c in internal_contracts for k, v in c.config_dependencies().items()}
         self.deployment_dependencies = groupby_first(dep_dependencies_set, set(self.context.keys()))
         self.config_dependencies = groupby_first(config_dependencies_set1 | config_dependencies_set2, set(self.context.keys()))
 
@@ -40,7 +40,7 @@ class DependencyManager:
 
         self.deployment_set = {k for k in vis if vis[k] and k in self.context.contract}
         self.transaction_set = {
-            k: {tx for tx in txs if not self._is_included_in_contract_deployment(tx)}
+            k: set(txs)
             for k, txs in self.config_dependencies.items()
             if k in (self.deployment_set | self.changed)
         }
@@ -53,17 +53,6 @@ class DependencyManager:
         }
         internal_deployable_sorted = [c for c in sorted_dependencies if c not in external_deployable]
         self.deployment_order = list(external_deployable) + internal_deployable_sorted
-
-    def _is_included_in_contract_deployment(self, tx: Transaction) -> bool:
-        if "loans" in self.deployment_set:
-            if tx == Transaction.loansperiph_set_cvperiph:
-                return True
-            elif tx == Transaction.loansperiph_set_lpperiph:
-                return True
-        if "liquidations_peripheral" in self.deployment_set:
-            if tx == Transaction.liquidationsperiph_set_liquidationscore:
-                return True
-        return False
 
     def build_transaction_set(self) -> set[Callable]:
         return {tx for k, txs in self.transaction_set.items() for tx in txs}

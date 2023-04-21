@@ -38,6 +38,7 @@ from .helpers.contracts import (
 )
 
 ENV = Environment[os.environ.get("ENV", "local")]
+TOKENS = ["weth", "usdc"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -47,29 +48,29 @@ warnings.filterwarnings("ignore")
 def load_contracts(env: Environment) -> set[ContractConfig]:
     config_file = f"{Path.cwd()}/configs/{env.name}/contracts.json"
     with open(config_file, "r") as f:
-        config = json.load(f)["tokens"]["WETH"]
+        config = json.load(f)["tokens"]
 
-    def load(contract: ContractConfig):
-        address = config.get(contract.config_key(), {}).get('contract', None)
+    def load(contract: ContractConfig, token: str):
+        address = config[token].get(contract.config_key(), {}).get('contract', None)
         if address and env != Environment.local:
             contract.contract = contract.container.at(address)
         return contract
 
-    return [load(c) for c in [
-        LendingPoolCoreContract(None),
-        LendingPoolLockContract(None),
-        LendingPoolPeripheralContract(None),
-        CollateralVaultCoreV2Contract(None),
-        CollateralVaultPeripheralContract(None),
-        CryptoPunksVaultCoreContract(None),
-        GenesisContract(None),
-        LoansCoreContract(None),
-        LoansPeripheralContract(None),
-        LiquidationsCoreContract(None),
-        LiquidationsPeripheralContract(None),
-        LiquidityControlsContract(None),
-        WETH9MockContract(None) if env != Environment.prod else Token("weth", "token", None),
-        DelegationRegistryMockContract(None),
+    return [load(c, token.upper()) for token in TOKENS for c in [
+        LendingPoolCoreContract(scope=token),
+        LendingPoolLockContract(scope=token),
+        LendingPoolPeripheralContract(scope=token),
+        CollateralVaultCoreV2Contract(scope=token),
+        CollateralVaultPeripheralContract(scope=token),
+        CryptoPunksVaultCoreContract(scope=token),
+        GenesisContract(),
+        LoansCoreContract(scope=token),
+        LoansPeripheralContract(scope=token),
+        LiquidationsCoreContract(),
+        LiquidationsPeripheralContract(scopes=TOKENS),
+        LiquidityControlsContract(scope=token),
+        WETH9MockContract(scope=token) if env != Environment.prod else Token("weth", "token", None),
+        DelegationRegistryMockContract(),
     ]]
 
 
@@ -77,9 +78,9 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
     config_file = f"{Path.cwd()}/configs/{env.name}/contracts.json"
     file_struct = {
         'tokens': {
-            'WETH': {
-                c.config_key(): {'contract': c.address()} for c in contracts if not c.nft
-            }
+            token.upper(): {
+                c.config_key(): {'contract': c.address()} for c in contracts if not c.nft and not c.scope or c.scope == token
+            } for token in TOKENS
         }
     }
     with open(config_file, "w") as f:
@@ -192,11 +193,12 @@ class DeploymentManager:
             GenericExternalContract("nftxmarketplacezap", "0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d"),
             GenericExternalContract("sushirouter", "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"),
         ]
-        return {c.name: c for c in nfts + contracts + other}
+        return {c.key(): c for c in nfts + contracts + other}
 
     def _get_configs(self) -> dict[str, Any]:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
-        return {"nft_borrowable_amounts": nft_borrowable_amounts}
+        # TODO fix when new collections format is ready
+        return {"weth.nft_borrowable_amounts": nft_borrowable_amounts, "usdc.nft_borrowable_amounts": nft_borrowable_amounts}
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contract.values() if c.nft]
@@ -234,60 +236,19 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {"nft_borrowable_amounts"}
-    dm.deploy(changes, dryrun=True)
+    changes |= {"weth.collateral_vault_peripheral"}
+    dm.deploy(changes, dryrun=False)
 
+    for k, v in dm.context.contract.items():
+        globals()[k.replace(".", "_")] = v.contract
+        print(k.replace(".", "_"),v.contract)
+    for k, v in dm.context.config.items():
+        globals()[k.replace(".", "_")] = v
 
 def console():
     dm = DeploymentManager(ENV)
-    cvp = dm.context["collateral_vault_peripheral"].contract
-    cvc = dm.context["collateral_vault_core"].contract
-    cvc2 = dm.context["collateral_vault_core2"].contract
-    pvc = dm.context["cryptopunks_vault_core"].contract
-    lpc = dm.context["lending_pool_core"].contract
-    lpl = dm.context["lending_pool_lock"].contract
-    lpp = dm.context["lending_pool_peripheral"].contract
-    lp = dm.context["loans"].contract
-    lc = dm.context["loans_core"].contract
-    lic = dm.context["liquidations_core"].contract
-    lip = dm.context["liquidations_peripheral"].contract
-    ctrl = dm.context["liquidity_controls"].contract
-
-    weth = dm.context["weth"].contract
-    delegate = dm.context["delegation_registry"].contract
-    genesis = dm.context["genesis"].contract
-
-    cool = dm.context["cool"].contract
-    hm = dm.context["hm"].contract
-    bakc = dm.context["bakc"].contract
-    doodles = dm.context["doodles"].contract
-    wow = dm.context["wow"].contract
-    mayc = dm.context["mayc"].contract
-    vft = dm.context["vft"].contract
-    ppg = dm.context["ppg"].contract
-    bayc = dm.context["bayc"].contract
-    wpunk = dm.context["wpunk"].contract
-    punk = dm.context["punk"].contract
-    chromie = dm.context["chromie"].contract
-    ringers = dm.context["ringers"].contract
-    gazers = dm.context["gazers"].contract
-    fidenza = dm.context["fidenza"].contract
-    beanz = dm.context["beanz"].contract
-    clonex = dm.context["clonex"].contract
-    lilpudgys = dm.context["lilpudgys"].contract
-    meebits = dm.context["meebits"].contract
-
-    gundead = dm.context["gundead"].contract
-    invsble = dm.context["invsble"].contract
-    quirkies = dm.context["quirkies"].contract
-    rektguy = dm.context["rektguy"].contract
-    renga = dm.context["renga"].contract
-    spaceriders = dm.context["spaceriders"].contract
-    theplague = dm.context["theplague"].contract
-    wgame = dm.context["wgame"].contract
-    wgamefarmer = dm.context["wgamefarmer"].contract
-    wgameland = dm.context["wgameland"].contract
-    otherdeedkoda = dm.context["otherdeedkoda"].contract
-    degods = dm.context["degods"].contract
-    othersidekoda = dm.context["othersidekoda"].contract
-    otherdeedexpanded = dm.context["otherdeedexpanded"].contract
+    for k, v in dm.context.contract.items():
+        globals()[k.replace(".", "_")] = v.contract
+        print(k.replace(".", "_"),v.contract)
+    for k, v in dm.context.config.items():
+        globals()[k.replace(".", "_")] = v

@@ -39,6 +39,7 @@ class ContractConfig():
     container: ContractContainer
     nft: bool = False
     container_name: str = None
+    scope: Optional[str] = None
     deployment_deps: set[str] = field(default_factory=set)
     config_deps: dict[str, Callable] = field(default_factory=dict)
 
@@ -60,8 +61,14 @@ class ContractConfig():
     def address(self):
         return self.contract.address if self.contract else None
 
+    def key(self):
+        return f"{self.scope}.{self.name}" if self.scope else self.name
+
     def config_key(self):
         return self.name
+
+    def pool(self):
+        return self.name.split(".")[0] if "." in self.name else None
 
     def __str__(self):
         return self.name
