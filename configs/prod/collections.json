@@ -912,11 +912,11 @@
   },
   "quirkies": {
     "appraisal_method": "standard",
-    "contract_address": "0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
+    "contract_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "image_url": "https://i.seadn.io/gcs/files/467a20008c8d95af60a4650ff3442310.png",
-    "looksrare_url": "https://looksrare.org/collections/0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
+    "looksrare_url": "https://looksrare.org/collections/0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
     "mapped_address": "0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
     "name": "Quirkies Originals",
     "opensea_slug": "quirkiesoriginals",
