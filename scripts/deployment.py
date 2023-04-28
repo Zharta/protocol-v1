@@ -136,6 +136,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("degods", None),
         NFT("othersidekoda", None),
         NFT("otherdeedexpanded", None),
+        NFT("oldquirkies", None),
     ]]
 
 
