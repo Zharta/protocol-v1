@@ -771,7 +771,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             paidAmount += liquidation.gracePeriodPrice
 
         else:
-            ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidationWeth(
+            ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidation(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -832,7 +832,7 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
         )
         log PaymentSent(lendingPoolPeripheral, lendingPoolPeripheral, liquidation.lenderPeriodPrice)
     else:
-        ILendingPoolPeripheral(lendingPoolPeripheral).receiveFundsFromLiquidationWeth(
+        ILendingPoolPeripheral(lendingPoolPeripheral).receiveFundsFromLiquidation(
             msg.sender,
             liquidation.principal,
             liquidation.lenderPeriodPrice - liquidation.principal,
@@ -933,7 +933,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         if interestAmount <= liquidation.interestAmount * (10000 - protocolFeesShare) / 10000: # LP interest less than expected and/or protocol interest loss
             distributeToProtocol = False
 
-    ILendingPoolPeripheral(lp_peripheral_address).receiveFundsFromLiquidationWeth(
+    ILendingPoolPeripheral(lp_peripheral_address).receiveFundsFromLiquidation(
         self,
         principal,
         interestAmount,
@@ -999,7 +999,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincip
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert liquidation.lid == empty(bytes32), "collateral still in liquidation"
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[_erc20TokenContract]).receiveFundsFromLiquidationWeth(
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[_erc20TokenContract]).receiveFundsFromLiquidation(
         msg.sender,
         _principal,
         _interestAmount,

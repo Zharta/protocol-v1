@@ -23,9 +23,9 @@ interface ILendingPoolPeripheral:
     def maxFundsInvestable() -> uint256: view 
     def erc20TokenContract() -> address: view
     def sendFundsEth(_to: address, _amount: uint256): nonpayable
-    def sendFundsWeth(_to: address, _amount: uint256): nonpayable
+    def sendFunds(_to: address, _amount: uint256): nonpayable
     def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
-    def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
+    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
     def lendingPoolCoreContract() -> address: view
 
 interface ILiquidationsPeripheral:
@@ -614,7 +614,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
 
 
 @external
-def reserveWeth(
+def reserve(
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
@@ -645,7 +645,7 @@ def reserveWeth(
 
     newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsWeth(
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFunds(
         msg.sender,
         _amount
     )
@@ -751,7 +751,7 @@ def pay(_loanId: uint256):
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFundsEth(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
         log PaymentSent(self.lendingPoolPeripheralContract, self.lendingPoolPeripheralContract, paymentAmount)
     else:
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFundsWeth(msg.sender, loan.amount, paidInterestAmount)
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
 
     for collateral in loan.collaterals:
         ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)

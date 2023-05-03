@@ -35,7 +35,7 @@ class StatefulGenesisPass(RuleBasedStateMachine):
         print(f"{self.owner=} {self.distributor=}")
 
     def rule_transfer(self, token_id="token_id_st", distributor="account_st", receiver="account_st"):
-        if self.tokens.get(token_id) == distributor and distributor == self.distributor:
+        if self.tokens.get(token_id) == distributor:
             tx = self.genesis_contract.transferFrom(distributor, receiver, token_id, {'from': distributor})
             assert self.genesis_contract.ownerOf(token_id) == receiver
             self.tokens[token_id] = receiver

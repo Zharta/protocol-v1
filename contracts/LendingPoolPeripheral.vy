@@ -763,12 +763,12 @@ def deprecate():
 
 
 @external
-def depositWeth(_amount: uint256):
+def deposit(_amount: uint256):
 
     """
-    @notice Deposits the given amount of WETH in the lending pool
+    @notice Deposits the given amount of the ERC20 in the lending pool
     @dev Logs the `Deposit` event
-    @param _amount Value to deposit in wei
+    @param _amount Value to deposit
     """
 
     assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
@@ -792,11 +792,11 @@ def depositEth():
 
 
 @external
-def withdrawWeth(_amount: uint256):
+def withdraw(_amount: uint256):
     """
-    @notice Withdrawals the given amount of WETH from the lending pool
+    @notice Withdrawals the given amount of ERC20 from the lending pool
     @dev Logs the `Withdrawal` and, if it changes the pools investing status, the `InvestingStatusChanged` events
-    @param _amount Value to withdraw in wei
+    @param _amount Value to withdraw
     """
     self._withdraw(_amount, msg.sender)
 
@@ -814,12 +814,12 @@ def withdrawEth(_amount: uint256):
 
 
 @external
-def sendFundsWeth(_to: address, _amount: uint256):
+def sendFunds(_to: address, _amount: uint256):
     """
-    @notice Sends funds in WETH to a borrower as part of a loan creation
+    @notice Sends funds in the pool ERC20 to a borrower as part of a loan creation
     @dev Logs the `FundsTransfer` and, if it changes the pools investing status, the `InvestingStatusChanged` events
     @param _to The wallet address to transfer the funds to
-    @param _amount Value to transfer in wei
+    @param _amount Value to transfer
     """
 
     self._sendFunds(_to, _to, _amount)
@@ -861,14 +861,14 @@ def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint25
 
 
 @external
-def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
 
     """
-    @notice Receive funds in WETH from a borrower as part of a loan payment
+    @notice Receive funds in the pool ERC20 from a borrower as part of a loan payment
     @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
     @param _borrower The wallet address to receive the funds from
-    @param _amount Value of the loans principal to receive in wei
-    @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive in wei
+    @param _amount Value of the loans principal to receive
+    @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive
     """
 
     assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
@@ -876,7 +876,7 @@ def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint2
 
 
 @external
-def receiveFundsFromLiquidationWeth(
+def receiveFundsFromLiquidation(
     _borrower: address,
     _amount: uint256,
     _rewardsAmount: uint256,
@@ -886,11 +886,11 @@ def receiveFundsFromLiquidationWeth(
 ):
 
     """
-    @notice Receive funds from a liquidation in WETH
+    @notice Receive funds from a liquidation in the pool ERC20
     @dev Logs the `FundsReceipt` and, if it changes the pools investing status, the `InvestingStatusChanged` events
     @param _borrower The wallet address to receive the funds from
-    @param _amount Value of the loans principal to receive in wei
-    @param _rewardsAmount Value of the rewards after liquidation (including the protocol fee share) to receive in wei
+    @param _amount Value of the loans principal to receive
+    @param _rewardsAmount Value of the rewards after liquidation (including the protocol fee share) to receive
     @param _distributeToProtocol Wether to distribute the protocol fees or not
     @param _origin Identification of the liquidation method
     """

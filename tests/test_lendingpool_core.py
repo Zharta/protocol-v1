@@ -320,7 +320,7 @@ def test_send_funds_insufficient_balance(
     erc20_contract.mint(investor, Web3.toWei(1, "ether"), {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, Web3.toWei(1, "ether"), {"from": investor})
 
-    lending_pool_peripheral_contract.depositWeth(Web3.toWei(1, "ether"), {"from": investor})
+    lending_pool_peripheral_contract.deposit(Web3.toWei(1, "ether"), {"from": investor})
 
     with brownie.reverts("Insufficient balance"):
         tx_send = lending_pool_core_contract.sendFunds(
@@ -473,7 +473,7 @@ def test_receive_funds_with_losses(
     deposit_amount = Web3.toWei(1, "ether")
     erc20_contract.mint(investor, deposit_amount, {"from": contract_owner})
     erc20_contract.approve(lending_pool_core_contract, deposit_amount, {"from": investor})
-    lending_pool_peripheral_contract.depositWeth(deposit_amount, {"from": investor})
+    lending_pool_peripheral_contract.deposit(deposit_amount, {"from": investor})
 
     lending_pool_core_contract.sendFunds(
         borrower,

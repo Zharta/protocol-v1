@@ -210,7 +210,6 @@ def test_set_default_lender_zeroaddress(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_set_default_lender_zeroaddress(
     loans_peripheral_contract,
     create_signature,
@@ -544,7 +543,6 @@ def test_create_maturity_in_the_past(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_collaterals_not_owned(
     loans_peripheral_contract,
     create_signature,
@@ -580,7 +578,6 @@ def test_create_collaterals_not_owned(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_collateral_not_approved(
     loans_peripheral_contract,
     create_signature,
@@ -618,7 +615,6 @@ def test_create_loan_collateral_not_approved(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_sum_collaterals_amounts_not_amount(
     loans_peripheral_contract,
     create_signature,
@@ -697,7 +693,6 @@ def test_create_loan_unsufficient_funds_in_lp(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_outside_pool_share(
     loans_peripheral_contract,
     create_signature,
@@ -743,7 +738,6 @@ def test_create_loan_outside_pool_share(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_outside_collection_share(
     loans_peripheral_contract,
     create_signature,
@@ -789,7 +783,6 @@ def test_create_loan_outside_collection_share(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan(
     loans_peripheral_contract,
     create_signature,
@@ -854,7 +847,6 @@ def test_create_loan(
     assert event["loanId"] == 0
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_wrong_signature(
     loans_peripheral_contract,
     create_signature,
@@ -924,7 +916,6 @@ def test_create_loan_wrong_signature(
             )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_past_signature_deadline(
     loans_peripheral_contract,
     create_signature,
@@ -967,7 +958,6 @@ def test_create_loan_past_signature_deadline(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_within_pool_share(
     loans_peripheral_contract,
     create_signature,
@@ -1036,7 +1026,6 @@ def test_create_loan_within_pool_share(
     assert event["loanId"] == 0
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_create_loan_within_collection_share(
     loans_peripheral_contract,
     create_signature,
@@ -1110,7 +1099,6 @@ def test_pay_loan_not_issued(loans_peripheral_contract, borrower):
         loans_peripheral_contract.pay(0, {"from": borrower})
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_defaulted(
     loans_peripheral_contract,
     create_signature,
@@ -1166,7 +1154,6 @@ def test_pay_loan_defaulted(
         loans_peripheral_contract.pay(loan["id"], {"from": borrower})
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_insufficient_balance(
     loans_peripheral_contract,
     create_signature,
@@ -1195,7 +1182,7 @@ def test_pay_loan_insufficient_balance(
 
     (v, r, s) = create_signature()
 
-    tx_create_loan = loans_peripheral_contract.reserveWeth(
+    tx_create_loan = loans_peripheral_contract.reserve(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,
@@ -1225,7 +1212,6 @@ def test_pay_loan_insufficient_balance(
     erc20_contract.transfer(borrower, transfer_amount, {"from": contract_owner})
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_insufficient_allowance(
     loans_peripheral_contract,
     create_signature,
@@ -1289,7 +1275,6 @@ def test_pay_loan_insufficient_allowance(
         )
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1399,15 +1384,12 @@ def test_pay_loan_usdc(
 ):
     amount = 10**9  # 1000 USDC
 
-
     usdc_contract.approve(usdc_lending_pool_core_contract, 2*amount, {"from": investor})
-    usdc_lending_pool_peripheral_contract.depositWeth(2*amount, {"from": investor})
+    usdc_lending_pool_peripheral_contract.deposit(2*amount, {"from": investor})
 
     for k in range(5):
         erc721_contract.mint(borrower, k, {"from": contract_owner})
-    erc721_contract.setApprovalForAll(
-        collateral_vault_core_contract, True, {"from": borrower}
-    )
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, {"from": borrower})
     test_collaterals = [(erc721_contract.address, k, amount // 5) for k in range(5)]
 
     borrower_initial_balance = usdc_contract.balanceOf(borrower)
@@ -1416,20 +1398,7 @@ def test_pay_loan_usdc(
 
     (v, r, s) = create_signature(amount=amount, collaterals=test_collaterals, verifier=usdc_loans_peripheral_contract)
 
-    tx_create_loan = usdc_loans_peripheral_contract.reserveWeth(
-        amount,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        False,
-        VALIDATION_DEADLINE,
-        0,
-        0,
-        v,
-        r,
-        s,
-        {"from": borrower},
-    )
+    tx_create_loan = usdc_loans_peripheral_contract.reserve(amount, LOAN_INTEREST, MATURITY, test_collaterals, False, VALIDATION_DEADLINE, 0, 0, v, r, s, {"from": borrower})
     loan_id = tx_create_loan.return_value
 
     chain.mine(blocks=1, timedelta=14 * 86400)
@@ -1482,7 +1451,6 @@ def test_pay_loan_usdc(
     assert borrower.balance() + payable_amount == borrower_initial_balance + LOAN_AMOUNT
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_already_paid(
     loans_peripheral_contract,
     create_signature,
@@ -1554,7 +1522,6 @@ def test_set_default_loan_not_started(
         loans_peripheral_contract.settleDefault(borrower, 0, {"from": contract_owner})
 
 
-@pytest.mark.require_network("ganache-mainnet-fork")
 def test_set_default_loan(
     loans_peripheral_contract,
     create_signature,
@@ -1759,6 +1726,7 @@ def test_genesis_pass_validation(
         VALIDATION_DEADLINE,
         0,
         genesis_token,
+        v,
         r,
         s,
         {"from": borrower},
