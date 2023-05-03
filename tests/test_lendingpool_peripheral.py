@@ -882,6 +882,39 @@ def test_send_funds_weth(
     assert tx_send.events["FundsTransfer"]["erc20TokenContract"] == erc20_contract
 
 
+def test_send_funds_usdc(
+    usdc_contracts_config,
+    usdc_lending_pool_peripheral_contract,
+    usdc_lending_pool_core_contract,
+    usdc_contract,
+    usdc_loans_peripheral_contract,
+    contract_owner,
+    investor,
+    borrower
+):
+    initial_balance = user_balance(usdc_contract, borrower)
+    amount = 10**9
+    send_amount = int(0.2*amount)
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, amount, {"from": investor})
+
+    usdc_lending_pool_peripheral_contract.depositWeth(amount, {"from": investor})
+
+    tx_send = usdc_lending_pool_peripheral_contract.sendFundsWeth(
+        borrower,
+        send_amount,
+        {"from": usdc_loans_peripheral_contract}
+    )
+
+    assert user_balance(usdc_contract, borrower) == initial_balance + send_amount
+    assert usdc_lending_pool_core_contract.fundsAvailable() == amount - send_amount
+    assert usdc_lending_pool_core_contract.fundsInvested() == send_amount
+
+    assert tx_send.events["FundsTransfer"]["wallet"] == borrower
+    assert tx_send.events["FundsTransfer"]["amount"] == send_amount
+    assert tx_send.events["FundsTransfer"]["erc20TokenContract"] == usdc_contract
+
+
 @pytest.mark.require_network("ganache-mainnet-fork")
 def test_receive_funds_wrong_sender_eth(lending_pool_peripheral_contract, borrower):
     with brownie.reverts("msg.sender is not the loans addr"):
@@ -1045,6 +1078,62 @@ def test_receive_funds_weth(
     assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == Web3.toWei(expectedProtocolFees, "ether")
     assert tx_receive.events["FundsReceipt"]["investedAmount"] == Web3.toWei(0.2, "ether")
     assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == erc20_contract
+    assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"
+
+
+def test_receive_funds_usdc(
+    usdc_contracts_config,
+    usdc_lending_pool_peripheral_contract,
+    usdc_lending_pool_core_contract,
+    usdc_contract,
+    usdc_loans_peripheral_contract,
+    contract_owner,
+    investor,
+    borrower,
+    protocol_wallet
+):
+    amount = 10**9
+    send_amount = int(0.2*amount)
+    rewards_amount = int(0.02*amount)
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, amount, {"from": investor})
+    usdc_lending_pool_peripheral_contract.depositWeth(amount, {"from": investor})
+
+    usdc_lending_pool_peripheral_contract.sendFundsWeth(
+        borrower,
+        send_amount,
+        {"from": usdc_loans_peripheral_contract}
+    )
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, send_amount + rewards_amount, {"from": borrower})
+    tx_receive = usdc_lending_pool_peripheral_contract.receiveFundsWeth(
+        borrower,
+        send_amount,
+        rewards_amount,
+        {"from": usdc_loans_peripheral_contract}
+    )
+
+    expectedProtocolFees = Decimal(0.02) * Decimal(PROTOCOL_FEES_SHARE) / Decimal(10000)
+    expectedPoolFees = Decimal(0.02) - expectedProtocolFees
+
+    assert usdc_lending_pool_core_contract.fundsAvailable() == amount * (1 + expectedPoolFees)
+    assert usdc_lending_pool_core_contract.fundsInvested() == 0
+    assert usdc_lending_pool_core_contract.totalFundsInvested() == send_amount
+
+    assert usdc_lending_pool_core_contract.totalRewards() == amount * expectedPoolFees
+
+    assert usdc_lending_pool_core_contract.funds(investor)["sharesBasisPoints"] == amount
+    assert usdc_lending_pool_core_contract.computeWithdrawableAmount(investor) == amount * (1 + expectedPoolFees)
+
+    assert user_balance(usdc_contract, protocol_wallet) == amount * expectedProtocolFees
+    assert user_balance(usdc_contract, usdc_lending_pool_core_contract) == amount * (1 + expectedPoolFees)
+
+    assert tx_receive.events["FundsReceipt"]["wallet"] == borrower
+    assert tx_receive.events["FundsReceipt"]["amount"] == send_amount
+    assert tx_receive.events["FundsReceipt"]["rewardsPool"] == amount * expectedPoolFees
+    assert tx_receive.events["FundsReceipt"]["rewardsProtocol"] == amount * expectedProtocolFees
+    assert tx_receive.events["FundsReceipt"]["investedAmount"] == send_amount
+    assert tx_receive.events["FundsReceipt"]["erc20TokenContract"] == usdc_contract
     assert tx_receive.events["FundsReceipt"]["fundsOrigin"] == "loan"
 
 

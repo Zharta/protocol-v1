@@ -1383,6 +1383,105 @@ def test_pay_loan(
     assert borrower.balance() + payable_amount == borrower_initial_balance + LOAN_AMOUNT
 
 
+def test_pay_loan_usdc(
+    usdc_contracts_config,
+    usdc_loans_peripheral_contract,
+    create_signature,
+    usdc_loans_core_contract,
+    usdc_lending_pool_peripheral_contract,
+    usdc_lending_pool_core_contract,
+    collateral_vault_core_contract,
+    erc721_contract,
+    usdc_contract,
+    contract_owner,
+    borrower,
+    investor,
+):
+    amount = 10**9  # 1000 USDC
+
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, 2*amount, {"from": investor})
+    usdc_lending_pool_peripheral_contract.depositWeth(2*amount, {"from": investor})
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, {"from": contract_owner})
+    erc721_contract.setApprovalForAll(
+        collateral_vault_core_contract, True, {"from": borrower}
+    )
+    test_collaterals = [(erc721_contract.address, k, amount // 5) for k in range(5)]
+
+    borrower_initial_balance = usdc_contract.balanceOf(borrower)
+
+    usdc_contract.approve(usdc_loans_core_contract, amount, {"from": borrower})
+
+    (v, r, s) = create_signature(amount=amount, collaterals=test_collaterals, verifier=usdc_loans_peripheral_contract)
+
+    tx_create_loan = usdc_loans_peripheral_contract.reserveWeth(
+        amount,
+        LOAN_INTEREST,
+        MATURITY,
+        test_collaterals,
+        False,
+        VALIDATION_DEADLINE,
+        0,
+        0,
+        v,
+        r,
+        s,
+        {"from": borrower},
+    )
+    loan_id = tx_create_loan.return_value
+
+    chain.mine(blocks=1, timedelta=14 * 86400)
+
+    loan_details = usdc_loans_core_contract.getLoan(borrower, loan_id)
+    payable_amount = usdc_loans_peripheral_contract.getLoanPayableAmount(
+        borrower, loan_id, chain.time()
+    )
+
+    assert usdc_contract.balanceOf(borrower) == borrower_initial_balance + amount
+
+    tx_pay_loan = usdc_loans_peripheral_contract.pay(
+        loan_id, {"from": borrower, "value": payable_amount}
+    )
+
+    loan_details = usdc_loans_core_contract.getLoan(borrower, loan_id)
+    assert usdc_loans_core_contract.getLoanPaid(borrower, loan_id)
+    assert (
+        usdc_loans_core_contract.getLoanPaidPrincipal(borrower, loan_id)
+        + usdc_loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id)
+        == payable_amount
+    )
+    assert loan_details["paid"] == usdc_loans_core_contract.getLoanPaid(borrower, loan_id)
+    assert loan_details["paidPrincipal"] == usdc_loans_core_contract.getLoanPaidPrincipal(
+        borrower, loan_id
+    )
+    assert loan_details[
+        "paidInterestAmount"
+    ] == usdc_loans_core_contract.getLoanPaidInterestAmount(borrower, loan_id)
+    assert (
+        usdc_loans_peripheral_contract.getLoanPayableAmount(borrower, loan_id, chain.time())
+        == 0
+    )
+
+    loan_paid_event = tx_pay_loan.events["LoanPaid"]
+    assert loan_paid_event["wallet"] == borrower
+    assert loan_paid_event["loanId"] == loan_id
+
+    loan_payment_event = tx_pay_loan.events["LoanPayment"]
+    assert loan_payment_event["wallet"] == borrower
+    assert loan_payment_event["loanId"] == loan_id
+    assert (
+        loan_payment_event["principal"] + loan_payment_event["interestAmount"]
+        == payable_amount
+    )
+
+    for collateral in test_collaterals:
+        assert erc721_contract.ownerOf(collateral[1]) == borrower
+
+    assert borrower.balance() + payable_amount == borrower_initial_balance + LOAN_AMOUNT
+
+
 @pytest.mark.require_network("ganache-mainnet-fork")
 def test_pay_loan_already_paid(
     loans_peripheral_contract,

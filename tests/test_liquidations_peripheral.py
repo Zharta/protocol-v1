@@ -134,7 +134,7 @@ def test_set_collateral_vault_address_same_address(liquidations_peripheral_contr
         liquidations_peripheral_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract, {"from": contract_owner})
 
 
-def test_load_contract_config(contracts_config):
+def test_load_contract_config(contracts_config, usdc_contracts_config):
     pass  # contracts_config fixture active from this point on
 
 
@@ -559,6 +559,85 @@ def test_pay_loan_liquidations_grace_period(
         assert event["fundsOrigin"] == "liquidation_grace_period"
     
     assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, loan_id)
+
+
+def test_pay_loan_liquidations_grace_period_usdc(
+    usdc_contracts_config,
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    usdc_loans_peripheral_contract,
+    usdc_loans_core_contract,
+    usdc_lending_pool_peripheral_contract,
+    usdc_lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    usdc_contract,
+    borrower,
+    contract_owner
+):
+    loan_amount = 10**9  # 1000 USDC
+
+    erc721_contract.mint(collateral_vault_core_contract, 0, {"from": contract_owner})
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, 2*loan_amount, {"from": contract_owner})
+    usdc_lending_pool_peripheral_contract.depositWeth(2*loan_amount, {"from": contract_owner})
+    usdc_lending_pool_peripheral_contract.sendFundsWeth(contract_owner, loan_amount, {"from": usdc_loans_peripheral_contract})
+
+    tx_add_loan = usdc_loans_core_contract.addLoan(
+        borrower,
+        loan_amount,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract, 0, loan_amount)],
+        {"from": usdc_loans_peripheral_contract}
+    )
+    loan_id = tx_add_loan.return_value
+
+    usdc_loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": usdc_loans_peripheral_contract})
+    usdc_loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": usdc_loans_peripheral_contract})
+
+    liquidations_peripheral_contract.addLiquidation(
+        borrower,
+        loan_id,
+        usdc_contract
+    )
+
+    liquidation1 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+
+    usdc_contract.transfer(borrower, liquidation1["gracePeriodPrice"], {"from": contract_owner})
+    usdc_contract.approve(usdc_lending_pool_core_contract, liquidation1["gracePeriodPrice"], {"from": borrower})
+
+
+    tx = liquidations_peripheral_contract.payLoanLiquidationsGracePeriod(
+        loan_id,
+        usdc_contract,
+        {"from": borrower}
+    )
+
+    event_liquidation_removed1 = tx.events["LiquidationRemoved"][0]
+    assert event_liquidation_removed1["liquidationId"] == liquidation1["lid"]
+    assert event_liquidation_removed1["collateralAddress"] == erc721_contract
+    assert event_liquidation_removed1["tokenId"] == 0
+    assert event_liquidation_removed1["erc20TokenContract"] == usdc_contract
+    assert event_liquidation_removed1["loansCoreContract"] == usdc_loans_core_contract
+    assert event_liquidation_removed1["loanId"] == loan_id
+    assert event_liquidation_removed1["borrower"] == borrower
+
+    event_nft_purchased1 = tx.events["NFTPurchased"][0]
+    assert event_nft_purchased1["liquidationId"] == liquidation1["lid"]
+    assert event_nft_purchased1["collateralAddress"] == erc721_contract
+    assert event_nft_purchased1["tokenId"] == 0
+    assert event_nft_purchased1["amount"] == liquidation1["gracePeriodPrice"]
+    assert event_nft_purchased1["buyerAddress"] == borrower
+    assert event_nft_purchased1["erc20TokenContract"] == usdc_contract
+    assert event_nft_purchased1["method"] == "GRACE_PERIOD"
+
+    for event in tx.events["FundsReceipt"]:
+        assert event["fundsOrigin"] == "liquidation_grace_period"
+
+    assert liquidations_core_contract.isLoanLiquidated(borrower, usdc_loans_core_contract, loan_id)
 
 
 @pytest.mark.require_network("ganache-mainnet-fork")
@@ -1324,6 +1403,85 @@ def test_hashmasks_nftx_buy(
     assert event_nft_purchased["tokenId"] == token_id
     assert event_nft_purchased["buyerAddress"] == liquidations_peripheral_contract.nftxMarketplaceZapAddress()
     assert event_nft_purchased["erc20TokenContract"] == erc20_contract
+    assert event_nft_purchased["method"] == "BACKSTOP_PERIOD_NFTX"
+
+    event_funds_receipt = tx.events["FundsReceipt"]
+    assert event_funds_receipt["fundsOrigin"] == "liquidation_nftx"
+
+
+
+def test_hashmasks_nftx_buy_usdc(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    usdc_loans_peripheral_contract,
+    usdc_loans_core_contract,
+    usdc_lending_pool_peripheral_contract,
+    usdc_lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    usdc_liquidity_controls_contract,
+    hashmasks_contract,
+    usdc_contract,
+    borrower,
+    contract_owner
+):
+    token_id: int = 1
+    loan_amount = 10**9
+
+    current_owner = hashmasks_contract.ownerOf(token_id)
+    hashmasks_contract.transferFrom(current_owner, borrower, token_id, {'from': current_owner})
+
+    hashmasks_contract.safeTransferFrom(borrower, collateral_vault_core_contract, token_id, {'from': borrower})
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, loan_amount * 2, {"from": contract_owner})
+    usdc_lending_pool_peripheral_contract.depositWeth(loan_amount * 2, {"from": contract_owner})
+    usdc_lending_pool_peripheral_contract.sendFundsWeth(contract_owner, loan_amount, {"from": usdc_loans_peripheral_contract})
+
+    tx_add_loan = usdc_loans_core_contract.addLoan(
+        borrower,
+        loan_amount,
+        LOAN_INTEREST,
+        MATURITY,
+        [(hashmasks_contract, token_id, loan_amount)],
+        {"from": usdc_loans_peripheral_contract, 'gas_price': 0}
+    )
+    loan_id = tx_add_loan.return_value
+    usdc_loans_core_contract.updateLoanStarted(borrower, loan_id, {"from": usdc_loans_peripheral_contract})
+    usdc_loans_core_contract.updateDefaultedLoan(borrower, loan_id, {"from": usdc_loans_peripheral_contract})
+
+    liquidations_peripheral_contract.addLiquidation(
+        borrower,
+        loan_id,
+        usdc_contract
+    )
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(hashmasks_contract, token_id)
+    loan = usdc_loans_core_contract.getLoan(borrower, loan_id)
+
+    liquidation_id = liquidation['lid']
+    collateral_address = liquidation['collateralAddress']
+    token_id = liquidation['tokenId']
+    loan_id = loan['id']
+
+    chain.mine(blocks=1, timedelta=GRACE_PERIOD_DURATION+LENDER_PERIOD_DURATION+1)
+
+    tx = liquidations_peripheral_contract.liquidateNFTX(collateral_address, token_id, {"from": contract_owner})
+
+    event_liquidation_removed = tx.events["LiquidationRemoved"]
+    assert event_liquidation_removed["liquidationId"] == liquidation_id
+    assert event_liquidation_removed["collateralAddress"] == hashmasks_contract
+    assert event_liquidation_removed["tokenId"] == token_id
+    assert event_liquidation_removed["erc20TokenContract"] == usdc_contract
+    assert event_liquidation_removed["loansCoreContract"] == usdc_loans_core_contract
+    assert event_liquidation_removed["loanId"] == loan_id
+    assert event_liquidation_removed["borrower"] == borrower
+
+    event_nft_purchased = tx.events["NFTPurchased"]
+    assert event_nft_purchased["liquidationId"] == liquidation_id
+    assert event_nft_purchased["collateralAddress"] == hashmasks_contract
+    assert event_nft_purchased["tokenId"] == token_id
+    assert event_nft_purchased["buyerAddress"] == liquidations_peripheral_contract.nftxMarketplaceZapAddress()
+    assert event_nft_purchased["erc20TokenContract"] == usdc_contract
     assert event_nft_purchased["method"] == "BACKSTOP_PERIOD_NFTX"
 
     event_funds_receipt = tx.events["FundsReceipt"]

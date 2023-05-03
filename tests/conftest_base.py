@@ -47,3 +47,15 @@ def erc20_contract(WETH9Mock, contract_owner, borrower, investor):
 @pytest.fixture(scope="module", autouse=True)
 def erc721_contract(ERC721, contract_owner):
     yield ERC721.deploy({'from': contract_owner})
+
+
+@pytest.fixture(scope="module", autouse=True)
+def usdc_contract(ERC20, contract_owner, borrower, investor):
+    usdc = ERC20.at("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+    holder = "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1"
+    usdc.transfer(contract_owner, 10**12, {'from': holder})
+    usdc.transfer(borrower, 10**12, {'from': holder})
+    usdc.transfer(investor, 10**12, {'from': holder})
+    return usdc
+
+

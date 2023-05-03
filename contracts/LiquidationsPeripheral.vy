@@ -12,6 +12,13 @@ from interfaces import ICollateralVaultPeripheral
 
 interface ISushiRouter:
     def getAmountsOut(amountIn: uint256, path: DynArray[address, 2]) -> DynArray[uint256, 2]: view
+    def swapExactTokensForTokens(
+        amountIn: uint256,
+        amountsOutMin: uint256,
+        path: DynArray[address, 2],
+        to: address,
+        dealine: uint256
+    ) -> DynArray[uint256, 2]: nonpayable
 
 interface INFTXVaultFactory:
     def vaultsForAsset(assetAddress: address) -> DynArray[address, 2**10]: view
@@ -282,6 +289,13 @@ def _getNFTXVaultMintFee(vaultAddr: address) -> uint256:
 
 @view
 @internal
+def _getConvertedAutoLiquidationPrice(_ethLiquidationPrice: uint256, _erc20TokenContract: address) -> uint256:
+    amountsOut: DynArray[uint256, 2] = ISushiRouter(self.sushiRouterAddress).getAmountsOut(_ethLiquidationPrice, [wethAddress, _erc20TokenContract])
+    return amountsOut[1]
+
+
+@view
+@internal
 def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> uint256:
     vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
 
@@ -353,6 +367,17 @@ def _removeLiquidationAndTransfer(_collateralAddress: address, _tokenId: uint256
         _origin
     )
 
+
+@internal
+def _swapWETHForERC20Token(_wethValue: uint256, _erc20MinValue: uint256, _erc20TokenContract: address) -> uint256:
+    IERC20(wethAddress).approve(self.sushiRouterAddress, _wethValue)
+    return ISushiRouter(self.sushiRouterAddress).swapExactTokensForTokens(
+        _wethValue,
+        _erc20MinValue,
+        [wethAddress, _erc20TokenContract],
+        self,
+        block.timestamp
+    )[1]
 
 ##### EXTERNAL METHODS - VIEW #####
 
@@ -866,7 +891,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         else:
             raise "Unsupported collateral"
 
-    elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreLegacyAddress() or IVault(vault).vaultName() == "erc721":
+    elif IVault(vault).vaultName() == "erc721":
         IERC721(_collateralAddress).approve(self.nftxMarketplaceZapAddress, _tokenId)
 
     elif IVault(vault).vaultName() == "cryptopunks":
@@ -884,8 +909,9 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         self
     )
 
-    # TODO: swap WETH for liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
-    # TODO: recompute "autoLiquidationPrice" to be in liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
+    if liquidation.erc20TokenContract != wethAddress:
+        convertedAutoLiquidationPrice: uint256 = self._getConvertedAutoLiquidationPrice(autoLiquidationPrice, liquidation.erc20TokenContract)
+        autoLiquidationPrice = self._swapWETHForERC20Token(autoLiquidationPrice, convertedAutoLiquidationPrice, liquidation.erc20TokenContract)
 
     lp_peripheral_address: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
     lp_core_address: address = ILendingPoolPeripheral(lp_peripheral_address).lendingPoolCoreContract()
@@ -900,7 +926,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     distributeToProtocol: bool = True
 
     if autoLiquidationPrice < liquidation.principal: # LP loss scenario
-        principal = autoLiquidationPrice    
+        principal = autoLiquidationPrice
     elif autoLiquidationPrice > liquidation.principal:
         interestAmount = autoLiquidationPrice - liquidation.principal
         protocolFeesShare: uint256 = ILendingPoolPeripheral(lp_peripheral_address).protocolFeesShare()
