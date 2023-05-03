@@ -234,7 +234,8 @@ class LoansPeripheralContract(InternalContract):
             contract,
             Loans,
             container_name="Loans",
-            deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis"},
+            # deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral", "genesis"},
+            deployment_deps={"loans_core", "lending_pool_peripheral", "collateral_vault_peripheral"},
             config_deps={
                 "liquidations_peripheral": Transaction.loansperiph_set_liquidationsperiph,
                 "liquidity_controls": Transaction.loansperiph_set_liquiditycontrols,
@@ -343,5 +344,5 @@ class GenesisContract(InternalContract):
         )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
-        return [context.owner]
+        return [context["genesis_owner"]]
 

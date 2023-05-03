@@ -53,7 +53,7 @@ isApprovedForAll: public(HashMap[address, HashMap[address, bool]])
 # @dev Address receiving the initially minted tokens
 distributor: immutable(address)
 
-totalSupply: public(constant(uint256)) = 100
+totalSupply: public(constant(uint256)) = 65
 
 BASE_URL: constant(String[32]) = "https://genesis.zharta.io/token/"
 
