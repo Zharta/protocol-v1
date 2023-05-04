@@ -16,6 +16,9 @@
             "delegation_registry": {
                 "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B"
             },
+            "genesis": {
+                "contract": "0xC9607C3c160866905ACC460d3D9afe78414e655B"
+            },
             "lending_pool": {
                 "contract": "0x6474Ab1B56b47bC26Ba8cB471d566B8CC528F308"
             },

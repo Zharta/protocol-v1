@@ -343,5 +343,5 @@ class GenesisContract(InternalContract):
         )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
-        return [context.owner]
+        return [context["genesis_owner"]]
 

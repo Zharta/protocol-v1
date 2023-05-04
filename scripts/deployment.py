@@ -199,7 +199,10 @@ class DeploymentManager:
 
     def _get_configs(self) -> dict[str, Any]:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
-        return {"nft_borrowable_amounts": nft_borrowable_amounts}
+        return {
+            "nft_borrowable_amounts": nft_borrowable_amounts,
+            "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner
+        }
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contract.values() if c.nft]
@@ -237,7 +240,7 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {"nft_borrowable_amounts"}
+    # changes |= {"nft_borrowable_amounts"}
     dm.deploy(changes, dryrun=True)
 
 
