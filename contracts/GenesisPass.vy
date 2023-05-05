@@ -70,9 +70,9 @@ owner: public(address)
 
 totalSupply: public(constant(uint256)) = 65
 
-BASE_URL: constant(String[32]) = "https://genesis.zharta.io/token/"
+BASE_URL: constant(String[30]) = "https://genesis.zharta.io/nft/"
 
-contractURI: public(constant(String[30])) = "https://genesis.zharta.io/meta"
+contractURI: public(constant(String[34])) = "https://genesis.zharta.io/metadata"
 
 SUPPORTED_INTERFACES: constant(bytes4[4]) = [
     0x01ffc9a7, # ERC165 interface ID of ERC165
