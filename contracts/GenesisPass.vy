@@ -68,7 +68,7 @@ distributor: immutable(address)
 
 owner: public(address)
 
-totalSupply: public(constant(uint256)) = 65
+totalSupply: public(constant(uint256)) = 1
 
 BASE_URL: constant(String[32]) = "https://genesis.zharta.io/token/"
 
@@ -92,8 +92,8 @@ def __init__(_initialMintWallet: address):
     self.owner = msg.sender
 
     distributor = _initialMintWallet
-    name = "Zharta Genesis Pass"
-    symbol = "ZGP"
+    name = "Test Z Pass"
+    symbol = "TZP"
 
     for i in range(1, totalSupply+1):
         self.tokenOwner[i] = _initialMintWallet
