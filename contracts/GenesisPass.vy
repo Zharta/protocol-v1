@@ -29,6 +29,19 @@ event ApprovalForAll:
     operator: indexed(address)
     approved: bool
 
+# EIP2309
+event ConsecutiveTransfer:
+    fromTokenId: indexed(uint256)
+    toTokenId: uint256
+    fromAddress: indexed(address)
+    toAddress: indexed(address)
+
+# Mimics OpenZeppelin's Ownable contract module
+event OwnershipTransferred:
+    previousOwner: indexed(address)
+    newOwner: indexed(address)
+
+
 # Global variables
 
 
@@ -53,9 +66,13 @@ isApprovedForAll: public(HashMap[address, HashMap[address, bool]])
 # @dev Address receiving the initially minted tokens
 distributor: immutable(address)
 
+owner: public(address)
+
 totalSupply: public(constant(uint256)) = 65
 
-BASE_URL: constant(String[32]) = "https://genesis.zharta.io/token/"
+BASE_URL: constant(String[30]) = "https://genesis.zharta.io/nft/"
+
+contractURI: public(constant(String[34])) = "https://genesis.zharta.io/metadata"
 
 SUPPORTED_INTERFACES: constant(bytes4[4]) = [
     0x01ffc9a7, # ERC165 interface ID of ERC165
@@ -72,6 +89,7 @@ symbol: public(immutable(String[3]))
 
 @external
 def __init__(_initialMintWallet: address):
+    self.owner = msg.sender
 
     distributor = _initialMintWallet
     name = "Zharta Genesis Pass"
@@ -82,6 +100,8 @@ def __init__(_initialMintWallet: address):
         self._addTokenToEnumeration(_initialMintWallet, i)
     self.walletSupply[_initialMintWallet] = totalSupply
 
+    log ConsecutiveTransfer(1, totalSupply, empty(address), _initialMintWallet)
+    log OwnershipTransferred(empty(address), msg.sender)
 
 ## Internal View Functions
 
@@ -322,3 +342,32 @@ def setApprovalForAll(_operator: address, _approved: bool):
 
     self.isApprovedForAll[msg.sender][_operator] = _approved
     log ApprovalForAll(msg.sender, _operator, _approved)
+
+
+@external
+def transferOwnership(_newOwner: address):
+
+    """
+    @notice Transfers ownership of the contract to a new account, can only be called by the current owner
+    @dev Emits the OwnershipTransferred event
+    @param _newOwner Address to transfer the ownership to
+    """
+
+    assert msg.sender == self.owner, "caller is not the owner"
+    assert _newOwner != empty(address), "new owner is the zero address"
+
+    log OwnershipTransferred(self.owner, _newOwner)
+    self.owner = _newOwner
+
+
+@external
+def renounceOwnership():
+
+    """
+    @notice Leaves the contract without owner - not supported
+    @dev Always throws, just here to be consistent with the OpenZeppelin Ownable module public functions
+    """
+
+    raise "not supported"
+
+
