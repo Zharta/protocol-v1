@@ -1,4 +1,4 @@
-# @version 0.3.7
+# @version ^0.3.7
 
 """
 @title Loans
@@ -12,9 +12,35 @@
 from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 from vyper.interfaces import ERC20 as IERC20
-from interfaces import ILoansCore
-from interfaces import ICollateralVaultPeripheral
-from interfaces import ILiquidityControls
+
+interface ILoansCore:
+    def isLoanCreated(_borrower: address, _loanId: uint256) -> bool: view
+    def isLoanStarted(_borrower: address, _loanId: uint256) -> bool: view
+    def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
+    def addCollateralToLoan(_borrower: address, _collateral: Collateral, _loanId: uint256): nonpayable
+    def removeCollateralFromLoan(_borrower: address, _collateral: Collateral, _loanId: uint256): nonpayable
+    def updateCollaterals(_collateral: Collateral, _toRemove: bool): nonpayable
+    def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256: nonpayable
+    def updateLoanStarted(_borrower: address, _loanId: uint256): nonpayable
+    def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256): nonpayable
+    def updatePaidLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateDefaultedLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestSingleCollateralLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestCollateralBundleLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestRepayment(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestDefaultedLoan(_borrower: address, _loanId: uint256): nonpayable
+
+interface ICollateralVaultPeripheral:
+    def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address: view
+    def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _createDelegation: bool): nonpayable
+    def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address): nonpayable
+    def collateralVaultCoreDefaultAddress() -> address: view
+    def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool: view
+    def setCollateralDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _value: bool): nonpayable
+
+interface ILiquidityControls:
+    def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreContractAddress: address, _lpPeripheralContractAddress: address) -> bool: view
+    def withinCollectionShareLimit(_amount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool: view
 
 interface IERC20Symbol:
     def symbol() -> String[100]: view

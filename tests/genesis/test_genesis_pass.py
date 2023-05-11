@@ -40,7 +40,7 @@ class StatefulGenesisPass(RuleBasedStateMachine):
             assert self.genesis_contract.ownerOf(token_id) == receiver
             self.tokens[token_id] = receiver
         else:
-            with brownie.reverts():
+            with boa.reverts():
                 self.genesis_contract.transferFrom(distributor, receiver, token_id, {'from': distributor})
 
     def invariant_total_supply(self):

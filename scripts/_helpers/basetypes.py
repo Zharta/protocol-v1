@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import Optional, Callable, Any
-from brownie.network.account import Account
-from brownie.network.contract import ContractContainer, ProjectContract
-from brownie import ERC721, ERC20
+from ape_accounts.accounts import KeyfileAccount
+from ape.contracts.base import ContractContainer, ContractInstance
 from dataclasses import dataclass, field
+from ape import project
 
 Environment = Enum('Environment', ['local', 'dev', 'int', 'prod'])
 
@@ -17,7 +17,7 @@ class DeploymentContext():
 
     contract: dict[str, ContractConfig]
     env: Environment
-    owner: Account
+    owner: KeyfileAccount
     config: dict[str, Any] = field(default_factory=dict)
     gas_func: Callable = None
 
@@ -35,7 +35,7 @@ class DeploymentContext():
 class ContractConfig():
 
     name: str
-    contract: Optional[ProjectContract]
+    contract: Optional[ContractInstance]
     container: ContractContainer
     nft: bool = False
     container_name: str = None
@@ -88,24 +88,25 @@ class ExternalContract(ContractConfig):
             print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        args = [{'from': context.owner.address} | context.gas_options()]
-        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)})")
+        kwargs = {"sender": context.owner.address} | context.gas_options()
+        kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
+        print(f"## {self.name} <- {self.container_name}.deploy({kwargs_str})")
         if not dryrun:
-            self.contract = self.container.deploy(*args)
+            self.contract = self.container.deploy(**kwargs)
 
 
 class NFT(ExternalContract):
 
-    def __init__(self, name: str, contract: Optional[ProjectContract]):
-        super().__init__(name, contract, ERC721, nft=True, container_name="ERC721")
+    def __init__(self, name: str, contract: Optional[ContractInstance]):
+        super().__init__(name, contract, project.ERC721, nft=True, container_name="ERC721")
 
 
 class Token(ExternalContract):
 
     _config_key: str
 
-    def __init__(self, name: str, key: str, contract: Optional[ProjectContract]):
-        super().__init__(name, contract, ERC20, nft=False, container_name="ERC20")
+    def __init__(self, name: str, key: str, contract: Optional[ContractInstance]):
+        super().__init__(name, contract, project.ERC20, nft=False, container_name="ERC20")
         self._config_key = key
 
     def config_key(self):
@@ -116,10 +117,13 @@ class Token(ExternalContract):
             print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        args = [self.name, self.name, 18, 10**30, {'from': context.owner.address} | context.gas_options()]
-        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}) [{self.name}]")
+        args = [self.name, self.name, 18, 10**30]
+        kwargs = {"sender": context.owner.address} | context.gas_options()
+        kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
+        # print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}) [{self.name}]")
+        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}, {kwargs_str}) [{self.name}]")
         if not dryrun:
-            self.contract = self.container.deploy(*args)
+            self.contract = self.container.deploy(**kwargs)
 
 
 class GenericExternalContract(ExternalContract):
@@ -159,8 +163,9 @@ class InternalContract(ContractConfig):
             print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        print_args = [*self.deployment_args_contracts, self.deployment_options(context)]
-        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)})")
-        args = [*self.deployment_args(context), self.deployment_options(context)]
+        print_args = self.deployment_args_contracts
+        kwargs = self.deployment_options(context)
+        kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
+        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)}, {kwargs_str})")
         if not dryrun:
-            self.contract = self.container.deploy(*args)
+            self.contract = self.container.deploy(*self.deployment_args(context), **kwargs)

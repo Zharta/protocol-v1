@@ -1,61 +1,79 @@
 import pytest
+import boa
+import vyper
+import os
 from web3 import Web3
-
-from brownie.exceptions import ContractNotFound
-
-
-@pytest.fixture(scope="module", autouse=True)
-def contract_owner(accounts):
-    owner = accounts.add('0xbb4b8e7e4375d27f27518ac7f8c6db473fdc3a10a42389cf984c87bc7a1fce1b')
-    accounts[0].transfer(owner, Web3.toWei(800, "ether"))
-    return owner
+from functools import cached_property
 
 
-@pytest.fixture(scope="module", autouse=True)
-def investor(accounts):
-    yield accounts[1]
+# boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")
+boa.env.enable_gas_profiling()
+# boa.reset_env()
+boa.env.fork(url=os.environ["BOA_FORK_RPC_URL"])
 
 
-@pytest.fixture(scope="module", autouse=True)
-def borrower(accounts):
-    yield accounts[2]
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
-@pytest.fixture(scope="module", autouse=True)
-def protocol_wallet(accounts):
-    yield accounts[3]
-
-@pytest.fixture(scope="module", autouse=True)
-def not_contract_owner(accounts):
-    return accounts.add()
-
-@pytest.fixture(scope="module", autouse=True)
-def erc20_contract(WETH9Mock, contract_owner, borrower, investor):
-    try:
-        _erc20 = WETH9Mock.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
-        _erc20.transfer(contract_owner, 100 * 10**18, {'from': _erc20})
-        _erc20.transfer(borrower, 100 * 10**18, {'from': _erc20})
-        _erc20.transfer(investor, 100 * 10**18, {'from': _erc20})
-    except ContractNotFound:
-        _erc20 = WETH9Mock.deploy("Wrapped Ether", "WETH", 18, 1000 * 10 ** 18, {"from": contract_owner})
-        _erc20.transfer(contract_owner, 100 * 10**18, {'from': contract_owner})
-        _erc20.transfer(borrower, 100 * 10**18, {'from': contract_owner})
-        _erc20.transfer(investor, 100 * 10**18, {'from': contract_owner})
-    return _erc20
+def get_last_event(contract: boa.vyper.contract.VyperContract, name: str = None):
+    matching_events = [e for e in contract.get_logs() if isinstance(e, boa.vyper.event.Event) and (name is None or name == e.event_type.name)]
+    return EventWrapper(matching_events[-1])
 
 
-@pytest.fixture(scope="module", autouse=True)
-def erc721_contract(ERC721, contract_owner):
-    yield ERC721.deploy({'from': contract_owner})
+def get_events(contract: boa.vyper.contract.VyperContract, name: str = None):
+    return [EventWrapper(e) for e in contract.get_logs() if isinstance(e, boa.vyper.event.Event) and (name is None or name == e.event_type.name)]
 
 
-@pytest.fixture(scope="module", autouse=True)
-def usdc_contract(ERC20, contract_owner, borrower, investor):
-    usdc = ERC20.at("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
-    holder = "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1"
-    usdc.transfer(contract_owner, 10**12, {'from': holder})
-    usdc.transfer(borrower, 10**12, {'from': holder})
-    usdc.transfer(investor, 10**12, {'from': holder})
-    return usdc
+class EventWrapper():
+
+    def __init__(self, event: boa.vyper.event.Event):
+        self.event = event
+        self.event_name = event.event_type.name
+
+    def __getattr__(self, name):
+        print(f"getattr {self=} {name=}")
+        if name in self.args_dict:
+            return self.args_dict[name]
+        else:
+            raise AttributeError(f"No attr {name} in {self.event_name}. Event data is {self.event}")
+
+    @cached_property
+    def args_dict(self):
+        print(f"{self.event=} {self.event.event_type.arguments=}")
+        args = self.event.event_type.arguments.keys()
+        indexed = self.event.event_type.indexed
+        topic_values = (v for v in self.event.topics)
+        args_values = (v for v in self.event.args)
+        _args = [(arg, next(topic_values) if indexed[i] else next(args_values)) for i, arg in enumerate(args)]
+
+        return {k: self._format_value(v, self.event.event_type.arguments[k]) for k, v in _args}
+
+    def _format_value(self, v, _type):
+        print(f"_format_value {v=} {_type=} {type(v).__name__=} {type(_type)=}")
+        if isinstance(_type, vyper.semantics.types.primitives.AddressT):
+            return Web3.to_checksum_address(v)
+        # elif isinstance(_type, vyper.semantics.types.value.bytes_fixed.Bytes32Definition):
+        elif isinstance(_type, vyper.semantics.types.primitives.BytesT):
+            return f"0x{v.hex()}"
+        return v
 
 
+# TODO: find a better way to do this. also would be useful to get structs attrs by name
+def checksummed(obj, vyper_type=None):
+    if vyper_type is None and hasattr(obj, "_vyper_type"):
+        vyper_type = obj._vyper_type
+    print(f"checksummed {obj=} {vyper_type=} {type(obj).__name__=} {type(vyper_type)=}")
+
+    if isinstance(vyper_type, vyper.codegen.types.types.DArrayType):
+        return list(checksummed(x, vyper_type.subtype) for x in obj)
+
+    elif isinstance(vyper_type, vyper.codegen.types.types.StructType):
+        return tuple(checksummed(*arg) for arg in zip(obj, vyper_type.tuple_members()))
+
+    elif isinstance(vyper_type, vyper.codegen.types.types.BaseType):
+        if vyper_type.typ == 'address':
+            return Web3.toChecksumAddress(obj)
+        elif vyper_type.typ == 'bytes32':
+            return f"0x{obj.hex()}"
+
+    return obj

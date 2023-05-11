@@ -1,37 +1,21 @@
 from typing import Optional, Any
 from functools import partial
-from brownie.network.contract import ProjectContract
+from ape.contracts.base import ContractInstance
 from dataclasses import dataclass
-from .types import InternalContract, DeploymentContext
+from .basetypes import InternalContract, DeploymentContext
 from .transactions import Transaction
 
-from brownie import (
-    CollateralVaultCoreV2,
-    CollateralVaultPeripheral,
-    CryptoPunksMarketMock,
-    CryptoPunksVaultCore,
-    DelegationRegistryMock,
-    GenesisPass,
-    LendingPoolCore,
-    LendingPoolLock,
-    LendingPoolPeripheral,
-    LiquidationsCore,
-    LiquidationsPeripheral,
-    LiquidityControls,
-    Loans,
-    LoansCore,
-    WETH9Mock,
-)
+from ape import project
 
 
 @dataclass
 class CollateralVaultCoreV2Contract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "collateral_vault_core",
             contract,
-            CollateralVaultCoreV2,
+            project.CollateralVaultCoreV2,
             scope=scope,
             container_name="CollateralVaultCoreV2",
             deployment_deps={"delegation_registry"},
@@ -45,11 +29,11 @@ class CollateralVaultCoreV2Contract(InternalContract):
 @dataclass
 class CryptoPunksVaultCoreContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "cryptopunks_vault_core",
             contract,
-            CryptoPunksVaultCore,
+            project.CryptoPunksVaultCore,
             scope=scope,
             container_name="CryptoPunksVaultCore",
             deployment_deps={"punk", "delegation_registry"},
@@ -63,11 +47,11 @@ class CryptoPunksVaultCoreContract(InternalContract):
 @dataclass
 class CollateralVaultPeripheralContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "collateral_vault_peripheral",
             contract,
-            CollateralVaultPeripheral,
+            project.CollateralVaultPeripheral,
             scope=scope,
             container_name="CollateralVaultPeripheral",
             deployment_deps={f"{scope}.collateral_vault_core"},
@@ -83,11 +67,11 @@ class CollateralVaultPeripheralContract(InternalContract):
 @dataclass
 class LendingPoolCoreContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "lending_pool_core",
             contract,
-            LendingPoolCore,
+            project.LendingPoolCore,
             scope=scope,
             container_name="LendingPoolCore",
             deployment_deps=[f"{scope}.token"],
@@ -99,11 +83,11 @@ class LendingPoolCoreContract(InternalContract):
 @dataclass
 class LendingPoolLockContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "lending_pool_lock",
             contract,
-            LendingPoolLock,
+            project.LendingPoolLock,
             scope=scope,
             container_name="LendingPoolLock",
             deployment_deps=[f"{scope}.token"],
@@ -117,11 +101,11 @@ class LendingPoolLockContract(InternalContract):
 @dataclass
 class WETH9MockContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "token",
             contract,
-            WETH9Mock,
+            project.WETH9Mock,
             scope=scope,
             container_name="WETH9Mock",
             deployment_deps=[],
@@ -137,11 +121,11 @@ class WETH9MockContract(InternalContract):
 @dataclass
 class CryptoPunksMockContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract] = None):
+    def __init__(self, contract: Optional[ContractInstance] = None):
         super().__init__(
             "punk",
             contract,
-            CryptoPunksMarketMock,
+            project.CryptoPunksMarketMock,
             container_name="CryptoPunksMarketMock",
             deployment_deps=[],
         )
@@ -154,11 +138,11 @@ class CryptoPunksMockContract(InternalContract):
 @dataclass
 class DelegationRegistryMockContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract] = None):
+    def __init__(self, contract: Optional[ContractInstance] = None):
         super().__init__(
             "delegation_registry",
             contract,
-            DelegationRegistryMock,
+            project.DelegationRegistryMock,
             container_name="DelegationRegistryMock",
             deployment_deps=[],
         )
@@ -170,11 +154,11 @@ class DelegationRegistryMockContract(InternalContract):
 @dataclass
 class LendingPoolPeripheralContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "lending_pool_peripheral",
             contract,
-            LendingPoolPeripheral,
+            project.LendingPoolPeripheral,
             scope=scope,
             container_name="LendingPoolPeripheral",
             deployment_deps={f"{scope}.lending_pool_core", f"{scope}.lending_pool_lock", f"{scope}-token"},
@@ -203,11 +187,11 @@ class LendingPoolPeripheralContract(InternalContract):
 @dataclass
 class LoansCoreContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "loans_core",
             contract,
-            LoansCore,
+            project.LoansCore,
             scope=scope,
             container_name="LoansCore",
             deployment_deps={},
@@ -219,11 +203,11 @@ class LoansCoreContract(InternalContract):
 @dataclass
 class LoansPeripheralContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "loans",
             contract,
-            Loans,
+            project.Loans,
             scope=scope,
             container_name="Loans",
             deployment_deps={f"{scope}.loans_core", f"{scope}.lending_pool_peripheral", f"{scope}.collateral_vault_peripheral", "genesis"},
@@ -249,11 +233,11 @@ class LoansPeripheralContract(InternalContract):
 @dataclass
 class LiquidationsCoreContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract] = None):
+    def __init__(self, contract: Optional[ContractInstance] = None):
         super().__init__(
             "liquidations_core",
             contract,
-            LiquidationsCore,
+            project.LiquidationsCore,
             container_name="LiquidationsCore",
             deployment_deps={},
             config_deps={
@@ -266,11 +250,11 @@ class LiquidationsCoreContract(InternalContract):
 @dataclass
 class LiquidationsPeripheralContract(InternalContract):
 
-    def __init__(self, scopes: list[str], contract: Optional[ProjectContract] = None):
+    def __init__(self, scopes: list[str], contract: Optional[ContractInstance] = None):
         super().__init__(
             "liquidations_peripheral",
             contract,
-            LiquidationsPeripheral,
+            project.LiquidationsPeripheral,
             container_name="LiquidationsPeripheral",
             deployment_deps={"liquidations_core", "weth.token"},
             config_deps={
@@ -301,11 +285,11 @@ class LiquidationsPeripheralContract(InternalContract):
 @dataclass
 class LiquidityControlsContract(InternalContract):
 
-    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+    def __init__(self, scope: str, contract: Optional[ContractInstance] = None):
         super().__init__(
             "liquidity_controls",
             contract,
-            LiquidityControls,
+            project.LiquidityControls,
             scope=scope,
             container_name="LiquidityControls",
             deployment_deps={},
@@ -327,11 +311,11 @@ class LiquidityControlsContract(InternalContract):
 @dataclass
 class GenesisContract(InternalContract):
 
-    def __init__(self, contract: Optional[ProjectContract] = None):
+    def __init__(self, contract: Optional[ContractInstance] = None):
         super().__init__(
             "genesis",
             contract,
-            GenesisPass,
+            project.GenesisPass,
             container_name="GenesisPass",
             deployment_deps={},
             config_deps={},

@@ -1,4 +1,4 @@
-# @version 0.3.7
+# @version ^0.3.7
 
 """
 @title LendingPoolPeripheral
@@ -10,14 +10,38 @@
 # Interfaces
 
 from vyper.interfaces import ERC20 as IERC20
-from interfaces import ILendingPoolCore
-from interfaces import ILendingPoolLock
-from interfaces import ILiquidityControls
 
+interface ILendingPoolCore:
+    def funds(arg0: address) -> InvestorFunds: view
+    def fundsAvailable() -> uint256: view
+    def fundsInvested() -> uint256: view
+    def computeWithdrawableAmount(_lender: address) -> uint256: view
+    def deposit(_lender: address, _payer: address, _amount: uint256) -> bool: nonpayable
+    def withdraw(_lender: address, _wallet: address, _amount: uint256) -> bool: nonpayable
+    def sendFunds(_to: address, _amount: uint256) -> bool: nonpayable
+    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _investedAmount: uint256) -> bool: nonpayable
+    def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: uint256) -> bool: nonpayable
+
+interface ILendingPoolLock:
+    def investorLocks(arg0: address) -> InvestorLock: view
+    def setInvestorLock(_lender: address, _amount: uint256, _lockPeriodEnd: uint256): nonpayable
+
+interface ILiquidityControls:
+    def lockPeriodDuration() -> uint256: view
+    def lockPeriodEnabled() -> bool: view
+    def withinPoolShareLimit(
+        _lender: address,
+        _amount: uint256,
+        _lpPeripheralContractAddress: address,
+        _lpCoreContractAddress: address,
+        _fundsInvestable: uint256
+    ) -> bool: view
+    def outOfLockPeriod(_lender: address, _remainingAmount: uint256, _lpLockContractAddress: address) -> bool: view
 
 interface IWETH:
     def deposit(): payable
     def withdraw(_amount: uint256): nonpayable
+
 
 # Structs
 
@@ -522,7 +546,7 @@ def __init__(
 @payable
 def __default__():
     assert msg.sender == erc20TokenContract, "msg.sender is not the WETH addr"
-    log PaymentReceived(msg.sender, msg.sender, msg.value)
+    # log PaymentReceived(msg.sender, msg.sender, msg.value)
 
 
 @external

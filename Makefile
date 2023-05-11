@@ -9,26 +9,19 @@ NATSPEC := $(patsubst contracts/%, natspec/%, $(CONTRACTS:%.vy=%.json))
 
 vpath %.vy ./contracts
 
-$(VENV)/bin/activate: requirements.txt
+$(VENV): requirements.txt
 	python3 -m venv $(VENV)
 	${PIP} install -U pip
 	${PIP} install wheel
 
-venv: ${VENV}/bin/activate
-
-install: venv
+install: ${VENV}
 	${PIP} install -r requirements.txt
 
-install-dev: venv install
+install-dev: ${VENV}
 	${PIP} install -r requirements-dev.txt
 
-test: export FORK=false
-test: venv install-dev
-	patch contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
-	${VENV}/bin/brownie test ; patch -R contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
-
-full-test: venv install-dev
-	${VENV}/bin/brownie test --durations=20 --gas --network ganache-mainnet-fork
+test: ${VENV}
+	${VENV}/bin/pytest tests --durations=0 --profile
 
 interfaces:
 	python scripts/build_interfaces.py contracts/*.vy
@@ -39,4 +32,4 @@ natspec/%.json: %.vy
 	vyper -f userdoc,devdoc $< > $@
 
 clean:
-	rm -rf ${VENV}
+	rm -rf ${VENV} .cache

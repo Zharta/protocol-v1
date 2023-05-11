@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from typing import Callable, Optional
-from .types import DeploymentContext, Environment
-from brownie import chain
+from typing import Optional
+from .basetypes import DeploymentContext, Environment
 
 
 @dataclass
@@ -121,20 +120,21 @@ class Transaction:
         nft_borrowable_amounts = context[f"{scope}.nft_borrowable_amounts"]
         contract_instance = context[f"{scope}.liquidity_controls"].contract
         for nft, value_eth in nft_borrowable_amounts.items():
-            value_wei = value_eth * 1e18
+            value_wei = value_eth * 10**18
             address = context[nft].address()
-            args = [True, address, value_wei, {"from": context.owner} | context.gas_options()]
+            args = [True, address, value_wei]
+            kwargs = {"sender": context.owner} |  context.gas_options()
             if not address:
                 print(f"Skipping changeMaxCollectionBorrowableAmount for undeployed {nft}")
                 continue
             current_value = contract_instance.maxCollectionBorrowableAmount(address)
             if current_value != value_wei:
-                print(f"Changing MaxCollectionBorrowableAmount for {nft}, from {current_value/1e18} to {value_wei/1e18} eth")
+                print(f"Changing MaxCollectionBorrowableAmount in {scope} for {nft}, from {current_value/10**18} to {value_wei/10**18} eth")
                 print(f"## {scope}.liquidity_controls.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
                 if not dryrun:
-                    contract_instance.changeMaxCollectionBorrowableAmount(*args)
+                    contract_instance.changeMaxCollectionBorrowableAmount(*args, **kwargs)
             else:
-                print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_wei/1e18} eth")
+                print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_wei/10**18} eth")
 
 
 def execute_read(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):
@@ -143,7 +143,7 @@ def execute_read(context: DeploymentContext, contract: str, func: str, *args, dr
     if not dryrun:
         function = getattr(contract_instance, func)
         deploy_args = [context[a].address() for a in args]
-        return function(*deploy_args, {"from": context.owner} | (options or {}))
+        return function(*deploy_args, **({"sender": context.owner} | (options or {})))
 
 def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):
     contract_instance = context.contract[contract].contract
@@ -151,4 +151,4 @@ def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun:
     if not dryrun:
         function = getattr(contract_instance, func)
         deploy_args = [context[a].address() for a in args]
-        return function(*deploy_args, {"from": context.owner} | context.gas_options() | (options or {}))
+        return function(*deploy_args, **({"sender": context.owner} | context.gas_options() | (options or {})))

@@ -1,11 +1,9 @@
-# @version 0.3.7
+# @version ^0.3.7
 
 
 # Interfaces
 
 from vyper.interfaces import ERC20 as IERC20
-
-from interfaces import ILendingPoolCore
 
 
 # Structs
@@ -17,7 +15,13 @@ struct InvestorFunds:
     sharesBasisPoints: uint256
     activeForRewards: bool
 
-
+interface ILendingPoolCore:
+    def activeLenders() -> uint256: view
+    def fundsAvailable() -> uint256: view
+    def fundsInvested() -> uint256: view
+    def totalFundsInvested() -> uint256: view
+    def totalRewards() -> uint256: view
+    def totalSharesBasisPoints() -> uint256: view
 
 # Events
 
