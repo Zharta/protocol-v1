@@ -162,10 +162,11 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         # Update contracts config with abi content
         mapped_contract = contracts_mapped.get(contract, None)
         if mapped_contract:
-            try:
-                config["tokens"]["WETH"][mapped_contract]["abi"] = abi_python
-            except KeyError:
-                pass
+            for token, token_config in config["tokens"].items():
+                try:
+                    token_config[mapped_contract]["abi"] = abi_python
+                except KeyError:
+                    pass
 
         # Update nfts config with abi content but only for ERC721 contract
         if contract == "auxiliary/token/ERC721":
