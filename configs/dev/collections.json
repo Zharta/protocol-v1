@@ -1670,7 +1670,7 @@
         },
         "whitelisted": true
       }
-    "appraisal_method": "standard",
+    },
     "contract_address": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
     "debt_limit": 2.5,
     "floor_multiple_cap": 0.8,
