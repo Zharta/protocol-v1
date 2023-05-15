@@ -135,6 +135,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("degods", None),
         NFT("othersidekoda", None),
         NFT("otherdeedexpanded", None),
+        NFT("oldquirkies", None),
     ]]
 
 
@@ -198,7 +199,11 @@ class DeploymentManager:
     def _get_configs(self) -> dict[str, Any]:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
         # TODO fix when new collections format is ready
-        return {"weth.nft_borrowable_amounts": nft_borrowable_amounts, "usdc.nft_borrowable_amounts": nft_borrowable_amounts}
+        return {
+            "weth.nft_borrowable_amounts": nft_borrowable_amounts,
+            "usdc.nft_borrowable_amounts": nft_borrowable_amounts,
+            "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner
+        }
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contract.values() if c.nft]
@@ -236,8 +241,8 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {"weth.collateral_vault_peripheral"}
-    dm.deploy(changes, dryrun=False)
+    changes |= {"nft_borrowable_amounts"}
+    dm.deploy(changes, dryrun=True)
 
     for k, v in dm.context.contract.items():
         globals()[k.replace(".", "_")] = v.contract
