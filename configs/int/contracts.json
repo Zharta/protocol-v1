@@ -1,5 +1,52 @@
 {
     "tokens": {
+        "USDC": {
+            "collateral_vault_core": {
+                "contract": "0x6f1c56798e760b4dfA927D430d389AE92D8B718b"
+            },
+            "collateral_vault_core2": {
+                "contract": "0x14F41B957Bb78cb9bA5964237637a0912c90098d"
+            },
+            "collateral_vault_peripheral": {
+                "contract": "0x86339afB987ACdA3Dc3401634Ce2baD9724a1BA7"
+            },
+            "cryptopunks_vault_core": {
+                "contract": "0xd9325312366afe46Ec516a07a1004Ed892b22564"
+            },
+            "delegation_registry": {
+                "contract": "0xB18CF5BCe0266C688361e10E4155709880d1b6D6"
+            },
+            "genesis": {
+                "contract": "0x36d3C8e6202a953A80e6a8168BC06C80Ff96334F"
+            },
+            "lending_pool": {
+                "contract": "0x3086444bec5214F0f1ECd609aBcD2386aaDd5ac1"
+            },
+            "lending_pool_core": {
+                "contract": "0xE784cD4bA158fbdACb24E7561E7958384b00a0f5"
+            },
+            "lending_pool_lock": {
+                "contract": "0x95a79e8eeD78ABf9F5A537213CF17e326fce9ff9"
+            },
+            "liquidations_core": {
+                "contract": "0x0F41FA98CBc1a11b76a0096026D900eA8294E827"
+            },
+            "liquidations_peripheral": {
+                "contract": "0x7955a35eD1580a11a47C646d2d459e967B9E7619"
+            },
+            "liquidity_controls": {
+                "contract": "0xf3D5D7Cf328D9586E0394614FE566005894e54Fd"
+            },
+            "loans": {
+                "contract": "0x13A18453c8aEeDb2e62502Dc74F0493B0E081C9C"
+            },
+            "loans_core": {
+                "contract": "0xbe3eDea464493fC63A030ab8C471666c155E79CB"
+            },
+            "token": {
+                "contract": "0xB7603602860a4816154F2A3bA4d6aBDDd8937b84"
+            }
+        },
         "WETH": {
             "collateral_vault_core": {
                 "contract": "0x6f1c56798e760b4dfA927D430d389AE92D8B718b"
