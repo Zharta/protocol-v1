@@ -135,6 +135,26 @@ class WETH9MockContract(InternalContract):
 
 
 @dataclass
+class USDCMockContract(InternalContract):
+
+    def __init__(self, scope: str, contract: Optional[ProjectContract] = None):
+        super().__init__(
+            "token",
+            contract,
+            WETH9Mock,
+            scope=scope,
+            container_name="WETH9Mock",
+            deployment_deps=[],
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return ["USDC", "USDC", 6, 1e9]
+
+    def config_key(self):
+        return "token"
+
+
+@dataclass
 class CryptoPunksMockContract(InternalContract):
 
     def __init__(self, contract: Optional[ProjectContract] = None):
