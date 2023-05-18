@@ -237,6 +237,25 @@
   "chromie": {
     "appraisal_method": "standard",
     "conditions": {
+      "ETH-SQUIGGLEDAO": {
+        "debt_limit": 125.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.15,
+            "ltv": 0.625
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.675
+          },
+          "90d": {
+            "apr": 0.125,
+            "ltv": 0.525
+          }
+        },
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,

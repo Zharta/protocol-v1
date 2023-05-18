@@ -4,6 +4,7 @@ from brownie.network.account import Account
 from brownie.network.contract import ContractContainer, ProjectContract
 from brownie import ERC721, ERC20
 from dataclasses import dataclass, field
+from functools import cached_property
 
 Environment = Enum('Environment', ['local', 'dev', 'int', 'prod'])
 
@@ -18,17 +19,28 @@ class DeploymentContext():
     contract: dict[str, ContractConfig]
     env: Environment
     owner: Account
+    pools: list[str]
     config: dict[str, Any] = field(default_factory=dict)
     gas_func: Callable = None
 
     def __getitem__(self, key):
-        return self.contract[key] if key in self.contract else self.config[key]
+        if key in self.contract:
+            return self.contract[key]
+        elif key in self.config:
+            return self.config[key]
+        else:
+            return self.pool_contract[key]
 
     def keys(self):
         return self.contract.keys() | self.config.keys()
 
     def gas_options(self):
         return self.gas_func(self) if self.gas_func is not None else {}
+
+    @cached_property
+    def pool_contract(self):
+        return {(pool, c.name): k for k, c in self.contract.items() for pool in (c.pools or [])}
+
 
 
 @dataclass
@@ -40,16 +52,17 @@ class ContractConfig():
     nft: bool = False
     container_name: str = None
     scope: Optional[str] = None
+    pools: Optional[list[str]] = None
     deployment_deps: set[str] = field(default_factory=set)
     config_deps: dict[str, Callable] = field(default_factory=dict)
 
     def deployable(self, context: DeploymentContext) -> bool:
         return False
 
-    def deployment_dependencies(self) -> set[str]:
+    def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
         return self.deployment_deps
 
-    def config_dependencies(self) -> dict[str, Callable]:
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
         return self.config_deps
 
     def deploy(self, context: DeploymentContext, dryrun: bool = False) -> ContractConfig:
@@ -74,7 +87,7 @@ class ContractConfig():
         return self.name
 
     def __repr__(self):
-        return f"Contract[name={self.name}, nft={self.nft}, contract={self.contract}, container_name={self.container_name}]"
+        return f"Contract[name={self.name}, scope={self.scope}, nft={self.nft}, contract={self.contract}, container_name={self.container_name}]"
 
 
 @dataclass
@@ -160,7 +173,7 @@ class InternalContract(ContractConfig):
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
         print_args = [*self.deployment_args_contracts, self.deployment_options(context)]
-        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)})")
+        print(f"## {self.pools} {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)})")
         args = [*self.deployment_args(context), self.deployment_options(context)]
         if not dryrun:
             self.contract = self.container.deploy(*args)
