@@ -202,9 +202,6 @@ def load_borrowable_amounts(env: Environment) -> dict:
     for pool in TOKENS:
         limit = lambda c: limit_for_pool(c, pool)
         max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
-        for c in collections:
-            if collection_key(c) == "punk":
-                print(pool, c["conditions"], limit(c))
         amounts |= {(pool, collection_key(c)): limit(c) for c in max_collection_per_contract}
     return amounts
 
@@ -280,18 +277,18 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
-    # changes |= {"usdc.token"}
+    changes |= {"nft_borrowable_amounts"}
     dm.deploy(changes, dryrun=True)
 
     for k, v in dm.context.contract.items():
-        globals()[k.replace(".", "_")] = v.contract
+        globals()[k.replace(".", "_").replace("-", "_")] = v.contract
     for k, v in dm.context.config.items():
-        globals()[k.replace(".", "_")] = v
+        globals()[k.replace(".", "_").replace("-", "_")] = v
 
 def console():
     dm = DeploymentManager(ENV)
     for k, v in dm.context.contract.items():
-        globals()[k.replace(".", "_")] = v.contract
+        globals()[k.replace(".", "_").replace("-", "_")] = v.contract
         print(k.replace(".", "_"),v.contract)
     for k, v in dm.context.config.items():
-        globals()[k.replace(".", "_")] = v
+        globals()[k.replace(".", "_").replace("-", "_")] = v

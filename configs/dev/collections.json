@@ -254,6 +254,7 @@
             "ltv": 0.525
           }
         },
+        "token_whitelist": "chromies-squigglespool",
         "whitelisted": true
       },
       "WETH": {

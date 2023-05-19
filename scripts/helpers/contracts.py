@@ -76,15 +76,9 @@ class CollateralVaultPeripheralContract(InternalContract):
             scope=scope,
             pools=pools,
             container_name="CollateralVaultPeripheral",
-            # deployment_deps={f"{scope}.collateral_vault_core"},
-            # deployment_args_contracts=[f"{scope}.collateral_vault_core"],
         )
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
-        # for k, v in sorted(context.contract.items()):
-        #     print(k, repr(v))
-        # for k, v in sorted(context.pool_contract.items()):
-        #     print(k, v)
         set_liquidationsperiph = { context[pool, "liquidations_peripheral"]: with_pool(Transaction.cvperiph_set_liquidationsperiph, pool) for pool in self.pools}
         add_loansperiph = { context[pool, "loans"]: with_pool(Transaction.loansperiph_set_cvperiph, pool) for pool in self.pools}
         add_punksvault = { context[pool, "cryptopunks_vault_core"]: with_pool(Transaction.cvperiph_add_loansperiph, pool) for pool in self.pools}
@@ -108,8 +102,6 @@ class LendingPoolCoreContract(InternalContract):
             scope=scope,
             pools=pools,
             container_name="LendingPoolCore",
-            # deployment_deps=[f"{scope}.token"],
-            # deployment_args_contracts=[f"{scope}.token"],
         )
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
@@ -132,8 +124,6 @@ class LendingPoolLockContract(InternalContract):
             scope=scope,
             pools=pools,
             container_name="LendingPoolLock",
-            # deployment_deps=[f"{scope}.token"],
-            # deployment_args_contracts=[f"{scope}.token"],
         )
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
@@ -196,8 +186,6 @@ class CryptoPunksMockContract(InternalContract):
             "punk",
             contract,
             CryptoPunksMarketMock,
-            # scope=scope,
-            # pools=pools,
             container_name="CryptoPunksMarketMock",
             deployment_deps=[],
         )
@@ -235,7 +223,6 @@ class LendingPoolPeripheralContract(InternalContract):
             scope=scope,
             pools=pools,
             container_name="LendingPoolPeripheral",
-            # deployment_deps={f"{scope}.lending_pool_core", f"{scope}.lending_pool_lock", f"{scope}-token"},
         )
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
@@ -306,8 +293,6 @@ class LoansPeripheralContract(InternalContract):
             scope=scope,
             pools=pools,
             container_name="Loans",
-            # deployment_deps={f"{scope}.loans_core", f"{scope}.lending_pool_peripheral", f"{scope}.collateral_vault_peripheral", "genesis"},
-            # deployment_args_contracts=[f"{scope}.loans_core", f"{scope}.lending_pool_peripheral", f"{scope}.collateral_vault_peripheral", "genesis"],
         )
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
@@ -376,7 +361,6 @@ class LiquidationsPeripheralContract(InternalContract):
             scope=scope,
             pools=pools,
             container_name="LiquidationsPeripheral",
-            # deployment_deps={"liquidations_core", "weth.token"},
         )
 
 

@@ -68,10 +68,6 @@ class Transaction:
             context[pool, "collateral_vault_peripheral"],
             dryrun=dryrun
         )
-        # mappings = {context[pool, "collateral_vault_core"]: context[pool, "collateral_vault_peripheral"] for pool in pools}
-        # for cvc, cvp in mappings.items():
-        #     execute(context, cvc, "setCollateralVaultPeripheralAddress", cvp, dryrun=dryrun)
-        # execute(context, f"{scope}.kollateral_vault_core", "setCollateralVaultPeripheralAddress", f"{scope}.collateral_vault_peripheral", dryrun=dryrun)
 
     @staticmethod
     def punksvault_set_cvperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
@@ -253,42 +249,29 @@ class Transaction:
         contract = context[pool, "liquidity_controls"]
         contract_instance = context[contract].contract
         if not contract_instance:
-            print(f"Skipping changeMaxCollectionBorrowableAmount for undeployed {contract}")
+            print(f"[{pool}] Skipping changeMaxCollectionBorrowableAmount for undeployed {contract}")
             return
         for (amount_pool, nft), value_eth in nft_borrowable_amounts.items():
             if amount_pool != pool:
                 continue
-            # TODO use decimals
-            # TODO use decimals
-            # TODO use decimals
-            # TODO use decimals
-            # TODO use decimals
-            # TODO use decimals
-            value_wei = value_eth * 1e18
+            erc20_contract = context[pool, "token"]
+            erc20_contract_instance = context[erc20_contract].contract
+            decimals = erc20_contract_instance.decimals() if erc20_contract_instance else 18
+            value_with_decimals = value_eth * 10**decimals
             address = context[nft].address()
-            args = [True, address, value_wei, {"from": context.owner} | context.gas_options()]
+            args = [True, address, value_with_decimals, {"from": context.owner} | context.gas_options()]
             if not address:
-                print(f"Skipping changeMaxCollectionBorrowableAmount for undeployed {nft}")
+                print(f"[{pool}] Skipping changeMaxCollectionBorrowableAmount for undeployed {nft}")
                 continue
             current_value = contract_instance.maxCollectionBorrowableAmount(address)
-            if current_value != value_wei:
-                print(f"Changing MaxCollectionBorrowableAmount for {nft}, from {current_value/1e18} to {value_wei/1e18} eth")
+            if current_value != value_with_decimals:
+                print(f"[{pool}] Changing MaxCollectionBorrowableAmount for {nft}, from {current_value/10**decimals} to {value_with_decimals/10**decimals} eth")
                 print(f"## {contract}.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
                 if not dryrun:
                     contract_instance.changeMaxCollectionBorrowableAmount(*args)
             else:
-                print(f"Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_wei/1e18} eth")
+                print(f"[{pool}] Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_with_decimals/10**decimals} eth")
 
-    # @classmethod
-    # def add_with_pool(cls):
-    #     def with_pool(f, pool):
-    #         return partial(f, pool=pool)
-
-    #     for _, f in cls.__dict__.items():
-    #         print(f"checking {f} {type(f)=}")
-    #         if isinstance(f, staticmethod):
-    #             print(f"setting with_pool for {f}")
-    #             f.with_pool = partial(with_pool, f)
 
 
 def execute_read(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):
