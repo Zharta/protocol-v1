@@ -200,6 +200,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
+    loansCoreContract: address
     method: String[30] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX, BACKSTOP_PERIOD_ADMIN
 
 event AdminWithdrawal:
@@ -364,6 +365,7 @@ def _removeLiquidationAndTransfer(_collateralAddress: address, _tokenId: uint256
         _liquidation.gracePeriodPrice,
         msg.sender,
         _liquidation.erc20TokenContract,
+        _liquidation.loansCoreContract,
         _origin
     )
 
@@ -797,6 +799,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             liquidation.gracePeriodPrice,
             msg.sender,
             liquidation.erc20TokenContract,
+            liquidation.loansCoreContract,
             "GRACE_PERIOD"
         )
 
@@ -952,6 +955,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         autoLiquidationPrice,
         self.nftxMarketplaceZapAddress,
         liquidation.erc20TokenContract,
+        liquidation.loansCoreContract,
         "BACKSTOP_PERIOD_NFTX"
     )
 
@@ -1018,6 +1022,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincip
         _principal + _interestAmount,
         msg.sender,
         _erc20TokenContract,
+        liquidation.loansCoreContract,
         "BACKSTOP_PERIOD_ADMIN"
     )
 
