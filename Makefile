@@ -16,12 +16,18 @@ $(VENV): requirements.txt
 
 install: ${VENV}
 	${PIP} install -r requirements.txt
+	ape plugins install .
 
 install-dev: ${VENV}
 	${PIP} install -r requirements-dev.txt
 
 test: ${VENV}
+	rm -rf .cache/
+	${VENV}/bin/pytest -n auto tests --durations=0
+
+gas:
 	${VENV}/bin/pytest tests --durations=0 --profile
+	
 
 interfaces:
 	python scripts/build_interfaces.py contracts/*.vy

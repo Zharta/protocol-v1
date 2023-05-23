@@ -62,6 +62,17 @@ contracts_mapped = {
     "auxiliary/delegate/DelegationRegistryMock": "delegation_registry",
 }
 
+pool_tokens = {
+    "WETH": "WETH",
+    "USDC": "USDC",
+    "ETH-SQUIGGLEDAO": "WETH"
+}
+
+native_token = {
+    "WETH": True,
+    "USDC": False,
+    "ETH-SQUIGGLEDAO": True
+}
 
 def read_file(filename: Path):
     """Read file content."""
@@ -146,6 +157,16 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     else:
         output_directory = Path("")
 
+    config = {
+        "pools": {
+            pool_id: {
+                "token_symbol": pool_tokens[pool_id],
+                "use_native_token": native_token[pool_id],
+                "contracts": pool_config,
+            }
+            for pool_id, pool_config in config["tokens"].items()}
+    }
+
     for contract in contracts:
         contract_output_name = contract.split("/")[-1]
 
@@ -162,10 +183,11 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         # Update contracts config with abi content
         mapped_contract = contracts_mapped.get(contract, None)
         if mapped_contract:
-            try:
-                config["tokens"]["WETH"][mapped_contract]["abi"] = abi_python
-            except KeyError:
-                pass
+            for pool_id, pool_config in config["pools"].items():
+                try:
+                    pool_config["contracts"][mapped_contract]["abi"] = abi_python
+                except KeyError:
+                    pass
 
         # Update nfts config with abi content but only for ERC721 contract
         if contract == "auxiliary/token/ERC721":
@@ -196,7 +218,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         else:
             raise BadParameter("Invalid combination of parameters")
 
-    config_file = Path(output_directory) / "contracts.json"
+    config_file = Path(output_directory) / "pools.json"
     nfts_file = Path(output_directory) / "collections.json"
 
     if write_to_s3:

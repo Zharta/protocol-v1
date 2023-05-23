@@ -1257,7 +1257,8 @@ def test_cryptopunks_nftx_buy(
     borrower,
     contract_owner
 ):
-    cryptopunks_market_contract.transferPunk(cryptopunks_vault_core_contract, 0, sender=borrower)
+    punk_owner = cryptopunks_market_contract.punkIndexToAddress(0)
+    cryptopunks_market_contract.transferPunk(cryptopunks_vault_core_contract, 0, sender=punk_owner)
 
     lending_pool_peripheral_contract.depositEth(sender=contract_owner, value= LOAN_AMOUNT * 2)
     lending_pool_peripheral_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, sender=loans_peripheral_contract.address)

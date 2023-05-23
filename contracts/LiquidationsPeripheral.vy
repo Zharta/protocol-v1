@@ -1,67 +1,14 @@
-# @version ^0.3.7
+# @version 0.3.7
 
 
 # Interfaces
 
 from vyper.interfaces import ERC20 as IERC20
 from vyper.interfaces import ERC721 as IERC721
-
-interface ILiquidationsCore:
-    def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidation: view
-    def getLiquidationStartTime(_collateralAddress: address, _tokenId: uint256) -> uint256: view
-    def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256) -> bool: view
-    def addLiquidation(
-        _collateralAddress: address,
-        _tokenId: uint256,
-        _startTime: uint256,
-        _gracePeriodMaturity: uint256,
-        _lenderPeriodMaturity: uint256,
-        _principal: uint256,
-        _interestAmount: uint256,
-        _apr: uint256,
-        _gracePeriodPrice: uint256,
-        _lenderPeriodPrice: uint256,
-        _borrower: address,
-        _loanId: uint256,
-        _loansCoreContract: address,
-        _erc20TokenContract: address
-    ) -> bytes32: nonpayable
-    def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256): nonpayable
-    def removeLiquidation(_collateralAddress: address, _tokenId: uint256): nonpayable
-
-
-interface ILoansCore:
-    def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
-
-
-interface ILendingPoolPeripheral:
-    def lenderFunds(_lender: address) -> InvestorFunds: view
-    def receiveFundsFromLiquidation(
-        _borrower: address,
-        _amount: uint256,
-        _rewardsAmount: uint256,
-        _distributeToProtocol: bool,
-        _investedAmount: uint256,
-        _origin: String[30]
-    ): nonpayable
-    def receiveFundsFromLiquidationEth(
-        _borrower: address,
-        _amount: uint256,
-        _rewardsAmount: uint256,
-        _distributeToProtocol: bool,
-        _investedAmount: uint256,
-        _origin: String[30]
-    ): payable
-    def lendingPoolCoreContract() -> address: view
-    def protocolFeesShare() -> uint256: view
-
-
-interface ICollateralVaultPeripheral:
-    def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address: view
-    def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool: view
-    def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256): nonpayable
-    def collateralVaultCoreDefaultAddress() -> address: view
-
+from interfaces import ILiquidationsCore
+from interfaces import ILoansCore
+from interfaces import ILendingPoolPeripheral
+from interfaces import ICollateralVaultPeripheral
 
 interface ISushiRouter:
     def getAmountsOut(amountIn: uint256, path: DynArray[address, 2]) -> DynArray[uint256, 2]: view
@@ -253,6 +200,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
+    loansCoreContract: address
     method: String[30] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX, BACKSTOP_PERIOD_ADMIN
 
 event AdminWithdrawal:
@@ -417,6 +365,7 @@ def _removeLiquidationAndTransfer(_collateralAddress: address, _tokenId: uint256
         _liquidation.gracePeriodPrice,
         msg.sender,
         _liquidation.erc20TokenContract,
+        _liquidation.loansCoreContract,
         _origin
     )
 
@@ -850,6 +799,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             liquidation.gracePeriodPrice,
             msg.sender,
             liquidation.erc20TokenContract,
+            liquidation.loansCoreContract,
             "GRACE_PERIOD"
         )
 
@@ -1005,6 +955,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         autoLiquidationPrice,
         self.nftxMarketplaceZapAddress,
         liquidation.erc20TokenContract,
+        liquidation.loansCoreContract,
         "BACKSTOP_PERIOD_NFTX"
     )
 
@@ -1071,6 +1022,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincip
         _principal + _interestAmount,
         msg.sender,
         _erc20TokenContract,
+        liquidation.loansCoreContract,
         "BACKSTOP_PERIOD_ADMIN"
     )
 

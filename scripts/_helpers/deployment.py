@@ -9,7 +9,7 @@ from pathlib import Path
 from operator import itemgetter
 from itertools import groupby
 
-from .helpers.dependency import DependencyManager
+from .dependency import DependencyManager
 from .basetypes import (
     ContractConfig,
     DeploymentContext,

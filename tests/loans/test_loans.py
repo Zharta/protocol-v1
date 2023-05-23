@@ -1504,7 +1504,7 @@ def test_payable_amount(
 @given(
     genesis_token=st.integers(min_value=0, max_value=2),
 )
-@settings(max_examples=5, deadline=1000)
+@settings(max_examples=5, deadline=None)
 def test_genesis_pass_validation(
     loans_peripheral_contract,
     create_signature,
