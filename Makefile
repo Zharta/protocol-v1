@@ -16,7 +16,7 @@ $(VENV): requirements.txt
 
 install: ${VENV}
 	${PIP} install -r requirements.txt
-	ape plugins install .
+	ape plugins install --upgrade .
 
 install-dev: ${VENV}
 	${PIP} install -r requirements-dev.txt

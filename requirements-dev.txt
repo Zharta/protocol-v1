@@ -6,5 +6,7 @@ click
 hypothesis
 ipython
 mypy
+pytest
+pytest-xdist
 python-lsp-server[flake8]
 rope

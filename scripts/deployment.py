@@ -16,8 +16,7 @@ warnings.filterwarnings("ignore")
 
 
 def gas_cost(context):
-    return {'gas_price': convert('32 gwei', int)}
-
+    return {'gas_price': convert('1 gwei', int)}
 
 
 @click.command(cls=NetworkBoundCommand)

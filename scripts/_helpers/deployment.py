@@ -34,11 +34,12 @@ from .contracts import (
     LiquidityControlsContract,
     LoansCoreContract,
     LoansPeripheralContract,
+    USDCMockContract,
     WETH9MockContract,
 )
 
 ENV = Environment[os.environ.get("ENV", "local")]
-TOKENS = ["weth", "usdc"]
+TOKENS = ["weth", "usdc", "eth-squiggledao"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -56,22 +57,52 @@ def load_contracts(env: Environment) -> set[ContractConfig]:
             contract.contract = contract.container.at(address)
         return contract
 
-    return [load(c, token.upper()) for token in TOKENS for c in [
-        LendingPoolCoreContract(scope=token),
-        LendingPoolLockContract(scope=token),
-        LendingPoolPeripheralContract(scope=token),
-        CollateralVaultCoreV2Contract(scope=token),
-        CollateralVaultPeripheralContract(scope=token),
-        CryptoPunksVaultCoreContract(scope=token),
-        GenesisContract(),
-        LoansCoreContract(scope=token),
-        LoansPeripheralContract(scope=token),
-        LiquidationsCoreContract(),
-        LiquidationsPeripheralContract(scopes=TOKENS),
-        LiquidityControlsContract(scope=token),
-        WETH9MockContract(scope=token) if env != Environment.prod else Token("weth", "token", None),
-        DelegationRegistryMockContract(),
+    main_pools = ["weth", "usdc"]
+    additional_weth_pools = ["eth-squiggledao"]
+    weth_pools = ["weth"] + additional_weth_pools
+
+    common = [load(c, token.upper()) for token in TOKENS for c in [
+        GenesisContract(pools=TOKENS),
+        DelegationRegistryMockContract(pools=TOKENS),
     ]]
+
+    if env == Environment.prod:
+        tokens = [
+            load(Token("weth", "token", None, scope="weth", pools=weth_pools), "WETH"),
+            load(Token("usdc", "token", None, scope="usdc", pools=["usdc"]), "USDC"),
+        ]
+    else:
+        tokens = [
+            load(WETH9MockContract(scope="weth", pools=weth_pools), "WETH"),
+            load(USDCMockContract(scope="usdc", pools=["usdc"]), "USDC"),
+        ]
+
+    additional_weth = [load(c, token.upper()) for token in additional_weth_pools for c in [
+        CollateralVaultCoreV2Contract(scope=token, pools=[token]),
+        CollateralVaultPeripheralContract(scope=token, pools=[token]),
+        CryptoPunksVaultCoreContract(scope=token, pools=[token]),
+        LiquidationsCoreContract(scope=token, pools=[token]),
+        LiquidationsPeripheralContract(scope=token, pools=[token]),
+    ]]
+
+    main_pools_shared = [load(c, token.upper()) for token in main_pools for c in [
+        CollateralVaultCoreV2Contract(scope=None, pools=main_pools),
+        CollateralVaultPeripheralContract(scope=None, pools=main_pools),
+        CryptoPunksVaultCoreContract(scope=None, pools=main_pools),
+        LiquidationsPeripheralContract(scope=None, pools=main_pools),
+        LiquidationsCoreContract(scope=None, pools=main_pools),
+    ]]
+
+    pool_specific = [load(c, token.upper()) for token in TOKENS for c in [
+        LendingPoolCoreContract(scope=token, pools=[token]),
+        LendingPoolLockContract(scope=token, pools=[token]),
+        LendingPoolPeripheralContract(scope=token, pools=[token]),
+        LoansCoreContract(scope=token, pools=[token]),
+        LoansPeripheralContract(scope=token, pools=[token]),
+        LiquidityControlsContract(scope=token, pools=[token]),
+    ]]
+
+    return common + tokens + additional_weth + main_pools_shared + pool_specific
 
 
 def store_contracts(env: Environment, contracts: list[ContractConfig]):
@@ -79,7 +110,7 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
     file_struct = {
         'tokens': {
             token.upper(): {
-                c.config_key(): {'contract': c.address()} for c in contracts if not c.nft and not c.scope or c.scope == token
+                c.config_key(): {'contract': c.address()} for c in contracts if not c.nft and token in c.pools
             } for token in TOKENS
         }
     }
@@ -162,11 +193,18 @@ def load_borrowable_amounts(env: Environment) -> dict:
 
     address = itemgetter("contract_address")
     collection_key = itemgetter("collection_key")
-    limit = itemgetter("debt_limit")
+    limit_for_pool = lambda c, pool: c["conditions"].get(pool.upper(), {}).get("debt_limit", 0)
 
     collections = [v | {"collection_key": k} for k, v in values.items()]
-    max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
-    return {collection_key(c): limit(c) for c in max_collection_per_contract}
+    amounts = dict()
+    for pool in TOKENS:
+        limit = lambda c: limit_for_pool(c, pool)
+        max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
+        for c in collections:
+            if collection_key(c) == "punk":
+                print(pool, c["conditions"], limit(c))
+        amounts |= {(pool, collection_key(c)): limit(c) for c in max_collection_per_contract}
+    return amounts
 
 
 class DeploymentManager:
@@ -183,7 +221,7 @@ class DeploymentManager:
             case Environment.prod:
                 self.owner = accounts.load("prodacc")
 
-        self.context = DeploymentContext(self._get_contracts(), self.env, self.owner, self._get_configs())
+        self.context = DeploymentContext(self._get_contracts(), self.env, self.owner, TOKENS, self._get_configs())
 
     def _get_contracts(self) -> dict[str, ContractConfig]:
         contracts = load_contracts(self.env)
@@ -197,8 +235,10 @@ class DeploymentManager:
 
     def _get_configs(self) -> dict[str, Any]:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
-        # TODO fix when new collections format is ready
-        return {"weth.nft_borrowable_amounts": nft_borrowable_amounts, "usdc.nft_borrowable_amounts": nft_borrowable_amounts}
+        return {
+            "nft_borrowable_amounts": nft_borrowable_amounts,
+            "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner
+        }
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contract.values() if c.nft]
