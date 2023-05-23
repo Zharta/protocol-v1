@@ -61,31 +61,31 @@
                 "contract": "0x36d3C8e6202a953A80e6a8168BC06C80Ff96334F"
             },
             "lending_pool": {
-                "contract": "0x3086444bec5214F0f1ECd609aBcD2386aaDd5ac1"
+                "contract": "0x795C94786f4F7306dad9f3fa2a389b09f9EAAbF3"
             },
             "lending_pool_core": {
-                "contract": "0xE784cD4bA158fbdACb24E7561E7958384b00a0f5"
+                "contract": "0xf0D185FA9Bea169e059F21134a540B2B5a8706F6"
             },
             "lending_pool_lock": {
-                "contract": "0x95a79e8eeD78ABf9F5A537213CF17e326fce9ff9"
+                "contract": "0x53501b811b96D6818A848503664E1b1072079e59"
             },
             "liquidations_core": {
                 "contract": "0x0F41FA98CBc1a11b76a0096026D900eA8294E827"
             },
             "liquidations_peripheral": {
-                "contract": "0x7955a35eD1580a11a47C646d2d459e967B9E7619"
+                "contract": "0xA62CAe8dbf5e3419D20dBBe0Ee6F6c9FF388D743"
             },
             "liquidity_controls": {
-                "contract": "0xf3D5D7Cf328D9586E0394614FE566005894e54Fd"
+                "contract": "0x5b91DC676ee241Ee2979B55667fB4310CD8F77C4"
             },
             "loans": {
-                "contract": "0x13A18453c8aEeDb2e62502Dc74F0493B0E081C9C"
+                "contract": "0x74D78baDE63Ae303231cf2D8b8C61404f481cE46"
             },
             "loans_core": {
-                "contract": "0xbe3eDea464493fC63A030ab8C471666c155E79CB"
+                "contract": "0x20f58f3530e6a17D7339B9A1C5acF4266c1E9188"
             },
             "token": {
-                "contract": "0xB7603602860a4816154F2A3bA4d6aBDDd8937b84"
+                "contract": "0x74540605Dc99f9cd65A3eA89231fFA727B1049E2"
             }
         },
         "WETH": {
@@ -117,7 +117,7 @@
                 "contract": "0x0F41FA98CBc1a11b76a0096026D900eA8294E827"
             },
             "liquidations_peripheral": {
-                "contract": "0x7955a35eD1580a11a47C646d2d459e967B9E7619"
+                "contract": "0xA62CAe8dbf5e3419D20dBBe0Ee6F6c9FF388D743"
             },
             "liquidity_controls": {
                 "contract": "0xf3D5D7Cf328D9586E0394614FE566005894e54Fd"
