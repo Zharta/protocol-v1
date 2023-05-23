@@ -1,10 +1,51 @@
 {
     "tokens": {
+        "ETH-SQUIGGLEDAO": {
+            "collateral_vault_core": {
+                "contract": "0x30f524077d4b642D6a637C7a0342612AF206Fb12"
+            },
+            "collateral_vault_peripheral": {
+                "contract": "0xF7531C5e244a37AC96B8f623E3D73e739Aa8975F"
+            },
+            "cryptopunks_vault_core": {
+                "contract": "0x54824A32260C7bDFA410dE2E49348Ab57A0788c5"
+            },
+            "delegation_registry": {
+                "contract": "0xB18CF5BCe0266C688361e10E4155709880d1b6D6"
+            },
+            "genesis": {
+                "contract": "0x36d3C8e6202a953A80e6a8168BC06C80Ff96334F"
+            },
+            "lending_pool": {
+                "contract": "0xE7CCE79dF78fa4eab996CA609cc1ac9646831B5F"
+            },
+            "lending_pool_core": {
+                "contract": "0x8B77f1D925c92b7e3E664a36F78A7bC7B8b3Bab4"
+            },
+            "lending_pool_lock": {
+                "contract": "0xFac48d0C1C4fC64f8a308BE771E3A7649558c5bf"
+            },
+            "liquidations_core": {
+                "contract": "0xc212Fe89d78a8BA0635344a9A03E47fb7F7687Fd"
+            },
+            "liquidations_peripheral": {
+                "contract": "0x4D3e2B838a5cE39a6556D4cb6d7DA227f4A321BE"
+            },
+            "liquidity_controls": {
+                "contract": "0x269a84BA060510F4d7663eD25BcA6c2706FEfFAb"
+            },
+            "loans": {
+                "contract": "0x3A45F1E727f5E9Abe7B59f7A48C921d8913Aa039"
+            },
+            "loans_core": {
+                "contract": "0x8808A925255e16EE5B05614D40301AfEBDA27FF5"
+            },
+            "token": {
+                "contract": "0xB7603602860a4816154F2A3bA4d6aBDDd8937b84"
+            }
+        },
         "USDC": {
             "collateral_vault_core": {
-                "contract": "0x6f1c56798e760b4dfA927D430d389AE92D8B718b"
-            },
-            "collateral_vault_core2": {
                 "contract": "0x14F41B957Bb78cb9bA5964237637a0912c90098d"
             },
             "collateral_vault_peripheral": {
@@ -49,9 +90,6 @@
         },
         "WETH": {
             "collateral_vault_core": {
-                "contract": "0x6f1c56798e760b4dfA927D430d389AE92D8B718b"
-            },
-            "collateral_vault_core2": {
                 "contract": "0x14F41B957Bb78cb9bA5964237637a0912c90098d"
             },
             "collateral_vault_peripheral": {
