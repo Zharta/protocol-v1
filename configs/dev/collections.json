@@ -1761,6 +1761,7 @@
     "contract_address": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
     "debt_limit": 2.5,
     "floor_multiple_cap": 0.8,
+    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
     "image_url": "https://i.seadn.io/gcs/files/4577987a5ca45ca5118b2e31559ee4d1.jpg",
     "looksrare_url": "https://looksrare.org/collections/0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
     "mapped_address": "0xC379e535CaFf250a01CAa6C3724Ed1359Fe5c29B",
