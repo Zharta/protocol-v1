@@ -174,7 +174,6 @@ def store_nft_contracts(env: Environment, nfts: list[NFT]):
     with open(config_file, "r") as f:
         file_data = json.load(f)
 
-    # write_data = {nft.config_key(): file_data.get(nft.config_key(), {}) | {"contract_address": nft.address()} for nft in nfts}
     for nft in nfts:
         key = nft.config_key()
         if key in file_data:
@@ -200,9 +199,6 @@ def load_borrowable_amounts(env: Environment) -> dict:
     for pool in TOKENS:
         limit = lambda c: limit_for_pool(c, pool)
         max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
-        for c in collections:
-            if collection_key(c) == "punk":
-                print(pool, c["conditions"], limit(c))
         amounts |= {(pool, collection_key(c)): limit(c) for c in max_collection_per_contract}
     return amounts
 
