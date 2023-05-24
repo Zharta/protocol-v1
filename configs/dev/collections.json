@@ -1109,65 +1109,6 @@
     ],
     "whitelisted": true
   },
-  "oldquirkies": {
-    "appraisal_method": "standard",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": true
-      }
-    },
-    "contract_address": "0xb291024F4b2E4C3767A96aB44566a8e93cC828C5",
-    "debt_limit": 2.5,
-    "floor_multiple_cap": 1.0,
-    "floor_price_providers": [
-      "opensea",
-      "nftgo",
-      "alchemy"
-    ],
-    "image_url": "https://i.seadn.io/gcs/files/467a20008c8d95af60a4650ff3442310.png",
-    "looksrare_url": "https://looksrare.org/collections/0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
-    "mapped_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
-    "name": "[Internal] Quirkies Originals",
-    "opensea_slug": "quirkiesoriginals",
-    "opensea_url": "https://opensea.io/collection/quirkiesoriginals",
-    "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
-      },
-      "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
-      }
-    },
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
-    "whitelisted": true
-  },
   "otherdeed": {
     "appraisal_method": "otherdeeds",
     "conditions": {
