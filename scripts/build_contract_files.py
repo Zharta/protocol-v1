@@ -68,6 +68,11 @@ pool_tokens = {
     "ETH-SQUIGGLEDAO": "WETH"
 }
 
+token_decimals = {
+    "WETH": 18,
+    "USDC": 6,
+}
+
 native_token = {
     "WETH": True,
     "USDC": False,
@@ -161,6 +166,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         "pools": {
             pool_id: {
                 "token_symbol": pool_tokens[pool_id],
+                "token_decimals": token_decimals[pool_tokens[pool_id]],
                 "use_native_token": native_token[pool_id],
                 "contracts": pool_config,
             }
