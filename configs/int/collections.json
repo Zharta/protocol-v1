@@ -1400,25 +1400,6 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.095,
-            "ltv": 0.75
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.775
-          },
-          "90d": {
-            "apr": 0.075,
-            "ltv": 0.65
-          }
-        },
-        "whitelisted": true
-      },
-      "WETH": {
-        "debt_limit": 500.0,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
             "apr": 0.125,
             "ltv": 0.45
           },
@@ -1429,6 +1410,25 @@
           "90d": {
             "apr": 0.1,
             "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 500.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.095,
+            "ltv": 0.75
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.775
+          },
+          "90d": {
+            "apr": 0.075,
+            "ltv": 0.65
           }
         },
         "whitelisted": true
@@ -2129,25 +2129,6 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.095,
-            "ltv": 0.75
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.775
-          },
-          "90d": {
-            "apr": 0.075,
-            "ltv": 0.65
-          }
-        },
-        "whitelisted": true
-      },
-      "WETH": {
-        "debt_limit": 500.0,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
             "apr": 0.125,
             "ltv": 0.45
           },
@@ -2158,6 +2139,25 @@
           "90d": {
             "apr": 0.1,
             "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 500.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.095,
+            "ltv": 0.75
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.775
+          },
+          "90d": {
+            "apr": 0.075,
+            "ltv": 0.65
           }
         },
         "whitelisted": true

@@ -137,15 +137,15 @@
         "tier_pricing": {
           "30d": {
             "apr": 0.175,
-            "ltv": 0.40
+            "ltv": 0.675
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.45
+            "ltv": 0.725
           },
           "90d": {
             "apr": 0.15,
-            "ltv": 0.30
+            "ltv": 0.575
           }
         },
         "whitelisted": true
@@ -1333,16 +1333,16 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.125,
-            "ltv": 0.45
+            "apr": 0.095,
+            "ltv": 0.75
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.50
+            "ltv": 0.775
           },
           "90d": {
-            "apr": 0.10,
-            "ltv": 0.35
+            "apr": 0.075,
+            "ltv": 0.65
           }
         },
         "whitelisted": true
@@ -2017,16 +2017,16 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.125,
-            "ltv": 0.45
+            "apr": 0.095,
+            "ltv": 0.75
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.50
+            "ltv": 0.775
           },
           "90d": {
-            "apr": 0.10,
-            "ltv": 0.35
+            "apr": 0.075,
+            "ltv": 0.65
           }
         },
         "whitelisted": true
