@@ -80,8 +80,8 @@ class CollateralVaultPeripheralContract(InternalContract):
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
         set_liquidationsperiph = { context[pool, "liquidations_peripheral"]: with_pool(Transaction.cvperiph_set_liquidationsperiph, pool) for pool in self.pools}
-        add_loansperiph = { context[pool, "loans"]: with_pool(Transaction.loansperiph_set_cvperiph, pool) for pool in self.pools}
-        add_punksvault = { context[pool, "cryptopunks_vault_core"]: with_pool(Transaction.cvperiph_add_loansperiph, pool) for pool in self.pools}
+        add_loansperiph = { context[pool, "loans"]: with_pool(Transaction.cvperiph_add_loansperiph, pool) for pool in self.pools}
+        add_punksvault = { context[pool, "cryptopunks_vault_core"]: with_pool(Transaction.cvperiph_add_punksvault, pool) for pool in self.pools}
         return set_liquidationsperiph | add_loansperiph | add_punksvault
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
