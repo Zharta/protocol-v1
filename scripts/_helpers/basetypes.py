@@ -100,7 +100,7 @@ class ExternalContract(ContractConfig):
             print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        kwargs = {"sender": context.owner.address} | context.gas_options()
+        kwargs = {"sender": context.owner} | context.gas_options()
         kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
         print(f"## {self.name} <- {self.container_name}.deploy({kwargs_str})")
         if not dryrun:
@@ -130,7 +130,7 @@ class Token(ExternalContract):
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
         args = [self.name, self.name, 18, 10**30]
-        kwargs = {"sender": context.owner.address} | context.gas_options()
+        kwargs = {"sender": context.owner} | context.gas_options()
         kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
         # print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}) [{self.name}]")
         print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}, {kwargs_str}) [{self.name}]")
@@ -165,7 +165,7 @@ class InternalContract(ContractConfig):
         return [context[c].contract for c in self.deployment_args_contracts]
 
     def deployment_options(self, context: DeploymentContext) -> dict[str, Any]:
-        return {'from': context.owner.address} | context.gas_options()
+        return {'sender': context.owner} | context.gas_options()
 
     def deployable(self, contract: DeploymentContext) -> bool:
         return True

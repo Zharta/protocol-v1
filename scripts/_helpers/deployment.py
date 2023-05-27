@@ -4,7 +4,7 @@ import warnings
 import os
 
 from typing import Any
-from ape import accounts
+from ape import accounts, chain
 from pathlib import Path
 from operator import itemgetter
 from itertools import groupby
@@ -155,6 +155,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("gundead", None),
         NFT("invsble", None),
         NFT("quirkies", None),
+        NFT("oldquirkies", None),
         NFT("rektguy", None),
         NFT("renga", None),
         NFT("spaceriders", None),
@@ -211,7 +212,7 @@ class DeploymentManager:
             case Environment.local:
                 self.owner = accounts[0]
             case Environment.dev:
-                self.owner = accounts[0]
+                self.owner = accounts.load("goerliacc")
             case Environment.int:
                 self.owner = accounts.load("goerliacc")
             case Environment.prod:
@@ -243,6 +244,7 @@ class DeploymentManager:
         store_contracts(self.env, contracts)
 
     def deploy(self, changes: set[str], dryrun=False, save_state=True):
+        self.owner.set_autosign(True)
         dependency_manager = DependencyManager(self.context, changes)
         contracts_to_deploy = dependency_manager.build_contract_deploy_set()
         dependencies_tx = dependency_manager.build_transaction_set()

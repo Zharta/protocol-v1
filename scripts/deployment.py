@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 
 
 def gas_cost(context):
-    return {'gas_price': convert('1 gwei', int)}
+    return {'gas_price': convert('10 gwei', int)}
 
 
 @click.command(cls=NetworkBoundCommand)
@@ -29,7 +29,7 @@ def cli(network):
 
     changes = set()
     changes |= {"nft_borrowable_amounts"}
-    dm.deploy(changes, dryrun=False)
+    dm.deploy(changes, dryrun=True)
 
 
     raise Exception("console")

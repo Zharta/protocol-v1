@@ -257,7 +257,7 @@ class Transaction:
             erc20_contract = context[pool, "token"]
             erc20_contract_instance = context[erc20_contract].contract
             decimals = erc20_contract_instance.decimals() if erc20_contract_instance else 18
-            value_with_decimals = value_eth * 10**decimals
+            value_with_decimals = int(value_eth * 10**decimals)
 
             address = context[nft].address()
             args = [True, address, value_with_decimals]
@@ -272,7 +272,7 @@ class Transaction:
                 if not dryrun:
                     contract_instance.changeMaxCollectionBorrowableAmount(*args, **kwargs)
             else:
-                print(f"[{pool}] Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_wei/10**decimals} eth")
+                print(f"[{pool}] Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_with_decimals/10**decimals} eth")
 
 
 def execute_read(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):
