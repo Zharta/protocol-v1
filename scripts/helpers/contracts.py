@@ -249,6 +249,7 @@ class LendingPoolPeripheralContract(InternalContract):
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         pool = self.pools[0]
+        whitelisted = context.config.get(f"lpp_whitelist_enabled.{pool}", False)
         return [
             context[context[pool, "lending_pool_core"]].contract,
             context[context[pool, "lending_pool_lock"]].contract,
@@ -256,7 +257,7 @@ class LendingPoolPeripheralContract(InternalContract):
             context.owner,
             2500,
             8000,
-            False,
+            whitelisted,
         ]
 
     def config_key(self):
