@@ -68,10 +68,21 @@ pool_tokens = {
     "ETH-SQUIGGLEDAO": "WETH"
 }
 
+token_decimals = {
+    "WETH": 18,
+    "USDC": 6,
+}
+
 native_token = {
     "WETH": True,
     "USDC": False,
     "ETH-SQUIGGLEDAO": True
+}
+
+genesis_enabled = {
+    "WETH": True,
+    "USDC": True,
+    "ETH-SQUIGGLEDAO": False
 }
 
 def read_file(filename: Path):
@@ -89,7 +100,8 @@ def write_content_to_file(filename: Path, data: str):
 def write_content_to_s3(key: Path, data: str):
     """Write content to S3."""
     try:
-        s3.Bucket(bucket_name).put_object(Key=key.as_posix(), Body=data)
+        kwargs = {"ContentType": "application/json"} if key.as_posix()[-5:] ==".json" else {}
+        s3.Bucket(bucket_name).put_object(Key=key.as_posix(), Body=data, **kwargs)
     except ClientError as e:
         logger.error(f"Error writing to S3: {e}")
 
@@ -161,7 +173,9 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         "pools": {
             pool_id: {
                 "token_symbol": pool_tokens[pool_id],
+                "token_decimals": token_decimals[pool_tokens[pool_id]],
                 "use_native_token": native_token[pool_id],
+                "genesis_enabled": genesis_enabled[pool_id],
                 "contracts": pool_config,
             }
             for pool_id, pool_config in config["tokens"].items()}

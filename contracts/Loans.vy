@@ -209,6 +209,7 @@ collateralVaultPeripheralContract: public(address)
 liquidationsPeripheralContract: public(address)
 liquidityControlsContract: public(address)
 genesisContract: public(address)
+isPayable: public(bool)
 
 collectionsAmount: HashMap[address, uint256] # aux variable
 
@@ -235,7 +236,8 @@ def __init__(
     _loansCoreContract: address,
     _lendingPoolPeripheralContract: address,
     _collateralVaultPeripheralContract: address,
-    _genesisContract: address
+    _genesisContract: address,
+    _isPayable: bool
 ):
     assert _loansCoreContract != empty(address), "address is the zero address"
     assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
@@ -249,6 +251,7 @@ def __init__(
     self.collateralVaultPeripheralContract = _collateralVaultPeripheralContract
     self.genesisContract = _genesisContract
     self.isAcceptingLoans = True
+    self.isPayable = _isPayable
 
     self.reserve_sig_domain_separator = keccak256(
         _abi_encode(
@@ -730,8 +733,11 @@ def pay(_loanId: uint256):
     """
 
     receivedAmount: uint256 = msg.value
+    if not self.isPayable:
+        assert receivedAmount == 0, "no ETH allowed for this loan"
+
     assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
-    
+
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(msg.sender, _loanId)
     assert block.timestamp <= loan.maturity, "loan maturity reached"
     assert not loan.paid, "loan already paid"
