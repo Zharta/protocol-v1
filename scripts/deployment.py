@@ -281,7 +281,7 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {"weth.lending_pool_peripheral", "weth.loans", "liquidations_peripheral"}
+    changes |= {"weth.lending_pool_peripheral", "weth.loans", "liquidations_peripheral", "nft_borrowable_amounts"}
     dm.deploy(changes, dryrun=True)
 
     for k, v in dm.context.contract.items():
