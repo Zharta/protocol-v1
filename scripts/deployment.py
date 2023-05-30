@@ -237,7 +237,10 @@ class DeploymentManager:
         return {
             "nft_borrowable_amounts": nft_borrowable_amounts,
             "lpp_whitelist_enabled.eth-squiggledao": True,
-            "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner
+            "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
+            "loansperipheral_ispayable.weth": True,
+            "loansperipheral_ispayable.usdc": False,
+            "loansperipheral_ispayable.eth-squiggledao": True
         }
 
     def _save_state(self):
@@ -278,7 +281,7 @@ def main():
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {"nft_borrowable_amounts"}
+    hanges |= {"nft_borrowable_amounts"}
     dm.deploy(changes, dryrun=True)
 
     for k, v in dm.context.contract.items():

@@ -1089,6 +1089,9 @@
     ],
     "whitelisted": true
   },
+  "oldquirkies": {
+    "contract_address": "0xCaeBFCe83d26592C9EE14Ad19b053fDbf1cB9cd0"
+  },
   "otherdeed": {
     "appraisal_method": "floor_price",
     "conditions": {

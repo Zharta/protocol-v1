@@ -323,12 +323,14 @@ class LoansPeripheralContract(InternalContract):
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         pool = self.pools[0]
+        is_payable = context.config.get(f"loansperipheral_ispayable.{pool}", False)
         return [
             24 * 60 * 60,
             context[context[pool, "loans_core"]].contract,
             context[context[pool, "lending_pool_peripheral"]].contract,
             context[context[pool, "collateral_vault_peripheral"]].contract,
             context[context[pool, "genesis"]].contract,
+            is_payable,
         ]
 
 
