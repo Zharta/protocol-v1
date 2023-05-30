@@ -1,5 +1,93 @@
 {
     "tokens": {
+        "ETH-SQUIGGLEDAO": {
+            "collateral_vault_core": {
+                "contract": ""
+            },
+            "collateral_vault_peripheral": {
+                "contract": ""
+            },
+            "cryptopunks_vault_core": {
+                "contract": ""
+            },
+            "delegation_registry": {
+                "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B"
+            },
+            "genesis": {
+                "contract": "0xCa54733A772C83096E40f644c9286c9779191e50"
+            },
+            "lending_pool": {
+                "contract": ""
+            },
+            "lending_pool_core": {
+                "contract": ""
+            },
+            "lending_pool_lock": {
+                "contract": ""
+            },
+            "liquidations_core": {
+                "contract": ""
+            },
+            "liquidations_peripheral": {
+                "contract": ""
+            },
+            "liquidity_controls": {
+                "contract": ""
+            },
+            "loans": {
+                "contract": ""
+            },
+            "loans_core": {
+                "contract": ""
+            },
+            "token": {
+                "contract": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+            }
+        },
+        "USDC": {
+            "collateral_vault_core": {
+                "contract": "0x7CA34cF45a119bEBEf4D106318402964a331DfeD"
+            },
+            "collateral_vault_peripheral": {
+                "contract": "0x35B8545ae12D89cD4997d5485e2E68C857DF24a8"
+            },
+            "cryptopunks_vault_core": {
+                "contract": "0xb482f7E532833484e3cC0F8600148984D20F093c"
+            },
+            "delegation_registry": {
+                "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B"
+            },
+            "genesis": {
+                "contract": "0xCa54733A772C83096E40f644c9286c9779191e50"
+            },
+            "lending_pool": {
+                "contract": ""
+            },
+            "lending_pool_core": {
+                "contract": ""
+            },
+            "lending_pool_lock": {
+                "contract": ""
+            },
+            "liquidations_core": {
+                "contract": "0x61BE8ba3a56dA7a57AF6807e78928529698eFf34"
+            },
+            "liquidations_peripheral": {
+                "contract": "0x24A0205785E3b3c2fC150a7efFEabD1835306A5D"
+            },
+            "liquidity_controls": {
+                "contract": ""
+            },
+            "loans": {
+                "contract": ""
+            },
+            "loans_core": {
+                "contract": ""
+            },
+            "token": {
+                "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+            }
+        },
         "WETH": {
             "collateral_vault_core": {
                 "contract": "0x7CA34cF45a119bEBEf4D106318402964a331DfeD"
