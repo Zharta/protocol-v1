@@ -193,7 +193,7 @@ def load_borrowable_amounts(env: Environment) -> dict:
 
     address = itemgetter("contract_address")
     collection_key = itemgetter("collection_key")
-    limit_for_pool = lambda c, pool: c["conditions"].get(pool.upper(), {}).get("debt_limit", 0)
+    limit_for_pool = lambda c, pool: c.get("conditions", {}).get(pool.upper(), {}).get("debt_limit", 0)
 
     collections = [v | {"collection_key": k} for k, v in values.items()]
     amounts = dict()
@@ -212,7 +212,7 @@ class DeploymentManager:
             case Environment.local:
                 self.owner = accounts[0]
             case Environment.dev:
-                self.owner = accounts.load("goerliacc")
+                self.owner = accounts.load("devacc")
             case Environment.int:
                 self.owner = accounts.load("goerliacc")
             case Environment.prod:
