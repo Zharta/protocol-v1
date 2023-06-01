@@ -88,11 +88,6 @@ def collateralVaultCoreDefaultAddress() -> address:
 
 @view
 @external
-def collateralVaultCoreLegacyAddress() -> address:
-    pass
-
-@view
-@external
 def collateralVaultCoreAddresses(arg0: address) -> address:
     pass
 

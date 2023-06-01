@@ -1,17 +1,77 @@
-# @version 0.3.7
+# @version ^0.3.7
 
 
 # Interfaces
 
 from vyper.interfaces import ERC20 as IERC20
 from vyper.interfaces import ERC721 as IERC721
-from interfaces import ILiquidationsCore
-from interfaces import ILoansCore
-from interfaces import ILendingPoolPeripheral
-from interfaces import ICollateralVaultPeripheral
+
+interface ILiquidationsCore:
+    def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidation: view
+    def getLiquidationStartTime(_collateralAddress: address, _tokenId: uint256) -> uint256: view
+    def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256) -> bool: view
+    def addLiquidation(
+        _collateralAddress: address,
+        _tokenId: uint256,
+        _startTime: uint256,
+        _gracePeriodMaturity: uint256,
+        _lenderPeriodMaturity: uint256,
+        _principal: uint256,
+        _interestAmount: uint256,
+        _apr: uint256,
+        _gracePeriodPrice: uint256,
+        _lenderPeriodPrice: uint256,
+        _borrower: address,
+        _loanId: uint256,
+        _loansCoreContract: address,
+        _erc20TokenContract: address
+    ) -> bytes32: nonpayable
+    def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256): nonpayable
+    def removeLiquidation(_collateralAddress: address, _tokenId: uint256): nonpayable
+
+
+interface ILoansCore:
+    def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
+
+
+interface ILendingPoolPeripheral:
+    def lenderFunds(_lender: address) -> InvestorFunds: view
+    def receiveFundsFromLiquidation(
+        _borrower: address,
+        _amount: uint256,
+        _rewardsAmount: uint256,
+        _distributeToProtocol: bool,
+        _investedAmount: uint256,
+        _origin: String[30]
+    ): nonpayable
+    def receiveFundsFromLiquidationEth(
+        _borrower: address,
+        _amount: uint256,
+        _rewardsAmount: uint256,
+        _distributeToProtocol: bool,
+        _investedAmount: uint256,
+        _origin: String[30]
+    ): payable
+    def lendingPoolCoreContract() -> address: view
+    def protocolFeesShare() -> uint256: view
+
+
+interface ICollateralVaultPeripheral:
+    def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address: view
+    def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool: view
+    def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256): nonpayable
+    def collateralVaultCoreDefaultAddress() -> address: view
+
 
 interface ISushiRouter:
     def getAmountsOut(amountIn: uint256, path: DynArray[address, 2]) -> DynArray[uint256, 2]: view
+    def swapExactTokensForTokens(
+        amountIn: uint256,
+        amountsOutMin: uint256,
+        path: DynArray[address, 2],
+        to: address,
+        dealine: uint256
+    ) -> DynArray[uint256, 2]: nonpayable
 
 interface INFTXVaultFactory:
     def vaultsForAsset(assetAddress: address) -> DynArray[address, 2**10]: view
@@ -193,6 +253,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
+    loansCoreContract: address
     method: String[30] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX, BACKSTOP_PERIOD_ADMIN
 
 event AdminWithdrawal:
@@ -282,6 +343,13 @@ def _getNFTXVaultMintFee(vaultAddr: address) -> uint256:
 
 @view
 @internal
+def _getConvertedAutoLiquidationPrice(_ethLiquidationPrice: uint256, _erc20TokenContract: address) -> uint256:
+    amountsOut: DynArray[uint256, 2] = ISushiRouter(self.sushiRouterAddress).getAmountsOut(_ethLiquidationPrice, [wethAddress, _erc20TokenContract])
+    return amountsOut[1]
+
+
+@view
+@internal
 def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> uint256:
     vaultAddr: address = self._getNFTXVaultAddrFromCollateralAddr(_collateralAddress)
 
@@ -350,9 +418,21 @@ def _removeLiquidationAndTransfer(_collateralAddress: address, _tokenId: uint256
         _liquidation.gracePeriodPrice,
         msg.sender,
         _liquidation.erc20TokenContract,
+        _liquidation.loansCoreContract,
         _origin
     )
 
+
+@internal
+def _swapWETHForERC20Token(_wethValue: uint256, _erc20MinValue: uint256, _erc20TokenContract: address) -> uint256:
+    IERC20(wethAddress).approve(self.sushiRouterAddress, _wethValue)
+    return ISushiRouter(self.sushiRouterAddress).swapExactTokensForTokens(
+        _wethValue,
+        _erc20MinValue,
+        [wethAddress, _erc20TokenContract],
+        self,
+        block.timestamp
+    )[1]
 
 ##### EXTERNAL METHODS - VIEW #####
 
@@ -746,7 +826,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             paidAmount += liquidation.gracePeriodPrice
 
         else:
-            ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidationWeth(
+            ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidation(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -772,6 +852,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             liquidation.gracePeriodPrice,
             msg.sender,
             liquidation.erc20TokenContract,
+            liquidation.loansCoreContract,
             "GRACE_PERIOD"
         )
 
@@ -807,7 +888,7 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
         )
         log PaymentSent(lendingPoolPeripheral, lendingPoolPeripheral, liquidation.lenderPeriodPrice)
     else:
-        ILendingPoolPeripheral(lendingPoolPeripheral).receiveFundsFromLiquidationWeth(
+        ILendingPoolPeripheral(lendingPoolPeripheral).receiveFundsFromLiquidation(
             msg.sender,
             liquidation.principal,
             liquidation.lenderPeriodPrice - liquidation.principal,
@@ -866,7 +947,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         else:
             raise "Unsupported collateral"
 
-    elif vault == ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).collateralVaultCoreLegacyAddress() or IVault(vault).vaultName() == "erc721":
+    elif IVault(vault).vaultName() == "erc721":
         IERC721(_collateralAddress).approve(self.nftxMarketplaceZapAddress, _tokenId)
 
     elif IVault(vault).vaultName() == "cryptopunks":
@@ -884,8 +965,9 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         self
     )
 
-    # TODO: swap WETH for liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
-    # TODO: recompute "autoLiquidationPrice" to be in liquidation.erc20TokenContract if liquidation.erc20TokenContract != WETH
+    if liquidation.erc20TokenContract != wethAddress:
+        convertedAutoLiquidationPrice: uint256 = self._getConvertedAutoLiquidationPrice(autoLiquidationPrice, liquidation.erc20TokenContract)
+        autoLiquidationPrice = self._swapWETHForERC20Token(autoLiquidationPrice, convertedAutoLiquidationPrice, liquidation.erc20TokenContract)
 
     lp_peripheral_address: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
     lp_core_address: address = ILendingPoolPeripheral(lp_peripheral_address).lendingPoolCoreContract()
@@ -900,14 +982,14 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
     distributeToProtocol: bool = True
 
     if autoLiquidationPrice < liquidation.principal: # LP loss scenario
-        principal = autoLiquidationPrice    
+        principal = autoLiquidationPrice
     elif autoLiquidationPrice > liquidation.principal:
         interestAmount = autoLiquidationPrice - liquidation.principal
         protocolFeesShare: uint256 = ILendingPoolPeripheral(lp_peripheral_address).protocolFeesShare()
         if interestAmount <= liquidation.interestAmount * (10000 - protocolFeesShare) / 10000: # LP interest less than expected and/or protocol interest loss
             distributeToProtocol = False
 
-    ILendingPoolPeripheral(lp_peripheral_address).receiveFundsFromLiquidationWeth(
+    ILendingPoolPeripheral(lp_peripheral_address).receiveFundsFromLiquidation(
         self,
         principal,
         interestAmount,
@@ -926,6 +1008,7 @@ def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
         autoLiquidationPrice,
         self.nftxMarketplaceZapAddress,
         liquidation.erc20TokenContract,
+        liquidation.loansCoreContract,
         "BACKSTOP_PERIOD_NFTX"
     )
 
@@ -973,7 +1056,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincip
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert liquidation.lid == empty(bytes32), "collateral still in liquidation"
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[_erc20TokenContract]).receiveFundsFromLiquidationWeth(
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[_erc20TokenContract]).receiveFundsFromLiquidation(
         msg.sender,
         _principal,
         _interestAmount,
@@ -992,6 +1075,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincip
         _principal + _interestAmount,
         msg.sender,
         _erc20TokenContract,
+        liquidation.loansCoreContract,
         "BACKSTOP_PERIOD_ADMIN"
     )
 

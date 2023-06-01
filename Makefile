@@ -9,26 +9,25 @@ NATSPEC := $(patsubst contracts/%, natspec/%, $(CONTRACTS:%.vy=%.json))
 
 vpath %.vy ./contracts
 
-$(VENV)/bin/activate: requirements.txt
+$(VENV): requirements.txt
 	python3 -m venv $(VENV)
 	${PIP} install -U pip
 	${PIP} install wheel
 
-venv: ${VENV}/bin/activate
-
-install: venv
+install: ${VENV}
 	${PIP} install -r requirements.txt
+	ape plugins install --upgrade .
 
-install-dev: venv install
+install-dev: ${VENV}
 	${PIP} install -r requirements-dev.txt
 
-test: export FORK=false
-test: venv install-dev
-	patch contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
-	${VENV}/bin/brownie test ; patch -R contracts/LiquidationsPeripheral.vy tests/nftx_workaround.patch
+test: ${VENV}
+	rm -rf .cache/
+	${VENV}/bin/pytest -n auto tests --durations=0
 
-full-test: venv install-dev
-	${VENV}/bin/brownie test --durations=20 --gas --network ganache-mainnet-fork
+gas:
+	${VENV}/bin/pytest tests --durations=0 --profile
+	
 
 interfaces:
 	python scripts/build_interfaces.py contracts/*.vy
@@ -39,4 +38,34 @@ natspec/%.json: %.vy
 	vyper -f userdoc,devdoc $< > $@
 
 clean:
-	rm -rf ${VENV}
+	rm -rf ${VENV} .cache
+
+
+%-local: export ENV=local
+%-dev: export ENV=dev
+%-int: export ENV=int
+%-prod: export ENV=prod
+
+console-local:
+	ape console --network ethereum:local:ganache
+
+deploy-local:
+	ape run -I deployment --network ethereum:local:ganache
+
+console-dev:
+	ape console --network https://network.dev.zharta.io
+
+deploy-dev:
+	ape run -I deployment --network https://network.dev.zharta.io
+
+console-int:
+	ape console --network ethereum:sepolia:alchemy
+
+deploy-int:
+	ape run -I deployment --network ethereum:sepolia:alchemy
+
+console-prod:
+	ape console --network ethereum:mainnet:alchemy
+
+deploy-prod:
+	ape run -I deployment --network ethereum:mainnet:alchemy

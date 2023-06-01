@@ -290,7 +290,7 @@ def deprecate():
     pass
 
 @external
-def depositWeth(_amount: uint256):
+def deposit(_amount: uint256):
     pass
 
 @external
@@ -299,7 +299,7 @@ def depositEth():
     pass
 
 @external
-def withdrawWeth(_amount: uint256):
+def withdraw(_amount: uint256):
     pass
 
 @external
@@ -307,7 +307,7 @@ def withdrawEth(_amount: uint256):
     pass
 
 @external
-def sendFundsWeth(_to: address, _amount: uint256):
+def sendFunds(_to: address, _amount: uint256):
     pass
 
 @external
@@ -320,11 +320,11 @@ def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint25
     pass
 
 @external
-def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
+def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     pass
 
 @external
-def receiveFundsFromLiquidationWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
+def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
     pass
 
 @payable

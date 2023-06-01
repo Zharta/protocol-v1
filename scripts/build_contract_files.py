@@ -24,7 +24,6 @@ logger.setLevel(logging.INFO)
 
 contracts = [
     "CryptoPunksVaultCore",
-    "CollateralVaultCore",
     "CollateralVaultCoreV2",
     "CollateralVaultPeripheral",
     "GenesisPass",
@@ -63,6 +62,28 @@ contracts_mapped = {
     "auxiliary/delegate/DelegationRegistryMock": "delegation_registry",
 }
 
+pool_tokens = {
+    "WETH": "WETH",
+    "USDC": "USDC",
+    "ETH-SQUIGGLEDAO": "WETH"
+}
+
+token_decimals = {
+    "WETH": 18,
+    "USDC": 6,
+}
+
+native_token = {
+    "WETH": True,
+    "USDC": False,
+    "ETH-SQUIGGLEDAO": True
+}
+
+genesis_enabled = {
+    "WETH": True,
+    "USDC": True,
+    "ETH-SQUIGGLEDAO": False
+}
 
 def read_file(filename: Path):
     """Read file content."""
@@ -79,7 +100,8 @@ def write_content_to_file(filename: Path, data: str):
 def write_content_to_s3(key: Path, data: str):
     """Write content to S3."""
     try:
-        s3.Bucket(bucket_name).put_object(Key=key.as_posix(), Body=data)
+        kwargs = {"ContentType": "application/json"} if key.as_posix()[-5:] ==".json" else {}
+        s3.Bucket(bucket_name).put_object(Key=key.as_posix(), Body=data, **kwargs)
     except ClientError as e:
         logger.error(f"Error writing to S3: {e}")
 
@@ -114,13 +136,6 @@ def dynamo_type(val):
     return val
 
 
-def migration_patch(config):
-    """ temporary adjustement to abstract the collateral vault core migration from the apis """
-    weth_config = config["tokens"]["WETH"]
-    if "collateral_vault_core2" in weth_config:
-        weth_config["collateral_vault_core"] = weth_config["collateral_vault_core2"]
-        del weth_config["collateral_vault_core2"]
-
 @click.command()
 @click.option(
     "--write-to-s3",
@@ -143,7 +158,6 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     # get contract addresses config file
     config_file = Path.cwd() / "configs" / env / "contracts.json"
     config = json.loads(read_file(config_file))
-    migration_patch(config)
 
     nfts_file = Path.cwd() / "configs" / env / "collections.json"
     nfts = json.loads(read_file(nfts_file))
@@ -154,6 +168,18 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         Path(f"{output_directory}/bytecode").mkdir(parents=True, exist_ok=True)
     else:
         output_directory = Path("")
+
+    config = {
+        "pools": {
+            pool_id: {
+                "token_symbol": pool_tokens[pool_id],
+                "token_decimals": token_decimals[pool_tokens[pool_id]],
+                "use_native_token": native_token[pool_id],
+                "genesis_enabled": genesis_enabled[pool_id],
+                "contracts": pool_config,
+            }
+            for pool_id, pool_config in config["tokens"].items()}
+    }
 
     for contract in contracts:
         contract_output_name = contract.split("/")[-1]
@@ -171,10 +197,11 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         # Update contracts config with abi content
         mapped_contract = contracts_mapped.get(contract, None)
         if mapped_contract:
-            try:
-                config["tokens"]["WETH"][mapped_contract]["abi"] = abi_python
-            except KeyError:
-                pass
+            for pool_id, pool_config in config["pools"].items():
+                try:
+                    pool_config["contracts"][mapped_contract]["abi"] = abi_python
+                except KeyError:
+                    pass
 
         # Update nfts config with abi content but only for ERC721 contract
         if contract == "auxiliary/token/ERC721":
@@ -205,7 +232,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         else:
             raise BadParameter("Invalid combination of parameters")
 
-    config_file = Path(output_directory) / "contracts.json"
+    config_file = Path(output_directory) / "pools.json"
     nfts_file = Path(output_directory) / "collections.json"
 
     if write_to_s3:

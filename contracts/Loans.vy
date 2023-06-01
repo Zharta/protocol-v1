@@ -1,4 +1,4 @@
-# @version 0.3.7
+# @version ^0.3.7
 
 """
 @title Loans
@@ -12,9 +12,35 @@
 from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 from vyper.interfaces import ERC20 as IERC20
-from interfaces import ILoansCore
-from interfaces import ICollateralVaultPeripheral
-from interfaces import ILiquidityControls
+
+interface ILoansCore:
+    def isLoanCreated(_borrower: address, _loanId: uint256) -> bool: view
+    def isLoanStarted(_borrower: address, _loanId: uint256) -> bool: view
+    def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
+    def addCollateralToLoan(_borrower: address, _collateral: Collateral, _loanId: uint256): nonpayable
+    def removeCollateralFromLoan(_borrower: address, _collateral: Collateral, _loanId: uint256): nonpayable
+    def updateCollaterals(_collateral: Collateral, _toRemove: bool): nonpayable
+    def addLoan(_borrower: address, _amount: uint256, _interest: uint256, _maturity: uint256, _collaterals: DynArray[Collateral, 100]) -> uint256: nonpayable
+    def updateLoanStarted(_borrower: address, _loanId: uint256): nonpayable
+    def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256): nonpayable
+    def updatePaidLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateDefaultedLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestSingleCollateralLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestCollateralBundleLoan(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestRepayment(_borrower: address, _loanId: uint256): nonpayable
+    def updateHighestDefaultedLoan(_borrower: address, _loanId: uint256): nonpayable
+
+interface ICollateralVaultPeripheral:
+    def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address: view
+    def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _createDelegation: bool): nonpayable
+    def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address): nonpayable
+    def collateralVaultCoreDefaultAddress() -> address: view
+    def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool: view
+    def setCollateralDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _value: bool): nonpayable
+
+interface ILiquidityControls:
+    def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreContractAddress: address, _lpPeripheralContractAddress: address) -> bool: view
+    def withinCollectionShareLimit(_amount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool: view
 
 interface IERC20Symbol:
     def symbol() -> String[100]: view
@@ -23,9 +49,9 @@ interface ILendingPoolPeripheral:
     def maxFundsInvestable() -> uint256: view 
     def erc20TokenContract() -> address: view
     def sendFundsEth(_to: address, _amount: uint256): nonpayable
-    def sendFundsWeth(_to: address, _amount: uint256): nonpayable
+    def sendFunds(_to: address, _amount: uint256): nonpayable
     def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
-    def receiveFundsWeth(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
+    def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
     def lendingPoolCoreContract() -> address: view
 
 interface ILiquidationsPeripheral:
@@ -183,6 +209,7 @@ collateralVaultPeripheralContract: public(address)
 liquidationsPeripheralContract: public(address)
 liquidityControlsContract: public(address)
 genesisContract: public(address)
+isPayable: public(bool)
 
 collectionsAmount: HashMap[address, uint256] # aux variable
 
@@ -209,7 +236,8 @@ def __init__(
     _loansCoreContract: address,
     _lendingPoolPeripheralContract: address,
     _collateralVaultPeripheralContract: address,
-    _genesisContract: address
+    _genesisContract: address,
+    _isPayable: bool
 ):
     assert _loansCoreContract != empty(address), "address is the zero address"
     assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
@@ -223,6 +251,7 @@ def __init__(
     self.collateralVaultPeripheralContract = _collateralVaultPeripheralContract
     self.genesisContract = _genesisContract
     self.isAcceptingLoans = True
+    self.isPayable = _isPayable
 
     self.reserve_sig_domain_separator = keccak256(
         _abi_encode(
@@ -614,7 +643,7 @@ def getLoanPayableAmount(_borrower: address, _loanId: uint256, _timestamp: uint2
 
 
 @external
-def reserveWeth(
+def reserve(
     _amount: uint256,
     _interest: uint256,
     _maturity: uint256,
@@ -645,7 +674,7 @@ def reserveWeth(
 
     newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFundsWeth(
+    ILendingPoolPeripheral(self.lendingPoolPeripheralContract).sendFunds(
         msg.sender,
         _amount
     )
@@ -704,8 +733,11 @@ def pay(_loanId: uint256):
     """
 
     receivedAmount: uint256 = msg.value
+    if not self.isPayable:
+        assert receivedAmount == 0, "no ETH allowed for this loan"
+
     assert ILoansCore(self.loansCoreContract).isLoanStarted(msg.sender, _loanId), "loan not found"
-    
+
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(msg.sender, _loanId)
     assert block.timestamp <= loan.maturity, "loan maturity reached"
     assert not loan.paid, "loan already paid"
@@ -751,7 +783,7 @@ def pay(_loanId: uint256):
         ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFundsEth(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
         log PaymentSent(self.lendingPoolPeripheralContract, self.lendingPoolPeripheralContract, paymentAmount)
     else:
-        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFundsWeth(msg.sender, loan.amount, paidInterestAmount)
+        ILendingPoolPeripheral(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
 
     for collateral in loan.collaterals:
         ILoansCore(self.loansCoreContract).removeCollateralFromLoan(msg.sender, collateral, _loanId)
