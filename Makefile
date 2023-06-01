@@ -39,3 +39,33 @@ natspec/%.json: %.vy
 
 clean:
 	rm -rf ${VENV} .cache
+
+
+%-local: export ENV=local
+%-dev: export ENV=dev
+%-int: export ENV=int
+%-prod: export ENV=prod
+
+console-local:
+	ape console --network ethereum:local:ganache
+
+deploy-local:
+	ape run -I deployment --network ethereum:local:ganache
+
+console-dev:
+	ape console --network https://network.dev.zharta.io
+
+deploy-dev:
+	ape run -I deployment --network https://network.dev.zharta.io
+
+console-int:
+	ape console --network ethereum:sepolia:alchemy
+
+deploy-int:
+	ape run -I deployment --network ethereum:sepolia:alchemy
+
+console-prod:
+	ape console --network ethereum:mainnet:alchemy
+
+deploy-prod:
+	ape run -I deployment --network ethereum:mainnet:alchemy
