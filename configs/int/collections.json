@@ -25,7 +25,11 @@
     "contract_address": "0xc29aFcb3C489268b85Db010B41AF21eF05b940DF",
     "debt_limit": 250.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/H8jOCJuQokNqGBpkBN5wk1oZwO7LM8bNnrHCaekV2nKjnCqw6UB5oaH8XyNeBDj6bA_n1mjejzhFQUP3O1NfjFLHr3FOaeHcTOOT",
     "looksrare_url": "https://looksrare.org/collections/0xED5AF388653567Af2F388E6224dC7C4b3241C544",
     "mapped_address": "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
@@ -80,7 +84,11 @@
     "contract_address": "0x311F9f063a3e8de0fFe81beAca53EEC310432faE",
     "debt_limit": 150.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/c4dfc6be4d9c5d4f073de2efe181416a.jpg",
     "looksrare_url": "https://looksrare.org/collections/0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
     "mapped_address": "0xba30E5F9Bb24caa003E9f2f0497Ad287FDF95623",
@@ -118,7 +126,7 @@
         "tier_pricing": {
           "30d": {
             "apr": 0.175,
-            "ltv": 0.40
+            "ltv": 0.4
           },
           "7d": {
             "apr": 0.35,
@@ -126,7 +134,7 @@
           },
           "90d": {
             "apr": 0.15,
-            "ltv": 0.30
+            "ltv": 0.3
           }
         },
         "whitelisted": true
@@ -154,7 +162,11 @@
     "contract_address": "0x34E0918F75FA9E07fC4461De01468185Badaf1b5",
     "debt_limit": 500.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/Ju9CkWtV-1Okvf45wo8UctR-M9He2PjILP0oOvxE89AyiPPGtrR3gysu1Zgy0hjd2xKIgjJJtWIc0ybj4Vd7wv8t3pxDGHoJBzDB",
     "looksrare_url": "https://looksrare.org/collections/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "mapped_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -209,7 +221,11 @@
     "contract_address": "0x0388993EAD076B0e98C86063370F28F92486F397",
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/_R4fuC4QGYd14-KwX2bD1wf-AWjDF2VMabfqWFJhIgiN2FnAUpnD5PLdJORrhQ8gly7KcjhQZZpuzYVPF7CDSzsqmDh97z84j2On",
     "looksrare_url": "https://looksrare.org/collections/0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
     "mapped_address": "0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
@@ -269,7 +285,9 @@
     },
     "debt_limit": 125.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea"],
+    "floor_price_providers": [
+      "opensea"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/fd5e8fa6bb4e39cddcdb4c9a0b685c5e.png",
     "looksrare_url": "https://looksrare.org/collections/0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
     "mapped_address": "0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a",
@@ -324,7 +342,11 @@
     "contract_address": "0x499b8727743EFBA22042E3c57296B533C0B64848",
     "debt_limit": 150.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/XN0XuD8Uh3jyRWNtPTFeXJg_ht8m5ofDx6aHklOiy4amhFuWUa0JaR6It49AH8tlnYS386Q0TW_-Lmedn0UET_ko1a3CbJGeu5iHMg",
     "looksrare_url": "https://looksrare.org/collections/0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
     "mapped_address": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
@@ -379,7 +401,11 @@
     "contract_address": "0x0392DDD8af0c89396fAf468e5938309fbD133585",
     "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/LIov33kogXOK4XZd2ESj29sqm_Hww5JSdO7AFn5wjt8xgnJJ0UpNV9yITqxra3s_LMEW1AnnrgOVB_hDpjJRA1uF4skI5Sdi_9rULi8",
     "looksrare_url": "https://looksrare.org/collections/0x1A92f7381B9F03921564a437210bB9396471050C",
     "mapped_address": "0x1A92f7381B9F03921564a437210bB9396471050C",
@@ -434,7 +460,11 @@
     "contract_address": "0x69f18335Ab0c6E60C7cE02e501BBCb0C25025eDc",
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/c6cb0b1d6f2ab61c0efacf00e62e2230.jpg",
     "looksrare_url": "https://looksrare.org/collections/0x8821bee2ba0df28761afff119d66390d594cd280",
     "mapped_address": "0x8821BeE2ba0dF28761AffF119D66390D594CD280",
@@ -489,7 +519,11 @@
     "contract_address": "0x9917771853d4aB45e2132E4942E570d4A1d84cCb",
     "debt_limit": 125.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/7B0qai02OdHA8P_EOVK672qUliyjQdQDGNrACxs7WnTgZAkJa_wWURnIFKeOh5VTf8cfTqW3wQpozGedaC9mteKphEOtztls02RlWQ",
     "looksrare_url": "https://looksrare.org/collections/0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
     "mapped_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
@@ -521,6 +555,26 @@
   "fidenza": {
     "appraisal_method": "standard",
     "conditions": {
+      "ETH-SQUIGGLEDAO": {
+        "debt_limit": 125.0,
+        "floor_multiple_cap": 3.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.25,
+            "ltv": 1.0
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 1.0
+          },
+          "90d": {
+            "apr": 0.15,
+            "ltv": 1.0
+          }
+        },
+        "token_whitelist": "fidenzas-squigglespool",
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -549,7 +603,9 @@
     },
     "debt_limit": 125.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea"],
+    "floor_price_providers": [
+      "opensea"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/ae70936496054650faf8ee38a7cab5e8.png",
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
@@ -609,7 +665,9 @@
     },
     "debt_limit": 25.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea"],
+    "floor_price_providers": [
+      "opensea"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/92f7f4068fd0e114d76b865b5c3909fe.png",
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
@@ -658,13 +716,17 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xD8808Eb5350E79a86ac059A08f76c1754aDb2FA6",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/1eb8d685d4e404c9b1177dfe14c2c9e0.png",
     "looksrare_url": "https://looksrare.org/collections/0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
     "mapped_address": "0x209e639a0EC166Ac7a1A4bA41968fa967dB30221",
@@ -691,7 +753,7 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": false
   },
   "hm": {
     "appraisal_method": "standard",
@@ -713,13 +775,17 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x5A4b9aeFcEd0BBAf2a5cf81852b2Acb666ADEF45",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/6X867ZmCsuYcjHpx-nmNkXeHaDFd2m-EDEEkExVLKETphkfcrpRJOyzFxRQlc-29J0e-9mB9uDGze0O9yracSA9ibnQm2sIq5i2Yuw",
     "looksrare_url": "https://looksrare.org/collections/0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
     "mapped_address": "0xC2C747E0F7004F9E8817Db2ca4997657a7746928",
@@ -746,7 +812,7 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": false
   },
   "invsble": {
     "appraisal_method": "standard",
@@ -774,7 +840,11 @@
     "contract_address": "0x6d53e3969428D982Fc0Cb7bD76082D25a0e9B9c6",
     "debt_limit": 10.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/lW22aEwUE0IqGaYm5HRiMS8DwkDwsdjPpprEqYnBqo2s7gSR-JqcYOjU9LM6p32ujG_YAEd72aDyox-pdCVK10G-u1qZ3zAsn2r9",
     "looksrare_url": "https://looksrare.org/collections/0x59468516a8259058baD1cA5F8f4BFF190d30E066",
     "mapped_address": "0x59468516a8259058baD1cA5F8f4BFF190d30E066",
@@ -829,7 +899,11 @@
     "contract_address": "0xF089B790aC0aD456c0D7a0b689AE3A98B6C1368f",
     "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/s4Td3KYsUlCblO6lQKAGAWdKwsCuumcxYpebM_YL-Pex-BP886JYAWjKBLeB5StNopAAD6kVx3QHqWm9AmudXyCaCZszHbt8SdteEQ",
     "looksrare_url": "https://looksrare.org/collections/0x524cAB2ec69124574082676e6F654a18df49A048",
     "mapped_address": "0x524cAB2ec69124574082676e6F654a18df49A048",
@@ -884,7 +958,11 @@
     "contract_address": "0x170a934DB411912D2D557F28B3866b994e246b83",
     "debt_limit": 250.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/lHexKRMpw-aoSyB1WdFBff5yfANLReFxHzt1DOj_sg7mS14yARpuvYcUtsyyx-Nkpk6WTcUPFoG53VnLJezYi8hAs0OxNZwlw6Y-dmI",
     "looksrare_url": "https://looksrare.org/collections/0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "mapped_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
@@ -939,7 +1017,11 @@
     "contract_address": "0x9e155dD6e197F43DF0B5B933D741a89a6882888E",
     "debt_limit": 100.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/d784iHHbqQFVH1XYD6HoT4u3y_Fsu_9FZUltWjnOzoYv7qqB5dLUqpGyHBd8Gq3h4mykK5Enj8pxqOUorgD2PfIWcVj9ugvu8l0",
     "looksrare_url": "https://looksrare.org/collections/0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
     "mapped_address": "0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
@@ -994,7 +1076,11 @@
     "contract_address": "0x3BBeed7095c2D4e53e7ea100b84f73C272d534f9",
     "debt_limit": 125.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/H-eyNE1MwL5ohL-tCfn_Xa1Sl9M9B4612tLYeUlQubzt4ewhr4huJIR5OLuyO3Z5PpJFSwdm7rq-TikAh7f5eUw338A2cy6HRH75",
     "looksrare_url": "https://looksrare.org/collections/0x23581767a106ae21c074b2276D25e5C3e136a68b",
     "mapped_address": "0x23581767a106ae21c074b2276D25e5C3e136a68b",
@@ -1024,59 +1110,7 @@
     "whitelisted": true
   },
   "oldquirkies": {
-    "appraisal_method": "standard",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": true
-      }
-    },
-    "contract_address": "0xEedfDfC9F79391Fd09FFAE0720B77c4E2149e414",
-    "debt_limit": 2.5,
-    "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
-    "image_url": "https://i.seadn.io/gcs/files/467a20008c8d95af60a4650ff3442310.png",
-    "looksrare_url": "https://looksrare.org/collections/0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
-    "mapped_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
-    "name": "[Sepolia] Quirkies Originals",
-    "opensea_slug": "quirkiesoriginals",
-    "opensea_url": "https://opensea.io/collection/quirkiesoriginals",
-    "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
-      },
-      "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
-      }
-    },
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
-    "whitelisted": true
+    "contract_address": "0xCaeBFCe83d26592C9EE14Ad19b053fDbf1cB9cd0"
   },
   "otherdeed": {
     "appraisal_method": "floor_price",
@@ -1108,7 +1142,11 @@
     },
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
     "mapped_address": "0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
@@ -1163,7 +1201,11 @@
     "contract_address": "0xFe396dee00E7cfd8659Ea68e3B0910E1363e09e0",
     "debt_limit": 25.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0x790B2cF29Ed4F310bf7641f013C65D4560d28371",
     "mapped_address": "0x790B2cF29Ed4F310bf7641f013C65D4560d28371",
@@ -1222,7 +1264,11 @@
     },
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
     "mapped_address": "0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258",
@@ -1277,7 +1323,11 @@
     "contract_address": "0x4Dc251DC5d8dBc96305bD4B73C3f8Cfe485BBceF",
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0xE012Baf811CF9c05c408e879C399960D1f305903",
     "mapped_address": "0xE012Baf811CF9c05c408e879C399960D1f305903",
@@ -1332,7 +1382,11 @@
     "contract_address": "0xD6665224D37280Bf240d93dD6d1aFE47b1DA43A0",
     "debt_limit": 125.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/yNi-XdGxsgQCPpqSio4o31ygAV6wURdIdInWRcFIl46UjUQ1eV7BEndGe8L661OoG-clRi7EgInLX4LPu9Jfw4fq0bnVYHqg7RFi",
     "looksrare_url": "https://looksrare.org/collections/0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
     "mapped_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
@@ -1369,6 +1423,25 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
+            "apr": 0.125,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.5
+          },
+          "90d": {
+            "apr": 0.1,
+            "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 500.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
             "apr": 0.095,
             "ltv": 0.75
           },
@@ -1382,31 +1455,14 @@
           }
         },
         "whitelisted": true
-      },
-      "WETH": {
-        "debt_limit": 500.0,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.125,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.50
-          },
-          "90d": {
-            "apr": 0.10,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": true
       }
     },
     "contract_address": "0xbF2f1565C894ccE3c74F89602280F417f8970538",
     "debt_limit": 500.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["nftgo"],
+    "floor_price_providers": [
+      "nftgo"
+    ],
     "image_url": "https://i.seadn.io/gae/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7WPk0Pgo3qQFhAUH-B6i-dCqqc_mCkRIzULmwzwecnohLhrcH8A9mpWIZqA7ygc52Sr81hE",
     "looksrare_url": "https://looksrare.org/collections/0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
     "mapped_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
@@ -1461,7 +1517,11 @@
     "contract_address": "0xDa89D540512Dc59dD824e3f8CC89c1EB10cbf057",
     "debt_limit": 2.5,
     "floor_multiple_cap": 0.8,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/467a20008c8d95af60a4650ff3442310.png",
     "looksrare_url": "https://looksrare.org/collections/0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
     "mapped_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
@@ -1516,7 +1576,11 @@
     "contract_address": "0x75f25Dacdd1d5D69f23eb4278B351074A1e40617",
     "debt_limit": 25.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/0d5f1b200a067938f507cbe12bbbabc2.jpg",
     "looksrare_url": "https://looksrare.org/collections/0xB852c6b5892256C264Cc2C888eA462189154D8d7",
     "mapped_address": "0xB852c6b5892256C264Cc2C888eA462189154D8d7",
@@ -1571,7 +1635,11 @@
     "contract_address": "0xfe84ff1A00aD31Ea727C277294174610B5b49a8b",
     "debt_limit": 40.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/f3b11e36be14a5d31c75b19d03996fed.gif",
     "looksrare_url": "https://looksrare.org/collections/0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
     "mapped_address": "0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
@@ -1631,7 +1699,9 @@
     },
     "debt_limit": 25.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea"],
+    "floor_price_providers": [
+      "opensea"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/1c981d19fbc6e5f0aef7768057a9b510.png",
     "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
     "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
@@ -1686,7 +1756,11 @@
     "contract_address": "0xC576a9Db2f307dA4C6C332913E860C839280C561",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/cfcbc78d684e37152701d4019f5d77a0.png",
     "looksrare_url": "https://looksrare.org/collections/0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
     "mapped_address": "0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
@@ -1735,13 +1809,17 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x0473dFe63b30C66Ae5c92FCcE5bA6fd425F091D3",
     "debt_limit": 2.5,
     "floor_multiple_cap": 0.8,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gcs/files/4577987a5ca45ca5118b2e31559ee4d1.jpg",
     "looksrare_url": "https://looksrare.org/collections/0x8c3FB10693B228E8b976FF33cE88f97Ce2EA9563",
     "mapped_address": "0xC379e535CaFf250a01CAa6C3724Ed1359Fe5c29B",
@@ -1768,7 +1846,7 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": false
   },
   "vft": {
     "appraisal_method": "standard",
@@ -1796,7 +1874,11 @@
     "contract_address": "0x75883106d9f36273e83b2E1aaf03cBF1081554cF",
     "debt_limit": 10.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/5y-UCAXiNOFXH551w5bWdZEYOCdHPwbqmcKb-xa3uVQEjQgxvih3HtZWSmzqDqd0uk7kIqFrZhw32Gt6xPBFg4t_n9BKhpou-dwnOg",
     "looksrare_url": "https://looksrare.org/collections/0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
     "mapped_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
@@ -1851,7 +1933,11 @@
     "contract_address": "0xB2A55966026085CdfB33F518765f9488D770174E",
     "debt_limit": 10.0,
     "floor_multiple_cap": 7.5,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/Jt0pP1TzhfUrG52l_Ffe0I8KcPWmaUjk14W3R1UuuHM4BJfqS4jBkfv9-euuMQRLxNS44PvV3V_ZtMgkAhS4bBkK8FeFW2qDh-TM6A",
     "looksrare_url": "https://looksrare.org/collections/0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
     "mapped_address": "0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
@@ -1906,7 +1992,11 @@
     "contract_address": "0x90E88f5F08CB4BA08FDC91379e4cdb97E540F37D",
     "debt_limit": 5.0,
     "floor_multiple_cap": 5.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/fDDp6C86RU2p6-scVtv-oJQyd9majYo8y9W9to0_Sx_uW0X9c4iGw8jXtAcl5ljT8HCzyNFvzTFaOatyxl-tSTQRo_RKbhqeFVhg5eA",
     "looksrare_url": "https://looksrare.org/collections/0xBDa2481db91fc0F942eD3F53De378Ba45ba9d17E",
     "mapped_address": "0xBDa2481db91fc0F942eD3F53De378Ba45ba9d17E",
@@ -1961,7 +2051,11 @@
     "contract_address": "0x4c59ab2e0F8B875b2Af9b7Cebb2822DBDB791bDf",
     "debt_limit": 5.0,
     "floor_multiple_cap": 5.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/MNZ_7zfZRZ-AFrMOPh7Bylc7IkPr-RvGjSGj_YKSrkYX_QKTzQFUvqs4UKx_FTsY1ioGOHYJjRTkiIDuyShcT1li69EilYucMeqhKSY",
     "looksrare_url": "https://looksrare.org/collections/0x2C88aA0956bC9813505d73575f653F69ADa60923",
     "mapped_address": "0x2C88aA0956bC9813505d73575f653F69ADa60923",
@@ -2016,7 +2110,11 @@
     "contract_address": "0xC3D3e2A4cC6DaFc0a95749F31e96732948e44428",
     "debt_limit": 10.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["opensea", "nftgo", "alchemy"],
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
     "image_url": "https://i.seadn.io/gae/EFAQpIktMBU5SU0TqSdPWZ4byHr3hFirL_mATsR8KWhM5z-GJljX8E73V933lkyKgv2SAFlfRRjGsWvWbQQmJAwu3F2FDXVa1C9F",
     "looksrare_url": "https://looksrare.org/collections/0xe785E82358879F061BC3dcAC6f0444462D4b5330",
     "mapped_address": "0xe785E82358879F061BC3dcAC6f0444462D4b5330",
@@ -2054,6 +2152,25 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
+            "apr": 0.125,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.5
+          },
+          "90d": {
+            "apr": 0.1,
+            "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 500.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
             "apr": 0.095,
             "ltv": 0.75
           },
@@ -2067,31 +2184,14 @@
           }
         },
         "whitelisted": true
-      },
-      "WETH": {
-        "debt_limit": 500.0,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.125,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.50
-          },
-          "90d": {
-            "apr": 0.10,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": true
       }
     },
     "contract_address": "0x127bbCf9D31D1Fd49998a47CF1cCCe8fd68C2FCE",
     "debt_limit": 500.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": ["nftgo"],
+    "floor_price_providers": [
+      "nftgo"
+    ],
     "image_url": "https://i.seadn.io/gae/OnBu_tLdS59m_tThijZTUwikivyOdPFSY30VrD15Ucg8uW0x_bJ9iHQqP1iaQGh6Q5RllO_wFgfzVJunWgL6OWQw",
     "looksrare_url": "https://looksrare.org/collections/0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
     "mapped_address": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
