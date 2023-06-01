@@ -257,26 +257,6 @@
   "chromie": {
     "appraisal_method": "standard",
     "conditions": {
-      "ETH-SQUIGGLEDAO": {
-        "debt_limit": 125.0,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.15,
-            "ltv": 0.625
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.675
-          },
-          "90d": {
-            "apr": 0.125,
-            "ltv": 0.525
-          }
-        },
-        "token_whitelist": "chromies-squigglespool",
-        "whitelisted": true
-      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -575,6 +555,26 @@
   "fidenza": {
     "appraisal_method": "standard",
     "conditions": {
+      "ETH-SQUIGGLEDAO": {
+        "debt_limit": 125.0,
+        "floor_multiple_cap": 3.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.25,
+            "ltv": 1.0
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 1.0
+          },
+          "90d": {
+            "apr": 0.15,
+            "ltv": 1.0
+          }
+        },
+        "token_whitelist": "fidenza-squigglespool",
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -716,7 +716,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xC3B56a95966bC3c05aA9fA0ee4Bf8a899afd8851",
@@ -775,7 +775,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xAc786fdB7e79F72F92E17e2Ed3Aa03972fffAC9F",
