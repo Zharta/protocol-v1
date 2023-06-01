@@ -117,9 +117,9 @@ class Token(ExternalContract):
 
     _config_key: str
 
-    def __init__(self, name: str, key: str, contract: Optional[ProjectContract]):
-        super().__init__(name, contract, ERC20, nft=False, container_name="ERC20")
-        self._config_key = key
+    def __init__(self, contract_name: str, name: str, contract: Optional[ProjectContract], scope=None, pools=None):
+        super().__init__("token", contract, ERC20, nft=False, container_name="ERC20", scope=scope, pools=pools)
+        self._config_key = name
 
     def config_key(self):
         return self._config_key
@@ -129,7 +129,7 @@ class Token(ExternalContract):
             print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")
-        args = [self.name, self.name, 18, 10**30, {'from': context.owner.address} | context.gas_options()]
+        args = [self.contract_name, self.contract_name, 18, 10**30, {'from': context.owner.address} | context.gas_options()]
         print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}) [{self.name}]")
         if not dryrun:
             self.contract = self.container.deploy(*args)

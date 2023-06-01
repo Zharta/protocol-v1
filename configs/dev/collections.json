@@ -257,26 +257,6 @@
   "chromie": {
     "appraisal_method": "standard",
     "conditions": {
-      "ETH-SQUIGGLEDAO": {
-        "debt_limit": 125.0,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.15,
-            "ltv": 0.625
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.675
-          },
-          "90d": {
-            "apr": 0.125,
-            "ltv": 0.525
-          }
-        },
-        "token_whitelist": "chromies-squigglespool",
-        "whitelisted": true
-      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -575,6 +555,26 @@
   "fidenza": {
     "appraisal_method": "standard",
     "conditions": {
+      "ETH-SQUIGGLEDAO": {
+        "debt_limit": 125.0,
+        "floor_multiple_cap": 3.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.25,
+            "ltv": 1.0
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 1.0
+          },
+          "90d": {
+            "apr": 0.15,
+            "ltv": 1.0
+          }
+        },
+        "token_whitelist": "fidenzas-squigglespool",
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -716,7 +716,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xa5659Fa683b71C907cd346397c694b93aFF40b51",
@@ -753,7 +753,7 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": false
   },
   "hm": {
     "appraisal_method": "standard",
@@ -775,7 +775,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x0e19E87b363DD7a3af5c45C95ab6885367251B94",
@@ -812,7 +812,7 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": false
   },
   "invsble": {
     "appraisal_method": "standard",
@@ -1802,7 +1802,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xFE0F4Cf81B5c0a6Fd65a610FD9488F33aE9095cB",
@@ -1839,7 +1839,7 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": false
   },
   "vft": {
     "appraisal_method": "standard",
