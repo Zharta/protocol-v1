@@ -257,6 +257,25 @@
   "chromie": {
     "appraisal_method": "standard",
     "conditions": {
+      "USDC": {
+        "debt_limit": 250000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.15,
+            "ltv": 0.4
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "90d": {
+            "apr": 0.125,
+            "ltv": 0.3
+          }
+        },
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -572,11 +591,30 @@
             "ltv": 1.0
           }
         },
-        "token_whitelist": "fidenza-squigglespool",
+        "token_whitelist": "fidenzas-squigglespool",
+        "whitelisted": true
+      },
+      "USDC": {
+        "debt_limit": 250000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.15,
+            "ltv": 0.4
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "90d": {
+            "apr": 0.125,
+            "ltv": 0.3
+          }
+        },
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 125.0,
+        "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
@@ -792,6 +830,65 @@
     "name": "[Internal] Hashmasks",
     "opensea_slug": "hashmasks",
     "opensea_url": "https://opensea.io/collection/hashmasks",
+    "simulation_token_id": 1,
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
+      },
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.5
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "hvmtl": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 25.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.7,
+            "ltv": 0.5
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xeea13cb5c7429aBB9bc84cefa93b8073d7fd2480",
+    "debt_limit": 25.0,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gae/a_frplnavZA9g4vN3SexO5rrtaBX_cBTaJYcgrPtwQIqPhzgzUendQxiwUdr51CGPE2QyPEa1DHnkW1wLrHAv5DgfC3BP-CWpFq6BA",
+    "looksrare_url": "https://looksrare.org/collections/0x5Af0D9827E0c53E4799BB226655A1de152A425a5",
+    "mapped_address": "0x5Af0D9827E0c53E4799BB226655A1de152A425a5",
+    "name": "HV-MTL",
+    "opensea_slug": "hv-mtl",
+    "opensea_url": "https://opensea.io/collection/hv-mtl",
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
@@ -1041,6 +1138,65 @@
       "90d": {
         "apr": 0.15,
         "ltv": 0.45
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "miladymaker": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 50.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.3,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.6
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x5b051c7aAFA8Bb34C1B199b83D3F40D2E2979367",
+    "debt_limit": 50.0,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gae/a_frplnavZA9g4vN3SexO5rrtaBX_cBTaJYcgrPtwQIqPhzgzUendQxiwUdr51CGPE2QyPEa1DHnkW1wLrHAv5DgfC3BP-CWpFq6BA",
+    "looksrare_url": "https://looksrare.org/collections/0x5Af0D9827E0c53E4799BB226655A1de152A425a5",
+    "mapped_address": "0x5Af0D9827E0c53E4799BB226655A1de152A425a5",
+    "name": "Milady Maker",
+    "opensea_slug": "milady",
+    "opensea_url": "https://opensea.io/collection/milady",
+    "simulation_token_id": 1,
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.3,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.6,
+        "ltv": 0.6
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
       }
     },
     "tiers": [
@@ -1300,6 +1456,25 @@
   "othersidekoda": {
     "appraisal_method": "floor_price",
     "conditions": {
+      "USDC": {
+        "debt_limit": 250000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.175,
+            "ltv": 0.4
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "90d": {
+            "apr": 0.15,
+            "ltv": 0.3
+          }
+        },
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -1789,6 +1964,65 @@
     ],
     "whitelisted": true
   },
+  "thecaptainz": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 50.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.3,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.6
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x16D98BABC68db06985D4025FC6b848FFB26f0EFf",
+    "debt_limit": 50.0,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gcs/files/6df4d75778066bce740050615bc84e21.png",
+    "looksrare_url": "https://looksrare.org/collections/0x769272677faB02575E84945F03Eca517ACc544Cc",
+    "mapped_address": "0x769272677faB02575E84945F03Eca517ACc544Cc",
+    "name": "The Captainz",
+    "opensea_slug": "thecaptainz",
+    "opensea_url": "https://opensea.io/collection/thecaptainz",
+    "simulation_token_id": 1,
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.3,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.6,
+        "ltv": 0.6
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
   "theplague": {
     "appraisal_method": "floor_price",
     "conditions": {
@@ -1835,6 +2069,65 @@
       "7d": {
         "apr": 0.7,
         "ltv": 0.5
+      },
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.35
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
+  },
+  "thepotatoz": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 20.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.3,
+            "ltv": 0.55
+          },
+          "7d": {
+            "apr": 0.6,
+            "ltv": 0.6
+          },
+          "90d": {
+            "apr": 0.25,
+            "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x42E93ff627e146E09DccB32EEe593213BBd33f9f",
+    "debt_limit": 20.0,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gcs/files/129b97582f0071212ee7cf440644fc28.gif",
+    "looksrare_url": "https://looksrare.org/collections/0x39ee2c7b3cb80254225884ca001F57118C8f21B6",
+    "mapped_address": "0x39ee2c7b3cb80254225884ca001F57118C8f21B6",
+    "name": "The Potatoz",
+    "opensea_slug": "thepotatoz",
+    "opensea_url": "https://opensea.io/collection/thepotatoz",
+    "simulation_token_id": 1,
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.3,
+        "ltv": 0.55
+      },
+      "7d": {
+        "apr": 0.6,
+        "ltv": 0.6
       },
       "90d": {
         "apr": 0.25,
