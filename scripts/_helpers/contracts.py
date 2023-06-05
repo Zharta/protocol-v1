@@ -243,13 +243,16 @@ class LendingPoolPeripheralContract(InternalContract):
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         pool = self.pools[0]
         whitelisted = context.config.get(f"lpp_whitelist_enabled.{pool}", False)
+        protocol_wallet_fees = context.config.get(f"lpp_protocol_wallet_fees.{pool}", context.owner)
+        protocol_fees_share = context.config.get(f"lpp_protocol_fees_share.{pool}", 2500)
+        max_capital_efficiency = context.config.get(f"lpp_max_capital_efficiency.{pool}", 8000)
         return [
             context[context[pool, "lending_pool_core"]].contract,
             context[context[pool, "lending_pool_lock"]].contract,
             context[context[pool, "token"]].contract,
-            context.owner,
-            2500,
-            8000,
+            protocol_wallet_fees,
+            protocol_fees_share,
+            max_capital_efficiency,
             whitelisted,
         ]
 

@@ -234,8 +234,17 @@ class DeploymentManager:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
         return {
             "nft_borrowable_amounts": nft_borrowable_amounts,
-            "lpp_whitelist_enabled.eth-squiggledao": True,
             "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
+            "lpp_whitelist_enabled.eth-squiggledao": True,
+            "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.eth-squiggledao": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_fees_share.weth": 0,
+            "lpp_protocol_fees_share.usdc": 0,
+            "lpp_protocol_fees_share.eth-squiggledao": 0,
+            "lpp_max_capital_efficiency.weth": 8000,
+            "lpp_max_capital_efficiency.usdc": 8000,
+            "lpp_max_capital_efficiency.eth-squiggledao": 10000,
             "loansperipheral_ispayable.weth": True,
             "loansperipheral_ispayable.usdc": False,
             "loansperipheral_ispayable.eth-squiggledao": True
