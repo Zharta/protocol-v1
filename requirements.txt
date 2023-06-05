@@ -1,2 +1,2 @@
 eth-ape
-vyper==0.3.9
+vyper
