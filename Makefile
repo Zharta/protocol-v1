@@ -6,6 +6,7 @@ PIP=${VENV}/bin/pip
 
 CONTRACTS := $(shell find contracts -depth 1 -name '*.vy')
 NATSPEC := $(patsubst contracts/%, natspec/%, $(CONTRACTS:%.vy=%.json))
+PATH := ${VENV}/bin:${PATH}
 
 vpath %.vy ./contracts
 
@@ -16,7 +17,7 @@ $(VENV): requirements.txt
 
 install: ${VENV}
 	${PIP} install -r requirements.txt
-	ape plugins install --upgrade .
+	${VENV}/bin/ape plugins install --upgrade .
 
 install-dev: ${VENV}
 	${PIP} install -r requirements-dev.txt
@@ -30,12 +31,12 @@ gas:
 	
 
 interfaces:
-	python scripts/build_interfaces.py contracts/*.vy
+	${VENV}/bin/python scripts/build_interfaces.py contracts/*.vy
 
 docs: $(NATSPEC)
 
 natspec/%.json: %.vy
-	vyper -f userdoc,devdoc $< > $@
+	${VENV}/bin/vyper -f userdoc,devdoc $< > $@
 
 clean:
 	rm -rf ${VENV} .cache
@@ -46,26 +47,29 @@ clean:
 %-int: export ENV=int
 %-prod: export ENV=prod
 
+add-account:
+	${VENV}/bin/ape accounts import $(alias)
+
 console-local:
-	ape console --network ethereum:local:ganache
+	${VENV}/bin/ape console --network ethereum:local:ganache
 
 deploy-local:
-	ape run -I deployment --network ethereum:local:ganache
+	${VENV}/bin/ape run -I deployment --network ethereum:local:ganache
 
 console-dev:
-	ape console --network https://network.dev.zharta.io
+	${VENV}/bin/ape console --network https://network.dev.zharta.io
 
 deploy-dev:
-	ape run -I deployment --network https://network.dev.zharta.io
+	${VENV}/bin/ape run -I deployment --network https://network.dev.zharta.io
 
 console-int:
-	ape console --network ethereum:sepolia:alchemy
+	${VENV}/bin/ape console --network ethereum:sepolia:alchemy
 
 deploy-int:
-	ape run -I deployment --network ethereum:sepolia:alchemy
+	${VENV}/bin/ape run -I deployment --network ethereum:sepolia:alchemy
 
 console-prod:
-	ape console --network ethereum:mainnet:alchemy
+	${VENV}/bin/ape console --network ethereum:mainnet:alchemy
 
 deploy-prod:
-	ape run -I deployment --network ethereum:mainnet:alchemy
+	${VENV}/bin/ape run -I deployment --network ethereum:mainnet:alchemy
