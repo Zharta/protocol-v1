@@ -1,7 +1,17 @@
 name: zharta-protocol
 
+dependencies:
+  - name: OpenZeppelin
+    github: OpenZeppelin/openzeppelin-contracts
+    version: 3.4.2
+
+solidity:
+  import_remapping:
+    - "@openzeppelin/contracts=OpenZeppelin/3.4.2"
+
 plugins:
   - name: vyper
+  - name: solidity  # Needed only for dependencies
   - name: foundry
   - name: alchemy
   - name: ganache
