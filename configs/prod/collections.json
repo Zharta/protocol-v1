@@ -1266,41 +1266,44 @@
     "whitelisted": true
   },
   "oldquirkies": {
-      "appraisal_method": "standard",
-      "conditions": {
+    "appraisal_method": "standard",
+    "conditions": {},
+    "contract_address": "0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
+    "debt_limit": 5,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
+    "image_url": "https://i.seadn.io/gcs/files/467a20008c8d95af60a4650ff3442310.png",
+    "looksrare_url": "https://looksrare.org/collections/0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
+    "mapped_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
+    "name": "Quirkies Originals",
+    "opensea_slug": "quirkiesoriginals",
+    "opensea_url": "https://opensea.io/collection/quirkiesoriginals",
+    "simulation_token_id": 1,
+    "tier_pricing": {
+      "30d": {
+        "apr": 0.35,
+        "ltv": 0.45
       },
-      "contract_address": "0x3903d4fFaAa700b62578a66e7a67Ba4cb67787f9",
-      "debt_limit": 5,
-      "floor_multiple_cap": 1.0,
-      "floor_price_providers": ["opensea", "nftgo", "alchemy"],
-      "image_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
-      "image_url": "https://i.seadn.io/gcs/files/467a20008c8d95af60a4650ff3442310.png",
-      "looksrare_url": "https://looksrare.org/collections/0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",  
-      "mapped_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
-      "name": "Quirkies Originals",
-      "opensea_slug": "quirkiesoriginals",
-      "opensea_url": "https://opensea.io/collection/quirkiesoriginals",
-      "simulation_token_id": 1,
-      "tier_pricing": {
-          "30d": {
-              "apr": 0.35,
-              "ltv": 0.45
-          },
-          "7d": {
-              "apr": 0.7,
-              "ltv": 0.525
-          },
-          "90d": {
-              "apr": 0.25,
-              "ltv": 0.3
-          }
+      "7d": {
+        "apr": 0.7,
+        "ltv": 0.525
       },
-      "tiers": [
-          "7d",
-          "30d",
-          "90d"
-      ],
-      "whitelisted": true
+      "90d": {
+        "apr": 0.25,
+        "ltv": 0.3
+      }
+    },
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "whitelisted": true
   },
   "otherdeed": {
     "appraisal_method": "otherdeeds",

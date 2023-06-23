@@ -1,5 +1,12 @@
 # @version 0.3.9
 
+"""
+@title LiquidationsPeripheral
+@author [Zharta](https://zharta.io/)
+@notice The liquidations peripheral contract exists as the main interface to handle liquidations
+@dev Uses a `LiquidationsCore` contract to store state
+"""
+
 
 # Interfaces
 
