@@ -490,7 +490,7 @@
     "name": "DeGods",
     "opensea_slug": "degods",
     "opensea_url": "https://opensea.io/collection/degods",
-    "simulation_token_id": 1,
+    "simulation_token_id": 8022,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -2038,7 +2038,7 @@
     "name": "The Captainz",
     "opensea_slug": "thecaptainz",
     "opensea_url": "https://opensea.io/collection/thecaptainz",
-    "simulation_token_id": 1,
+    "simulation_token_id": 968,
     "tier_pricing": {
       "30d": {
         "apr": 0.3,
@@ -2156,7 +2156,7 @@
     "name": "The Potatoz",
     "opensea_slug": "thepotatoz",
     "opensea_url": "https://opensea.io/collection/thepotatoz",
-    "simulation_token_id": 1,
+    "simulation_token_id": 400,
     "tier_pricing": {
       "30d": {
         "apr": 0.3,
@@ -2274,7 +2274,7 @@
     "name": "Wolf Game",
     "opensea_slug": "wolf-game",
     "opensea_url": "https://opensea.io/collection/wolf-game",
-    "simulation_token_id": 1,
+    "simulation_token_id": 2,
     "tier_pricing": {
       "30d": {
         "apr": 0.35,
