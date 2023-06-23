@@ -1,5 +1,6 @@
 import os
 import web3
+from ape import convert
 from scripts.deployment import DeploymentManager, Environment
 
 
@@ -16,13 +17,17 @@ def transfer(w3, wallet, val=10**60):
 
 def propose_owner(dm, from_wallet, to_wallet):
     contracts = [c for c in dm.context.contract.values() if hasattr(c.contract, "proposeOwner")]
-    for c in contracts:
-        c.contract.proposeOwner(to_wallet, sender=from_wallet)
+    dm.owner.set_autosign(True)
+    for i, c in enumerate(contracts):
+        c.contract.proposeOwner(to_wallet, sender=from_wallet, gas_price=convert("28 gwei", int))
+        print(f"Signed contract {i + 1} out of {len(contracts)}")
 
 def claim_ownership(dm, wallet):
     contracts = [c for c in dm.context.contract.values() if hasattr(c.contract, "claimOwnership")]
-    for c in contracts:
-        c.contract.claimOwnership(sender=wallet)
+    dm.owner.set_autosign(True)
+    for i, c in enumerate(contracts):
+        c.contract.claimOwnership(sender=wallet, gas_price=convert("28 gwei", int))
+        print(f"Signed contract {i + 1} out of {len(contracts)}")
 
 def ape_init_extras(network):
     dm = DeploymentManager(ENV)
