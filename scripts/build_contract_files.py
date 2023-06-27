@@ -37,7 +37,6 @@ contracts = [
     "LoansCore",
     "auxiliary/token/ERC20",
     "auxiliary/token/ERC721",
-    "debug/SignatureDebug",
     "auxiliary/delegate/DelegationRegistryMock",
 ]
 
@@ -58,7 +57,6 @@ contracts_mapped = {
     "LoansCore": "loans_core",
     "auxiliary/token/ERC20": "token",
     "auxiliary/token/ERC721": "ERC721",
-    "debug/SignatureDebug": "signature_debug",
     "auxiliary/delegate/DelegationRegistryMock": "delegation_registry",
 }
 
