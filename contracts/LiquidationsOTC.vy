@@ -35,6 +35,12 @@ interface ILendingPoolPeripheral:
         _investedAmount: uint256,
         _origin: String[30]
     ): payable
+    def receiveCollateralFromLiquidation(
+        _borrower: address,
+        _amount: uint256,
+        _origin: String[30]
+    ): nonpayable
+
 
 
 interface ICollateralVaultPeripheral:
@@ -182,6 +188,19 @@ event LiquidationRemoved:
     borrower: address
 
 event NFTPurchased:
+    erc20TokenContractIndexed: indexed(address)
+    collateralAddressIndexed: indexed(address)
+    buyerAddressIndexed: indexed(address)
+    liquidationId: bytes32
+    collateralAddress: address
+    tokenId: uint256
+    amount: uint256
+    buyerAddress: address
+    erc20TokenContract: address
+    loansCoreContract: address
+    method: String[30] # possible values: GRACE_PERIOD, LENDER_PERIOD, BACKSTOP_PERIOD_NFTX, BACKSTOP_PERIOD_ADMIN
+
+event NFTClaimed:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
     buyerAddressIndexed: indexed(address)
@@ -699,8 +718,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
 
     ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
 
-    # TODO should this be a different event?
-    log NFTPurchased(
+    log NFTClaimed(
         liquidation.erc20TokenContract,
         _collateralAddress,
         msg.sender,
@@ -714,5 +732,9 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         "OTC_CLAIM"
     )
 
-    # TODO accounting stuff in LP
+    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveCollateralFromLiquidation(
+        liquidation.borrower,
+        liquidation.principal,
+        "OTC_CLAIM"
+    )
 

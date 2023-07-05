@@ -23,12 +23,20 @@ install-dev: ${VENV}
 	${PIP} install -r requirements-dev.txt
 
 test: ${VENV}
-	rm -rf .cache/
-	${VENV}/bin/pytest -n auto tests --durations=0
+	${VENV}/bin/pytest tests/unit --durations=0
+
+coverage:
+	${VENV}/bin/coverage run -m pytest tests/unit --durations=0
+	${VENV}/bin/coverage report
+
+unit-tests:
+	${VENV}/bin/pytest tests/unit --durations=0
+
+integration-tests:
+	${VENV}/bin/pytest -n auto tests/intgration --durations=0
 
 gas:
 	${VENV}/bin/pytest tests --durations=0 --profile
-	
 
 interfaces:
 	${VENV}/bin/python scripts/build_interfaces.py contracts/*.vy

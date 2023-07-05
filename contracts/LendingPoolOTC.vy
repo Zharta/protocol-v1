@@ -15,6 +15,8 @@ interface IWETH:
     def deposit(): payable
     def withdraw(_amount: uint256): nonpayable
 
+interface ISelf:
+    def initialize(_owner: address, _lender: address, _protocolWallet: address, _protocolFeesShare: uint256): nonpayable
 
 # Structs
 
@@ -41,12 +43,6 @@ event OwnershipTransferred:
     proposedOwner: address
     erc20TokenContract: address
 
-event MaxCapitalEfficiencyChanged:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: uint256
-    newValue: uint256
-    erc20TokenContract: address
-
 event ProtocolWalletChanged:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
@@ -69,21 +65,6 @@ event LiquidationsPeripheralAddressSet:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
     newValue: address
-    erc20TokenContract: address
-
-event WhitelistStatusChanged:
-    erc20TokenContractIndexed: indexed(address)
-    value: bool
-    erc20TokenContract: address
-
-event WhitelistAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
-    erc20TokenContract: address
-
-event WhitelistAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    value: address
     erc20TokenContract: address
 
 event ContractStatusChanged:
@@ -133,6 +114,14 @@ event PaymentReceived:
     wallet: address
     amount: uint256
 
+event CollateralClaimReceipt:
+    walletIndexed: indexed(address)
+    wallet: address
+    amount: uint256
+    erc20TokenContract: address
+    fundsOrigin: String[30]
+
+
 
 # Global variables
 
@@ -140,8 +129,8 @@ owner: public(address)
 proposedOwner: public(address)
 
 loansContract: public(address)
-lendingPoolCoreContract: public(address)
 erc20TokenContract: public(immutable(address))
+allowEth: public(immutable(bool))
 liquidationsPeripheralContract: public(address)
 
 protocolWallet: public(address)
@@ -153,14 +142,15 @@ isPoolDeprecated: public(bool)
 
 # core
 
-funds: InvestorFunds
-lender: address
+funds: public(InvestorFunds)
+lender: public(address)
 
 fundsAvailable: public(uint256)
 fundsInvested: public(uint256)
 totalFundsInvested: public(uint256)
 totalRewards: public(uint256)
-totalSharesBasisPoints: public(uint256)
+totalSharesBasisPoints: public(constant(uint256)) = 10000  # TODO keep it?
+collateralClaimsValue: public(uint256)
 
 
 ##### INTERNAL METHODS - VIEW #####
@@ -230,11 +220,11 @@ def _deposit(_amount: uint256, _payer: address):
 
 
 @internal
-def _withdraw(_amount: uint256, _receiver: address):
+def _withdraw_accounting(_amount: uint256):
     assert _amount > 0, "_amount has to be higher than 0"
-    assert _receiver != empty(address), "The receiver is the zero addr"
     assert msg.sender == self.lender, "The sender is not the lender"
     
+    # TODO if withdrawable >= fundsAvailable, is this needed?
     withdrawable: uint256 = self._computeWithdrawableAmount()
     assert withdrawable >= _amount, "_amount more than withdrawable"
     assert self.fundsAvailable >= _amount, "available funds less than amount"
@@ -248,17 +238,13 @@ def _withdraw(_amount: uint256, _receiver: address):
 
     self.fundsAvailable -= _amount
 
-    if not IERC20(erc20TokenContract).transfer(_receiver, _amount):
-        raise "error withdrawing funds"
-
-    log Withdrawal(msg.sender, msg.sender, _amount, erc20TokenContract)
 
 
 @internal
-def _sendFunds(_to: address, _receiver: address, _amount: uint256):
+def _accountForSentFunds(_to: address, _receiver: address, _amount: uint256):
     assert not self.isPoolDeprecated, "pool is deprecated"
     assert self.isPoolActive, "pool is inactive"
-    assert msg.sender == self.lender, "msg.sender is not the lender"
+    assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
     assert _to != empty(address), "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
     assert _amount <= self.fundsAvailable, "insufficient liquidity"
@@ -268,9 +254,6 @@ def _sendFunds(_to: address, _receiver: address, _amount: uint256):
     self.fundsInvested += _amount
     self.totalFundsInvested += _amount
 
-    if not IERC20(erc20TokenContract).transfer(_to, _amount):
-        raise "error sending funds in LPOTC"
-
     log FundsTransfer(_to, _to, _amount, erc20TokenContract)
 
 
@@ -279,11 +262,15 @@ def _receiveFunds(_borrower: address, _payer: address, _amount: uint256, _reward
     assert msg.sender == self.loansContract, "msg.sender is not the loans addr"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
+    assert self.fundsInvested >= _amount, "amount higher than invested"
 
     rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
-    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
+    if _payer == self:
+        self._accountForReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
+    else:
+        self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
 
 
 @internal
@@ -304,7 +291,7 @@ def _transferReceivedFunds(
     self.fundsInvested -= _investedAmount
     self.totalRewards += _rewardsPool
 
-    if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
+    if _payer != self and not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
         raise "error receiving funds in LPOTC"
 
     if _rewardsProtocol > 0:
@@ -323,6 +310,36 @@ def _transferReceivedFunds(
         _origin
     )
 
+
+@internal
+def _accountForReceivedFunds(
+    _borrower: address,
+    _amount: uint256,
+    _rewardsPool: uint256,
+    _rewardsProtocol: uint256,
+    _investedAmount: uint256,
+    _origin: String[30]
+):
+
+    self.fundsAvailable += _amount + _rewardsPool
+    self.fundsInvested -= _investedAmount
+    self.totalRewards += _rewardsPool
+
+    if _rewardsProtocol > 0:
+        assert self.protocolWallet != empty(address), "protocolWallet is zero addr"
+        if not IERC20(erc20TokenContract).transfer(self.protocolWallet, _rewardsProtocol):
+            raise "error transferring protocol fees"
+
+    log FundsReceipt(
+        _borrower,
+        _borrower,
+        _amount,
+        _rewardsPool,
+        _rewardsProtocol,
+        _investedAmount,
+        erc20TokenContract,
+        _origin
+    )
 
 @internal
 def _receiveFundsFromLiquidation(
@@ -451,20 +468,35 @@ def activeForRewards(_lender: address) -> bool:
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
-def __init__(
-    _erc20TokenContract: address,
-    _protocolWallet: address,
-    _protocolFeesShare: uint256
-):
+def __init__(_erc20TokenContract: address, _allowEth: bool):
     assert _erc20TokenContract != empty(address), "address is the zero address"
-    assert _protocolWallet != empty(address), "address is the zero address"
-    assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
 
     self.owner = msg.sender
     erc20TokenContract = _erc20TokenContract
+    allowEth = _allowEth
+    self.isPoolDeprecated = True
+
+
+@external
+def initialize(_owner: address, _lender: address, _protocolWallet: address, _protocolFeesShare: uint256):
+    assert _protocolWallet != empty(address), "address is the zero address"
+    assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
+    assert _lender != empty(address), "lender is the zero address"
+    assert _owner != empty(address), "owner is the zero address"
+    assert self.owner == empty(address), "already initialized"
+
+    self.owner = _owner
+    self.lender = _lender
     self.protocolWallet = _protocolWallet
     self.protocolFeesShare = _protocolFeesShare
     self.isPoolActive = True
+
+
+@external
+def create_proxy(_protocolWallet: address, _protocolFeesShare: uint256, _lender: address) -> address:
+    proxy: address = create_minimal_proxy_to(self)
+    ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare)
+    return proxy
 
 
 @external
@@ -476,10 +508,7 @@ def __default__():
 
 @external
 def proposeOwner(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address it the zero address"
-    assert self.owner != _address, "proposed owner addr is the owner"
-    assert self.proposedOwner != _address, "proposed owner addr is the same"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
 
     self.proposedOwner = _address
 
@@ -494,7 +523,7 @@ def proposeOwner(_address: address):
 
 @external
 def claimOwnership():
-    assert msg.sender == self.proposedOwner, "msg.sender is not the proposed"
+    assert msg.sender == self.proposedOwner # reason: msg.sender is not the proposed"
 
     log OwnershipTransferred(
         self.owner,
@@ -526,9 +555,8 @@ def changeProtocolWallet(_address: address):
 
 @external
 def changeProtocolFeesShare(_value: uint256):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _value <= 10000, "fees share exceeds 10000 bps"
-    assert _value != self.protocolFeesShare, "new value is the same"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    assert _value <= 10000  # reason: fees share exceeds 10000 bps
 
     log ProtocolFeesShareChanged(
         erc20TokenContract,
@@ -542,10 +570,7 @@ def changeProtocolFeesShare(_value: uint256):
 
 @external
 def setLoansPeripheralAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert _address.is_contract, "_address is not a contract"
-    assert _address != self.loansContract, "new value is the same"
+    assert msg.sender == self.owner  #reason: msg.sender is not the owner
 
     log LoansPeripheralAddressSet(
         erc20TokenContract,
@@ -559,10 +584,7 @@ def setLoansPeripheralAddress(_address: address):
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert _address.is_contract, "_address is not a contract"
-    assert _address != self.liquidationsPeripheralContract, "new value is the same"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
 
     log LiquidationsPeripheralAddressSet(
         erc20TokenContract,
@@ -576,7 +598,7 @@ def setLiquidationsPeripheralAddress(_address: address):
 
 @external
 def changePoolStatus(_flag: bool):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert msg.sender == self.owner  #reason: msg.sender is not the owner
 
     self.isPoolActive = _flag
 
@@ -589,8 +611,7 @@ def changePoolStatus(_flag: bool):
 
 @external
 def deprecate():
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert not self.isPoolDeprecated, "pool is already deprecated"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
 
     self.isPoolDeprecated = True
     self.isPoolActive = False
@@ -616,7 +637,7 @@ def deposit(_amount: uint256):
     @param _amount Value to deposit
     """
 
-    assert self._fundsAreAllowed(msg.sender, self.lendingPoolCoreContract, _amount), "not enough funds allowed"
+    assert self._fundsAreAllowed(msg.sender, self, _amount), "not enough funds allowed"
     self._deposit(_amount, msg.sender)
 
 
@@ -630,9 +651,10 @@ def depositEth():
     @dev Logs the `Deposit` event
     """
 
+    assert allowEth
     log PaymentReceived(msg.sender, msg.sender, msg.value)
 
-    self._wrap_and_approve(self.lendingPoolCoreContract, msg.value)
+    self._wrap_and_approve(self, msg.value)
     self._deposit(msg.value, self)
 
 
@@ -643,7 +665,12 @@ def withdraw(_amount: uint256):
     @dev Logs the `Withdrawal`
     @param _amount Value to withdraw
     """
-    self._withdraw(_amount, msg.sender)
+    self._withdraw_accounting(_amount)
+
+    if not IERC20(erc20TokenContract).transfer(msg.sender, _amount):
+        raise "error withdrawing funds"
+
+    log Withdrawal(msg.sender, msg.sender, _amount, erc20TokenContract)
 
 
 @external
@@ -653,8 +680,14 @@ def withdrawEth(_amount: uint256):
     @dev Logs the `Withdrawal`
     @param _amount Value to withdraw in wei
     """
-    self._withdraw(_amount, self)
+
+    assert allowEth
+
+    self._withdraw_accounting(_amount)
+
     self._unwrap_and_send(msg.sender, _amount)
+
+    log Withdrawal(msg.sender, msg.sender, _amount, erc20TokenContract)
 
 
 
@@ -667,7 +700,11 @@ def sendFunds(_to: address, _amount: uint256):
     @param _amount Value to transfer
     """
 
-    self._sendFunds(_to, _to, _amount)
+    self._accountForSentFunds(_to, _to, _amount)
+
+    if not IERC20(erc20TokenContract).transfer(_to, _amount):
+        raise "error sending funds in LPOTC"
+
 
 
 @external
@@ -679,7 +716,9 @@ def sendFundsEth(_to: address, _amount: uint256):
     @param _amount Value to transfer in wei
     """
 
-    self._sendFunds(_to, self, _amount)
+    assert allowEth
+
+    self._accountForSentFunds(_to, self, _amount)
     self._unwrap_and_send(_to, _amount)
 
 
@@ -695,13 +734,15 @@ def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint25
     @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive in wei
     """
 
+    assert allowEth
+
     _received_amount: uint256 = msg.value
     assert _received_amount > 0, "amount should be higher than 0"
     assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
 
     log PaymentReceived(msg.sender, msg.sender, _amount + _rewardsAmount)
 
-    self._wrap_and_approve(self.lendingPoolCoreContract, _received_amount)
+    self._wrap_and_approve(self, _received_amount)
     self._receiveFunds(_borrower, self, _amount, _rewardsAmount)
 
 
@@ -716,7 +757,7 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
     @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive
     """
 
-    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
+    assert self._fundsAreAllowed(_borrower, self, _amount + _rewardsAmount), "insufficient liquidity"
     self._receiveFunds(_borrower, _borrower, _amount, _rewardsAmount)
 
 
@@ -740,7 +781,7 @@ def receiveFundsFromLiquidation(
     @param _origin Identification of the liquidation method
     """
 
-    assert self._fundsAreAllowed(_borrower, self.lendingPoolCoreContract, _amount + _rewardsAmount), "insufficient liquidity"
+    assert self._fundsAreAllowed(_borrower, self, _amount + _rewardsAmount), "insufficient liquidity"
     self._receiveFundsFromLiquidation(_borrower, _borrower, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
 
 
@@ -767,33 +808,43 @@ def receiveFundsFromLiquidationEth(
 
     receivedAmount: uint256 = msg.value
 
+    assert allowEth
     assert receivedAmount == _amount + _rewardsAmount, "recv amount not match partials"
 
     log PaymentReceived(msg.sender, msg.sender, receivedAmount)
 
-    self._wrap_and_approve(self.lendingPoolCoreContract, receivedAmount)
+    self._wrap_and_approve(self, receivedAmount)
     self._receiveFundsFromLiquidation(_borrower, self, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
 
 
-#### CORE
+@external
+def receiveCollateralFromLiquidation(
+    _borrower: address,
+    _amount: uint256,
+    _origin: String[30]
+):
+
+    """
+    @notice Accounts for a liquidation executed by claiming the collaterals
+    @dev Logs the `CollateralClaimReceipt`
+    @param _borrower The wallet address which originated the loan
+    @param _amount Value of the loans principal to account for
+    @param _origin Identification of the liquidation method
+    """
+
+    assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
+    assert _borrower != empty(address), "_borrower is the zero address"
+    assert _amount > 0, "amount should be higher than 0"
+    assert _amount <= self.fundsInvested, "amount more than invested"
 
 
+    self.fundsInvested -= _amount
+    self.collateralClaimsValue += _amount
 
-
-
-# Global variables
-
-
-
-##### INTERNAL METHODS #####
-
-
-
-##### EXTERNAL METHODS - VIEW #####
-
-
-
-##### EXTERNAL METHODS - NON-VIEW #####
-
-
-
+    log CollateralClaimReceipt(
+        _borrower,
+        _borrower,
+        _amount,
+        erc20TokenContract,
+        _origin
+    )
