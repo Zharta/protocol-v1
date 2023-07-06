@@ -1,4 +1,4 @@
-name: Other tests
+name: Unit tests
 
 on:
   push:
@@ -36,12 +36,12 @@ jobs:
     - name: Run project unit tests 
       run: |
         coverage run -m pytest tests/unit --durations=0
-        coverage report | tee pytest-coverage.txt
+        coverage report | tee coverage.txt
+        sed -i ''  '1s/^/coverage: platform marker \n/' coverage.txt
         coverage xml
 
     - name: Create coverage comment
       uses: MishaKav/pytest-coverage-comment@main
       with:
-        pytest-coverage-path: ./pytest-coverage.txt
-        junitxml-path: ./coverage.xml
+        pytest-coverage-path: ./coverage.txt
       if: github.event_name == 'pull_request'
