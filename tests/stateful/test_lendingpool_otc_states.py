@@ -15,14 +15,6 @@ PROTOCOL_FEE = 100  # bps
 
 
 @dataclass
-class BorrowerState():
-    initial: int = 0
-    borrowed: int = 0
-    paid: int = 0
-    claimed: int = 0
-
-
-@dataclass
 class PoolState():
     deposits: int = 0
     withdrawals: int = 0

@@ -10,3 +10,4 @@ pytest
 pytest-xdist
 python-lsp-server[flake8]
 rope
+coverage
