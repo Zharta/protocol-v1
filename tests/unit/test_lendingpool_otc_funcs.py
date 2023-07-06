@@ -519,6 +519,105 @@ def test_receive_collateral_from_liquidation_success(erc20_pool, erc20_token):
     assert erc20_pool.totalRewards() == 0
     assert erc20_pool.collateralClaimsValue() == amount
 
-# def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
-# def receiveFundsFromLiquidationEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
 
+def test_receive_funds_from_liquidation_fail(erc20_pool, erc20_token):
+
+    amount = 10**18
+    rewardsAmount = 10**17
+    borrower = boa.env.generate_address()
+    liquidations = erc20_pool.liquidationsPeripheralContract()
+    erc20_token.eval(f"self.balanceOf[{borrower}] = {amount + rewardsAmount}")
+
+    # borrower is the zero addr
+    with boa.reverts():
+        erc20_pool.receiveFundsFromLiquidation(ZERO_ADDRESS, amount, rewardsAmount, True, "origin", sender=liquidations)
+
+    # insufficient liquidity
+    with boa.reverts():
+        erc20_pool.receiveFundsFromLiquidation(borrower, amount, rewardsAmount, True, "origin", sender=liquidations)
+
+    erc20_token.approve(erc20_pool.address, amount + rewardsAmount, sender=borrower)
+
+    # amount should be higher than 0
+    with boa.reverts():
+        erc20_pool.receiveFundsFromLiquidation(borrower, 0, 0, True, "origin", sender=borrower)
+
+
+    # msg.sender not liquidations
+    with boa.reverts():
+        erc20_pool.receiveFundsFromLiquidation(borrower, amount, rewardsAmount, True, "origin", sender=borrower)
+
+
+def test_receive_funds_from_liquidation_success(erc20_pool, erc20_token):
+
+    amount = 10**18
+    rewardsAmount = 10**17
+    protocol_rewards = rewardsAmount * erc20_pool.protocolFeesShare() // 10000
+    borrower = boa.env.generate_address()
+    liquidations = erc20_pool.liquidationsPeripheralContract()
+
+    erc20_token.eval(f"self.balanceOf[{borrower}] = {amount + rewardsAmount}")
+    erc20_token.approve(erc20_pool.address, amount + rewardsAmount, sender=borrower)
+    erc20_pool.eval(f"self.fundsInvested = {amount}")
+
+    erc20_pool.receiveFundsFromLiquidation(borrower, amount, rewardsAmount, True, "origin", sender=liquidations)
+
+    event = get_last_event(erc20_pool, name="FundsReceipt")
+    assert event.walletIndexed == borrower
+    assert event.wallet == borrower
+    assert event.amount == amount
+    assert event.rewardsPool == rewardsAmount - protocol_rewards
+    assert event.rewardsProtocol == protocol_rewards
+    assert event.investedAmount == amount
+    assert event.erc20TokenContract == erc20_pool.erc20TokenContract()
+    assert event.fundsOrigin == "origin"
+
+    assert erc20_pool.fundsInvested() == 0
+    assert erc20_pool.fundsAvailable() == amount + rewardsAmount - protocol_rewards
+    assert erc20_pool.totalRewards() == rewardsAmount - protocol_rewards
+    assert erc20_pool.collateralClaimsValue() == 0
+
+
+def test_receive_funds_from_liquidation_eth_fail(weth_pool, erc20_token):
+
+    amount = 10**18
+    rewardsAmount = 10**17
+    borrower = boa.env.generate_address()
+    boa.env.set_balance(borrower, amount + rewardsAmount)
+
+    # allowEth is False
+    with boa.reverts():
+        weth_pool.receiveFundsFromLiquidationEth(borrower, amount, rewardsAmount, True, "origin", value=amount+rewardsAmount, sender=borrower)
+
+    # recv amount not match partials
+    with boa.reverts():
+        weth_pool.receiveFundsFromLiquidationEth(borrower, amount, rewardsAmount, True, "origin", value=amount, sender=borrower)
+
+
+def test_receive_funds_from_liquidation_eth_success(weth_pool, erc20_token):
+
+    amount = 10**18
+    rewardsAmount = 10**17
+    protocol_rewards = rewardsAmount * weth_pool.protocolFeesShare() // 10000
+    borrower = boa.env.generate_address()
+    liquidations = weth_pool.liquidationsPeripheralContract()
+
+    boa.env.set_balance(liquidations, amount + rewardsAmount)
+    weth_pool.eval(f"self.fundsInvested = {amount}")
+
+    weth_pool.receiveFundsFromLiquidationEth(borrower, amount, rewardsAmount, True, "origin", value=amount+rewardsAmount, sender=liquidations)
+
+    event = get_last_event(weth_pool, name="FundsReceipt")
+    assert event.walletIndexed == borrower
+    assert event.wallet == borrower
+    assert event.amount == amount
+    assert event.rewardsPool == rewardsAmount - protocol_rewards
+    assert event.rewardsProtocol == protocol_rewards
+    assert event.investedAmount == amount
+    assert event.erc20TokenContract == weth_pool.erc20TokenContract()
+    assert event.fundsOrigin == "origin"
+
+    assert weth_pool.fundsInvested() == 0
+    assert weth_pool.fundsAvailable() == amount + rewardsAmount - protocol_rewards
+    assert weth_pool.totalRewards() == rewardsAmount - protocol_rewards
+    assert weth_pool.collateralClaimsValue() == 0

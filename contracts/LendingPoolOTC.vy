@@ -289,8 +289,9 @@ def _transferReceivedFunds(
     self.fundsAvailable += _amount + _rewardsPool
     self.fundsInvested -= _amount
     self.totalRewards += _rewardsPool
+    self.funds.currentAmountDeposited += _rewardsPool
 
-    if _payer != self and not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
+    if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
         raise "error receiving funds in LPOTC"
 
     if _rewardsProtocol > 0:
@@ -322,6 +323,7 @@ def _accountForReceivedFunds(
     self.fundsAvailable += _amount + _rewardsPool
     self.fundsInvested -= _amount
     self.totalRewards += _rewardsPool
+    self.funds.currentAmountDeposited += _rewardsPool
 
     if _rewardsProtocol > 0:
         assert self.protocolWallet != empty(address), "protocolWallet is zero addr"
@@ -360,7 +362,10 @@ def _receiveFundsFromLiquidation(
     else:
         rewardsPool = _rewardsAmount
 
-    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _origin)
+    if _payer == self:
+        self._accountForReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _origin)
+    else:
+        self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _origin)
 
 
 @internal
