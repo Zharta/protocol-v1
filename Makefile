@@ -35,6 +35,9 @@ unit-tests:
 integration-tests:
 	${VENV}/bin/pytest -n auto tests/intgration --durations=0
 
+stateful-tests:
+	${VENV}/bin/pytest tests/stateful --durations=0 -n auto
+
 gas:
 	${VENV}/bin/pytest tests --durations=0 --profile
 

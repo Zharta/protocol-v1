@@ -3,8 +3,10 @@ from web3 import Web3
 from eth_account import Account
 from .conftest_base import get_last_event, ZERO_ADDRESS
 from datetime import datetime as dt
+from boa.environment import Env
 
 import pytest
+import os
 
 LOAN_AMOUNT = Web3.to_wei(0.1, "ether")
 
@@ -21,6 +23,16 @@ AUCTION_DURATION = 50 # 15 days
 MAX_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
+
+
+@pytest.fixture(scope="module", autouse=True)
+def forked_env():
+    with boa.swap_env(Env()):
+        fork_uri = os.environ["BOA_FORK_RPC_URL"]
+        blkid = 17614000
+        boa.env.fork(fork_uri, block_identifier=blkid)
+        yield
+
 
 @pytest.fixture(scope="session")
 def accounts():

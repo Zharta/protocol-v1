@@ -2,9 +2,6 @@ import boa
 import pytest
 
 from ..conftest_base import ZERO_ADDRESS, get_last_event
-from textwrap import dedent
-from hypothesis import given
-from boa.test import strategy
 
 DEPLOYER = boa.env.generate_address()
 LENDER = boa.env.generate_address()
@@ -51,17 +48,6 @@ def erc20_pool(lendingpool_otc_contract, erc20_token):
         proxy.setLoansPeripheralAddress(boa.env.generate_address())
         proxy.setLiquidationsPeripheralAddress(boa.env.generate_address())
         return proxy
-
-
-# functions to test:
-# def deposit(_amount: uint256):
-# def depositEth():
-# def withdraw(_amount: uint256):
-# def withdrawEth(_amount: uint256):
-# def sendFunds(_to: address, _amount: uint256):
-# def sendFundsEth(_to: address, _amount: uint256):
-# def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
-# def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256):
 
 
 def test_deposit_eth_fail(erc20_pool, weth_pool):
@@ -532,3 +518,7 @@ def test_receive_collateral_from_liquidation_success(erc20_pool, erc20_token):
     assert erc20_pool.fundsAvailable() == 0
     assert erc20_pool.totalRewards() == 0
     assert erc20_pool.collateralClaimsValue() == amount
+
+# def receiveFundsFromLiquidation(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
+# def receiveFundsFromLiquidationEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256, _distributeToProtocol: bool, _investedAmount: uint256, _origin: String[30]):
+

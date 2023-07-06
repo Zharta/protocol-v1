@@ -268,9 +268,9 @@ def _receiveFunds(_borrower: address, _payer: address, _amount: uint256, _reward
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
     if _payer == self:
-        self._accountForReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
+        self._accountForReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, "loan")
     else:
-        self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
+        self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, "loan")
 
 
 @internal
@@ -280,7 +280,6 @@ def _transferReceivedFunds(
     _amount: uint256,
     _rewardsPool: uint256,
     _rewardsProtocol: uint256,
-    _investedAmount: uint256,
     _origin: String[30]
 ):
 
@@ -288,7 +287,7 @@ def _transferReceivedFunds(
     assert IERC20(erc20TokenContract).allowance(_payer, self) >= _amount + _rewardsPool + _rewardsProtocol, "insufficient value received"
 
     self.fundsAvailable += _amount + _rewardsPool
-    self.fundsInvested -= _investedAmount
+    self.fundsInvested -= _amount
     self.totalRewards += _rewardsPool
 
     if _payer != self and not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
@@ -305,7 +304,7 @@ def _transferReceivedFunds(
         _amount,
         _rewardsPool,
         _rewardsProtocol,
-        _investedAmount,
+        _amount,
         erc20TokenContract,
         _origin
     )
@@ -317,12 +316,11 @@ def _accountForReceivedFunds(
     _amount: uint256,
     _rewardsPool: uint256,
     _rewardsProtocol: uint256,
-    _investedAmount: uint256,
     _origin: String[30]
 ):
 
     self.fundsAvailable += _amount + _rewardsPool
-    self.fundsInvested -= _investedAmount
+    self.fundsInvested -= _amount
     self.totalRewards += _rewardsPool
 
     if _rewardsProtocol > 0:
@@ -336,7 +334,7 @@ def _accountForReceivedFunds(
         _amount,
         _rewardsPool,
         _rewardsProtocol,
-        _investedAmount,
+        _amount,
         erc20TokenContract,
         _origin
     )
@@ -348,7 +346,6 @@ def _receiveFundsFromLiquidation(
     _amount: uint256,
     _rewardsAmount: uint256,
     _distributeToProtocol: bool,
-    _investedAmount: uint256,
     _origin: String[30]
 ):
     assert msg.sender == self.liquidationsPeripheralContract, "msg.sender is not the BN addr"
@@ -363,7 +360,7 @@ def _receiveFundsFromLiquidation(
     else:
         rewardsPool = _rewardsAmount
 
-    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _investedAmount, _origin)
+    self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _origin)
 
 
 @internal
@@ -736,13 +733,12 @@ def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint25
 
     assert allowEth
 
-    _received_amount: uint256 = msg.value
-    assert _received_amount > 0, "amount should be higher than 0"
-    assert _received_amount == _amount + _rewardsAmount, "recv amount not match partials"
+    assert msg.value > 0, "amount should be higher than 0"
+    assert msg.value == _amount + _rewardsAmount, "recv amount not match partials"
 
     log PaymentReceived(msg.sender, msg.sender, _amount + _rewardsAmount)
 
-    self._wrap_and_approve(self, _received_amount)
+    self._wrap_and_approve(self, msg.value)
     self._receiveFunds(_borrower, self, _amount, _rewardsAmount)
 
 
@@ -767,7 +763,6 @@ def receiveFundsFromLiquidation(
     _amount: uint256,
     _rewardsAmount: uint256,
     _distributeToProtocol: bool,
-    _investedAmount: uint256,
     _origin: String[30]
 ):
 
@@ -782,7 +777,7 @@ def receiveFundsFromLiquidation(
     """
 
     assert self._fundsAreAllowed(_borrower, self, _amount + _rewardsAmount), "insufficient liquidity"
-    self._receiveFundsFromLiquidation(_borrower, _borrower, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
+    self._receiveFundsFromLiquidation(_borrower, _borrower, _amount, _rewardsAmount, _distributeToProtocol, _origin)
 
 
 @payable
@@ -792,7 +787,6 @@ def receiveFundsFromLiquidationEth(
     _amount: uint256,
     _rewardsAmount: uint256,
     _distributeToProtocol: bool,
-    _investedAmount: uint256,
     _origin: String[30]
 ):
 
@@ -814,7 +808,7 @@ def receiveFundsFromLiquidationEth(
     log PaymentReceived(msg.sender, msg.sender, receivedAmount)
 
     self._wrap_and_approve(self, receivedAmount)
-    self._receiveFundsFromLiquidation(_borrower, self, _amount, _rewardsAmount, _distributeToProtocol, _investedAmount, _origin)
+    self._receiveFundsFromLiquidation(_borrower, self, _amount, _rewardsAmount, _distributeToProtocol, _origin)
 
 
 @external
