@@ -37,11 +37,12 @@ jobs:
       run: |
         coverage run -m pytest tests/unit --durations=0
         coverage report | tee coverage.txt
-        sed -i ''  '1s/^/coverage: platform marker \n/' coverage.txt
+        sed -i '1s/^/coverage: platform marker \n/' coverage.txt
         coverage xml
 
     - name: Create coverage comment
       uses: MishaKav/pytest-coverage-comment@main
       with:
         pytest-coverage-path: ./coverage.txt
+        junitxml-path: ./coverage.xml
       if: github.event_name == 'pull_request'

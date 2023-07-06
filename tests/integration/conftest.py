@@ -54,8 +54,6 @@ def not_owner_account():
 
 @pytest.fixture(scope="session", autouse=True)
 def contract_owner(accounts, owner_account):
-    # boa.env.eoa = accounts[0]  # avoid all the pranks in test setups
-    # return accounts[0]
     boa.env.eoa = owner_account.address
     boa.env.set_balance(owner_account.address, 10**21)
     return owner_account.address

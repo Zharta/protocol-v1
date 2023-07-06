@@ -1,12 +1,7 @@
 import boa
-from web3 import Web3
 from eth_account import Account
-from ..conftest_base import get_last_event, ZERO_ADDRESS
-from datetime import datetime as dt
-from boa.environment import Env
 
 import pytest
-import os
 
 
 @pytest.fixture(scope="session")
@@ -29,8 +24,6 @@ def not_owner_account():
 
 @pytest.fixture(scope="session", autouse=True)
 def contract_owner(accounts, owner_account):
-    # boa.env.eoa = accounts[0]  # avoid all the pranks in test setups
-    # return accounts[0]
     boa.env.eoa = owner_account.address
     boa.env.set_balance(owner_account.address, 10**21)
     return owner_account.address
