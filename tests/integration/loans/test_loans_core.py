@@ -2,7 +2,7 @@ import datetime as dt
 import boa
 from web3 import Web3
 
-from ..conftest_base import ZERO_ADDRESS, get_last_event, checksummed
+from ...conftest_base import ZERO_ADDRESS, get_last_event, checksummed
 
 MATURITY = int(dt.datetime.now().timestamp()) + 30 * 24 * 60 * 60
 LOAN_AMOUNT = Web3.to_wei(0.1, "ether")

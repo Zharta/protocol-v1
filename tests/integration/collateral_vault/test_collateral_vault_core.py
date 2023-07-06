@@ -1,6 +1,6 @@
 import boa
 
-from ..conftest_base import ZERO_ADDRESS, get_last_event
+from ...conftest_base import ZERO_ADDRESS, get_last_event
 
 
 def test_initial_state(collateral_vault_core_contract, contract_owner):

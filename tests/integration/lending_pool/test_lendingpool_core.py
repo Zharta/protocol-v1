@@ -2,7 +2,7 @@ from web3 import Web3
 
 import boa
 
-from ..conftest_base import ZERO_ADDRESS, get_last_event
+from ...conftest_base import ZERO_ADDRESS, get_last_event
 
 
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60

@@ -1,7 +1,7 @@
 import boa
 from web3 import Web3
 from eth_account import Account
-from .conftest_base import get_last_event, ZERO_ADDRESS
+from ..conftest_base import get_last_event, ZERO_ADDRESS
 from datetime import datetime as dt
 from boa.environment import Env
 
@@ -222,6 +222,7 @@ def loans_peripheral_contract(loans_core_contract, lending_pool_peripheral_contr
         lending_pool_peripheral_contract,
         collateral_vault_peripheral_contract,
         genesis_contract,
+        True,
     )
 
 
@@ -239,6 +240,7 @@ def usdc_loans_peripheral_contract(usdc_loans_core_contract, usdc_lending_pool_p
         usdc_lending_pool_peripheral_contract,
         collateral_vault_peripheral_contract,
         genesis_contract,
+        False,
     )
 
 
