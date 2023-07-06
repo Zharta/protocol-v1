@@ -16,11 +16,6 @@ PROTOCOL_FEE = 100  # bps
 
 
 @pytest.fixture(scope="module")
-def lendingpool_otc_contract():
-    return boa.load_partial("contracts/LendingPoolOTC.vy")
-
-
-@pytest.fixture(scope="module")
 def lendingpool_otc(lendingpool_otc_contract):
     with boa.env.prank(DEPLOYER):
         return lendingpool_otc_contract.deploy(ERC20_ADDRESS, True)

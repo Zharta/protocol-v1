@@ -127,7 +127,6 @@ def claimOwnership():
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "address is the zero addr"
-    assert _address.is_contract, "address is not a contract"
     assert self.collateralVaultPeripheralAddress != _address, "new value is the same"
 
     log CollateralVaultPeripheralAddressSet(

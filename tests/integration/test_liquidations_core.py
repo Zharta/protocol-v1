@@ -3,7 +3,7 @@ from web3 import Web3
 import boa
 import eth_abi
 
-from ...conftest_base import ZERO_ADDRESS, get_last_event
+from ..conftest_base import ZERO_ADDRESS, get_last_event
 
 GRACE_PERIOD_DURATION = 172800  # 2 days
 LENDER_PERIOD_DURATION = 604800  # 15 days

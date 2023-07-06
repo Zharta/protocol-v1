@@ -2,7 +2,7 @@ from decimal import Decimal
 from web3 import Web3
 
 import boa
-from ...conftest_base import ZERO_ADDRESS, get_last_event, get_events
+from ..conftest_base import ZERO_ADDRESS, get_last_event, get_events
 
 
 PROTOCOL_FEES_SHARE = 2500  # parts per 10000, e.g. 2.5% is 250 parts per 10000

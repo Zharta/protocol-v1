@@ -5,7 +5,7 @@ from web3 import Web3
 import boa
 import eth_abi
 
-from ...conftest_base import ZERO_ADDRESS, get_last_event, get_events
+from ..conftest_base import ZERO_ADDRESS, get_last_event, get_events
 
 GRACE_PERIOD_DURATION = 50
 LENDER_PERIOD_DURATION = 50

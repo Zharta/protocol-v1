@@ -30,16 +30,16 @@ coverage:
 	${VENV}/bin/coverage report
 
 unit-tests:
-	${VENV}/bin/pytest tests/unit --durations=0
+	${VENV}/bin/pytest tests/unit --durations=0 -n auto --dist loadscope
 
 integration-tests:
-	${VENV}/bin/pytest -n auto tests/intgration --durations=0
+	${VENV}/bin/pytest -n auto tests/integration --durations=0
 
 stateful-tests:
 	${VENV}/bin/pytest tests/stateful --durations=0 -n auto
 
 gas:
-	${VENV}/bin/pytest tests --durations=0 --profile
+	${VENV}/bin/pytest tests/integration --durations=0 --gas-profile
 
 interfaces:
 	${VENV}/bin/python scripts/build_interfaces.py contracts/*.vy

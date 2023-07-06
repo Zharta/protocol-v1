@@ -13,7 +13,7 @@ from eth_account import Account
 from eth_utils import keccak
 from eth_abi import encode
 
-from ...conftest_base import ZERO_ADDRESS, get_last_event
+from ..conftest_base import ZERO_ADDRESS, get_last_event
 from dataclasses import dataclass
 
 

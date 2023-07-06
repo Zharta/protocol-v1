@@ -1,5 +1,6 @@
 import boa
 from eth_account import Account
+from textwrap import dedent
 
 import pytest
 
@@ -50,8 +51,28 @@ def protocol_wallet(accounts):
 
 
 @pytest.fixture(scope="session")
-def erc721_contract(contract_owner):
-    return boa.load("contracts/auxiliary/token/ERC721.vy")
+def erc721_contract():
+    return boa.load_partial("contracts/auxiliary/token/ERC721.vy")
+
+
+@pytest.fixture(scope="session")
+def weth9_contract():
+    return boa.load_partial("contracts/auxiliary/token/WETH9Mock.vy")
+
+
+@pytest.fixture(scope="session")
+def cryptopunks_contract():
+    return boa.load_partial("contracts/auxiliary/token/CryptoPunksMarketMock.vy")
+
+
+@pytest.fixture(scope="session")
+def delegation_registry_contract():
+    return boa.load_partial("contracts/auxiliary/delegate/DelegationRegistryMock.vy")
+
+
+@pytest.fixture(scope="session")
+def genesis_contract():
+    return boa.load_partial("contracts/GenesisPass.vy")
 
 
 @pytest.fixture(scope="session")
@@ -60,5 +81,46 @@ def lendingpool_otc_contract():
 
 
 @pytest.fixture(scope="session")
-def weth9_contract():
-    return boa.load_partial("contracts/auxiliary/token/WETH9Mock.vy")
+def collateral_vault_peripheral_contract():
+    return boa.load_partial("contracts/CollateralVaultPeripheral.vy")
+
+
+@pytest.fixture(scope="session")
+def collateral_vault_core_contract():
+    return boa.load_partial("contracts/CollateralVaultCoreV2.vy")
+
+
+@pytest.fixture(scope="session")
+def cryptopunks_vault_core_contract():
+    return boa.load_partial("contracts/CryptoPunksVaultCore.vy")
+
+
+@pytest.fixture(scope="session")
+def loans_core_contract():
+    return boa.load_partial("contracts/LoansCore.vy")
+
+
+@pytest.fixture(scope="session")
+def loans_peripheral_contract():
+    return boa.load_partial("contracts/Loans.vy")
+
+
+@pytest.fixture(scope="module")
+def path_to_erc20_mock():
+    # this is not required for loans core functionality, but is needed to find the erc20
+    # to use in events.
+    # TODO: consider remove the events dependency
+    return boa.loads_partial(dedent("""
+
+        @external
+        @view
+        def lendingPoolPeripheralContract() -> address:
+            return self
+
+        @external
+        @view
+        def erc20TokenContract() -> address:
+            return self
+
+     """))
+

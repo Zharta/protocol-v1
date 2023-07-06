@@ -517,7 +517,6 @@ def changeInterestAccrualPeriod(_value: uint256):
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
-    assert _address.is_contract, "_address is not a contract"
     assert self.lendingPoolPeripheralContract != _address, "new LPPeriph addr is the same"
 
     log LendingPoolPeripheralAddressSet(
@@ -534,7 +533,6 @@ def setLendingPoolPeripheralAddress(_address: address):
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
-    assert _address.is_contract, "_address is not a contract"
     assert self.collateralVaultPeripheralContract != _address, "new LPCore addr is the same"
 
     log CollateralVaultPeripheralAddressSet(
@@ -551,7 +549,6 @@ def setCollateralVaultPeripheralAddress(_address: address):
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
-    assert _address.is_contract, "_address is not a contract"
     assert self.liquidationsPeripheralContract != _address, "new LPCore addr is the same"
 
     log LiquidationsPeripheralAddressSet(
@@ -568,7 +565,6 @@ def setLiquidationsPeripheralAddress(_address: address):
 def setLiquidityControlsAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
-    assert _address.is_contract, "_address is not a contract"
     assert _address != self.liquidityControlsContract, "new value is the same"
 
     log LiquidityControlsAddressSet(

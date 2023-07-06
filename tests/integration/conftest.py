@@ -25,7 +25,7 @@ MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def forked_env():
     with boa.swap_env(Env()):
         fork_uri = os.environ["BOA_FORK_RPC_URL"]
@@ -35,7 +35,7 @@ def forked_env():
 
 
 @pytest.fixture(scope="session")
-def accounts():
+def accounts(forked_env):
     _accounts = [boa.env.generate_address() for _ in range(10)]
     for account in _accounts:
         boa.env.set_balance(account, 10**21)
@@ -43,12 +43,12 @@ def accounts():
 
 
 @pytest.fixture(scope="session")
-def owner_account():
+def owner_account(forked_env):
     return Account.create()
 
 
 @pytest.fixture(scope="session")
-def not_owner_account():
+def not_owner_account(forked_env):
     return Account.create()
 
 
@@ -101,7 +101,8 @@ def usdc_contract(contract_owner, accounts):
 
 @pytest.fixture(scope="session")
 def erc721_contract(contract_owner):
-    return boa.load("contracts/auxiliary/token/ERC721.vy")
+    with boa.env.prank(contract_owner):
+        return boa.load("contracts/auxiliary/token/ERC721.vy")
 
 
 @pytest.fixture(scope="session")

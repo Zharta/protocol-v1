@@ -154,8 +154,6 @@ def addVault(_collateral_address: address, _vault_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _collateral_address != empty(address), "contract addr is the zero addr"
     assert _vault_address != empty(address), "vault address is the zero addr"
-    assert _collateral_address.is_contract, "contract addr is not a contract"
-    assert _vault_address.is_contract, "vault address is not a contract"
 
     log CollateralVaultAdded(
         _collateral_address,
@@ -171,7 +169,6 @@ def addVault(_collateral_address: address, _vault_address: address):
 def removeVault(_collateral_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _collateral_address != empty(address), "contract addr is the zero addr"
-    assert _collateral_address.is_contract, "contract addr is not a contract"
     assert self.collateralVaultCoreAddresses[_collateral_address] != empty(address), "address not found"
 
     log CollateralVaultRemoved(
@@ -218,9 +215,7 @@ def claimOwnership():
 def addLoansPeripheralAddress(_erc20TokenContract: address, _address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "address is the zero addr"
-    assert _address.is_contract, "address is not a contract"
     assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.loansPeripheralAddresses[_erc20TokenContract] != _address, "new value is the same"
 
     log LoansPeripheralAddressAdded(
@@ -237,7 +232,6 @@ def addLoansPeripheralAddress(_erc20TokenContract: address, _address: address):
 def removeLoansPeripheralAddress(_erc20TokenContract: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "address not found"
 
     log LoansPeripheralAddressRemoved(
@@ -253,7 +247,6 @@ def removeLoansPeripheralAddress(_erc20TokenContract: address):
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "address is the zero addr"
-    assert _address.is_contract, "address is not a contract"
     assert self.liquidationsPeripheralAddress != _address, "new value is the same"
 
     log LiquidationsPeripheralAddressSet(
@@ -280,8 +273,6 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
     assert _erc20TokenContract != empty(address), "address is the zero addr"
-    assert _collateralAddress.is_contract, "collat addr is not a contract"
-    assert _erc20TokenContract.is_contract, "address is not a contract"
     assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "mapping not found"
     assert msg.sender == self.loansPeripheralAddresses[_erc20TokenContract], "msg.sender is not authorised"
 
@@ -320,8 +311,6 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
     assert _erc20TokenContract != empty(address), "address is the zero addr"
-    assert _collateralAddress.is_contract, "collat addr is not a contract"
-    assert _erc20TokenContract.is_contract, "address is not a contract"
     assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "mapping not found"
     assert msg.sender == self.loansPeripheralAddresses[_erc20TokenContract], "msg.sender is not authorised"
 
@@ -350,7 +339,6 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
     assert msg.sender == self.liquidationsPeripheralAddress, "msg.sender is not authorised"
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
-    assert _collateralAddress.is_contract, "collat addr is not a contract"
 
     IVault(self._getVaultAddress(_collateralAddress, _tokenId)).transferCollateral(_wallet, _collateralAddress, _tokenId, _wallet)
 
