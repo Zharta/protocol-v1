@@ -81,6 +81,16 @@ def lendingpool_otc_contract():
 
 
 @pytest.fixture(scope="session")
+def lendingpool_core_contract():
+    return boa.load_partial("contracts/LendingPoolCore.vy")
+
+
+@pytest.fixture(scope="session")
+def lendingpool_lock_contract():
+    return boa.load_partial("contracts/LendingPoolLock.vy")
+
+
+@pytest.fixture(scope="session")
 def collateral_vault_peripheral_contract():
     return boa.load_partial("contracts/CollateralVaultPeripheral.vy")
 
@@ -103,6 +113,16 @@ def loans_core_contract():
 @pytest.fixture(scope="session")
 def loans_peripheral_contract():
     return boa.load_partial("contracts/Loans.vy")
+
+
+@pytest.fixture(scope="session")
+def liquidations_otc_contract():
+    return boa.load_partial("contracts/LiquidationsOTC.vy")
+
+
+@pytest.fixture(scope="session")
+def liquidations_core_contract():
+    return boa.load_partial("contracts/LiquidationsCore.vy")
 
 
 @pytest.fixture(scope="module")

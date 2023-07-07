@@ -15,7 +15,7 @@ def borrower():
 
 
 @pytest.fixture(scope="module")
-def collateral_vault_core(collateral_vault_core_contract, genesis, contract_owner):
+def collateral_vault_core(collateral_vault_core_contract, contract_owner):
     with boa.env.prank(contract_owner):
         return collateral_vault_core_contract.deploy(boa.env.generate_address())
 
