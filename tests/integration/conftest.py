@@ -25,7 +25,92 @@ MAX_LOANS_POOL_SHARE = 1500 # parts per 10000, e.g. 2.5% is 250 parts per 10000
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
+def erc20_contract_def():
+    return boa.load_partial("tests/stubs/ERC20.vy")
+
+
+@pytest.fixture(scope="session")
+def erc721_contract_def():
+    return boa.load_partial("contracts/auxiliary/token/ERC721.vy")
+
+
+@pytest.fixture(scope="session")
+def cryptopunks_market_contract_def():
+    return boa.load_partial("tests/stubs/CryptoPunksMarketStub.vy")
+
+
+@pytest.fixture(scope="session")
+def wpunks_contract_def():
+    return boa.load_partial("tests/stubs/WrappedPunkStub.vy")
+
+
+@pytest.fixture(scope="session")
+def delegation_registry_contract_def():
+    return boa.load_partial("contracts/auxiliary/delegate/DelegationRegistryMock.vy")
+
+
+@pytest.fixture(scope="session")
+def genesis_contract_def():
+    return boa.load_partial("contracts/GenesisPass.vy")
+
+
+@pytest.fixture(scope="session")
+def collateral_vault_core_contract_def():
+    return boa.load_partial("contracts/CollateralVaultCoreV2.vy")
+
+
+@pytest.fixture(scope="session")
+def cryptopunks_vault_core_contract_def():
+    return boa.load_partial("contracts/CryptoPunksVaultCore.vy")
+
+
+@pytest.fixture(scope="session")
+def collateral_vault_peripheral_contract_def():
+    return boa.load_partial("contracts/CollateralVaultPeripheral.vy")
+
+
+@pytest.fixture(scope="session")
+def lending_pool_core_contract_def():
+    return boa.load_partial("contracts/LendingPoolCore.vy")
+
+
+@pytest.fixture(scope="session")
+def lending_pool_lock_contract_def():
+    return boa.load_partial("contracts/LendingPoolLock.vy")
+
+
+@pytest.fixture(scope="session")
+def lending_pool_peripheral_contract_def():
+    return boa.load_partial("contracts/LendingPoolPeripheral.vy")
+
+
+@pytest.fixture(scope="session")
+def loans_core_contract_def():
+    return boa.load_partial("contracts/LoansCore.vy")
+
+
+@pytest.fixture(scope="session")
+def loans_peripheral_contract_def():
+    return boa.load_partial("contracts/Loans.vy")
+
+
+@pytest.fixture(scope="session")
+def liquidations_core_contract_def():
+    return boa.load_partial("contracts/LiquidationsCore.vy")
+
+
+@pytest.fixture(scope="session")
+def liquidations_peripheral_contract_def():
+    return boa.load_partial("contracts/LiquidationsPeripheral.vy")
+
+
+@pytest.fixture(scope="session")
+def liquidity_controls_contract_def():
+    return boa.load_partial("contracts/LiquidityControls.vy")
+
+
+@pytest.fixture(scope="module", autouse=True)
 def forked_env():
     with boa.swap_env(Env()):
         fork_uri = os.environ["BOA_FORK_RPC_URL"]
@@ -36,7 +121,7 @@ def forked_env():
         yield
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def accounts(forked_env):
     _accounts = [boa.env.generate_address() for _ in range(10)]
     for account in _accounts:
@@ -44,55 +129,55 @@ def accounts(forked_env):
     return _accounts
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def owner_account(forked_env):
     return Account.create()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def not_owner_account(forked_env):
     return Account.create()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def contract_owner(accounts, owner_account):
     boa.env.eoa = owner_account.address
     boa.env.set_balance(owner_account.address, 10**21)
     return owner_account.address
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def not_contract_owner(not_owner_account):
     return not_owner_account.address
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def investor(accounts):
     return accounts[1]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def borrower(accounts):
     yield accounts[2]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def protocol_wallet(accounts):
     yield accounts[3]
 
 
-@pytest.fixture(scope="session")
-def erc20_contract(contract_owner, accounts):
-    erc20 = boa.load_partial("tests/stubs/ERC20.vy").at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
+@pytest.fixture(scope="module")
+def erc20_contract(contract_owner, accounts, erc20_contract_def):
+    erc20 = erc20_contract_def.at("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
     for account in accounts:
         erc20.deposit(sender=account, value=10**19)
     erc20.deposit(sender=contract_owner, value=10**19)
     return erc20
 
 
-@pytest.fixture(scope="session")
-def usdc_contract(contract_owner, accounts):
-    erc20 = boa.load_partial("tests/stubs/ERC20.vy").at("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+@pytest.fixture(scope="module")
+def usdc_contract(contract_owner, accounts, erc20_contract_def):
+    erc20 = erc20_contract_def.at("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
     holder = "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1"
     with boa.env.prank(holder):
         for account in accounts:
@@ -101,66 +186,72 @@ def usdc_contract(contract_owner, accounts):
     return erc20
 
 
-@pytest.fixture(scope="session")
-def erc721_contract(contract_owner):
+@pytest.fixture(scope="module")
+def erc721_contract(contract_owner, erc721_contract_def):
     with boa.env.prank(contract_owner):
-        return boa.load("contracts/auxiliary/token/ERC721.vy")
+        return erc721_contract_def.deploy()
 
 
-@pytest.fixture(scope="session")
-def cryptopunks_market_contract(contract_owner):
-    return boa.load_partial("tests/stubs/CryptoPunksMarketStub.vy").at("0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB")
+@pytest.fixture(scope="module")
+def cryptopunks_market_contract(contract_owner, cryptopunks_market_contract_def):
+    return cryptopunks_market_contract_def.at("0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB")
 
 
-@pytest.fixture(scope="session")
-def wpunks_contract(contract_owner):
-    return boa.load_partial("tests/stubs/WrappedPunkStub.vy").at("0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6")
+@pytest.fixture(scope="module")
+def wpunks_contract(contract_owner, wpunks_contract_def):
+    return wpunks_contract_def.at("0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6")
 
 
-@pytest.fixture(scope="session")
-def hashmasks_contract(contract_owner):
-    return boa.load_partial("contracts/auxiliary/token/ERC721.vy").at("0xC2C747E0F7004F9E8817Db2ca4997657a7746928")
+@pytest.fixture(scope="module")
+def hashmasks_contract(contract_owner, erc721_contract_def):
+    return erc721_contract_def.at("0xC2C747E0F7004F9E8817Db2ca4997657a7746928")
 
 
-@pytest.fixture(scope="session")
-def delegation_registry_contract(contract_owner):
-    return boa.load_partial("contracts/auxiliary/delegate/DelegationRegistryMock.vy").at("0x00000000000076A84feF008CDAbe6409d2FE638B")
+@pytest.fixture(scope="module")
+def delegation_registry_contract(contract_owner, delegation_registry_contract_def):
+    return delegation_registry_contract_def.at("0x00000000000076A84feF008CDAbe6409d2FE638B")
 
 
-@pytest.fixture(scope="session")
-def genesis_contract(contract_owner):
-    return boa.load("contracts/GenesisPass.vy", contract_owner)
+@pytest.fixture(scope="module")
+def genesis_contract(contract_owner, genesis_contract_def):
+    return genesis_contract_def.deploy(contract_owner)
 
 
-@pytest.fixture(scope="session")
-def collateral_vault_core_contract(contract_owner, delegation_registry_contract):
+@pytest.fixture(scope="module")
+def collateral_vault_core_contract(contract_owner, delegation_registry_contract, collateral_vault_core_contract_def):
     with boa.env.prank(contract_owner):
-        return boa.load("contracts/CollateralVaultCoreV2.vy", delegation_registry_contract)
-
-@pytest.fixture(scope="session")
-def cryptopunks_vault_core_contract(cryptopunks_market_contract, delegation_registry_contract, contract_owner):
-    return boa.load("contracts/CryptoPunksVaultCore.vy", cryptopunks_market_contract.address, delegation_registry_contract.address)
+        return collateral_vault_core_contract_def.deploy(delegation_registry_contract)
 
 
-@pytest.fixture(scope="session")
-def collateral_vault_peripheral_contract(collateral_vault_core_contract, contract_owner):
-    return boa.load("contracts/CollateralVaultPeripheral.vy", collateral_vault_core_contract)
+@pytest.fixture(scope="module")
+def cryptopunks_vault_core_contract(cryptopunks_market_contract, delegation_registry_contract, cryptopunks_vault_core_contract_def):
+    return cryptopunks_vault_core_contract_def.deploy(cryptopunks_market_contract.address, delegation_registry_contract.address)
 
 
-@pytest.fixture(scope="session")
-def lending_pool_core_contract(erc20_contract, contract_owner):
-    return boa.load("contracts/LendingPoolCore.vy", erc20_contract)
+@pytest.fixture(scope="module")
+def collateral_vault_peripheral_contract(collateral_vault_core_contract, collateral_vault_peripheral_contract_def):
+    return collateral_vault_peripheral_contract_def.deploy(collateral_vault_core_contract)
 
 
-@pytest.fixture(scope="session")
-def lending_pool_lock_contract(erc20_contract, contract_owner):
-    return boa.load("contracts/LendingPoolLock.vy", erc20_contract)
+@pytest.fixture(scope="module")
+def lending_pool_core_contract(erc20_contract, lending_pool_core_contract_def):
+    return lending_pool_core_contract_def.deploy(erc20_contract)
 
 
-@pytest.fixture(scope="session")
-def lending_pool_peripheral_contract(lending_pool_core_contract, lending_pool_lock_contract, erc20_contract, contract_owner, protocol_wallet):
-    return boa.load(
-        "contracts/LendingPoolPeripheral.vy",
+@pytest.fixture(scope="module")
+def lending_pool_lock_contract(erc20_contract, lending_pool_lock_contract_def):
+    return lending_pool_lock_contract_def.deploy(erc20_contract)
+
+
+@pytest.fixture(scope="module")
+def lending_pool_peripheral_contract(
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    erc20_contract,
+    lending_pool_peripheral_contract_def,
+    protocol_wallet
+):
+    return lending_pool_peripheral_contract_def.deploy(
         lending_pool_core_contract,
         lending_pool_lock_contract,
         erc20_contract,
@@ -171,20 +262,25 @@ def lending_pool_peripheral_contract(lending_pool_core_contract, lending_pool_lo
     )
 
 
-@pytest.fixture(scope="session")
-def usdc_lending_pool_core_contract(usdc_contract, contract_owner):
-    return boa.load("contracts/LendingPoolCore.vy", usdc_contract)
+@pytest.fixture(scope="module")
+def usdc_lending_pool_core_contract(usdc_contract, lending_pool_core_contract_def):
+    return lending_pool_core_contract_def.deploy(usdc_contract)
 
 
-@pytest.fixture(scope="session")
-def usdc_lending_pool_lock_contract(usdc_contract, contract_owner):
-    return boa.load("contracts/LendingPoolLock.vy", usdc_contract)
+@pytest.fixture(scope="module")
+def usdc_lending_pool_lock_contract(usdc_contract, lending_pool_lock_contract_def):
+    return lending_pool_lock_contract_def.deploy(usdc_contract)
 
 
-@pytest.fixture(scope="session")
-def usdc_lending_pool_peripheral_contract(usdc_lending_pool_core_contract, usdc_lending_pool_lock_contract, usdc_contract, contract_owner, protocol_wallet):
-    return boa.load(
-        "contracts/LendingPoolPeripheral.vy",
+@pytest.fixture(scope="module")
+def usdc_lending_pool_peripheral_contract(
+    usdc_lending_pool_core_contract,
+    usdc_lending_pool_lock_contract,
+    usdc_contract,
+    lending_pool_peripheral_contract_def,
+    protocol_wallet
+):
+    return lending_pool_peripheral_contract_def.deploy(
         usdc_lending_pool_core_contract,
         usdc_lending_pool_lock_contract,
         usdc_contract,
@@ -195,10 +291,15 @@ def usdc_lending_pool_peripheral_contract(usdc_lending_pool_core_contract, usdc_
     )
 
 
-@pytest.fixture(scope="session")
-def lending_pool_peripheral_contract_aux(lending_pool_core_contract, lending_pool_lock_contract, erc20_contract, contract_owner, protocol_wallet):
-    return boa.load(
-        "contracts/LendingPoolPeripheral.vy",
+@pytest.fixture(scope="module")
+def lending_pool_peripheral_contract_aux(
+    lending_pool_core_contract,
+    lending_pool_lock_contract,
+    erc20_contract,
+    lending_pool_peripheral_contract_def,
+    protocol_wallet
+):
+    return lending_pool_peripheral_contract_def.deploy(
         lending_pool_core_contract,
         lending_pool_lock_contract,
         erc20_contract,
@@ -209,15 +310,20 @@ def lending_pool_peripheral_contract_aux(lending_pool_core_contract, lending_poo
     )
 
 
-@pytest.fixture(scope="session")
-def loans_core_contract(contract_owner):
-    return boa.load("contracts/LoansCore.vy")
+@pytest.fixture(scope="module")
+def loans_core_contract(loans_core_contract_def):
+    return loans_core_contract_def.deploy()
 
 
-@pytest.fixture(scope="session")
-def loans_peripheral_contract(loans_core_contract, lending_pool_peripheral_contract, collateral_vault_peripheral_contract, genesis_contract, contract_owner):
-    return boa.load(
-        "contracts/Loans.vy",
+@pytest.fixture(scope="module")
+def loans_peripheral_contract(
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    collateral_vault_peripheral_contract,
+    genesis_contract,
+    loans_peripheral_contract_def
+):
+    return loans_peripheral_contract_def.deploy(
         INTEREST_ACCRUAL_PERIOD,
         loans_core_contract,
         lending_pool_peripheral_contract,
@@ -227,15 +333,20 @@ def loans_peripheral_contract(loans_core_contract, lending_pool_peripheral_contr
     )
 
 
-@pytest.fixture(scope="session")
-def usdc_loans_core_contract(contract_owner):
-    return boa.load("contracts/LoansCore.vy")
+@pytest.fixture(scope="module")
+def usdc_loans_core_contract(loans_core_contract_def):
+    return loans_core_contract_def.deploy()
 
 
-@pytest.fixture(scope="session")
-def usdc_loans_peripheral_contract(usdc_loans_core_contract, usdc_lending_pool_peripheral_contract, collateral_vault_peripheral_contract, genesis_contract, contract_owner):
-    return boa.load(
-        "contracts/Loans.vy",
+@pytest.fixture(scope="module")
+def usdc_loans_peripheral_contract(
+    usdc_loans_core_contract,
+    usdc_lending_pool_peripheral_contract,
+    collateral_vault_peripheral_contract,
+    genesis_contract,
+    loans_peripheral_contract_def
+):
+    return loans_peripheral_contract_def.deploy(
         INTEREST_ACCRUAL_PERIOD,
         usdc_loans_core_contract,
         usdc_lending_pool_peripheral_contract,
@@ -245,15 +356,14 @@ def usdc_loans_peripheral_contract(usdc_loans_core_contract, usdc_lending_pool_p
     )
 
 
-@pytest.fixture(scope="session")
-def liquidations_core_contract(contract_owner):
-    return boa.load("contracts/LiquidationsCore.vy")
+@pytest.fixture(scope="module")
+def liquidations_core_contract(liquidations_core_contract_def):
+    return liquidations_core_contract_def.deploy()
 
 
-@pytest.fixture(scope="session")
-def liquidations_peripheral_contract(liquidations_core_contract, erc20_contract, contract_owner):
-    liquidations_peripheral_contract = boa.load(
-        "contracts/LiquidationsPeripheral.vy",
+@pytest.fixture(scope="module")
+def liquidations_peripheral_contract(liquidations_core_contract, erc20_contract, liquidations_peripheral_contract_def):
+    liquidations_peripheral_contract = liquidations_peripheral_contract_def.deploy(
         liquidations_core_contract,
         GRACE_PERIOD_DURATION,
         LENDER_PERIOD_DURATION,
@@ -266,10 +376,9 @@ def liquidations_peripheral_contract(liquidations_core_contract, erc20_contract,
     return liquidations_peripheral_contract
 
 
-@pytest.fixture(scope="session")
-def liquidity_controls_contract(contract_owner):
-    return boa.load(
-        "contracts/LiquidityControls.vy",
+@pytest.fixture(scope="module")
+def liquidity_controls_contract(liquidity_controls_contract_def):
+    return liquidity_controls_contract_def.deploy(
         False,
         MAX_POOL_SHARE,
         False,
@@ -280,10 +389,9 @@ def liquidity_controls_contract(contract_owner):
     )
 
 
-@pytest.fixture(scope="session")
-def usdc_liquidity_controls_contract(contract_owner):
-    return boa.load(
-        "contracts/LiquidityControls.vy",
+@pytest.fixture(scope="module")
+def usdc_liquidity_controls_contract(liquidity_controls_contract_def):
+    return liquidity_controls_contract_def.deploy(
         False,
         MAX_POOL_SHARE,
         False,
@@ -295,35 +403,7 @@ def usdc_liquidity_controls_contract(contract_owner):
 
 
 
-# @pytest.fixture(scope="module", autouse=True)
-# def sushi_router_contract(contract_owner):
-#     abi = """ [
-#     {
-#         "inputs": [
-#           {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
-#           {"internalType": "uint256", "name": "amountOutMin", "type": "uint256"},
-#           {"internalType": "address[]", "name": "path", "type": "address[]"},
-#           {"internalType": "address", "name": "to", "type": "address"},
-#           {"internalType": "uint256", "name": "deadline", "type": "uint256"}
-#         ],
-#         "name": "swapExactTokensForTokens",
-#         "outputs": [
-#           {"internalType": "uint256[]", "name": "amounts", "type": "uint256[]"}
-#         ],
-#         "stateMutability": "nonpayable",
-#         "type": "function"
-#       }
-#     ] """
-#     return Contract.from_abi(
-#         "SushiRouter",
-#         "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
-#         json.loads(abi),
-#         owner=contract_owner
-#     )
-
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def test_collaterals(erc721_contract):
     result = []
     for k in range(5):
@@ -331,7 +411,7 @@ def test_collaterals(erc721_contract):
     return result
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
     result = []
     for k in range(5):
