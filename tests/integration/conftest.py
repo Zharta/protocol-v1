@@ -112,13 +112,23 @@ def liquidity_controls_contract_def():
 
 @pytest.fixture(scope="module", autouse=True)
 def forked_env():
-    with boa.swap_env(Env()):
+    old_env = boa.env
+    new_env = Env()
+    new_env._cached_call_profiles = old_env._cached_call_profiles
+    new_env._cached_line_profiles = old_env._cached_line_profiles
+    new_env._profiled_contracts = old_env._profiled_contracts
+
+    with boa.swap_env(new_env):
         fork_uri = os.environ["BOA_FORK_RPC_URL"]
         disable_cache = os.environ.get("BOA_FORK_NO_CACHE")
         kw = {"cache_file": None} if disable_cache else {}
         blkid = 17614000
         boa.env.fork(fork_uri, block_identifier=blkid, **kw)
         yield
+
+        old_env._cached_call_profiles = new_env._cached_call_profiles
+        old_env._cached_line_profiles = new_env._cached_line_profiles
+        old_env._profiled_contracts = new_env._profiled_contracts
 
 
 @pytest.fixture(scope="module")

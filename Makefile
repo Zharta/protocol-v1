@@ -33,13 +33,14 @@ unit-tests:
 	${VENV}/bin/pytest tests/unit --durations=0 -n auto --dist loadscope
 
 integration-tests:
-	${VENV}/bin/pytest -n auto tests/integration --durations=0
+	${VENV}/bin/pytest -n auto tests/integration --durations=0 --dist loadscope
 
 stateful-tests:
 	${VENV}/bin/pytest tests/stateful --durations=0 -n auto
 
 gas:
-	${VENV}/bin/pytest tests/integration --durations=0 --gas-profile
+	${VENV}/bin/pytest tests/integration --gas-profile
+
 
 interfaces:
 	${VENV}/bin/python scripts/build_interfaces.py contracts/*.vy
