@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 env:
-  BOA_FORK_RPC_URL: "https://eth-mainnet.g.alchemy.com/${{ secrets.ALCHEMY_KEY }}"
+  BOA_FORK_RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY }}"
   BOA_FORK_NO_CACHE: "TRUE"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
