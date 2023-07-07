@@ -29,8 +29,10 @@ LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 def forked_env():
     with boa.swap_env(Env()):
         fork_uri = os.environ["BOA_FORK_RPC_URL"]
+        disable_cache = os.environ.get("BOA_FORK_NO_CACHE")
+        kw = {"cache_file": None} if disable_cache else {}
         blkid = 17614000
-        boa.env.fork(fork_uri, block_identifier=blkid)
+        boa.env.fork(fork_uri, block_identifier=blkid, **kw)
         yield
 
 

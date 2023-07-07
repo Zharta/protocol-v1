@@ -428,8 +428,7 @@ def test_create_maturity_in_the_past(
     contract_owner,
     test_collaterals,
 ):
-    # maturity = int(dt.datetime.now().timestamp()) - 3600
-    maturity = boa.eval("block.timestamp") -3600
+    maturity = boa.eval("block.timestamp") - 3600
     (v, r, s) = create_signature(maturity=maturity)
 
     lending_pool_peripheral_contract.depositEth(sender=investor, value=Web3.to_wei(1, "ether"))
