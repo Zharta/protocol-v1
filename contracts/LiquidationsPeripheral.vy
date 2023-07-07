@@ -459,9 +459,7 @@ def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidatio
 @external
 def __init__(_liquidationsCoreAddress: address, _gracePeriodDuration: uint256, _lenderPeriodDuration: uint256, _auctionPeriodDuration: uint256, _wethAddress: address):
     assert _liquidationsCoreAddress != empty(address), "address is the zero address"
-    assert _liquidationsCoreAddress.is_contract, "address is not a contract"
     assert _wethAddress != empty(address), "address is the zero address"
-    assert _wethAddress.is_contract, "address is not a contract"
     assert _gracePeriodDuration > 0, "duration is 0"
     assert _lenderPeriodDuration > 0, "duration is 0"
     assert _auctionPeriodDuration > 0, "duration is 0"
@@ -568,7 +566,6 @@ def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "address is the zero addr"
     assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.loansCoreAddresses[_erc20TokenContract] != _address, "new value is the same"
 
     log LoansCoreAddressAdded(
@@ -585,7 +582,6 @@ def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
 def removeLoansCoreAddress(_erc20TokenContract: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.loansCoreAddresses[_erc20TokenContract] != empty(address), "address not found"
 
     log LoansCoreAddressRemoved(
@@ -602,7 +598,6 @@ def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: addr
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "address is the zero addr"
     assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != _address, "new value is the same"
 
     log LendingPoolPeripheralAddressAdded(
@@ -619,7 +614,6 @@ def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: addr
 def removeLendingPoolPeripheralAddress(_erc20TokenContract: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert _erc20TokenContract.is_contract, "erc20TokenAddr is not a contract"
     assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != empty(address), "address not found"
 
     log LendingPoolPeripheralAddressRemoved(

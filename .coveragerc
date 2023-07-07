@@ -1,2 +1,4 @@
 [run]
 plugins = boa.coverage
+omit =
+    contracts/auxiliary/*

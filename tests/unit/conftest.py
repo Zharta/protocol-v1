@@ -125,6 +125,11 @@ def liquidations_core_contract():
     return boa.load_partial("contracts/LiquidationsCore.vy")
 
 
+@pytest.fixture(scope="session")
+def liquidations_peripheral_contract():
+    return boa.load_partial("contracts/LiquidationsPeripheral.vy")
+
+
 @pytest.fixture(scope="module")
 def path_to_erc20_mock():
     # this is not required for loans core functionality, but is needed to find the erc20

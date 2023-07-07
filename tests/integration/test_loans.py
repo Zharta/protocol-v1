@@ -304,11 +304,6 @@ def test_set_lending_pool_address_zero_address(loans_peripheral_contract, contra
         loans_peripheral_contract.setLendingPoolPeripheralAddress(ZERO_ADDRESS, sender=contract_owner)
 
 
-def test_set_lending_pool_address_not_contract(loans_peripheral_contract, contract_owner):
-    with boa.reverts("_address is not a contract"):
-        loans_peripheral_contract.setLendingPoolPeripheralAddress(contract_owner, sender=contract_owner)
-
-
 def test_set_lending_pool_address(
     loans_peripheral_contract,
     lending_pool_peripheral_contract,
@@ -424,12 +419,25 @@ def test_create_not_accepting_loans(
 
 def test_create_maturity_in_the_past(
     loans_peripheral_contract,
+    collateral_vault_core_contract,
+    lending_pool_peripheral_contract,
     create_signature,
+    erc721_contract,
     borrower,
+    investor,
+    contract_owner,
     test_collaterals,
 ):
-    maturity = int(dt.datetime.now().timestamp()) - 3600
+    # maturity = int(dt.datetime.now().timestamp()) - 3600
+    maturity = boa.eval("block.timestamp") -3600
     (v, r, s) = create_signature(maturity=maturity)
+
+    lending_pool_peripheral_contract.depositEth(sender=investor, value=Web3.to_wei(1, "ether"))
+
+    for k in range(5):
+        erc721_contract.mint(borrower, k, sender=contract_owner)
+
+    erc721_contract.setApprovalForAll(collateral_vault_core_contract, True, sender=borrower)
 
     with boa.reverts("maturity is in the past"):
         loans_peripheral_contract.reserveEth(
@@ -1337,7 +1345,7 @@ def test_pay_loan_already_paid(
 
 
 def test_set_default_loan_wrong_sender(loans_peripheral_contract, investor, borrower):
-    with boa.reverts("msg.sender is not the owner"):
+    with boa.reverts("msg.sender is not the admin"):
         loans_peripheral_contract.settleDefault(borrower, 0, sender=investor)
 
 
