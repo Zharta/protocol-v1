@@ -17,6 +17,16 @@ event ApprovalForAll:
     operator: indexed(address)
     approved: bool
 
+event ConsecutiveTransfer:
+    fromTokenId: indexed(uint256)
+    toTokenId: uint256
+    fromAddress: indexed(address)
+    toAddress: indexed(address)
+
+event OwnershipTransferred:
+    previousOwner: indexed(address)
+    newOwner: indexed(address)
+
 # Functions
 
 @view
@@ -31,7 +41,17 @@ def isApprovedForAll(arg0: address, arg1: address) -> bool:
 
 @view
 @external
+def owner() -> address:
+    pass
+
+@view
+@external
 def totalSupply() -> uint256:
+    pass
+
+@view
+@external
+def contractURI() -> String[34]:
     pass
 
 @view
@@ -93,4 +113,12 @@ def approve(_approved: address, _tokenId: uint256):
 
 @external
 def setApprovalForAll(_operator: address, _approved: bool):
+    pass
+
+@external
+def transferOwnership(_newOwner: address):
+    pass
+
+@external
+def renounceOwnership():
     pass

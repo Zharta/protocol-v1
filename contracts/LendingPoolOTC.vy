@@ -149,7 +149,6 @@ fundsAvailable: public(uint256)
 fundsInvested: public(uint256)
 totalFundsInvested: public(uint256)
 totalRewards: public(uint256)
-totalSharesBasisPoints: public(constant(uint256)) = 10000  # TODO keep it?
 collateralClaimsValue: public(uint256)
 
 
@@ -207,10 +206,7 @@ def _deposit(_amount: uint256, _payer: address):
 
     self.funds.totalAmountDeposited += _amount
     self.funds.currentAmountDeposited += _amount
-    if not self.funds.activeForRewards:
-        self.funds.activeForRewards = True
 
-    
     self.fundsAvailable += _amount
 
     if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount):
@@ -223,18 +219,10 @@ def _deposit(_amount: uint256, _payer: address):
 def _withdraw_accounting(_amount: uint256):
     assert _amount > 0, "_amount has to be higher than 0"
     assert msg.sender == self.lender, "The sender is not the lender"
-    
-    # TODO if withdrawable >= fundsAvailable, is this needed?
-    withdrawable: uint256 = self._computeWithdrawableAmount()
-    assert withdrawable >= _amount, "_amount more than withdrawable"
     assert self.fundsAvailable >= _amount, "available funds less than amount"
 
-    newDepositAmount: uint256 = withdrawable - _amount
-
-    self.funds.currentAmountDeposited = newDepositAmount
+    self.funds.currentAmountDeposited -= _amount
     self.funds.totalAmountWithdrawn += _amount
-    if newDepositAmount == 0:
-        self.funds.activeForRewards = False
 
     self.fundsAvailable -= _amount
 
@@ -406,21 +394,12 @@ def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
 @external
 def lenderFunds(_lender: address) -> InvestorFunds:
     return self.funds if _lender == self.lender else empty(InvestorFunds)
-    # TODO keep this for compatibility?
-
-
-@view
-@external
-def lockedAmount(_lender: address) -> uint256:
-    return 0
-    # TODO keep this for compatibility?
 
 
 @view
 @external
 def lendersArray() -> DynArray[address, 2**0]:
   return [self.lender]
-# TODO keep it?
 
 
 @view
@@ -439,7 +418,6 @@ def fundsInPool() -> uint256:
 @external
 def currentAmountDeposited(_lender: address) -> uint256:
     return self.funds.currentAmountDeposited if _lender == self.lender else 0
-# USED BY LiquidityControls
 
 
 @view
@@ -452,18 +430,6 @@ def totalAmountDeposited(_lender: address) -> uint256:
 @external
 def totalAmountWithdrawn(_lender: address) -> uint256:
     return self.funds.totalAmountWithdrawn if _lender == self.lender else 0
-
-
-@view
-@external
-def sharesBasisPoints(_lender: address) -> uint256:
-    return 10000 if _lender == self.lender else 0
-
-
-@view
-@external
-def activeForRewards(_lender: address) -> bool:
-    return self.funds.activeForRewards if _lender == self.lender else False
 
 
 
@@ -505,7 +471,6 @@ def create_proxy(_protocolWallet: address, _protocolFeesShare: uint256, _lender:
 @payable
 def __default__():
     assert msg.sender == erc20TokenContract, "msg.sender is not the WETH addr"
-    # log PaymentReceived(msg.sender, msg.sender, msg.value)
 
 
 @external

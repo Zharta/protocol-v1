@@ -200,6 +200,7 @@ def test_withdraw_eth_success(weth_pool, erc20_token):
 
     weth_pool.eval(f"self.fundsAvailable = {amount}")
     weth_pool.eval(f"self.funds.totalAmountDeposited = {amount}")
+    weth_pool.eval(f"self.funds.currentAmountDeposited = {amount}")
 
     weth_pool.withdrawEth(amount, sender=LENDER)
     event = get_last_event(weth_pool, name="Withdrawal")
@@ -250,6 +251,7 @@ def test_withdraw_erc20_success(erc20_pool, erc20_token):
 
     erc20_pool.eval(f"self.fundsAvailable = {amount}")
     erc20_pool.eval(f"self.funds.totalAmountDeposited = {amount}")
+    erc20_pool.eval(f"self.funds.currentAmountDeposited = {amount}")
 
     erc20_pool.withdraw(amount, sender=LENDER)
     event = get_last_event(erc20_pool, name="Withdrawal")

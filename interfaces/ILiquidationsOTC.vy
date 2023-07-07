@@ -33,17 +33,14 @@ struct Liquidation:
     tokenId: uint256
     startTime: uint256
     gracePeriodMaturity: uint256
-    lenderPeriodMaturity: uint256
     principal: uint256
     interestAmount: uint256
     apr: uint256
     gracePeriodPrice: uint256
-    lenderPeriodPrice: uint256
     borrower: address
     loanId: uint256
     loansCoreContract: address
     erc20TokenContract: address
-    inAuction: bool
 
 # Events
 
@@ -66,14 +63,6 @@ event GracePeriodDurationChanged:
 event LendersPeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-
-event AuctionPeriodDurationChanged:
-    currentValue: uint256
-    newValue: uint256
-
-event LiquidationsCoreAddressSet:
-    currentValue: address
-    newValue: address
 
 event LoansCoreAddressAdded:
     erc20TokenContractIndexed: indexed(address)
@@ -160,6 +149,19 @@ event NFTPurchased:
     loansCoreContract: address
     method: String[30]
 
+event NFTClaimed:
+    erc20TokenContractIndexed: indexed(address)
+    collateralAddressIndexed: indexed(address)
+    buyerAddressIndexed: indexed(address)
+    liquidationId: bytes32
+    collateralAddress: address
+    tokenId: uint256
+    amount: uint256
+    buyerAddress: address
+    erc20TokenContract: address
+    loansCoreContract: address
+    method: String[30]
+
 event AdminWithdrawal:
     collateralAddressIndexed: indexed(address)
     liquidationId: bytes32
@@ -201,21 +203,6 @@ def gracePeriodDuration() -> uint256:
 
 @view
 @external
-def lenderPeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def auctionPeriodDuration() -> uint256:
-    pass
-
-@view
-@external
-def liquidationsCoreAddress() -> address:
-    pass
-
-@view
-@external
 def loansCoreAddresses(arg0: address) -> address:
     pass
 
@@ -231,37 +218,47 @@ def collateralVaultPeripheralAddress() -> address:
 
 @view
 @external
-def nftxVaultFactoryAddress() -> address:
-    pass
-
-@view
-@external
-def nftxMarketplaceZapAddress() -> address:
-    pass
-
-@view
-@external
-def sushiRouterAddress() -> address:
-    pass
-
-@view
-@external
-def wrappedPunksAddress() -> address:
-    pass
-
-@view
-@external
-def cryptoPunksAddress() -> address:
-    pass
-
-@view
-@external
-def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4:
-    pass
-
-@view
-@external
 def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidation:
+    pass
+
+@view
+@external
+def getLiquidationStartTime(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationGracePeriodMaturity(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationPrincipal(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationInterestAmount(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationAPR(_collateralAddress: address, _tokenId: uint256) -> uint256:
+    pass
+
+@view
+@external
+def getLiquidationBorrower(_collateralAddress: address, _tokenId: uint256) -> address:
+    pass
+
+@view
+@external
+def getLiquidationERC20Contract(_collateralAddress: address, _tokenId: uint256) -> address:
+    pass
+
+@view
+@external
+def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256) -> bool:
     pass
 
 @external
@@ -274,18 +271,6 @@ def claimOwnership():
 
 @external
 def setGracePeriodDuration(_duration: uint256):
-    pass
-
-@external
-def setLendersPeriodDuration(_duration: uint256):
-    pass
-
-@external
-def setAuctionPeriodDuration(_duration: uint256):
-    pass
-
-@external
-def setLiquidationsCoreAddress(_address: address):
     pass
 
 @external
@@ -309,26 +294,6 @@ def setCollateralVaultPeripheralAddress(_address: address):
     pass
 
 @external
-def setNFTXVaultFactoryAddress(_address: address):
-    pass
-
-@external
-def setNFTXMarketplaceZapAddress(_address: address):
-    pass
-
-@external
-def setSushiRouterAddress(_address: address):
-    pass
-
-@external
-def setWrappedPunksAddress(_address: address):
-    pass
-
-@external
-def setCryptoPunksAddress(_address: address):
-    pass
-
-@external
 def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
     pass
 
@@ -337,23 +302,6 @@ def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: ad
 def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: address):
     pass
 
-@payable
 @external
-def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
-    pass
-
-@external
-def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
-    pass
-
-@external
-def adminWithdrawal(_walletAddress: address, _collateralAddress: address, _tokenId: uint256):
-    pass
-
-@external
-def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincipal: uint256, _liquidationId: bytes32, _erc20TokenContract: address, _collateralAddress: address, _tokenId: uint256):
-    pass
-
-@external
-def storeERC721CollateralToVault(_collateralAddress: address, _tokenId: uint256):
+def claim(_collateralAddress: address, _tokenId: uint256):
     pass
