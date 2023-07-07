@@ -196,6 +196,7 @@ event PaymentReceived:
 # Global variables
 
 owner: public(address)
+admin: public(address)
 proposedOwner: public(address)
 
 interestAccrualPeriod: public(uint256)
@@ -245,6 +246,7 @@ def __init__(
     assert _genesisContract != empty(address), "address is the zero address"
 
     self.owner = msg.sender
+    self.admin = msg.sender
     self.interestAccrualPeriod = _interestAccrualPeriod
     self.loansCoreContract = _loansCoreContract
     self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
@@ -414,7 +416,7 @@ def _reserve(
         assert ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _nonce - 1), "loan is not sequential"
     
     signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
-    assert signer == self.owner, "invalid message signature"
+    assert signer == self.admin, "invalid message signature"
 
     assert _genesisToken == 0 or IERC721(self.genesisContract).ownerOf(_genesisToken) == msg.sender, "genesisToken not owned"
 
@@ -657,8 +659,8 @@ def reserve(
     _s: uint256
 ) -> uint256:
     """
-    @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract owner.
-    @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract owner of the implicit message consisting of the remaining parameters, in order for the loan to be created
+    @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract admin.
+    @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract admin of the implicit message consisting of the remaining parameters, in order for the loan to be created
     @param _amount The loan amount in wei
     @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
@@ -697,8 +699,8 @@ def reserveEth(
     _s: uint256
 ) -> uint256:
     """
-    @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract owner.
-    @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract owner of the implicit message consisting of the remaining parameters, in order for the loan to be created
+    @notice Creates a new loan with the defined amount, interest rate and collateral. The message must be signed by the contract admin.
+    @dev Logs `LoanCreated` event. The last 3 parameters must match a signature by the contract admin of the implicit message consisting of the remaining parameters, in order for the loan to be created
     @param _amount The loan amount in wei
     @param _interest The interest rate in bps (1/1000) for the loan duration
     @param _maturity The loan maturity in unix epoch format
@@ -825,7 +827,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
     @param _borrower The wallet address of the borrower
     @param _loanId The id of the loan to settle
     """
-    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert msg.sender == self.admin, "msg.sender is not the admin"
     assert ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan not found"
     
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(_borrower, _loanId)

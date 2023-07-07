@@ -29,13 +29,13 @@
                 "contract": "0xe65A7a341978d59d40d30FC23F5014FACB4f575A"
             },
             "liquidations_peripheral": {
-                "contract": "0x30375B532345B01cB8c2AD12541b09E9Aa53A93d"
+                "contract": "0xeCC4367A30BFD5d077BAC2710DFAe9Da8b429D91"
             },
             "liquidity_controls": {
                 "contract": "0x6951b5Bd815043E3F842c1b026b0Fa888Cc2DD85"
             },
             "loans": {
-                "contract": "0xA95916C3D979400C7443961330b3092510a229Ba"
+                "contract": "0x07612E46F93090881987eA583a0BEC33Ea463F6b"
             },
             "loans_core": {
                 "contract": "0xFbD588c72B438faD4Cf7cD879c8F730Faa213Da0"
@@ -73,13 +73,13 @@
                 "contract": "0x9E4c14403d7d9A8A782044E86a93CAE09D7B2ac9"
             },
             "liquidations_peripheral": {
-                "contract": "0xDae02e4fE488952cFB8c95177154D188647a0146"
+                "contract": "0x143ce2D29F85C2e14953bEb7dd5E1D31374310e9"
             },
             "liquidity_controls": {
                 "contract": "0xa3B53dDCd2E3fC28e8E130288F2aBD8d5EE37472"
             },
             "loans": {
-                "contract": "0x654f70d8442EA18904FA1AD79114f7250F7E9336"
+                "contract": "0x259B3baF80Db02eb10537bcB4d48ce0c6b5F25aa"
             },
             "loans_core": {
                 "contract": "0x420b1099B9eF5baba6D92029594eF45E19A04A4A"
@@ -117,13 +117,13 @@
                 "contract": "0x9E4c14403d7d9A8A782044E86a93CAE09D7B2ac9"
             },
             "liquidations_peripheral": {
-                "contract": "0xDae02e4fE488952cFB8c95177154D188647a0146"
+                "contract": "0x143ce2D29F85C2e14953bEb7dd5E1D31374310e9"
             },
             "liquidity_controls": {
                 "contract": "0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87"
             },
             "loans": {
-                "contract": "0x82c83b7f88aef2eD99d4869D547b6ED28e69C8df"
+                "contract": "0x7acd10C55b6dDa93B7db8EcCe99DF879A732A00B"
             },
             "loans_core": {
                 "contract": "0xdCF93F11ef216cEC9C07fd31dD801c9b2b39Afb4"

@@ -1,5 +1,12 @@
 # @version 0.3.9
 
+"""
+@title LiquidationsPeripheral
+@author [Zharta](https://zharta.io/)
+@notice The liquidations peripheral contract exists as the main interface to handle liquidations
+@dev Uses a `LiquidationsCore` contract to store state
+"""
+
 
 # Interfaces
 
@@ -277,6 +284,7 @@ event PaymentReceived:
 # Global variables
 
 owner: public(address)
+admin: public(address)
 proposedOwner: public(address)
 
 gracePeriodDuration: public(uint256)
@@ -459,6 +467,7 @@ def __init__(_liquidationsCoreAddress: address, _gracePeriodDuration: uint256, _
     assert _auctionPeriodDuration > 0, "duration is 0"
 
     self.owner = msg.sender
+    self.admin = msg.sender
     self.liquidationsCoreAddress = _liquidationsCoreAddress
     self.gracePeriodDuration = _gracePeriodDuration
     self.lenderPeriodDuration = _lenderPeriodDuration
@@ -908,7 +917,7 @@ def buyNFTLenderPeriod(_collateralAddress: address, _tokenId: uint256):
 
 @external
 def liquidateNFTX(_collateralAddress: address, _tokenId: uint256):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert msg.sender == self.admin, "msg.sender is not the admin"
 
     liquidation: Liquidation = ILiquidationsCore(self.liquidationsCoreAddress).getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.lenderPeriodMaturity, "liquidation within lender period"
