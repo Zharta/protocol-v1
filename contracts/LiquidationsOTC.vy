@@ -24,7 +24,6 @@ interface ILendingPoolPeripheral:
         _amount: uint256,
         _rewardsAmount: uint256,
         _distributeToProtocol: bool,
-        _investedAmount: uint256,
         _origin: String[30]
     ): nonpayable
     def receiveFundsFromLiquidationEth(
@@ -32,7 +31,6 @@ interface ILendingPoolPeripheral:
         _amount: uint256,
         _rewardsAmount: uint256,
         _distributeToProtocol: bool,
-        _investedAmount: uint256,
         _origin: String[30]
     ): payable
     def receiveCollateralFromLiquidation(
@@ -40,6 +38,7 @@ interface ILendingPoolPeripheral:
         _amount: uint256,
         _origin: String[30]
     ): nonpayable
+
 
 
 
@@ -603,7 +602,6 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
                 True,
-                liquidation.principal,
                 "liquidation_grace_period",
                 value=liquidation.gracePeriodPrice
             )
@@ -616,7 +614,6 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
                 True,
-                liquidation.principal,
                 "liquidation_grace_period"
             )
 
@@ -651,9 +648,12 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
 def claim(_collateralAddress: address, _tokenId: uint256):
     liquidation: Liquidation = self._getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
-    assert ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
 
     lendingPoolPeripheral: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+
+    assert lendingPoolPeripheral != empty(address), "lendingPool not configured"
+    assert ILendingPoolPeripheral(lendingPoolPeripheral).lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
+
 
     self._removeLiquidation(_collateralAddress, _tokenId)
 
