@@ -63,7 +63,13 @@ contracts_mapped = {
 pool_tokens = {
     "WETH": "WETH",
     "USDC": "USDC",
-    "ETH-SQUIGGLEDAO": "WETH"
+    "ETH-GRAILS": "WETH"
+}
+
+pool_names = {
+    "WETH": "ETH",
+    "USDC": "USDC",
+    "ETH-GRAILS": "Grail NFTs"
 }
 
 token_decimals = {
@@ -74,13 +80,13 @@ token_decimals = {
 native_token = {
     "WETH": True,
     "USDC": False,
-    "ETH-SQUIGGLEDAO": True
+    "ETH-GRAILS": True
 }
 
 genesis_enabled = {
     "WETH": True,
     "USDC": True,
-    "ETH-SQUIGGLEDAO": False
+    "ETH-GRAILS": False
 }
 
 def read_file(filename: Path):
@@ -170,6 +176,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     config = {
         "pools": {
             pool_id: {
+                "pool_name": pool_names[pool_id],
                 "token_symbol": pool_tokens[pool_id],
                 "token_decimals": token_decimals[pool_tokens[pool_id]],
                 "use_native_token": native_token[pool_id],
