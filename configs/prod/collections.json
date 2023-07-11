@@ -3,27 +3,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 250.0,
+        "debt_limit": 30.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.5,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.425
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
-    "debt_limit": 250.0,
+    "debt_limit": 30.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -39,16 +39,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.5,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.425
       }
     },
     "tiers": [
@@ -62,20 +62,20 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 150.0,
+        "debt_limit": 40.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.5,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.425
           }
         },
         "whitelisted": true
@@ -98,16 +98,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.5,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.425
       }
     },
     "tiers": [
@@ -121,46 +121,46 @@
     "appraisal_method": "standard",
     "conditions": {
       "USDC": {
-        "debt_limit": 800000.0,
+        "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.175,
-            "ltv": 0.4
+            "apr": 0.2,
+            "ltv": 0.55
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.45
+            "ltv": 0.6
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.3
+            "apr": 0.175,
+            "ltv": 0.4
           }
         },
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 500.0,
+        "debt_limit": 150.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.175,
-            "ltv": 0.675
+            "apr": 0.225,
+            "ltv": 0.75
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.725
+            "ltv": 0.775
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.575
+            "apr": 0.175,
+            "ltv": 0.675
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
-    "debt_limit": 500.0,
+    "debt_limit": 150.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -176,16 +176,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.175,
-        "ltv": 0.675
+        "apr": 0.225,
+        "ltv": 0.75
       },
       "7d": {
         "apr": 0.35,
-        "ltv": 0.725
+        "ltv": 0.775
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.575
+        "apr": 0.175,
+        "ltv": 0.675
       }
     },
     "tiers": [
@@ -199,27 +199,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 50.0,
+        "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
+            "apr": 0.4,
+            "ltv": 0.4
           },
           "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
+            "apr": 0.75,
+            "ltv": 0.45
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.35,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x306b1ea3ecdf94aB739F1910bbda052Ed4A9f949",
-    "debt_limit": 50.0,
+    "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -235,16 +235,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
+        "apr": 0.4,
+        "ltv": 0.4
       },
       "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
+        "apr": 0.75,
+        "ltv": 0.45
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.35,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -258,39 +258,39 @@
     "appraisal_method": "standard",
     "conditions": {
       "USDC": {
-        "debt_limit": 250000.0,
+        "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.15,
-            "ltv": 0.4
+            "apr": 0.175,
+            "ltv": 0.55
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.45
+            "ltv": 0.60
           },
           "90d": {
-            "apr": 0.125,
-            "ltv": 0.3
+            "apr": 0.15,
+            "ltv": 0.45
           }
         },
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 125.0,
+        "debt_limit": 150.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.15,
-            "ltv": 0.625
+            "apr": 0.175,
+            "ltv": 0.725
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.675
+            "ltv": 0.775
           },
           "90d": {
-            "apr": 0.125,
-            "ltv": 0.525
+            "apr": 0.15,
+            "ltv": 0.6
           }
         },
         "whitelisted": true
@@ -302,7 +302,7 @@
       "min_id": 0,
       "type": "range"
     },
-    "debt_limit": 125.0,
+    "debt_limit": 150.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea"
@@ -316,16 +316,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.15,
-        "ltv": 0.625
+        "apr": 0.175,
+        "ltv": 0.725
       },
       "7d": {
         "apr": 0.35,
-        "ltv": 0.675
+        "ltv": 0.775
       },
       "90d": {
-        "apr": 0.125,
-        "ltv": 0.525
+        "apr": 0.15,
+        "ltv": 0.6
       }
     },
     "tiers": [
@@ -339,27 +339,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 150.0,
+        "debt_limit": 40.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.225,
+            "apr": 0.25,
             "ltv": 0.575
           },
           "7d": {
-            "apr": 0.45,
+            "apr": 0.5,
             "ltv": 0.625
           },
           "90d": {
-            "apr": 0.175,
-            "ltv": 0.425
+            "apr": 0.2,
+            "ltv": 0.4
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
-    "debt_limit": 150.0,
+    "debt_limit": 40.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -375,16 +375,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.225,
+        "apr": 0.25,
         "ltv": 0.575
       },
       "7d": {
-        "apr": 0.45,
+        "apr": 0.5,
         "ltv": 0.625
       },
       "90d": {
-        "apr": 0.175,
-        "ltv": 0.425
+        "apr": 0.2,
+        "ltv": 0.4
       }
     },
     "tiers": [
@@ -410,8 +410,8 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
@@ -442,8 +442,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -457,27 +457,27 @@
     "appraisal_method": "floor_price",
     "conditions": {
       "WETH": {
-        "debt_limit": 50.0,
+        "debt_limit": 40.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.5,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.425
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x8821BeE2ba0dF28761AffF119D66390D594CD280",
-    "debt_limit": 50.0,
+    "debt_limit": 40.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -493,16 +493,16 @@
     "simulation_token_id": 411,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.5,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.425
       }
     },
     "tiers": [
@@ -516,27 +516,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 125.0,
+        "debt_limit": 40.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.3,
+            "apr": 0.275,
             "ltv": 0.55
           },
           "7d": {
-            "apr": 0.6,
+            "apr": 0.55,
             "ltv": 0.6
           },
           "90d": {
-            "apr": 0.2,
-            "ltv": 0.4
+            "apr": 0.225,
+            "ltv": 0.35
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e",
-    "debt_limit": 125.0,
+    "debt_limit": 40.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -552,16 +552,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.3,
+        "apr": 0.275,
         "ltv": 0.55
       },
       "7d": {
-        "apr": 0.6,
+        "apr": 0.55,
         "ltv": 0.6
       },
       "90d": {
-        "apr": 0.2,
-        "ltv": 0.4
+        "apr": 0.225,
+        "ltv": 0.35
       }
     },
     "tiers": [
@@ -595,39 +595,39 @@
         "whitelisted": true
       },
       "USDC": {
-        "debt_limit": 250000.0,
+        "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.15,
-            "ltv": 0.4
+            "apr": 0.175,
+            "ltv": 0.5
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.45
+            "ltv": 0.55
           },
           "90d": {
-            "apr": 0.125,
-            "ltv": 0.3
+            "apr": 0.15,
+            "ltv": 0.4
           }
         },
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 250.0,
+        "debt_limit": 315.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.15,
-            "ltv": 0.6
+            "apr": 0.175,
+            "ltv": 0.55
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.625
+            "ltv": 0.6
           },
           "90d": {
-            "apr": 0.125,
-            "ltv": 0.5
+            "apr": 0.15,
+            "ltv": 0.525
           }
         },
         "whitelisted": true
@@ -639,7 +639,7 @@
       "min_id": 78000000,
       "type": "range"
     },
-    "debt_limit": 125.0,
+    "debt_limit": 315.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea"
@@ -653,16 +653,16 @@
     "simulation_token_id": 78000000,
     "tier_pricing": {
       "30d": {
-        "apr": 0.15,
-        "ltv": 0.6
+        "apr": 0.175,
+        "ltv": 0.55
       },
       "7d": {
         "apr": 0.35,
-        "ltv": 0.625
+        "ltv": 0.6
       },
       "90d": {
-        "apr": 0.125,
-        "ltv": 0.5
+        "apr": 0.15,
+        "ltv": 0.525
       }
     },
     "tiers": [
@@ -676,20 +676,20 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 25.0,
+        "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.225,
+            "apr": 0.175,
             "ltv": 0.575
           },
           "7d": {
-            "apr": 0.45,
+            "apr": 0.35,
             "ltv": 0.625
           },
           "90d": {
-            "apr": 0.175,
-            "ltv": 0.425
+            "apr": 0.15,
+            "ltv": 0.475
           }
         },
         "whitelisted": true
@@ -701,7 +701,7 @@
       "min_id": 215000000,
       "type": "range"
     },
-    "debt_limit": 25.0,
+    "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea"
@@ -715,16 +715,16 @@
     "simulation_token_id": 215000000,
     "tier_pricing": {
       "30d": {
-        "apr": 0.225,
+        "apr": 0.175,
         "ltv": 0.575
       },
       "7d": {
-        "apr": 0.45,
+        "apr": 0.35,
         "ltv": 0.625
       },
       "90d": {
-        "apr": 0.175,
-        "ltv": 0.425
+        "apr": 0.15,
+        "ltv": 0.475
       }
     },
     "tiers": [
@@ -856,7 +856,7 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 25.0,
+        "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
@@ -868,15 +868,15 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x4b15a9c28034dC83db40CD810001427d3BD7163D",
-    "debt_limit": 25.0,
+    "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -900,8 +900,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -915,7 +915,7 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 10.0,
+        "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
@@ -927,15 +927,15 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x59468516a8259058baD1cA5F8f4BFF190d30E066",
-    "debt_limit": 10.0,
+    "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -959,8 +959,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -978,16 +978,16 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.3,
-            "ltv": 0.55
+            "apr": 0.35,
+            "ltv": 0.45
           },
           "7d": {
-            "apr": 0.6,
-            "ltv": 0.6
+            "apr": 0.7,
+            "ltv": 0.5
           },
           "90d": {
-            "apr": 0.2,
-            "ltv": 0.4
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
@@ -1010,16 +1010,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.3,
-        "ltv": 0.55
+        "apr": 0.35,
+        "ltv": 0.45
       },
       "7d": {
-        "apr": 0.6,
-        "ltv": 0.6
+        "apr": 0.7,
+        "ltv": 0.5
       },
       "90d": {
-        "apr": 0.2,
-        "ltv": 0.4
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -1033,27 +1033,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 250.0,
+        "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
+            "apr": 0.25,
+            "ltv": 0.675
           },
           "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
+            "apr": 0.5,
+            "ltv": 0.725
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.575
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
-    "debt_limit": 250.0,
+    "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1069,16 +1069,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
-        "ltv": 0.6
+        "apr": 0.25,
+        "ltv": 0.675
       },
       "7d": {
-        "apr": 0.4,
-        "ltv": 0.65
+        "apr": 0.5,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.575
       }
     },
     "tiers": [
@@ -1092,27 +1092,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 100.0,
+        "debt_limit": 40.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.5,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.425
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7",
-    "debt_limit": 100.0,
+    "debt_limit": 40.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1128,16 +1128,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.5,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.425
       }
     },
     "tiers": [
@@ -1151,27 +1151,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 50.0,
+        "debt_limit": 40.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.3,
-            "ltv": 0.55
-          },
-          "7d": {
-            "apr": 0.6,
+            "apr": 0.25,
             "ltv": 0.6
           },
+          "7d": {
+            "apr": 0.5,
+            "ltv": 0.65
+          },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.2,
+            "ltv": 0.425
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x5Af0D9827E0c53E4799BB226655A1de152A425a5",
-    "debt_limit": 50.0,
+    "debt_limit": 40.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1187,16 +1187,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.3,
-        "ltv": 0.55
-      },
-      "7d": {
-        "apr": 0.6,
+        "apr": 0.25,
         "ltv": 0.6
       },
+      "7d": {
+        "apr": 0.5,
+        "ltv": 0.65
+      },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.2,
+        "ltv": 0.425
       }
     },
     "tiers": [
@@ -1210,7 +1210,7 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 125.0,
+        "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
@@ -1222,15 +1222,15 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x23581767a106ae21c074b2276D25e5C3e136a68b",
-    "debt_limit": 125.0,
+    "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1254,8 +1254,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -1303,7 +1303,7 @@
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "whitelisted": false
   },
   "otherdeed": {
     "appraisal_method": "otherdeeds",
@@ -1313,16 +1313,16 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.5,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.5
           }
         },
         "whitelisted": true
@@ -1349,16 +1349,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.5,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.5
       }
     },
     "tiers": [
@@ -1372,27 +1372,27 @@
     "appraisal_method": "floor_price",
     "conditions": {
       "WETH": {
-        "debt_limit": 25.0,
+        "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.5,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.5
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x790B2cF29Ed4F310bf7641f013C65D4560d28371",
-    "debt_limit": 25.0,
+    "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1408,16 +1408,16 @@
     "simulation_token_id": 804,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.5,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.5
       }
     },
     "tiers": [
@@ -1430,21 +1430,40 @@
   "otherdeedkoda": {
     "appraisal_method": "otherdeeds",
     "conditions": {
-      "WETH": {
-        "debt_limit": 50.0,
+      "USDC": {
+        "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
+            "apr": 0.25,
+            "ltv": 0.45
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.5
+          },
+          "90d": {
             "apr": 0.2,
+            "ltv": 0.35
+          }
+        },
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 75.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.35,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.525
           }
         },
         "whitelisted": true
@@ -1455,7 +1474,7 @@
       "set_name": "kodas",
       "type": "token_in_set"
     },
-    "debt_limit": 50.0,
+    "debt_limit": 75.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1471,16 +1490,16 @@
     "simulation_token_id": 15,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.35,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.525
       }
     },
     "tiers": [
@@ -1494,46 +1513,46 @@
     "appraisal_method": "floor_price",
     "conditions": {
       "USDC": {
-        "debt_limit": 250000.0,
+        "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.175,
-            "ltv": 0.4
+            "apr": 0.25,
+            "ltv": 0.45
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.45
+            "ltv": 0.5
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.3
+            "apr": 0.2,
+            "ltv": 0.35
           }
         },
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 50.0,
+        "debt_limit": 75.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
+            "apr": 0.25,
             "ltv": 0.6
           },
           "7d": {
-            "apr": 0.4,
+            "apr": 0.35,
             "ltv": 0.65
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.525
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xE012Baf811CF9c05c408e879C399960D1f305903",
-    "debt_limit": 50.0,
+    "debt_limit": 75.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1549,16 +1568,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
+        "apr": 0.25,
         "ltv": 0.6
       },
       "7d": {
-        "apr": 0.4,
+        "apr": 0.35,
         "ltv": 0.65
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.525
       }
     },
     "tiers": [
@@ -1572,27 +1591,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 125.0,
+        "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
+            "apr": 0.25,
+            "ltv": 0.675
           },
           "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
+            "apr": 0.5,
+            "ltv": 0.725
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
+            "apr": 0.2,
+            "ltv": 0.575
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8",
-    "debt_limit": 125.0,
+    "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1608,16 +1627,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.2,
-        "ltv": 0.6
+        "apr": 0.25,
+        "ltv": 0.675
       },
       "7d": {
-        "apr": 0.4,
-        "ltv": 0.65
+        "apr": 0.5,
+        "ltv": 0.725
       },
       "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+        "apr": 0.2,
+        "ltv": 0.575
       }
     },
     "tiers": [
@@ -1631,46 +1650,46 @@
     "appraisal_method": "punks",
     "conditions": {
       "USDC": {
-        "debt_limit": 800000.0,
+        "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
             "apr": 0.125,
-            "ltv": 0.45
+            "ltv": 0.65
           },
           "7d": {
-            "apr": 0.35,
-            "ltv": 0.5
+            "apr": 0.2,
+            "ltv": 0.7
           },
           "90d": {
-            "apr": 0.1,
-            "ltv": 0.35
+            "apr": 0.105,
+            "ltv": 0.6
           }
         },
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 500.0,
+        "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
             "apr": 0.095,
-            "ltv": 0.75
+            "ltv": 0.85
           },
           "7d": {
-            "apr": 0.35,
-            "ltv": 0.775
+            "apr": 0.2,
+            "ltv": 0.875
           },
           "90d": {
-            "apr": 0.075,
-            "ltv": 0.65
+            "apr": 0.08,
+            "ltv": 0.8
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
-    "debt_limit": 500.0,
+    "debt_limit": 250.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "nftgo"
@@ -1685,15 +1704,15 @@
     "tier_pricing": {
       "30d": {
         "apr": 0.095,
-        "ltv": 0.75
+        "ltv": 0.85
       },
       "7d": {
-        "apr": 0.35,
-        "ltv": 0.775
+        "apr": 0.2,
+        "ltv": 0.875
       },
       "90d": {
-        "apr": 0.075,
-        "ltv": 0.65
+        "apr": 0.08,
+        "ltv": 0.8
       }
     },
     "tiers": [
@@ -1708,19 +1727,19 @@
     "conditions": {
       "WETH": {
         "debt_limit": 2.5,
-        "floor_multiple_cap": 0.8,
+        "floor_multiple_cap": 1,
         "tier_pricing": {
           "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
+            "apr": 0.4,
+            "ltv": 0.4
           },
           "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
+            "apr": 0.75,
+            "ltv": 0.45
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.35,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
@@ -1728,7 +1747,7 @@
     },
     "contract_address": "0xD4B7D9bb20fA20dDADa9eCEf8a7355ca983cCCB1",
     "debt_limit": 2.5,
-    "floor_multiple_cap": 0.8,
+    "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
       "alchemy",
@@ -1743,16 +1762,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
+        "apr": 0.4,
+        "ltv": 0.4
       },
       "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
+        "apr": 0.75,
+        "ltv": 0.45
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.35,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -1766,27 +1785,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 25.0,
+        "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.3,
-            "ltv": 0.55
+            "apr": 0.35,
+            "ltv": 0.45
           },
           "7d": {
-            "apr": 0.6,
-            "ltv": 0.6
+            "apr": 0.7,
+            "ltv": 0.5
           },
           "90d": {
-            "apr": 0.2,
-            "ltv": 0.4
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xB852c6b5892256C264Cc2C888eA462189154D8d7",
-    "debt_limit": 25.0,
+    "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1802,16 +1821,16 @@
     "simulation_token_id": 2,
     "tier_pricing": {
       "30d": {
-        "apr": 0.3,
-        "ltv": 0.55
+        "apr": 0.35,
+        "ltv": 0.45
       },
       "7d": {
-        "apr": 0.6,
-        "ltv": 0.6
+        "apr": 0.7,
+        "ltv": 0.5
       },
       "90d": {
-        "apr": 0.2,
-        "ltv": 0.4
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -1825,7 +1844,7 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 40.0,
+        "debt_limit": 10.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
@@ -1837,15 +1856,15 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x394E3d3044fC89fCDd966D3cb35Ac0B32B0Cda91",
-    "debt_limit": 40.0,
+    "debt_limit": 10.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -1869,8 +1888,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -1884,20 +1903,20 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 25.0,
+        "debt_limit": 75.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.225,
+            "apr": 0.175,
             "ltv": 0.575
           },
           "7d": {
-            "apr": 0.45,
+            "apr": 0.35,
             "ltv": 0.625
           },
           "90d": {
-            "apr": 0.175,
-            "ltv": 0.425
+            "apr": 0.15,
+            "ltv": 0.475
           }
         },
         "whitelisted": true
@@ -1909,7 +1928,7 @@
       "min_id": 13000000,
       "type": "range"
     },
-    "debt_limit": 25.0,
+    "debt_limit": 75.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea"
@@ -1923,16 +1942,16 @@
     "simulation_token_id": 13000000,
     "tier_pricing": {
       "30d": {
-        "apr": 0.225,
+        "apr": 0.175,
         "ltv": 0.575
       },
       "7d": {
-        "apr": 0.45,
+        "apr": 0.35,
         "ltv": 0.625
       },
       "90d": {
-        "apr": 0.175,
-        "ltv": 0.425
+        "apr": 0.15,
+        "ltv": 0.475
       }
     },
     "tiers": [
@@ -1950,16 +1969,16 @@
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
+            "apr": 0.4,
+            "ltv": 0.4
           },
           "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
+            "apr": 0.75,
+            "ltv": 0.45
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.35,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
@@ -1982,16 +2001,16 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
+        "apr": 0.4,
+        "ltv": 0.4
       },
       "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
+        "apr": 0.75,
+        "ltv": 0.45
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.35,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -2005,27 +2024,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 50.0,
+        "debt_limit": 20.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.3,
-            "ltv": 0.55
+            "apr": 0.35,
+            "ltv": 0.45
           },
           "7d": {
-            "apr": 0.6,
-            "ltv": 0.6
+            "apr": 0.7,
+            "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x769272677faB02575E84945F03Eca517ACc544Cc",
-    "debt_limit": 50.0,
+    "debt_limit": 20.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -2041,16 +2060,16 @@
     "simulation_token_id": 968,
     "tier_pricing": {
       "30d": {
-        "apr": 0.3,
-        "ltv": 0.55
+        "apr": 0.35,
+        "ltv": 0.45
       },
       "7d": {
-        "apr": 0.6,
-        "ltv": 0.6
+        "apr": 0.7,
+        "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -2123,27 +2142,27 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 20.0,
+        "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.3,
-            "ltv": 0.55
+            "apr": 0.35,
+            "ltv": 0.45
           },
           "7d": {
-            "apr": 0.6,
-            "ltv": 0.6
+            "apr": 0.7,
+            "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x39ee2c7b3cb80254225884ca001F57118C8f21B6",
-    "debt_limit": 20.0,
+    "debt_limit": 15.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -2159,16 +2178,16 @@
     "simulation_token_id": 400,
     "tier_pricing": {
       "30d": {
-        "apr": 0.3,
-        "ltv": 0.55
+        "apr": 0.35,
+        "ltv": 0.45
       },
       "7d": {
-        "apr": 0.6,
-        "ltv": 0.6
+        "apr": 0.7,
+        "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -2182,19 +2201,19 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 10.0,
+        "debt_limit": 20.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
+            "apr": 0.275,
             "ltv": 0.5
           },
+          "7d": {
+            "apr": 0.55,
+            "ltv": 0.55
+          },
           "90d": {
-            "apr": 0.25,
+            "apr": 0.225,
             "ltv": 0.35
           }
         },
@@ -2202,7 +2221,7 @@
       }
     },
     "contract_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
-    "debt_limit": 10.0,
+    "debt_limit": 20.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -2218,15 +2237,15 @@
     "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
+        "apr": 0.275,
         "ltv": 0.5
       },
+      "7d": {
+        "apr": 0.55,
+        "ltv": 0.55
+      },
       "90d": {
-        "apr": 0.25,
+        "apr": 0.225,
         "ltv": 0.35
       }
     },
@@ -2241,7 +2260,7 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 10.0,
+        "debt_limit": 15.0,
         "floor_multiple_cap": 7.5,
         "tier_pricing": {
           "30d": {
@@ -2253,15 +2272,15 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x7F36182DeE28c45dE6072a34D29855BaE76DBe2f",
-    "debt_limit": 10.0,
+    "debt_limit": 15.0,
     "floor_multiple_cap": 7.5,
     "floor_price_providers": [
       "opensea",
@@ -2285,8 +2304,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -2300,7 +2319,7 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 5.0,
+        "debt_limit": 10.0,
         "floor_multiple_cap": 5.0,
         "tier_pricing": {
           "30d": {
@@ -2312,15 +2331,15 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xBDa2481db91fc0F942eD3F53De378Ba45ba9d17E",
-    "debt_limit": 5.0,
+    "debt_limit": 10.0,
     "floor_multiple_cap": 5.0,
     "floor_price_providers": [
       "opensea",
@@ -2344,8 +2363,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -2359,7 +2378,7 @@
     "appraisal_method": "standard",
     "conditions": {
       "WETH": {
-        "debt_limit": 5.0,
+        "debt_limit": 10.0,
         "floor_multiple_cap": 5.0,
         "tier_pricing": {
           "30d": {
@@ -2371,15 +2390,15 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0x2C88aA0956bC9813505d73575f653F69ADa60923",
-    "debt_limit": 5.0,
+    "debt_limit": 10.0,
     "floor_multiple_cap": 5.0,
     "floor_price_providers": [
       "opensea",
@@ -2403,8 +2422,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -2430,8 +2449,8 @@
             "ltv": 0.5
           },
           "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
+            "apr": 0.3,
+            "ltv": 0.3
           }
         },
         "whitelisted": true
@@ -2462,8 +2481,8 @@
         "ltv": 0.5
       },
       "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
+        "apr": 0.3,
+        "ltv": 0.3
       }
     },
     "tiers": [
@@ -2477,46 +2496,46 @@
     "appraisal_method": "punks",
     "conditions": {
       "USDC": {
-        "debt_limit": 800000.0,
+        "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
             "apr": 0.125,
-            "ltv": 0.45
+            "ltv": 0.65
           },
           "7d": {
-            "apr": 0.35,
-            "ltv": 0.5
+            "apr": 0.2,
+            "ltv": 0.7
           },
           "90d": {
-            "apr": 0.1,
-            "ltv": 0.35
+            "apr": 0.105,
+            "ltv": 0.6
           }
         },
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 500.0,
+        "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
             "apr": 0.095,
-            "ltv": 0.75
+            "ltv": 0.85
           },
           "7d": {
-            "apr": 0.35,
-            "ltv": 0.775
+            "apr": 0.2,
+            "ltv": 0.875
           },
           "90d": {
-            "apr": 0.075,
-            "ltv": 0.65
+            "apr": 0.08,
+            "ltv": 0.8
           }
         },
         "whitelisted": true
       }
     },
     "contract_address": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
-    "debt_limit": 500.0,
+    "debt_limit": 250.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "nftgo"
@@ -2532,15 +2551,15 @@
     "tier_pricing": {
       "30d": {
         "apr": 0.095,
-        "ltv": 0.75
+        "ltv": 0.85
       },
       "7d": {
-        "apr": 0.35,
-        "ltv": 0.775
+        "apr": 0.2,
+        "ltv": 0.875
       },
       "90d": {
-        "apr": 0.075,
-        "ltv": 0.65
+        "apr": 0.08,
+        "ltv": 0.8
       }
     },
     "tiers": [
