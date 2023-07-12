@@ -91,6 +91,13 @@ genesis_enabled = {
     "ETH-GRAILS": False
 }
 
+legady_ids = {
+    "WETH": [],
+    "USDC": [],
+    "ETH-GRAILS": ["ETH-SQUIGGLEDAO"]
+}
+
+
 def read_file(filename: Path):
     """Read file content."""
     with open(filename, "r") as f:
@@ -184,6 +191,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
                 "use_native_token": native_token[pool_id],
                 "genesis_enabled": genesis_enabled[pool_id],
                 "contracts": pool_config,
+                "legacy_ids": legady_ids[pool_id],
             }
             for pool_id, pool_config in config["tokens"].items()}
     }
