@@ -594,26 +594,6 @@
         "token_whitelist": "fidenzas-squigglespool",
         "whitelisted": true
       },
-      "ETH-SQUIGGLEDAO": {
-        "debt_limit": 125.0,
-        "floor_multiple_cap": 3.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.25,
-            "ltv": 1.0
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 1.0
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 1.0
-          }
-        },
-        "token_whitelist": "fidenzas-squigglespool",
-        "whitelisted": true
-      },
       "USDC": {
         "debt_limit": 250000.0,
         "floor_multiple_cap": 1.0,
