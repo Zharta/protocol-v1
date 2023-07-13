@@ -44,50 +44,6 @@
                 "contract": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
             }
         },
-        "ETH-SQUIGGLEDAO": {
-            "collateral_vault_core": {
-                "contract": "0x8f69F1656aF94587E7AeaF2a5e440F402d53A8d0"
-            },
-            "collateral_vault_peripheral": {
-                "contract": "0xc22b024Dbae8701a0BF2670767b11FA007DA5F85"
-            },
-            "cryptopunks_vault_core": {
-                "contract": "0x3a7EEF6D40eaC84b471228bF17372d5851Fb5D83"
-            },
-            "delegation_registry": {
-                "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B"
-            },
-            "genesis": {
-                "contract": "0xCa54733A772C83096E40f644c9286c9779191e50"
-            },
-            "lending_pool": {
-                "contract": "0xa5DF70A7b426f077E24b6365237FC9CCfdE5EA10"
-            },
-            "lending_pool_core": {
-                "contract": "0xd74d518C7Cda386Eed0Ce93DF709093032eC8bcb"
-            },
-            "lending_pool_lock": {
-                "contract": "0x27990214fE29E0e760b1aF812872afc99CAc3328"
-            },
-            "liquidations_core": {
-                "contract": "0x1E0Cdc5Adb9f5a2997995F5fF142044aE21baA5c"
-            },
-            "liquidations_peripheral": {
-                "contract": "0xa2e592159905De72B6c7fBF835F65B56985834aB"
-            },
-            "liquidity_controls": {
-                "contract": "0x3d63F6D120d723CD0c76574c21A798db456a6d4C"
-            },
-            "loans": {
-                "contract": "0x1693C261947731505B30C96883E3797f4EDA3B09"
-            },
-            "loans_core": {
-                "contract": "0xe6c79bB163c90fBE4B5263572c88b1F576C5189c"
-            },
-            "token": {
-                "contract": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-            }
-        },
         "USDC": {
             "collateral_vault_core": {
                 "contract": "0x7CA34cF45a119bEBEf4D106318402964a331DfeD"

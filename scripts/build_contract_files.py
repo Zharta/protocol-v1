@@ -101,7 +101,6 @@ genesis_enabled = {
 }
 
 
-
 def read_file(filename: Path):
     """Read file content."""
     with open(filename, "r") as f:
