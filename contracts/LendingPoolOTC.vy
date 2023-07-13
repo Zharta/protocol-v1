@@ -410,6 +410,12 @@ def lendersArray() -> DynArray[address, 2**0]:
 
 @view
 @external
+def lockedAmount(_lender: address) -> uint256:
+    return 0
+
+
+@view
+@external
 def computeWithdrawableAmount(_lender: address) -> uint256:
     return self._computeWithdrawableAmount() if _lender == self.lender else 0
 
