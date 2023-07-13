@@ -364,10 +364,9 @@ def _unwrap_and_send(_to: address, _amount: uint256):
 
 
 @internal
-def _wrap_and_approve(_to: address, _amount: uint256):
+def _wrap(_amount: uint256):
     IWETH(erc20TokenContract).deposit(value=_amount)
     log PaymentSent(erc20TokenContract, erc20TokenContract, _amount)
-    IERC20(erc20TokenContract).approve(_to, _amount)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -633,7 +632,7 @@ def depositEth():
     assert allowEth
     log PaymentReceived(msg.sender, msg.sender, msg.value)
 
-    self._wrap_and_approve(self, msg.value)
+    self._wrap(msg.value)
     self._deposit(msg.value, self)
 
 
@@ -720,7 +719,7 @@ def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint25
 
     log PaymentReceived(msg.sender, msg.sender, _amount + _rewardsAmount)
 
-    self._wrap_and_approve(self, msg.value)
+    self._wrap(msg.value)
     self._receiveFunds(_borrower, self, _amount, _rewardsAmount)
 
 
@@ -789,7 +788,7 @@ def receiveFundsFromLiquidationEth(
 
     log PaymentReceived(msg.sender, msg.sender, receivedAmount)
 
-    self._wrap_and_approve(self, receivedAmount)
+    self._wrap(receivedAmount)
     self._receiveFundsFromLiquidation(_borrower, self, _amount, _rewardsAmount, _distributeToProtocol, _origin)
 
 

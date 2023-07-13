@@ -125,7 +125,7 @@ def test_deprecate_blockers(lendingpool_otc, lendingpool_otc_proxy):
 
     inject_code_wrap = """
         @internal
-        def _wrap_and_approve(_to: address, _amount: uint256):
+        def _wrap(_amount: uint256):
             pass
     """
 
@@ -163,6 +163,11 @@ def test_dont_allow_eth(lendingpool_otc_contract):
 
         assert not proxy.allowEth()
 
+@pytest.fixture(scope="module")
+def lendingpool_otc_proxy(lendingpool_otc, lendingpool_otc_contract):
+    with boa.env.prank(DEPLOYER):
+        proxy_address = lendingpool_otc.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER)
+        return lendingpool_otc_contract.at(proxy_address)
 
 def test_change_status(lendingpool_otc_proxy):
     account1 = boa.env.generate_address()
