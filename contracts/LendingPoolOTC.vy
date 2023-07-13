@@ -202,15 +202,15 @@ def _deposit(_amount: uint256, _payer: address):
     assert _amount > 0, "_amount has to be higher than 0"
     assert _payer != empty(address), "The _payer is the zero address"
 
-    assert self._fundsAreAllowed(_payer, self, _amount), "Not enough funds allowed"
+    if _payer != self:
+        assert self._fundsAreAllowed(_payer, self, _amount), "Not enough funds allowed"
+        if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount):
+            raise "error creating deposit"
 
     self.funds.totalAmountDeposited += _amount
     self.funds.currentAmountDeposited += _amount
 
     self.fundsAvailable += _amount
-
-    if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount):
-        raise "error creating deposit"
 
     log Deposit(msg.sender, msg.sender, _amount, erc20TokenContract)
 
