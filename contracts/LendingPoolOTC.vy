@@ -142,7 +142,7 @@ isPoolDeprecated: public(bool)
 
 # core
 
-funds: public(InvestorFunds)
+poolFunds: public(InvestorFunds)
 lender: public(address)
 
 fundsAvailable: public(uint256)
@@ -207,8 +207,8 @@ def _deposit(_amount: uint256, _payer: address):
         if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount):
             raise "error creating deposit"
 
-    self.funds.totalAmountDeposited += _amount
-    self.funds.currentAmountDeposited += _amount
+    self.poolFunds.totalAmountDeposited += _amount
+    self.poolFunds.currentAmountDeposited += _amount
 
     self.fundsAvailable += _amount
 
@@ -221,8 +221,8 @@ def _withdraw_accounting(_amount: uint256):
     assert msg.sender == self.lender, "The sender is not the lender"
     assert self.fundsAvailable >= _amount, "available funds less than amount"
 
-    self.funds.currentAmountDeposited -= _amount
-    self.funds.totalAmountWithdrawn += _amount
+    self.poolFunds.currentAmountDeposited -= _amount
+    self.poolFunds.totalAmountWithdrawn += _amount
 
     self.fundsAvailable -= _amount
 
@@ -277,7 +277,7 @@ def _transferReceivedFunds(
     self.fundsAvailable += _amount + _rewardsPool
     self.fundsInvested -= _amount
     self.totalRewards += _rewardsPool
-    self.funds.currentAmountDeposited += _rewardsPool
+    self.poolFunds.currentAmountDeposited += _rewardsPool
 
     if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
         raise "error receiving funds in LPOTC"
@@ -311,7 +311,7 @@ def _accountForReceivedFunds(
     self.fundsAvailable += _amount + _rewardsPool
     self.fundsInvested -= _amount
     self.totalRewards += _rewardsPool
-    self.funds.currentAmountDeposited += _rewardsPool
+    self.poolFunds.currentAmountDeposited += _rewardsPool
 
     if _rewardsProtocol > 0:
         assert self.protocolWallet != empty(address), "protocolWallet is zero addr"
@@ -393,7 +393,13 @@ def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
 @view
 @external
 def lenderFunds(_lender: address) -> InvestorFunds:
-    return self.funds if _lender == self.lender else empty(InvestorFunds)
+    return self.poolFunds if _lender == self.lender else empty(InvestorFunds)
+
+
+@view
+@external
+def funds(_lender: address) -> InvestorFunds:
+    return self.poolFunds if _lender == self.lender else empty(InvestorFunds)
 
 
 @view
@@ -417,19 +423,19 @@ def fundsInPool() -> uint256:
 @view
 @external
 def currentAmountDeposited(_lender: address) -> uint256:
-    return self.funds.currentAmountDeposited if _lender == self.lender else 0
+    return self.poolFunds.currentAmountDeposited if _lender == self.lender else 0
 
 
 @view
 @external
 def totalAmountDeposited(_lender: address) -> uint256:
-    return self.funds.totalAmountDeposited if _lender == self.lender else 0
+    return self.poolFunds.totalAmountDeposited if _lender == self.lender else 0
 
 
 @view
 @external
 def totalAmountWithdrawn(_lender: address) -> uint256:
-    return self.funds.totalAmountWithdrawn if _lender == self.lender else 0
+    return self.poolFunds.totalAmountWithdrawn if _lender == self.lender else 0
 
 
 

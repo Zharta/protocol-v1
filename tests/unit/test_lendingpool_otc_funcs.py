@@ -99,7 +99,7 @@ def test_deposit_eth_success(erc20_pool, weth_pool, erc20_token):
 
     assert erc20_token.balanceOf(weth_pool.address) == amount
 
-    currentAmountDeposited, totalAmountDeposited, _, _, _ = weth_pool.funds()
+    currentAmountDeposited, totalAmountDeposited, _, _, _ = weth_pool.poolFunds()
     assert totalAmountDeposited == amount
     assert currentAmountDeposited == amount
 
@@ -160,7 +160,7 @@ def test_deposit_erc20_success(erc20_pool, erc20_token):
     assert erc20_token.balanceOf(LENDER) == 0
     assert erc20_token.balanceOf(erc20_pool.address) == amount
 
-    currentAmountDeposited, totalAmountDeposited, _, _, _ = erc20_pool.funds()
+    currentAmountDeposited, totalAmountDeposited, _, _, _ = erc20_pool.poolFunds()
     assert totalAmountDeposited == amount
     assert currentAmountDeposited == amount
 
@@ -199,15 +199,15 @@ def test_withdraw_eth_success(weth_pool, erc20_token):
     erc20_token.eval(f"self.balanceOf[{weth_pool.address}] = {amount}")
 
     weth_pool.eval(f"self.fundsAvailable = {amount}")
-    weth_pool.eval(f"self.funds.totalAmountDeposited = {amount}")
-    weth_pool.eval(f"self.funds.currentAmountDeposited = {amount}")
+    weth_pool.eval(f"self.poolFunds.totalAmountDeposited = {amount}")
+    weth_pool.eval(f"self.poolFunds.currentAmountDeposited = {amount}")
 
     weth_pool.withdrawEth(amount, sender=LENDER)
     event = get_last_event(weth_pool, name="Withdrawal")
 
     assert weth_pool.fundsAvailable() == 0
 
-    currentAmountDeposited, totalAmountDeposited, totalAmountWithdrawn, _, _ = weth_pool.funds()
+    currentAmountDeposited, totalAmountDeposited, totalAmountWithdrawn, _, _ = weth_pool.poolFunds()
     assert totalAmountDeposited == amount
     assert currentAmountDeposited == 0
     assert totalAmountWithdrawn == amount
@@ -250,15 +250,15 @@ def test_withdraw_erc20_success(erc20_pool, erc20_token):
     erc20_token.eval(f"self.balanceOf[{erc20_pool.address}] = {amount}")
 
     erc20_pool.eval(f"self.fundsAvailable = {amount}")
-    erc20_pool.eval(f"self.funds.totalAmountDeposited = {amount}")
-    erc20_pool.eval(f"self.funds.currentAmountDeposited = {amount}")
+    erc20_pool.eval(f"self.poolFunds.totalAmountDeposited = {amount}")
+    erc20_pool.eval(f"self.poolFunds.currentAmountDeposited = {amount}")
 
     erc20_pool.withdraw(amount, sender=LENDER)
     event = get_last_event(erc20_pool, name="Withdrawal")
 
     assert erc20_pool.fundsAvailable() == 0
 
-    currentAmountDeposited, totalAmountDeposited, totalAmountWithdrawn, _, _ = erc20_pool.funds()
+    currentAmountDeposited, totalAmountDeposited, totalAmountWithdrawn, _, _ = erc20_pool.poolFunds()
     assert totalAmountDeposited == amount
     assert currentAmountDeposited == 0
     assert totalAmountWithdrawn == amount
