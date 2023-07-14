@@ -71,6 +71,11 @@ def collateral_vault_peripheral_contract_def():
 
 
 @pytest.fixture(scope="session")
+def collateral_vault_otc_contract_def():
+    return boa.load_partial("contracts/CollateralVaultOTC.vy")
+
+
+@pytest.fixture(scope="session")
 def lending_pool_core_contract_def():
     return boa.load_partial("contracts/LendingPoolCore.vy")
 

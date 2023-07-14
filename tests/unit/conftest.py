@@ -106,6 +106,11 @@ def cryptopunks_vault_core_contract():
 
 
 @pytest.fixture(scope="session")
+def collateral_vault_otc_contract():
+    return boa.load_partial("contracts/CollateralVaultOTC.vy")
+
+
+@pytest.fixture(scope="session")
 def loans_core_contract():
     return boa.load_partial("contracts/LoansCore.vy")
 

@@ -155,7 +155,7 @@ def isPoolDeprecated() -> bool:
 
 @view
 @external
-def funds() -> InvestorFunds:
+def poolFunds() -> InvestorFunds:
     pass
 
 @view
@@ -210,7 +210,17 @@ def lenderFunds(_lender: address) -> InvestorFunds:
 
 @view
 @external
+def funds(_lender: address) -> InvestorFunds:
+    pass
+
+@view
+@external
 def lendersArray() -> DynArray[address, 1]:
+    pass
+
+@view
+@external
+def lockedAmount(_lender: address) -> uint256:
     pass
 
 @view

@@ -60,10 +60,6 @@ event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 
-event LendersPeriodDurationChanged:
-    currentValue: uint256
-    newValue: uint256
-
 event LoansCoreAddressAdded:
     erc20TokenContractIndexed: indexed(address)
     currentValue: address
@@ -87,26 +83,6 @@ event LendingPoolPeripheralAddressRemoved:
     erc20TokenContract: address
 
 event CollateralVaultPeripheralAddressSet:
-    currentValue: address
-    newValue: address
-
-event NFTXVaultFactoryAddressSet:
-    currentValue: address
-    newValue: address
-
-event NFTXMarketplaceZapAddressSet:
-    currentValue: address
-    newValue: address
-
-event SushiRouterAddressSet:
-    currentValue: address
-    newValue: address
-
-event WrappedPunksAddressSet:
-    currentValue: address
-    newValue: address
-
-event CryptoPunksAddressSet:
     currentValue: address
     newValue: address
 
@@ -161,13 +137,6 @@ event NFTClaimed:
     erc20TokenContract: address
     loansCoreContract: address
     method: String[30]
-
-event AdminWithdrawal:
-    collateralAddressIndexed: indexed(address)
-    liquidationId: bytes32
-    collateralAddress: address
-    tokenId: uint256
-    wallet: address
 
 event PaymentSent:
     walletIndexed: indexed(address)

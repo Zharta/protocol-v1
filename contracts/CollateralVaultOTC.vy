@@ -8,7 +8,10 @@
 @dev Uses a `CollateralVaultCore` to store ERC721 collaterals, and supports different vault cores (eg CryptoPunksVaultCore) as extension points for other protocols.
 """
 
+
+
 # Interfaces
+
 
 from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
@@ -23,8 +26,13 @@ interface CryptoPunksMarket:
 interface IDelegationRegistry:
     def delegateForToken(delegate: address, contract_: address, tokenId: uint256, value_: bool): nonpayable
 
+interface ISelf:
+    def initialize(_owner: address): nonpayable
+
+
 
 # Structs
+
 
 # cryptopunks Offer
 struct Offer:
@@ -34,7 +42,10 @@ struct Offer:
     minValue: uint256
     onlySellTo: address
 
+
+
 # Events
+
 
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
@@ -107,7 +118,8 @@ event OperatorApproved:
 
 # Global variables
 
-vaultName: public(constant(String[3])) = "otc"
+
+vaultName: constant(String[3]) = "otc"
 
 owner: public(address)
 proposedOwner: public(address)
@@ -256,10 +268,10 @@ def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address
         raise "address not supported by vault"
 
 
-# @view
-# @external
-# def vaultName() -> String[30]:
-#     return vaultName
+@view
+@external
+def vaultName() -> String[3]:
+    return vaultName
 
 ##### EXTERNAL METHODS - WRITE #####
 
@@ -269,6 +281,19 @@ def __init__(_cryptoPunksMarketAddress: address, _delegationRegistryAddress: add
     cryptoPunksMarketAddress = CryptoPunksMarket(_cryptoPunksMarketAddress)
     delegationRegistry = IDelegationRegistry(_delegationRegistryAddress)
 
+
+@external
+def initialize(_owner: address):
+    assert _owner != empty(address), "owner is the zero address"
+    assert self.owner == empty(address), "already initialized"
+    self.owner = _owner
+
+
+@external
+def create_proxy() -> address:
+    proxy: address = create_minimal_proxy_to(self)
+    ISelf(proxy).initialize(msg.sender)
+    return proxy
 
 
 @external
@@ -345,10 +370,7 @@ def setLiquidationsPeripheralAddress(_address: address):
     assert _address != empty(address), "address is the zero addr"
     assert self.liquidationsPeripheralAddress != _address, "new value is the same"
 
-    log LiquidationsPeripheralAddressSet(
-        self.liquidationsPeripheralAddress,
-        _address
-    )
+    log LiquidationsPeripheralAddressSet(self.liquidationsPeripheralAddress, _address)
 
     self.liquidationsPeripheralAddress = _address
 

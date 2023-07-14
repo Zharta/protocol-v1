@@ -31,10 +31,8 @@ interface ILoansCore:
     def updateHighestDefaultedLoan(_borrower: address, _loanId: uint256): nonpayable
 
 interface ICollateralVaultPeripheral:
-    def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address: view
     def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _createDelegation: bool): nonpayable
     def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address): nonpayable
-    def collateralVaultCoreDefaultAddress() -> address: view
     def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool: view
     def setCollateralDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _value: bool): nonpayable
 
