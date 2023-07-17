@@ -2,7 +2,7 @@ from typing import Optional, Any, Callable
 from functools import partial
 from ape.contracts.base import ContractInstance
 from dataclasses import dataclass
-from .basetypes import InternalContract, DeploymentContext
+from .basetypes import InternalContract, DeploymentContext, MinimalProxy
 from .transactions import Transaction
 
 from ape import project
@@ -100,6 +100,7 @@ class LendingPoolCoreContract(InternalContract):
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
         return {context[pool, "token"] for pool in self.pools}
+
 
 @dataclass
 class LendingPoolLockContract(InternalContract):
@@ -453,3 +454,204 @@ class GenesisContract(InternalContract):
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         return [context["genesis_owner"]]
 
+
+@dataclass
+class CollateralVaultOTCImplContract(InternalContract):
+
+    def __init__(self, contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "collateral_vault_otc_impl",
+            contract,
+            project.CollateralVaultOTC,
+            container_name="CollateralVaultOTC",
+            deployment_deps={"punk", "delegation_registry"},
+            config_deps={},
+            deployment_args_contracts=["punk", "delegation_registry"],
+        )
+
+
+@dataclass
+class CollateralVaultOTCContract(MinimalProxy):
+
+    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "collateral_vault",
+            contract,
+            project.CollateralVaultOTC,
+            scope=scope,
+            pools=pools,
+            container_name="CollateralVaultOTC",
+            deployment_deps={"collateral_vault_otc_impl"},
+            impl="collateral_vault_otc_impl",
+        )
+
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
+        set_liquidations = { context[pool, "liquidations"]: with_pool(Transaction.cvotc_set_liquidations, pool) for pool in self.pools}
+        add_loansperiph = { context[pool, "loans"]: with_pool(Transaction.cvotc_add_loansperiph, pool) for pool in self.pools}
+        return set_liquidations | add_loansperiph
+
+
+@dataclass
+class LendingPoolOTCEthImplContract(InternalContract):
+
+    def __init__(self, contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "lending_pool_otc_weth_impl",
+            contract,
+            project.CollateralVaultOTC,
+            container_name="LendingPoolOTC",
+            deployment_deps={"token"},
+            config_deps={},
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return [context[context["weth", "token"]].contract, True]
+
+
+@dataclass
+class LendingPoolOTCContract(MinimalProxy):
+
+    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "lending_pool",
+            contract,
+            project.LendingPoolOTC,
+            scope=scope,
+            pools=pools,
+            container_name="LendingPoolOTC",
+        )
+
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
+        set_loansperiph = {
+            context[pool, "loans"]: with_pool(Transaction.lpotc_set_loansperiph, pool) for pool in self.pools
+        }
+        set_liquidationsperiph = {
+            context[pool, "liquidations"]: with_pool(Transaction.lpotc_set_liquidations, pool)
+            for pool in self.pools
+        }
+        return set_loansperiph | set_liquidationsperiph
+
+
+    def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
+        return set().union(
+            {context[pool, "lending_pool"] for pool in self.pools},
+            {context[pool, "token"] for pool in self.pools},
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        pool = self.pools[0]
+        lender = context.config[f"lender.{pool}"]
+        protocol_wallet_fees = context.config.get(f"lpp_protocol_wallet_fees.{pool}", context.owner)
+        protocol_fees_share = context.config.get(f"lpp_protocol_fees_share.{pool}", 2500)
+        return [protocol_wallet_fees, protocol_fees_share, lender]
+
+    def config_key(self):
+        return "lending_pool"
+
+
+
+@dataclass
+class LiquidationsOTCContract(InternalContract):
+
+    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "liquidations",
+            contract,
+            project.LiquidationsOTC,
+            scope=scope,
+            pools=pools,
+            container_name="LiquidationsOTC",
+        )
+
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
+        add_loanscore = {
+            context[pool, "loans_core"]: with_pool(Transaction.liquidationsotc_add_loanscore, pool) for pool in self.pools
+        }
+        add_lpperiph = {
+            context[pool, "lending_pool"]: with_pool(Transaction.liquidationsotc_add_lpperiph, pool) for pool in self.pools
+        }
+        set_cvperiph = {
+            context[pool, "collateral_vault"]: with_pool(Transaction.liquidationsotc_set_cvperiph, pool) for pool in self.pools
+        }
+
+        return add_loanscore | add_lpperiph | set_cvperiph
+
+
+    def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
+        return set().union(
+            {context[pool, "token"] for pool in self.pools},
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        pool = self.pools[0]
+        return [2 * 86400, context[context[pool, "token"]].contract]
+
+
+@dataclass
+class LoansOTCCoreContract(InternalContract):
+
+    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "loans_core",
+            contract,
+            project.LoansCore,
+            scope=scope,
+            pools=pools,
+            container_name="LoansCore",
+            deployment_deps={},
+            deployment_args_contracts=[],
+        )
+
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
+        return {context[pool, "loans"]: with_pool(Transaction.loanscore_set_loansperiph, pool) for pool in self.pools}
+
+
+@dataclass
+class LoansOTCPeripheralContract(InternalContract):
+
+    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "loans",
+            contract,
+            project.Loans,
+            scope=scope,
+            pools=pools,
+            container_name="Loans",
+        )
+
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
+        set_liquidationsperiph = {
+            context[pool, "liquidations"]: with_pool(Transaction.loansotcperiph_set_liquidationsperiph, pool)
+            for pool in self.pools
+        }
+        set_liquiditycontrols = {
+            context[pool, "liquidity_controls"]: with_pool(Transaction.loansotcperiph_set_liquiditycontrols, pool) for pool in self.pools
+        }
+        set_lpperiph = {
+            context[pool, "lending_pool"]: with_pool(Transaction.loansotcperiph_set_lpperiph, pool) for pool in self.pools
+        }
+        set_cvperiph = {
+            context[pool, "collateral_vault"]: with_pool(Transaction.loansotcperiph_set_cvperiph, pool) for pool in self.pools
+        }
+        return set_liquidationsperiph | set_liquiditycontrols | set_lpperiph | set_cvperiph
+
+
+    def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
+        return set().union(
+            {context[pool, "loans_core"] for pool in self.pools},
+            {context[pool, "lending_pool"] for pool in self.pools},
+            {context[pool, "collateral_vault"] for pool in self.pools},
+            {context[pool, "genesis"] for pool in self.pools},
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        pool = self.pools[0]
+        is_payable = context.config.get(f"loansperipheral_ispayable.{pool}", False)
+        return [
+            24 * 60 * 60,
+            context[context[pool, "loans_core"]].contract,
+            context[context[pool, "lending_pool"]].contract,
+            context[context[pool, "collateral_vault"]].contract,
+            context[context[pool, "genesis"]].contract,
+            is_payable,
+        ]

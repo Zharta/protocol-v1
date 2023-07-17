@@ -61,15 +61,24 @@ contracts_mapped = {
 }
 
 pool_tokens = {
-    "WETH": "WETH",
+    "ETH-GRAILS": "WETH",
+    "ETH-SQUIGGLEDAO": "WETH",
+    "SWIMMING": "WETH",
     "USDC": "USDC",
-    "ETH-GRAILS": "WETH"
+    "WETH": "WETH",
+}
+
+legacy_ids = {
+    "ETH-GRAILS": ["ETH-SQUIGGLEDAO"],
+    "WETH": [None],
 }
 
 pool_names = {
-    "WETH": "ETH",
+    "ETH-GRAILS": "Grail NFTs",
+    "ETH-SQUIGGLEDAO": "Grail NFTs",
+    "SWIMMING": "OTC Test",
     "USDC": "USDC",
-    "ETH-GRAILS": "Grail NFTs"
+    "WETH": "ETH",
 }
 
 token_decimals = {
@@ -78,15 +87,19 @@ token_decimals = {
 }
 
 native_token = {
-    "WETH": True,
+    "ETH-GRAILS": True,
+    "ETH-SQUIGGLEDAO": True,
+    "SWIMMING": True,
     "USDC": False,
-    "ETH-GRAILS": True
+    "WETH": True,
 }
 
 genesis_enabled = {
-    "WETH": True,
+    "ETH-GRAILS": False,
+    "ETH-SQUIGGLEDAO": False,
+    "SWIMMING": False,
     "USDC": True,
-    "ETH-GRAILS": False
+    "WETH": True,
 }
 
 def read_file(filename: Path):
@@ -181,6 +194,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
                 "token_decimals": token_decimals[pool_tokens[pool_id]],
                 "use_native_token": native_token[pool_id],
                 "genesis_enabled": genesis_enabled[pool_id],
+                "legacy_ids": legacy_ids.get(pool_id, []),
                 "contracts": pool_config,
             }
             for pool_id, pool_config in config["tokens"].items()}

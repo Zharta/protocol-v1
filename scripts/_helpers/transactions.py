@@ -39,6 +39,26 @@ class Transaction:
         )
 
     @staticmethod
+    def lpotc_set_loansperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "lending_pool"],
+            "setLoansPeripheralAddress",
+            context[pool, "loans"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
+    def lpotc_set_liquidations(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "lending_pool"],
+            "setLiquidationsPeripheralAddress",
+            context[pool, "liquidations"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
     def lpperiph_set_liquidationsperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,
@@ -90,12 +110,33 @@ class Transaction:
         )
 
     @staticmethod
+    def cvotc_add_loansperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "collateral_vault"],
+            "addLoansPeripheralAddress",
+            context[pool, "token"],
+            context[pool, "loans"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
     def cvperiph_set_liquidationsperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,
             context[pool, "collateral_vault_peripheral"],
             "setLiquidationsPeripheralAddress",
             context[pool, "liquidations_peripheral"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
+    def cvotc_set_liquidations(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "collateral_vault"],
+            "setLiquidationsPeripheralAddress",
+            context[pool, "liquidations"],
             dryrun=dryrun
         )
 
@@ -151,6 +192,42 @@ class Transaction:
     @staticmethod
     def loansperiph_set_cvperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         cvp = context[pool, "collateral_vault_peripheral"]
+        lp = context[pool, "loans"]
+        cvp_address = context[cvp].contract
+        if execute_read(context, lp, "collateralVaultPeripheralContract", dryrun=dryrun) != cvp_address or dryrun:
+            execute(context, lp, "setCollateralVaultPeripheralAddress", cvp, dryrun=dryrun)
+
+    @staticmethod
+    def loansotcperiph_set_liquidationsperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "loans"],
+            "setLiquidationsPeripheralAddress",
+            context[pool, "liquidations"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
+    def loansotcperiph_set_liquiditycontrols(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "loans"],
+            "setLiquidityControlsAddress",
+            context[pool, "liquidity_controls"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
+    def loansotcperiph_set_lpperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        lpp = context[pool, "lending_pool"]
+        lp = context[pool, "loans"]
+        lpp_address = context[lpp].contract
+        if execute_read(context, lp, "lendingPoolPeripheralContract", dryrun=dryrun) != lpp_address or dryrun:
+            execute(context, lp, "setLendingPoolPeripheralAddress", lpp, dryrun=dryrun)
+
+    @staticmethod
+    def loansotcperiph_set_cvperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        cvp = context[pool, "collateral_vault"]
         lp = context[pool, "loans"]
         cvp_address = context[cvp].contract
         if execute_read(context, lp, "collateralVaultPeripheralContract", dryrun=dryrun) != cvp_address or dryrun:
@@ -218,6 +295,38 @@ class Transaction:
         )
 
     @staticmethod
+    def liquidationsotc_add_loanscore(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "liquidations"],
+            "addLoansCoreAddress",
+            context[pool, "token"],
+            context[pool, "loans_core"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
+    def liquidationsotc_add_lpperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "liquidations"],
+            "addLendingPoolPeripheralAddress",
+            context[pool, "token"],
+            context[pool, "lending_pool_peripheral"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
+    def liquidationsotc_set_cvperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "liquidations"],
+            "setCollateralVaultPeripheralAddress",
+            context[pool, "collateral_vault"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
     def liquidationsperiph_set_wpunks(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,
@@ -244,6 +353,8 @@ class Transaction:
 
     @staticmethod
     def liquiditycontrols_change_collectionborrowableamounts(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        #TODO remove this?
+        return
         nft_borrowable_amounts = context["nft_borrowable_amounts"]
         contract = context[pool, "liquidity_controls"]
         contract_instance = context[contract].contract

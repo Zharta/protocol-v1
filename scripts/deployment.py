@@ -31,3 +31,5 @@ def cli(network):
     changes |= {"nft_borrowable_amounts"}
     dm.deploy(changes, dryrun=True)
 
+    print("Done")
+

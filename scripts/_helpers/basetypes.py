@@ -182,3 +182,28 @@ class InternalContract(ContractConfig):
         print(f"## {self.pools} {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)}, {kwargs_str})")
         if not dryrun:
             self.contract = self.container.deploy(*self.deployment_args(context), **kwargs)
+
+
+@dataclass
+class MinimalProxy(InternalContract):
+
+    impl: str = ""
+    factory_func: str = "create_proxy"
+
+    # def __init__(self, name: str, impl: str):
+    #     super().__init__(name)
+    #     self.impl = impl
+
+    def deploy(self, context: DeploymentContext, dryrun: bool = False) -> ContractConfig:
+        if self.contract is not None:
+            print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
+        if not self.deployable(context):
+            raise Exception(f"Cant deploy contract {self} in current context")
+
+        impl_contract = context[self.impl].contract
+        print_args = self.deployment_args_contracts
+        kwargs = self.deployment_options(context)
+        kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
+        print(f"## {self.pools} {self.name} <- {self.impl}.invoke_transaction({self.factory_func}, {','.join(str(a) for a in print_args)}, {kwargs_str})")
+        if not dryrun:
+            self.contract = impl_contract.invoke_transaction(self.factory_func, *self.deployment_args(context), **kwargs)
