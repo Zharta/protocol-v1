@@ -190,6 +190,11 @@ def collateralClaimsValue() -> uint256:
 
 @view
 @external
+def lendingPoolCoreContract() -> address:
+    pass
+
+@view
+@external
 def maxFundsInvestable() -> uint256:
     pass
 

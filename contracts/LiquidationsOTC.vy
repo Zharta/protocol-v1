@@ -43,8 +43,13 @@ interface ICollateralVault:
     def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256): nonpayable
 
 
+interface ISelf:
+    def initialize(_owner: address, _gracePeriodDuration: uint256): nonpayable
+
+
 
 # Structs
+
 
 struct Collateral:
     contractAddress: address
@@ -102,6 +107,12 @@ event OwnerProposed:
     proposedOwnerIndexed: indexed(address)
     owner: address
     proposedOwner: address
+
+event AdminTransferred:
+    adminIndexed: indexed(address)
+    newAdminIndexed: indexed(address)
+    admin: address
+    newAdmin: address
 
 event GracePeriodDurationChanged:
     currentValue: uint256
@@ -377,14 +388,29 @@ def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: u
 
 ##### EXTERNAL METHODS - WRITE #####
 @external
-def __init__(_gracePeriodDuration: uint256, _wethAddress: address):
+def __init__(_wethAddress: address):
     assert _wethAddress != empty(address)  # reason: address is the zero address
-    assert _gracePeriodDuration > 0  # reason: duration is 0
 
     self.owner = msg.sender
     self.admin = msg.sender
-    self.gracePeriodDuration = _gracePeriodDuration
     wethAddress = _wethAddress
+
+
+@external
+def initialize(_owner: address, _gracePeriodDuration: uint256):
+    assert _owner != empty(address), "owner is the zero address"
+    assert self.owner == empty(address), "already initialized"
+    assert _gracePeriodDuration > 0  # reason: duration is 0
+
+    self.owner = _owner
+    self.gracePeriodDuration = _gracePeriodDuration
+
+
+@external
+def create_proxy(_gracePeriodDuration: uint256) -> address:
+    proxy: address = create_minimal_proxy_to(self)
+    ISelf(proxy).initialize(msg.sender, _gracePeriodDuration)
+    return proxy
 
 
 @external
@@ -415,6 +441,14 @@ def claimOwnership():
 
     self.owner = self.proposedOwner
     self.proposedOwner = empty(address)
+
+
+@external
+def changeAdmin(_admin: address):
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    log AdminTransferred(self.admin, _admin, self.admin, _admin)
+
+    self.admin = _admin
 
 
 @external

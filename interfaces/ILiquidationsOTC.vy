@@ -56,6 +56,12 @@ event OwnerProposed:
     owner: address
     proposedOwner: address
 
+event AdminTransferred:
+    adminIndexed: indexed(address)
+    newAdminIndexed: indexed(address)
+    admin: address
+    newAdmin: address
+
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
@@ -187,6 +193,11 @@ def collateralVaultPeripheralAddress() -> address:
 
 @view
 @external
+def liquidationsCoreAddress() -> address:
+    pass
+
+@view
+@external
 def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidation:
     pass
 
@@ -231,11 +242,23 @@ def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: u
     pass
 
 @external
+def initialize(_owner: address, _gracePeriodDuration: uint256):
+    pass
+
+@external
+def create_proxy(_gracePeriodDuration: uint256) -> address:
+    pass
+
+@external
 def proposeOwner(_address: address):
     pass
 
 @external
 def claimOwnership():
+    pass
+
+@external
+def changeAdmin(_admin: address):
     pass
 
 @external

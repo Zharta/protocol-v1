@@ -33,6 +33,17 @@ interface ILendingPool:
 interface ILiquidations:
     def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
 
+interface ISelf:
+    def initialize(
+        _owner: address,
+        _interestAccrualPeriod: uint256,
+        _lendingPoolPeripheralContract: address,
+        _collateralVaultPeripheralContract: address,
+        _genesisContract: address,
+        _isPayable: bool
+    ): nonpayable
+
+
 # Structs
 
 struct Collateral:
@@ -86,6 +97,13 @@ event OwnerProposed:
     owner: address
     proposedOwner: address
     erc20TokenContract: address
+
+event AdminTransferred:
+    adminIndexed: indexed(address)
+    newAdminIndexed: indexed(address)
+    admin: address
+    newAdmin: address
+
 
 event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: indexed(address)
@@ -189,10 +207,10 @@ isPayable: public(bool)
 
 loans: HashMap[address, DynArray[Loan, 2**16]]
 
+# TODO both used in loans-service/src/api/v2/services/collaterals.py, can be replaced?
 # key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
 collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
 collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256, bool]]]) # given a collateral, a borrower and a loan id, is the collateral still used in that loan id
-# XXX both used in loans-service/src/api/v2/services/collaterals.py
 
 ZHARTA_DOMAIN_NAME: constant(String[6]) = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
@@ -212,19 +230,29 @@ MINIMUM_INTEREST_PERIOD: constant(uint256) = 604800  # 7 days
 
 
 @external
-def __init__(
+def __init__():
+    self.owner = msg.sender
+    self.isAcceptingLoans = False
+    self.isDeprecated = True
+
+
+@external
+def initialize(
+    _owner: address,
     _interestAccrualPeriod: uint256,
     _lendingPoolPeripheralContract: address,
     _collateralVaultPeripheralContract: address,
     _genesisContract: address,
     _isPayable: bool
 ):
+    assert self.owner == empty(address), "already initialized"
+
     assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
     assert _collateralVaultPeripheralContract != empty(address), "address is the zero address"
     assert _genesisContract != empty(address), "address is the zero address"
 
-    self.owner = msg.sender
-    self.admin = msg.sender
+    self.owner = _owner
+    self.admin = _owner
     self.interestAccrualPeriod = _interestAccrualPeriod
     self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
     self.erc20TokenContract = ILendingPool(_lendingPoolPeripheralContract).erc20TokenContract()
@@ -242,6 +270,27 @@ def __init__(
             self
         )
     )
+
+
+@external
+def create_proxy(
+    _interestAccrualPeriod: uint256,
+    _lendingPoolPeripheralContract: address,
+    _collateralVaultPeripheralContract: address,
+    _genesisContract: address,
+    _isPayable: bool
+) -> address:
+    proxy: address = create_minimal_proxy_to(self)
+
+    ISelf(proxy).initialize(
+        msg.sender,
+        _interestAccrualPeriod,
+        _lendingPoolPeripheralContract,
+        _collateralVaultPeripheralContract,
+        _genesisContract,
+        _isPayable
+    )
+    return proxy
 
 
 ##### INTERNAL METHODS #####
@@ -618,6 +667,13 @@ def changeInterestAccrualPeriod(_value: uint256):
 
 
 @external
+def changeAdmin(_admin: address):
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    log AdminTransferred(self.admin, _admin, self.admin, _admin)
+
+    self.admin = _admin
+
+@external
 def setLendingPoolPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
 
@@ -667,7 +723,7 @@ def setLiquidationsPeripheralAddress(_address: address):
 @external
 def changeContractStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert self.isAcceptingLoans != _flag, "new contract status is the same"
+    assert not self.isDeprecated, "contract is deprecated"
 
     self.isAcceptingLoans = _flag
 
@@ -849,7 +905,7 @@ def pay(_loanId: uint256):
         assert IERC20(erc20TokenContract).balanceOf(msg.sender) >= paymentAmount, "insufficient balance"
         assert IERC20(erc20TokenContract).allowance(
                 msg.sender,
-                ILendingPool(self.lendingPoolPeripheralContract).lendingPoolCoreContract()
+                self.lendingPoolPeripheralContract
         ) >= paymentAmount, "insufficient allowance"
 
     paidInterestAmount: uint256 = paymentAmount - loan.amount
