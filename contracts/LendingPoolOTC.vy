@@ -4,7 +4,6 @@
 @title LendingPoolPeripheralOTC
 @author [Zharta](https://zharta.io/)
 @notice The lending pool contract implements the lending pool logic. Each instance works with a corresponding loans contract to implement an isolated lending market.
-@dev Uses a `LendingPoolCore` contract to store state
 """
 
 # Interfaces
@@ -370,6 +369,12 @@ def _wrap(_amount: uint256):
 
 
 ##### EXTERNAL METHODS - VIEW #####
+
+
+@view
+@external
+def lendingPoolCoreContract() -> address:
+    return self
 
 @view
 @external

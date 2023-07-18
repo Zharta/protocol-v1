@@ -4,7 +4,6 @@
 @title LiquidationsOTC
 @author [Zharta](https://zharta.io/)
 @notice The liquidations peripheral contract exists as the main interface to handle liquidations
-@dev Uses a `LiquidationsCore` contract to store state
 """
 
 
@@ -13,11 +12,11 @@
 from vyper.interfaces import ERC20 as IERC20
 from vyper.interfaces import ERC721 as IERC721
 
-interface ILoansCore:
+interface ILoans:
     def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
 
 
-interface ILendingPoolPeripheral:
+interface ILendingPool:
     def lenderFunds(_lender: address) -> InvestorFunds: view
     def receiveFundsFromLiquidation(
         _borrower: address,
@@ -40,9 +39,7 @@ interface ILendingPoolPeripheral:
     ): nonpayable
 
 
-
-
-interface ICollateralVaultPeripheral:
+interface ICollateralVault:
     def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256): nonpayable
 
 
@@ -327,6 +324,12 @@ def _removeLiquidation(_collateralAddress: address, _tokenId: uint256):
 
 @view
 @external
+def liquidationsCoreAddress() -> address:
+    return self
+
+
+@view
+@external
 def getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidation:
     return self.liquidations[self._computeLiquidationKey(_collateralAddress, _tokenId)]
 
@@ -506,7 +509,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
 @external
 def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
 
-    borrowerLoan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(_borrower, _loanId)
+    borrowerLoan: Loan = ILoans(self.loansCoreAddresses[_erc20TokenContract]).getLoan(_borrower, _loanId)
     assert borrowerLoan.defaulted, "loan is not defaulted"
     assert not self._isLoanLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId), "loan already liquidated"
 
@@ -567,7 +570,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
     receivedAmount: uint256 = msg.value
     ethPayment: bool = receivedAmount > 0
 
-    loan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(msg.sender, _loanId)
+    loan: Loan = ILoans(self.loansCoreAddresses[_erc20TokenContract]).getLoan(msg.sender, _loanId)
     assert loan.defaulted, "loan is not defaulted"
 
     if ethPayment:
@@ -597,7 +600,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
         _lendingPoolPeripheral : address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
 
         if ethPayment:
-            ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidationEth(
+            ILendingPool(_lendingPoolPeripheral).receiveFundsFromLiquidationEth(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -609,7 +612,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             paidAmount += liquidation.gracePeriodPrice
 
         else:
-            ILendingPoolPeripheral(_lendingPoolPeripheral).receiveFundsFromLiquidation(
+            ILendingPool(_lendingPoolPeripheral).receiveFundsFromLiquidation(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -618,7 +621,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             )
 
 
-        ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(
+        ICollateralVault(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId
@@ -652,7 +655,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
     lendingPoolPeripheral: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
 
     assert lendingPoolPeripheral != empty(address), "lendingPool not configured"
-    assert ILendingPoolPeripheral(lendingPoolPeripheral).lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
+    assert ILendingPool(lendingPoolPeripheral).lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
 
 
     self._removeLiquidation(_collateralAddress, _tokenId)
@@ -669,7 +672,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         liquidation.borrower
     )
 
-    ICollateralVaultPeripheral(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
+    ICollateralVault(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
 
     log NFTClaimed(
         liquidation.erc20TokenContract,
@@ -685,7 +688,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         "OTC_CLAIM"
     )
 
-    ILendingPoolPeripheral(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveCollateralFromLiquidation(
+    ILendingPool(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveCollateralFromLiquidation(
         liquidation.borrower,
         liquidation.principal,
         "OTC_CLAIM"
