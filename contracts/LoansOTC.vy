@@ -28,7 +28,6 @@ interface ILendingPool:
     def sendFunds(_to: address, _amount: uint256): nonpayable
     def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
     def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256): payable
-    def lendingPoolCoreContract() -> address: view
 
 interface ILiquidations:
     def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address): nonpayable
@@ -99,10 +98,8 @@ event OwnerProposed:
     erc20TokenContract: address
 
 event AdminTransferred:
-    adminIndexed: indexed(address)
-    newAdminIndexed: indexed(address)
-    admin: address
-    newAdmin: address
+    currentValue: address
+    newValue: address
 
 
 event InterestAccrualPeriodChanged:
@@ -645,13 +642,14 @@ def changeInterestAccrualPeriod(_value: uint256):
 @external
 def changeAdmin(_admin: address):
     assert msg.sender == self.owner  # reason: msg.sender is not the owner
-    log AdminTransferred(self.admin, _admin, self.admin, _admin)
+    log AdminTransferred(self.admin, _admin)
 
     self.admin = _admin
 
 @external
 def setLendingPoolPeripheralAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    assert _address != empty(address)  # reason: address is the zero address
 
     log LendingPoolPeripheralAddressSet(
         self.erc20TokenContract,
@@ -666,9 +664,8 @@ def setLendingPoolPeripheralAddress(_address: address):
 
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert self.collateralVaultContract.address != _address, "new LPCore addr is the same"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    assert _address != empty(address)  # reason: address is the zero address
 
     log CollateralVaultPeripheralAddressSet(
         self.erc20TokenContract,
@@ -682,9 +679,8 @@ def setCollateralVaultPeripheralAddress(_address: address):
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert self.liquidationsContract.address != _address, "new LPCore addr is the same"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    assert _address != empty(address)  # reason: address is the zero address
 
     log LiquidationsPeripheralAddressSet(
         self.erc20TokenContract,

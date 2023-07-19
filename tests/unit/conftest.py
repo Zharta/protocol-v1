@@ -121,6 +121,11 @@ def loans_peripheral_contract():
 
 
 @pytest.fixture(scope="session")
+def loans_otc_contract():
+    return boa.load_partial("contracts/LoansOTC.vy")
+
+
+@pytest.fixture(scope="session")
 def liquidations_otc_contract():
     return boa.load_partial("contracts/LiquidationsOTC.vy")
 
@@ -133,6 +138,13 @@ def liquidations_core_contract():
 @pytest.fixture(scope="session")
 def liquidations_peripheral_contract():
     return boa.load_partial("contracts/LiquidationsPeripheral.vy")
+
+
+@pytest.fixture(scope="module")
+def empty_contract():
+    return boa.loads_partial(dedent("""
+        dummy: uint256
+     """))
 
 
 @pytest.fixture(scope="module")
