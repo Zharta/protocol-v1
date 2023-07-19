@@ -59,7 +59,7 @@ def collateral_vault_otc(
         contract = collateral_vault_otc_contract.deploy(cryptopunks, delegation_registry)
         proxy_address = contract.create_proxy()
         proxy = collateral_vault_otc_contract.at(proxy_address)
-        proxy.addLoansPeripheralAddress(erc20_token, loans_peripheral)
+        proxy.setLoansAddress(loans_peripheral)
         proxy.setLiquidationsPeripheralAddress(liquidations)
         return proxy
 

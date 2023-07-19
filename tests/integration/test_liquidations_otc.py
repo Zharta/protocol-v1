@@ -46,7 +46,9 @@ class InvestorFunds():
 @pytest.fixture(scope="module")
 def liquidations_otc_contract(erc20_contract, liquidations_otc_contract_def, contract_owner):
     with boa.env.prank(contract_owner):
-        return liquidations_otc_contract_def.deploy(GRACE_PERIOD_DURATION, erc20_contract)
+        contract = liquidations_otc_contract_def.deploy(erc20_contract)
+        proxy_address = contract.create_proxy(GRACE_PERIOD_DURATION)
+        return liquidations_otc_contract_def.at(proxy_address)
 
 
 @pytest.fixture(scope="module")
@@ -73,8 +75,8 @@ def setup(
         lendingpool_otc_contract.setLoansPeripheralAddress(loans_peripheral_contract)
         lendingpool_otc_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
         collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
-        liquidations_otc_contract.addLendingPoolPeripheralAddress(erc20_contract, lendingpool_otc_contract)
-        liquidations_otc_contract.addLoansCoreAddress(erc20_contract, loans_core_contract)
+        liquidations_otc_contract.setLendingPoolContract(lendingpool_otc_contract)
+        liquidations_otc_contract.setLoansContract(loans_core_contract)
         liquidations_otc_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract)
         loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
 
@@ -207,7 +209,7 @@ def test_pay_loan_liquidations_grace_period(
     liquidation1 = Liquidation(*liquidations_otc_contract.getLiquidation(erc721_contract.address, 0))
     liquidation2 = Liquidation(*liquidations_otc_contract.getLiquidation(erc721_contract.address, 1))
 
-    assert liquidations_otc_contract.lendingPoolPeripheralAddresses(erc20_contract) == lendingpool_otc_contract.address
+    assert liquidations_otc_contract.lendingPoolContract() == lendingpool_otc_contract.address
     assert lendingpool_otc_contract.erc20TokenContract() == erc20_contract.address
     liquidations_otc_contract.payLoanLiquidationsGracePeriod(
         loan_id,
@@ -278,7 +280,7 @@ def test_claim(
     lendingpool_otc_contract.depositEth(sender=investor, value= LOAN_AMOUNT * 2)
     lendingpool_otc_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, sender=loans_peripheral_contract.address)
 
-    assert liquidations_otc_contract.lendingPoolPeripheralAddresses(erc20_contract) == lendingpool_otc_contract.address
+    assert liquidations_otc_contract.lendingPoolContract() == lendingpool_otc_contract.address
     assert InvestorFunds(*lendingpool_otc_contract.lenderFunds(investor)).currentAmountDeposited == LOAN_AMOUNT * 2
 
     loan_id = loans_core_contract.addLoan(

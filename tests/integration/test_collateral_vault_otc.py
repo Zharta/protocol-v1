@@ -7,7 +7,9 @@ from ..conftest_base import ZERO_ADDRESS, get_last_event
 @pytest.fixture(scope="module")
 def liquidations_otc_contract(erc20_contract, liquidations_otc_contract_def, contract_owner):
     with boa.env.prank(contract_owner):
-        return liquidations_otc_contract_def.deploy(50, erc20_contract)
+        contract = liquidations_otc_contract_def.deploy(erc20_contract)
+        proxy_address = contract.create_proxy(50)
+        return liquidations_otc_contract_def.at(proxy_address)
 
 
 @pytest.fixture(scope="module")
@@ -45,10 +47,10 @@ def setup(
     with boa.env.prank(contract_owner):
         lendingpool_otc_contract.setLoansPeripheralAddress(loans_peripheral_contract)
         lendingpool_otc_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
-        collateral_vault_otc_contract.addLoansPeripheralAddress(erc20_contract, loans_peripheral_contract)
+        collateral_vault_otc_contract.setLoansAddress(loans_peripheral_contract)
         collateral_vault_otc_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
-        liquidations_otc_contract.addLendingPoolPeripheralAddress(erc20_contract, lendingpool_otc_contract)
-        liquidations_otc_contract.addLoansCoreAddress(erc20_contract, loans_core_contract)
+        liquidations_otc_contract.setLendingPoolContract(lendingpool_otc_contract)
+        liquidations_otc_contract.setLoansContract(loans_core_contract)
         liquidations_otc_contract.setCollateralVaultPeripheralAddress(collateral_vault_otc_contract)
         loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
 

@@ -32,16 +32,9 @@ event CollateralVaultRemoved:
     currentValue: address
     collateralContract: address
 
-event LoansPeripheralAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+event LoansPeripheralAddressSet:
     currentValue: address
     newValue: address
-    erc20TokenContract: address
-
-event LoansPeripheralAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
 
 event LiquidationsPeripheralAddressSet:
     currentValue: address
@@ -90,7 +83,7 @@ def proposedOwner() -> address:
 
 @view
 @external
-def loansPeripheralAddresses(arg0: address) -> address:
+def loansAddress() -> address:
     pass
 
 @view
@@ -145,11 +138,7 @@ def claimOwnership():
     pass
 
 @external
-def addLoansPeripheralAddress(_erc20TokenContract: address, _address: address):
-    pass
-
-@external
-def removeLoansPeripheralAddress(_erc20TokenContract: address):
+def setLoansAddress(_address: address):
     pass
 
 @external

@@ -14,10 +14,12 @@ from vyper.interfaces import ERC721 as IERC721
 
 interface ILoans:
     def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
+    def erc20TokenContract() -> address: view
 
 
 interface ILendingPool:
     def lenderFunds(_lender: address) -> InvestorFunds: view
+    def erc20TokenContract() -> address: view
     def receiveFundsFromLiquidation(
         _borrower: address,
         _amount: uint256,
@@ -118,29 +120,15 @@ event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 
-event LoansCoreAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+event LoansAddressSet:
     currentValue: address
     newValue: address
-    erc20TokenContract: address
 
-event LoansCoreAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
-
-event LendingPoolPeripheralAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+event LendingPoolAddressSet:
     currentValue: address
     newValue: address
-    erc20TokenContract: address
 
-event LendingPoolPeripheralAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
-
-event CollateralVaultPeripheralAddressSet:
+event CollateralVaultAddressSet:
     currentValue: address
     newValue: address
 
@@ -218,9 +206,10 @@ gracePeriodDuration: public(uint256)
 liquidations: HashMap[bytes32, Liquidation]
 liquidatedLoans: HashMap[bytes32, bool]
 
-loansCoreAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
-lendingPoolPeripheralAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LendingPoolCore
-collateralVaultPeripheralAddress: public(address)
+loansContract: public(ILoans)
+lendingPoolContract: public(ILendingPool)
+collateralVaultContract: public(ICollateralVault)
+
 wethAddress: immutable(address)
 
 ##### INTERNAL METHODS - VIEW #####
@@ -465,65 +454,23 @@ def setGracePeriodDuration(_duration: uint256):
 
 
 @external
-def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
+def setLoansContract(_address: address):
+    assert msg.sender == self.owner  #reason: msg.sender is not the owner
+    assert _address != empty(address)  # reason: address is the zero addr
+
+    log LoansAddressSet(self.loansContract.address, _address)
+
+    self.loansContract = ILoans(_address)
+
+
+@external
+def setLendingPoolContract(_address: address):
     assert msg.sender == self.owner  # reason: msg.sender is not the owner
     assert _address != empty(address)  # reason: address is the zero addr
-    assert _erc20TokenContract != empty(address)  # reason: erc20TokenAddr is the zero addr
 
-    log LoansCoreAddressAdded(
-        _erc20TokenContract,
-        self.loansCoreAddresses[_erc20TokenContract],
-        _address,
-        _erc20TokenContract
-    )
+    log LendingPoolAddressSet(self.lendingPoolContract.address, _address)
 
-    self.loansCoreAddresses[_erc20TokenContract] = _address
-
-
-@external
-def removeLoansCoreAddress(_erc20TokenContract: address):
-    assert msg.sender == self.owner  # reason: msg.sender is not the owner
-    assert _erc20TokenContract != empty(address)  # reason: erc20TokenAddr is the zero addr
-    assert self.loansCoreAddresses[_erc20TokenContract] != empty(address)  # reason: address not found
-
-    log LoansCoreAddressRemoved(
-        _erc20TokenContract,
-        self.loansCoreAddresses[_erc20TokenContract],
-        _erc20TokenContract
-    )
-
-    self.loansCoreAddresses[_erc20TokenContract] = empty(address)
-
-
-@external
-def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: address):
-    assert msg.sender == self.owner  # reason: msg.sender is not the owner
-    assert _address != empty(address)  # reason: address is the zero addr
-    assert _erc20TokenContract != empty(address)  # reason: erc20TokenAddr is the zero addr
-
-    log LendingPoolPeripheralAddressAdded(
-        _erc20TokenContract,
-        self.lendingPoolPeripheralAddresses[_erc20TokenContract],
-        _address,
-        _erc20TokenContract
-    )
-
-    self.lendingPoolPeripheralAddresses[_erc20TokenContract] = _address
-
-
-@external
-def removeLendingPoolPeripheralAddress(_erc20TokenContract: address):
-    assert msg.sender == self.owner  # reason: msg.sender is not the owner
-    assert _erc20TokenContract != empty(address)  # reason: erc20TokenAddr is the zero addr
-    assert self.lendingPoolPeripheralAddresses[_erc20TokenContract] != empty(address)  # reason: address not found
-
-    log LendingPoolPeripheralAddressRemoved(
-        _erc20TokenContract,
-        self.lendingPoolPeripheralAddresses[_erc20TokenContract],
-        _erc20TokenContract
-    )
-
-    self.lendingPoolPeripheralAddresses[_erc20TokenContract] = empty(address)
+    self.lendingPoolContract = ILendingPool(_address)
 
 
 @external
@@ -531,21 +478,18 @@ def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner  # reason: msg.sender is not the owner
     assert _address != empty(address)  # reason: address is the zero addr
 
-    log CollateralVaultPeripheralAddressSet(
-        self.collateralVaultPeripheralAddress,
-        _address
-    )
+    log CollateralVaultAddressSet(self.collateralVaultContract.address, _address)
 
-    self.collateralVaultPeripheralAddress = _address
+    self.collateralVaultContract = ICollateralVault(_address)
 
 
 
 @external
 def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
 
-    borrowerLoan: Loan = ILoans(self.loansCoreAddresses[_erc20TokenContract]).getLoan(_borrower, _loanId)
+    borrowerLoan: Loan = self.loansContract.getLoan(_borrower, _loanId)
     assert borrowerLoan.defaulted, "loan is not defaulted"
-    assert not self._isLoanLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId), "loan already liquidated"
+    assert not self._isLoanLiquidated(_borrower, self.loansContract.address, _loanId), "loan already liquidated"
 
     # APR from loan duration (maturity)
     loanAPR: uint256 = borrowerLoan.interest * 12
@@ -575,7 +519,7 @@ def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: ad
             gracePeriodPrice,
             _borrower,
             _loanId,
-            self.loansCoreAddresses[_erc20TokenContract],
+            self.loansContract.address,
             _erc20TokenContract
         )
 
@@ -590,12 +534,12 @@ def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: ad
             gracePeriodPrice,
             block.timestamp + self.gracePeriodDuration,
             block.timestamp + self.gracePeriodDuration,
-            self.loansCoreAddresses[_erc20TokenContract],
+            self.loansContract.address,
             _loanId,
             _borrower
         )
 
-    self._addLoanToLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId)
+    self._addLoanToLiquidated(_borrower, self.loansContract.address, _loanId)
 
 
 @payable
@@ -604,7 +548,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
     receivedAmount: uint256 = msg.value
     ethPayment: bool = receivedAmount > 0
 
-    loan: Loan = ILoans(self.loansCoreAddresses[_erc20TokenContract]).getLoan(msg.sender, _loanId)
+    loan: Loan = self.loansContract.getLoan(msg.sender, _loanId)
     assert loan.defaulted, "loan is not defaulted"
 
     if ethPayment:
@@ -631,10 +575,10 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             liquidation.borrower
         )
 
-        _lendingPoolPeripheral : address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
+        _lendingPoolPeripheral : address = self.lendingPoolContract.address
 
         if ethPayment:
-            ILendingPool(_lendingPoolPeripheral).receiveFundsFromLiquidationEth(
+            self.lendingPoolContract.receiveFundsFromLiquidationEth(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -646,7 +590,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             paidAmount += liquidation.gracePeriodPrice
 
         else:
-            ILendingPool(_lendingPoolPeripheral).receiveFundsFromLiquidation(
+            self.lendingPoolContract.receiveFundsFromLiquidation(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -655,7 +599,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             )
 
 
-        ICollateralVault(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(
+        self.collateralVaultContract.transferCollateralFromLiquidation(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId
@@ -686,10 +630,8 @@ def claim(_collateralAddress: address, _tokenId: uint256):
     liquidation: Liquidation = self._getLiquidation(_collateralAddress, _tokenId)
     assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
 
-    lendingPoolPeripheral: address = self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]
-
-    assert lendingPoolPeripheral != empty(address), "lendingPool not configured"
-    assert ILendingPool(lendingPoolPeripheral).lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
+    assert self.lendingPoolContract.address != empty(address), "lendingPool not configured"
+    assert self.lendingPoolContract.lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
 
 
     self._removeLiquidation(_collateralAddress, _tokenId)
@@ -706,7 +648,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         liquidation.borrower
     )
 
-    ICollateralVault(self.collateralVaultPeripheralAddress).transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
+    self.collateralVaultContract.transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
 
     log NFTClaimed(
         liquidation.erc20TokenContract,
@@ -722,7 +664,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         "OTC_CLAIM"
     )
 
-    ILendingPool(self.lendingPoolPeripheralAddresses[liquidation.erc20TokenContract]).receiveCollateralFromLiquidation(
+    self.lendingPoolContract.receiveCollateralFromLiquidation(
         liquidation.borrower,
         liquidation.principal,
         "OTC_CLAIM"

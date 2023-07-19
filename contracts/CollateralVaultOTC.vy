@@ -70,16 +70,9 @@ event CollateralVaultRemoved:
     currentValue: address
     collateralContract: address
 
-event LoansPeripheralAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+event LoansPeripheralAddressSet:
     currentValue: address
     newValue: address
-    erc20TokenContract: address
-
-event LoansPeripheralAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
 
 event LiquidationsPeripheralAddressSet:
     currentValue: address
@@ -124,8 +117,8 @@ vaultName: constant(String[3]) = "otc"
 owner: public(address)
 proposedOwner: public(address)
 
-loansPeripheralAddresses: public(HashMap[address, address]) # mapping between ERC20 contract and LoansCore
-liquidationsPeripheralAddress: public(address) # mapping between ERC20 contract and LoansCore
+loansAddress: public(address)
+liquidationsPeripheralAddress: public(address)
 
 cryptoPunksMarketAddress: public(immutable(CryptoPunksMarket))
 delegationRegistry: public(immutable(IDelegationRegistry))
@@ -329,46 +322,19 @@ def claimOwnership():
     self.proposedOwner = empty(address)
 
 
-
 @external
-def addLoansPeripheralAddress(_erc20TokenContract: address, _address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "address is the zero addr"
-    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert self.loansPeripheralAddresses[_erc20TokenContract] != _address, "new value is the same"
+def setLoansAddress(_address: address):
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    assert _address != empty(address)  # reason: address is the zero addr
 
-    log LoansPeripheralAddressAdded(
-        _erc20TokenContract,
-        self.loansPeripheralAddresses[_erc20TokenContract],
-        _address,
-        _erc20TokenContract
-    )
+    log LoansPeripheralAddressSet(self.loansAddress, _address)
 
-    self.loansPeripheralAddresses[_erc20TokenContract] = _address
-
-
-
-@external
-def removeLoansPeripheralAddress(_erc20TokenContract: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _erc20TokenContract != empty(address), "erc20TokenAddr is the zero addr"
-    assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "address not found"
-
-    log LoansPeripheralAddressRemoved(
-        _erc20TokenContract,
-        self.loansPeripheralAddresses[_erc20TokenContract],
-        _erc20TokenContract
-    )
-
-    self.loansPeripheralAddresses[_erc20TokenContract] = empty(address)
-
-
+    self.loansAddress = _address
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "address is the zero addr"
-    assert self.liquidationsPeripheralAddress != _address, "new value is the same"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
+    assert _address != empty(address)  # reason: address is the zero addr
 
     log LiquidationsPeripheralAddressSet(self.liquidationsPeripheralAddress, _address)
 
@@ -392,8 +358,8 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
     assert _erc20TokenContract != empty(address), "address is the zero addr"
-    assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "mapping not found"
-    assert msg.sender == self.loansPeripheralAddresses[_erc20TokenContract], "msg.sender is not authorised"
+    assert self.loansAddress != empty(address), "mapping not found"
+    assert msg.sender == self.loansAddress, "msg.sender is not authorised"
 
     if self._is_punk(_collateralAddress):
         assert self._punk_owner(_collateralAddress, _tokenId) == _wallet, "collateral not owned by wallet"
@@ -437,8 +403,8 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
     assert _erc20TokenContract != empty(address), "address is the zero addr"
-    assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "mapping not found"
-    assert msg.sender == self.loansPeripheralAddresses[_erc20TokenContract], "msg.sender is not authorised"
+    assert self.loansAddress != empty(address), "mapping not found"
+    assert msg.sender == self.loansAddress, "msg.sender is not authorised"
 
     self._transfer_collateral(_wallet, _collateralAddress, _tokenId, _wallet)
 
@@ -493,8 +459,8 @@ def setCollateralDelegation(_wallet: address, _collateralAddress: address, _toke
 
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
-    assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "mapping not found"
-    assert msg.sender == self.loansPeripheralAddresses[_erc20TokenContract], "msg.sender is not authorised"
+    assert self.loansAddress != empty(address), "mapping not found"
+    assert msg.sender == self.loansAddress, "msg.sender is not authorised"
 
     self._setDelegation(_wallet, _collateralAddress, _tokenId, _value)
 

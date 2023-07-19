@@ -66,29 +66,15 @@ event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
 
-event LoansCoreAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+event LoansAddressSet:
     currentValue: address
     newValue: address
-    erc20TokenContract: address
 
-event LoansCoreAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
-
-event LendingPoolPeripheralAddressAdded:
-    erc20TokenContractIndexed: indexed(address)
+event LendingPoolAddressSet:
     currentValue: address
     newValue: address
-    erc20TokenContract: address
 
-event LendingPoolPeripheralAddressRemoved:
-    erc20TokenContractIndexed: indexed(address)
-    currentValue: address
-    erc20TokenContract: address
-
-event CollateralVaultPeripheralAddressSet:
+event CollateralVaultAddressSet:
     currentValue: address
     newValue: address
 
@@ -178,17 +164,17 @@ def gracePeriodDuration() -> uint256:
 
 @view
 @external
-def loansCoreAddresses(arg0: address) -> address:
+def loansContract() -> ILoans:
     pass
 
 @view
 @external
-def lendingPoolPeripheralAddresses(arg0: address) -> address:
+def lendingPoolContract() -> ILendingPool:
     pass
 
 @view
 @external
-def collateralVaultPeripheralAddress() -> address:
+def collateralVaultContract() -> ICollateralVault:
     pass
 
 @view
@@ -266,19 +252,11 @@ def setGracePeriodDuration(_duration: uint256):
     pass
 
 @external
-def addLoansCoreAddress(_erc20TokenContract: address, _address: address):
+def setLoansContract(_address: address):
     pass
 
 @external
-def removeLoansCoreAddress(_erc20TokenContract: address):
-    pass
-
-@external
-def addLendingPoolPeripheralAddress(_erc20TokenContract: address, _address: address):
-    pass
-
-@external
-def removeLendingPoolPeripheralAddress(_erc20TokenContract: address):
+def setLendingPoolContract(_address: address):
     pass
 
 @external

@@ -97,88 +97,35 @@ def test_claim_ownership(collateral_vault_otc, contract_owner, borrower):
     assert event.proposedOwner == borrower
 
 
-def test_add_loans_peripheral_address_wrong_sender(collateral_vault_otc, borrower):
-    erc20 = boa.env.generate_address()
-    with boa.reverts("msg.sender is not the owner"):
-        collateral_vault_otc.addLoansPeripheralAddress(erc20, ZERO_ADDRESS, sender=borrower)
+def test_set_loans_address_wrong_sender(collateral_vault_otc, borrower):
+    with boa.reverts():
+        collateral_vault_otc.setLoansAddress(ZERO_ADDRESS, sender=borrower)
 
 
-def test_add_loans_peripheral_address_zero_address(collateral_vault_otc, contract_owner):
-    erc20 = boa.env.generate_address()
-    with boa.reverts("address is the zero addr"):
-        collateral_vault_otc.addLoansPeripheralAddress(
-            erc20,
-            ZERO_ADDRESS,
-            sender=contract_owner
-        )
+def test_set_loans_address_zero_address(collateral_vault_otc, contract_owner):
+    with boa.reverts():
+        collateral_vault_otc.setLoansAddress(ZERO_ADDRESS, sender=contract_owner)
 
 
-def test_add_loans_peripheral_address(collateral_vault_otc, contract_owner):
-    erc20 = boa.env.generate_address()
+def test_set_loans_address(collateral_vault_otc, contract_owner):
     loans_peripheral = boa.env.generate_address()
 
-    collateral_vault_otc.addLoansPeripheralAddress(erc20, loans_peripheral, sender=contract_owner)
+    collateral_vault_otc.setLoansAddress(loans_peripheral, sender=contract_owner)
 
-    event = get_last_event(collateral_vault_otc, name="LoansPeripheralAddressAdded")
+    event = get_last_event(collateral_vault_otc, name="LoansPeripheralAddressSet")
     assert event.currentValue == ZERO_ADDRESS
     assert event.newValue == loans_peripheral
-    assert event.erc20TokenContract == erc20
 
-    assert collateral_vault_otc.loansPeripheralAddresses(erc20) == loans_peripheral
-
-
-def test_add_loans_peripheral_address_same_address(collateral_vault_otc, contract_owner):
-    erc20 = boa.env.generate_address()
-    loans_peripheral = boa.env.generate_address()
-
-    collateral_vault_otc.addLoansPeripheralAddress(erc20, loans_peripheral, sender=contract_owner)
-    assert collateral_vault_otc.loansPeripheralAddresses(erc20) == loans_peripheral
-
-    with boa.reverts("new value is the same"):
-        collateral_vault_otc.addLoansPeripheralAddress(erc20, loans_peripheral, sender=contract_owner)
-
-
-def test_remove_loans_peripheral_address_wrong_sender(collateral_vault_otc, borrower):
-    erc20 = boa.env.generate_address()
-    with boa.reverts("msg.sender is not the owner"):
-        collateral_vault_otc.removeLoansPeripheralAddress(erc20, sender=borrower)
-
-
-def test_remove_loans_peripheral_address_zero_address(collateral_vault_otc, contract_owner):
-    with boa.reverts("erc20TokenAddr is the zero addr"):
-        collateral_vault_otc.removeLoansPeripheralAddress(ZERO_ADDRESS, sender=contract_owner)
-
-
-def test_remove_loans_peripheral_address_not_found(collateral_vault_otc, contract_owner):
-    erc20 = boa.env.generate_address()
-    with boa.reverts("address not found"):
-        collateral_vault_otc.removeLoansPeripheralAddress(erc20, sender=contract_owner)
-
-
-def test_remove_loans_peripheral_address(collateral_vault_otc, contract_owner):
-    erc20 = boa.env.generate_address()
-    loans_peripheral = boa.env.generate_address()
-
-    collateral_vault_otc.addLoansPeripheralAddress(erc20, loans_peripheral, sender=contract_owner)
-
-    assert collateral_vault_otc.loansPeripheralAddresses(erc20) == loans_peripheral
-
-    collateral_vault_otc.removeLoansPeripheralAddress(erc20, sender=contract_owner)
-    event = get_last_event(collateral_vault_otc, name="LoansPeripheralAddressRemoved")
-
-    assert collateral_vault_otc.loansPeripheralAddresses(erc20) == ZERO_ADDRESS
-
-    assert event.currentValue == loans_peripheral
-    assert event.erc20TokenContract == erc20
+    assert collateral_vault_otc.loansAddress() == loans_peripheral
 
 
 def test_set_liquidations_address_wrong_sender(collateral_vault_otc, borrower):
-    with boa.reverts("msg.sender is not the owner"):
+    with boa.reverts():
         collateral_vault_otc.setLiquidationsPeripheralAddress(ZERO_ADDRESS, sender=borrower)
 
 
 def test_set_liquidations_address_zero_address(collateral_vault_otc, contract_owner):
-    with boa.reverts("address is the zero addr"):
+    with boa.reverts():
         collateral_vault_otc.setLiquidationsPeripheralAddress(ZERO_ADDRESS, sender=contract_owner)
 
 
@@ -191,16 +138,6 @@ def test_set_liquidations_address(collateral_vault_otc, contract_owner):
 
     assert event.currentValue == ZERO_ADDRESS
     assert event.newValue == liquidations_peripheral
-
-
-def test_set_liquidations_address_same_address(collateral_vault_otc, contract_owner):
-    liquidations_peripheral = boa.env.generate_address()
-    collateral_vault_otc.setLiquidationsPeripheralAddress(liquidations_peripheral, sender=contract_owner)
-
-    assert collateral_vault_otc.liquidationsPeripheralAddress() == liquidations_peripheral
-
-    with boa.reverts("new value is the same"):
-        collateral_vault_otc.setLiquidationsPeripheralAddress(liquidations_peripheral, sender=contract_owner)
 
 
 def test_transfer_collateral_from_loan_mapping_not_found(collateral_vault_otc, borrower):

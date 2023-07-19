@@ -171,7 +171,7 @@ def isDeprecated() -> bool:
 
 @view
 @external
-def lendingPoolPeripheralContract() -> address:
+def lendingPoolContract() -> ILendingPool:
     pass
 
 @view
@@ -181,17 +181,17 @@ def erc20TokenContract() -> address:
 
 @view
 @external
-def collateralVaultPeripheralContract() -> address:
+def collateralVaultContract() -> ICollateralVault:
     pass
 
 @view
 @external
-def liquidationsPeripheralContract() -> address:
+def liquidationsContract() -> ILiquidations:
     pass
 
 @view
 @external
-def genesisContract() -> address:
+def genesisContract() -> IERC721:
     pass
 
 @view
@@ -199,22 +199,12 @@ def genesisContract() -> address:
 def isPayable() -> bool:
     pass
 
-@view
 @external
-def collateralsInLoans(arg0: bytes32, arg1: address) -> uint256:
-    pass
-
-@view
-@external
-def collateralsInLoansUsed(arg0: bytes32, arg1: address, arg2: uint256) -> bool:
+def initialize(_owner: address, _interestAccrualPeriod: uint256, _lendingPoolContract: address, _collateralVaultContract: address, _genesisContract: address, _isPayable: bool):
     pass
 
 @external
-def initialize(_owner: address, _interestAccrualPeriod: uint256, _lendingPoolPeripheralContract: address, _collateralVaultPeripheralContract: address, _genesisContract: address, _isPayable: bool):
-    pass
-
-@external
-def create_proxy(_interestAccrualPeriod: uint256, _lendingPoolPeripheralContract: address, _collateralVaultPeripheralContract: address, _genesisContract: address, _isPayable: bool) -> address:
+def create_proxy(_interestAccrualPeriod: uint256, _lendingPoolContract: address, _collateralVaultContract: address, _genesisContract: address, _isPayable: bool) -> address:
     pass
 
 @view

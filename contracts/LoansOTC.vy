@@ -37,8 +37,8 @@ interface ISelf:
     def initialize(
         _owner: address,
         _interestAccrualPeriod: uint256,
-        _lendingPoolPeripheralContract: address,
-        _collateralVaultPeripheralContract: address,
+        _lendingPoolContract: address,
+        _collateralVaultContract: address,
         _genesisContract: address,
         _isPayable: bool
     ): nonpayable
@@ -198,11 +198,11 @@ interestAccrualPeriod: public(uint256)
 isAcceptingLoans: public(bool)
 isDeprecated: public(bool)
 
-lendingPoolPeripheralContract: public(address)
+lendingPoolContract: public(ILendingPool)
 erc20TokenContract: public(address)
-collateralVaultPeripheralContract: public(address)
-liquidationsPeripheralContract: public(address)
-genesisContract: public(address)
+collateralVaultContract: public(ICollateralVault)
+liquidationsContract: public(ILiquidations)
+genesisContract: public(IERC721)
 isPayable: public(bool)
 
 loans: HashMap[address, DynArray[Loan, 2**16]]
@@ -235,24 +235,24 @@ def __init__():
 def initialize(
     _owner: address,
     _interestAccrualPeriod: uint256,
-    _lendingPoolPeripheralContract: address,
-    _collateralVaultPeripheralContract: address,
+    _lendingPoolContract: address,
+    _collateralVaultContract: address,
     _genesisContract: address,
     _isPayable: bool
 ):
     assert self.owner == empty(address), "already initialized"
 
-    assert _lendingPoolPeripheralContract != empty(address), "address is the zero address"
-    assert _collateralVaultPeripheralContract != empty(address), "address is the zero address"
+    assert _lendingPoolContract != empty(address), "address is the zero address"
+    assert _collateralVaultContract != empty(address), "address is the zero address"
     assert _genesisContract != empty(address), "address is the zero address"
 
     self.owner = _owner
     self.admin = _owner
     self.interestAccrualPeriod = _interestAccrualPeriod
-    self.lendingPoolPeripheralContract = _lendingPoolPeripheralContract
-    self.erc20TokenContract = ILendingPool(_lendingPoolPeripheralContract).erc20TokenContract()
-    self.collateralVaultPeripheralContract = _collateralVaultPeripheralContract
-    self.genesisContract = _genesisContract
+    self.lendingPoolContract = ILendingPool(_lendingPoolContract)
+    self.erc20TokenContract = ILendingPool(_lendingPoolContract).erc20TokenContract()
+    self.collateralVaultContract = ICollateralVault(_collateralVaultContract)
+    self.genesisContract = IERC721(_genesisContract)
     self.isAcceptingLoans = True
     self.isPayable = _isPayable
 
@@ -270,8 +270,8 @@ def initialize(
 @external
 def create_proxy(
     _interestAccrualPeriod: uint256,
-    _lendingPoolPeripheralContract: address,
-    _collateralVaultPeripheralContract: address,
+    _lendingPoolContract: address,
+    _collateralVaultContract: address,
     _genesisContract: address,
     _isPayable: bool
 ) -> address:
@@ -280,8 +280,8 @@ def create_proxy(
     ISelf(proxy).initialize(
         msg.sender,
         _interestAccrualPeriod,
-        _lendingPoolPeripheralContract,
-        _collateralVaultPeripheralContract,
+        _lendingPoolContract,
+        _collateralVaultContract,
         _genesisContract,
         _isPayable
     )
@@ -363,7 +363,7 @@ def _update_defaulted_loan(_borrower: address, _loanId: uint256):
 @internal
 def _are_collaterals_approved(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
     for collateral in _collaterals:
-        if not ICollateralVault(self.collateralVaultPeripheralContract).isCollateralApprovedForVault(
+        if not self.collateralVaultContract.isCollateralApprovedForVault(
             _borrower,
             collateral.contractAddress,
             collateral.tokenId
@@ -463,7 +463,7 @@ def _reserve(
     assert self._are_collaterals_owned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
     assert self._are_collaterals_approved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collaterals_amounts(_collaterals) == _amount, "amount in collats != than amount"
-    assert ILendingPool(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
+    assert self.lendingPoolContract.maxFundsInvestable() >= _amount, "insufficient liquidity"
 
     assert not self._is_loan_created(msg.sender, _nonce), "loan already created"
     if _nonce > 0:
@@ -472,13 +472,13 @@ def _reserve(
     signer: address = self._recover_reserve_signer(msg.sender, _amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
     assert signer == self.admin, "invalid message signature"
 
-    assert _genesisToken == 0 or IERC721(self.genesisContract).ownerOf(_genesisToken) == msg.sender, "genesisToken not owned"
+    assert _genesisToken == 0 or self.genesisContract.ownerOf(_genesisToken) == msg.sender, "genesisToken not owned"
 
     newLoanId: uint256 = self._add_loan(msg.sender, _amount, _interest, _maturity, _collaterals)
 
     for collateral in _collaterals:
 
-        ICollateralVault(self.collateralVaultPeripheralContract).storeCollateral(
+        self.collateralVaultContract.storeCollateral(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId,
@@ -655,12 +655,12 @@ def setLendingPoolPeripheralAddress(_address: address):
 
     log LendingPoolPeripheralAddressSet(
         self.erc20TokenContract,
-        self.lendingPoolPeripheralContract,
+        self.lendingPoolContract.address,
         _address,
         self.erc20TokenContract
     )
 
-    self.lendingPoolPeripheralContract = _address
+    self.lendingPoolContract = ILendingPool(_address)
     self.erc20TokenContract = ILendingPool(_address).erc20TokenContract()
 
 
@@ -668,32 +668,32 @@ def setLendingPoolPeripheralAddress(_address: address):
 def setCollateralVaultPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
-    assert self.collateralVaultPeripheralContract != _address, "new LPCore addr is the same"
+    assert self.collateralVaultContract.address != _address, "new LPCore addr is the same"
 
     log CollateralVaultPeripheralAddressSet(
         self.erc20TokenContract,
-        self.collateralVaultPeripheralContract,
+        self.collateralVaultContract.address,
         _address,
         self.erc20TokenContract
     )
 
-    self.collateralVaultPeripheralContract = _address
+    self.collateralVaultContract = ICollateralVault(_address)
 
 
 @external
 def setLiquidationsPeripheralAddress(_address: address):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _address != empty(address), "_address is the zero address"
-    assert self.liquidationsPeripheralContract != _address, "new LPCore addr is the same"
+    assert self.liquidationsContract.address != _address, "new LPCore addr is the same"
 
     log LiquidationsPeripheralAddressSet(
         self.erc20TokenContract,
-        self.liquidationsPeripheralContract,
+        self.liquidationsContract.address,
         _address,
         self.erc20TokenContract
     )
 
-    self.liquidationsPeripheralContract = _address
+    self.liquidationsContract = ILiquidations(_address)
 
 
 @external
@@ -791,7 +791,7 @@ def reserve(
 
     newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
-    ILendingPool(self.lendingPoolPeripheralContract).sendFunds(msg.sender, _amount)
+    self.lendingPoolContract.sendFunds(msg.sender, _amount)
 
     return newLoanId
 
@@ -828,7 +828,7 @@ def reserveEth(
 
     newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
-    ILendingPool(self.lendingPoolPeripheralContract).sendFundsEth(msg.sender, _amount)
+    self.lendingPoolContract.sendFundsEth(msg.sender, _amount)
 
     return newLoanId
 
@@ -881,7 +881,7 @@ def pay(_loanId: uint256):
         assert IERC20(erc20TokenContract).balanceOf(msg.sender) >= paymentAmount, "insufficient balance"
         assert IERC20(erc20TokenContract).allowance(
                 msg.sender,
-                self.lendingPoolPeripheralContract
+                self.lendingPoolContract.address
         ) >= paymentAmount, "insufficient allowance"
 
     paidInterestAmount: uint256 = paymentAmount - loan.amount
@@ -890,13 +890,13 @@ def pay(_loanId: uint256):
     self._update_paid_loan(msg.sender, _loanId)
 
     if receivedAmount > 0:
-        ILendingPool(self.lendingPoolPeripheralContract).receiveFundsEth(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
-        log PaymentSent(self.lendingPoolPeripheralContract, self.lendingPoolPeripheralContract, paymentAmount)
+        self.lendingPoolContract.receiveFundsEth(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
+        log PaymentSent(self.lendingPoolContract.address, self.lendingPoolContract.address, paymentAmount)
     else:
-        ILendingPool(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
+        self.lendingPoolContract.receiveFunds(msg.sender, loan.amount, paidInterestAmount)
 
     for collateral in loan.collaterals:
-        ICollateralVault(self.collateralVaultPeripheralContract).transferCollateralFromLoan(
+        self.collateralVaultContract.transferCollateralFromLoan(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId,
@@ -938,11 +938,11 @@ def settleDefault(_borrower: address, _loanId: uint256):
     loan: Loan = self._get_loan(_borrower, _loanId)
     assert not loan.paid, "loan already paid"
     assert block.timestamp > loan.maturity, "loan is within maturity period"
-    assert self.liquidationsPeripheralContract != empty(address), "BNPeriph is the zero address"
+    assert self.liquidationsContract.address != empty(address), "BNPeriph is the zero address"
 
     self._update_defaulted_loan(_borrower, _loanId)
 
-    ILiquidations(self.liquidationsPeripheralContract).addLiquidation(
+    self.liquidationsContract.addLiquidation(
         _borrower,
         _loanId,
         self.erc20TokenContract
@@ -975,7 +975,7 @@ def setDelegation(_loanId: uint256, _collateralAddress: address, _tokenId: uint2
     
     for collateral in loan.collaterals:
         if collateral.contractAddress ==_collateralAddress and collateral.tokenId == _tokenId:
-            ICollateralVault(self.collateralVaultPeripheralContract).setCollateralDelegation(
+            self.collateralVaultContract.setCollateralDelegation(
                 msg.sender,
                 _collateralAddress,
                 _tokenId,
