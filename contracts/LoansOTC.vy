@@ -207,11 +207,6 @@ isPayable: public(bool)
 
 loans: HashMap[address, DynArray[Loan, 2**16]]
 
-# TODO both used in loans-service/src/api/v2/services/collaterals.py, can be replaced?
-# key: bytes32 == _abi_encoded(token_address, token_id) -> map(borrower_address, loan_id)
-collateralsInLoans: public(HashMap[bytes32, HashMap[address, uint256]]) # given a collateral and a borrower, what is the loan id
-collateralsInLoansUsed: public(HashMap[bytes32, HashMap[address, HashMap[uint256, bool]]]) # given a collateral, a borrower and a loan id, is the collateral still used in that loan id
-
 ZHARTA_DOMAIN_NAME: constant(String[6]) = "Zharta"
 ZHARTA_DOMAIN_VERSION: constant(String[1]) = "1"
 
@@ -300,24 +295,6 @@ def create_proxy(
 def _is_loan_created(_borrower: address, _loanId: uint256) -> bool:
     return _loanId < len(self.loans[_borrower])
 
-
-@pure
-@internal
-def _compute_collateral_key(_collateralAddress: address, _collateralId: uint256) -> bytes32:
-  return keccak256(_abi_encode(_collateralAddress, convert(_collateralId, bytes32)))
-
-
-@internal
-def _add_collateral_to_loan(_borrower: address, _collateral: Collateral, _loanId: uint256):
-  key: bytes32 = self._compute_collateral_key(_collateral.contractAddress, _collateral.tokenId)
-  self.collateralsInLoans[key][_borrower] = _loanId
-  self.collateralsInLoansUsed[key][_borrower][_loanId] = True
-
-
-@internal
-def _remove_collateral_from_loan(_borrower: address, _collateral: Collateral, _loanId: uint256):
-  key: bytes32 = self._compute_collateral_key(_collateral.contractAddress, _collateral.tokenId)
-  self.collateralsInLoansUsed[key][_borrower][_loanId] = False
 
 @internal
 def _are_collaterals_owned(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
@@ -500,7 +477,6 @@ def _reserve(
     newLoanId: uint256 = self._add_loan(msg.sender, _amount, _interest, _maturity, _collaterals)
 
     for collateral in _collaterals:
-        self._add_collateral_to_loan(msg.sender, collateral, newLoanId)
 
         ICollateralVault(self.collateralVaultPeripheralContract).storeCollateral(
             msg.sender,
@@ -920,8 +896,6 @@ def pay(_loanId: uint256):
         ILendingPool(self.lendingPoolPeripheralContract).receiveFunds(msg.sender, loan.amount, paidInterestAmount)
 
     for collateral in loan.collaterals:
-        self._remove_collateral_from_loan(msg.sender, collateral, _loanId)
-
         ICollateralVault(self.collateralVaultPeripheralContract).transferCollateralFromLoan(
             msg.sender,
             collateral.contractAddress,
@@ -967,9 +941,6 @@ def settleDefault(_borrower: address, _loanId: uint256):
     assert self.liquidationsPeripheralContract != empty(address), "BNPeriph is the zero address"
 
     self._update_defaulted_loan(_borrower, _loanId)
-
-    for collateral in loan.collaterals:
-        self._remove_collateral_from_loan(_borrower, collateral, _loanId)
 
     ILiquidations(self.liquidationsPeripheralContract).addLiquidation(
         _borrower,
