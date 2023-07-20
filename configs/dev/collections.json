@@ -139,6 +139,25 @@
         },
         "whitelisted": true
       },
+      "SWIMMING": {
+        "debt_limit": 500.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.175,
+            "ltv": 0.675
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.725
+          },
+          "90d": {
+            "apr": 0.15,
+            "ltv": 0.575
+          }
+        },
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 500.0,
         "floor_multiple_cap": 1.0,

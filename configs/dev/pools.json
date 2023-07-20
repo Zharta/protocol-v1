@@ -1,0 +1,286 @@
+{
+    "other": {
+        "collateral_vault_otc_impl": {
+            "contract": "0x11a634E76640BE041Aca30174486101abbE6716e",
+            "key": "collateral_vault_otc_impl"
+        },
+        "lending_pool_otc_impl": {
+            "contract": "0x4b9BacbC75C355F6e96f4f0F6430d2E42Fe7A468",
+            "key": "lending_pool_otc_impl"
+        },
+        "liquidations_otc_impl": {
+            "contract": "0x1573178cC489000C90CCB28c8a3566C1315D3555",
+            "key": "liquidations_otc_impl"
+        },
+        "loans_otc_impl": {
+            "contract": "0x7895A856F3058B897D417B88A67eb4A37B0BDb66",
+            "key": "loans_otc_impl"
+        }
+    },
+    "pools": {
+        "ETH-GRAILS": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0xADeD61D42dE86f9058386D1D0d739d20C7eAfC43",
+                    "key": "eth-grails.collateral_vault_core"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0x832698Daec363C9A7aB036C224Af5B21280b3AC6",
+                    "key": "eth-grails.collateral_vault_peripheral"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0x178565E280E653CA188C1907c9b362078e176657",
+                    "key": "eth-grails.cryptopunks_vault_core"
+                },
+                "delegation_registry": {
+                    "contract": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0xb6286fAFd0451320ad6A8143089b216C2152c025",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0xed00238F9A0F7b4d93842033cdF56cCB32C781c2",
+                    "key": "eth-grails.lending_pool_peripheral"
+                },
+                "lending_pool_core": {
+                    "contract": "0x6b4BDe1086912A6Cb24ce3dB43b3466e6c72AFd3",
+                    "key": "eth-grails.lending_pool_core"
+                },
+                "lending_pool_lock": {
+                    "contract": "0x26f15335BB1C6a4C0B660eDd694a0555A9F1cce3",
+                    "key": "eth-grails.lending_pool_lock"
+                },
+                "liquidations_core": {
+                    "contract": "0xe65A7a341978d59d40d30FC23F5014FACB4f575A",
+                    "key": "eth-grails.liquidations_core"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0x30375B532345B01cB8c2AD12541b09E9Aa53A93d",
+                    "key": "eth-grails.liquidations_peripheral"
+                },
+                "liquidity_controls": {
+                    "contract": "0x6951b5Bd815043E3F842c1b026b0Fa888Cc2DD85",
+                    "key": "eth-grails.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0xA95916C3D979400C7443961330b3092510a229Ba",
+                    "key": "eth-grails.loans"
+                },
+                "loans_core": {
+                    "contract": "0xFbD588c72B438faD4Cf7cD879c8F730Faa213Da0",
+                    "key": "eth-grails.loans_core"
+                },
+                "token": {
+                    "contract": "0xe0aA552A10d7EC8760Fc6c246D391E698a82dDf9",
+                    "key": "weth.token"
+                }
+            },
+            "genesis_enabled": false,
+            "legacy_ids": [
+                "ETH-SQUIGGLEDAO"
+            ],
+            "pool_name": "Grail NFTs",
+            "token_decimals": 18,
+            "token_symbol": "WETH",
+            "use_native_token": true
+        },
+        "SWIMMING": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0xE0Ab3B998e7ADfFb84083eF200ec0852387bBA1f",
+                    "key": "swimming.collateral_vault"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0xE0Ab3B998e7ADfFb84083eF200ec0852387bBA1f",
+                    "key": "swimming.collateral_vault"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0xE0Ab3B998e7ADfFb84083eF200ec0852387bBA1f",
+                    "key": "swimming.collateral_vault"
+                },
+                "delegation_registry": {
+                    "contract": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0xb6286fAFd0451320ad6A8143089b216C2152c025",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0x359BCAd1b4011039BB882E99c345E7F0d302C4EE",
+                    "key": "swimming.lending_pool"
+                },
+                "lending_pool_core": {
+                    "contract": "0x359BCAd1b4011039BB882E99c345E7F0d302C4EE",
+                    "key": "swimming.lending_pool"
+                },
+                "liquidations_core": {
+                    "contract": "0x4B4b29ae12Fda27Fd1277cBc351B012ec5037e2e",
+                    "key": "swimming.liquidations"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0x4B4b29ae12Fda27Fd1277cBc351B012ec5037e2e",
+                    "key": "swimming.liquidations"
+                },
+                "liquidity_controls": {
+                    "contract": "",
+                    "key": "swimming.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0x0dF477C2375920b0C1B91e1A516582eFd9BF4A93",
+                    "key": "swimming.loans"
+                },
+                "loans_core": {
+                    "contract": "0x0dF477C2375920b0C1B91e1A516582eFd9BF4A93",
+                    "key": "swimming.loans"
+                },
+                "token": {
+                    "contract": "0xe0aA552A10d7EC8760Fc6c246D391E698a82dDf9",
+                    "key": "weth.token"
+                }
+            },
+            "genesis_enabled": true,
+            "legacy_ids": [],
+            "pool_name": "OTC Test",
+            "token_decimals": 6,
+            "token_symbol": "USDC",
+            "use_native_token": false
+        },
+        "USDC": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0xe692Cf21B12e0B2717C4bF647F9768Fa58861c8b",
+                    "key": "collateral_vault_core"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0xf9C8Cf55f2E520B08d869df7bc76aa3d3ddDF913",
+                    "key": "collateral_vault_peripheral"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0xF9bE44c758D30ceaCD3f2D1595F7aC14a894FAD1",
+                    "key": "cryptopunks_vault_core"
+                },
+                "delegation_registry": {
+                    "contract": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0xb6286fAFd0451320ad6A8143089b216C2152c025",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0xD22363efee93190f82b52FCD62B7Dbcb920eF658",
+                    "key": "usdc.lending_pool_peripheral"
+                },
+                "lending_pool_core": {
+                    "contract": "0xcCB53c9429d32594F404d01fbe9E65ED1DCda8D9",
+                    "key": "usdc.lending_pool_core"
+                },
+                "lending_pool_lock": {
+                    "contract": "0xE7eD6747FaC5360f88a2EFC03E00d25789F69291",
+                    "key": "usdc.lending_pool_lock"
+                },
+                "liquidations_core": {
+                    "contract": "0x9E4c14403d7d9A8A782044E86a93CAE09D7B2ac9",
+                    "key": "liquidations_core"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0x143ce2D29F85C2e14953bEb7dd5E1D31374310e9",
+                    "key": "liquidations_peripheral"
+                },
+                "liquidity_controls": {
+                    "contract": "0xa3B53dDCd2E3fC28e8E130288F2aBD8d5EE37472",
+                    "key": "usdc.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0x259B3baF80Db02eb10537bcB4d48ce0c6b5F25aa",
+                    "key": "usdc.loans"
+                },
+                "loans_core": {
+                    "contract": "0x420b1099B9eF5baba6D92029594eF45E19A04A4A",
+                    "key": "usdc.loans_core"
+                },
+                "token": {
+                    "contract": "0x602C71e4DAC47a042Ee7f46E0aee17F94A3bA0B6",
+                    "key": "usdc.token"
+                }
+            },
+            "genesis_enabled": true,
+            "legacy_ids": [],
+            "pool_name": "USDC",
+            "token_decimals": 6,
+            "token_symbol": "USDC",
+            "use_native_token": false
+        },
+        "WETH": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0xe692Cf21B12e0B2717C4bF647F9768Fa58861c8b",
+                    "key": "collateral_vault_core"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0xf9C8Cf55f2E520B08d869df7bc76aa3d3ddDF913",
+                    "key": "collateral_vault_peripheral"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0xF9bE44c758D30ceaCD3f2D1595F7aC14a894FAD1",
+                    "key": "cryptopunks_vault_core"
+                },
+                "delegation_registry": {
+                    "contract": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0xb6286fAFd0451320ad6A8143089b216C2152c025",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0xF06D5f5BfFFCB6a52c84cfebc03AD35637728E73",
+                    "key": "weth.lending_pool_peripheral"
+                },
+                "lending_pool_core": {
+                    "contract": "0xBcb61491F1859f53438918F1A5aFCA542Af9D397",
+                    "key": "weth.lending_pool_core"
+                },
+                "lending_pool_lock": {
+                    "contract": "0x42E8D004c84E6B5Bad559D3b5CE7947AADb9E0bc",
+                    "key": "weth.lending_pool_lock"
+                },
+                "liquidations_core": {
+                    "contract": "0x9E4c14403d7d9A8A782044E86a93CAE09D7B2ac9",
+                    "key": "liquidations_core"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0x143ce2D29F85C2e14953bEb7dd5E1D31374310e9",
+                    "key": "liquidations_peripheral"
+                },
+                "liquidity_controls": {
+                    "contract": "0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87",
+                    "key": "weth.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0x7acd10C55b6dDa93B7db8EcCe99DF879A732A00B",
+                    "key": "weth.loans"
+                },
+                "loans_core": {
+                    "contract": "0xdCF93F11ef216cEC9C07fd31dD801c9b2b39Afb4",
+                    "key": "weth.loans_core"
+                },
+                "token": {
+                    "contract": "0xe0aA552A10d7EC8760Fc6c246D391E698a82dDf9",
+                    "key": "weth.token"
+                }
+            },
+            "genesis_enabled": true,
+            "legacy_ids": [
+                null
+            ],
+            "pool_name": "ETH",
+            "token_decimals": 18,
+            "token_symbol": "WETH",
+            "use_native_token": true
+        }
+    }
+}
