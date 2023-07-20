@@ -15,7 +15,13 @@ interface IWETH:
     def withdraw(_amount: uint256): nonpayable
 
 interface ISelf:
-    def initialize(_owner: address, _lender: address, _protocolWallet: address, _protocolFeesShare: uint256): nonpayable
+    def initialize(
+        _owner: address,
+        _lender: address,
+        _protocolWallet: address,
+        _protocolFeesShare: uint256,
+        _allowEth: bool
+    ): nonpayable
 
 # Structs
 
@@ -129,7 +135,7 @@ proposedOwner: public(address)
 
 loansContract: public(address)
 erc20TokenContract: public(immutable(address))
-allowEth: public(immutable(bool))
+allowEth: public(bool)
 liquidationsPeripheralContract: public(address)
 
 protocolWallet: public(address)
@@ -452,17 +458,16 @@ def totalAmountWithdrawn(_lender: address) -> uint256:
 ##### EXTERNAL METHODS - NON-VIEW #####
 
 @external
-def __init__(_erc20TokenContract: address, _allowEth: bool):
+def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "address is the zero address"
 
     self.owner = msg.sender
     erc20TokenContract = _erc20TokenContract
-    allowEth = _allowEth
     self.isPoolDeprecated = True
 
 
 @external
-def initialize(_owner: address, _lender: address, _protocolWallet: address, _protocolFeesShare: uint256):
+def initialize(_owner: address, _lender: address, _protocolWallet: address, _protocolFeesShare: uint256, _allowEth: bool):
     assert _protocolWallet != empty(address), "address is the zero address"
     assert _protocolFeesShare <= 10000, "fees share exceeds 10000 bps"
     assert _lender != empty(address), "lender is the zero address"
@@ -473,13 +478,14 @@ def initialize(_owner: address, _lender: address, _protocolWallet: address, _pro
     self.lender = _lender
     self.protocolWallet = _protocolWallet
     self.protocolFeesShare = _protocolFeesShare
+    self.allowEth = _allowEth
     self.isPoolActive = True
 
 
 @external
-def create_proxy(_protocolWallet: address, _protocolFeesShare: uint256, _lender: address) -> address:
+def create_proxy(_protocolWallet: address, _protocolFeesShare: uint256, _lender: address, _allowEth: bool) -> address:
     proxy: address = create_minimal_proxy_to(self)
-    ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare)
+    ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare, _allowEth)
     return proxy
 
 
@@ -522,9 +528,7 @@ def claimOwnership():
 
 @external
 def changeProtocolWallet(_address: address):
-    assert msg.sender == self.owner, "msg.sender is not the owner"
-    assert _address != empty(address), "_address is the zero address"
-    assert _address != self.protocolWallet, "new value is the same"
+    assert msg.sender == self.owner  # reason: msg.sender is not the owner
 
     log ProtocolWalletChanged(
         erc20TokenContract,
@@ -634,7 +638,7 @@ def depositEth():
     @dev Logs the `Deposit` event
     """
 
-    assert allowEth
+    assert self.allowEth
     log PaymentReceived(msg.sender, msg.sender, msg.value)
 
     self._wrap(msg.value)
@@ -664,7 +668,7 @@ def withdrawEth(_amount: uint256):
     @param _amount Value to withdraw in wei
     """
 
-    assert allowEth
+    assert self.allowEth
 
     self._withdraw_accounting(_amount)
 
@@ -699,7 +703,7 @@ def sendFundsEth(_to: address, _amount: uint256):
     @param _amount Value to transfer in wei
     """
 
-    assert allowEth
+    assert self.allowEth
 
     self._accountForSentFunds(_to, self, _amount)
     self._unwrap_and_send(_to, _amount)
@@ -717,7 +721,7 @@ def receiveFundsEth(_borrower: address, _amount: uint256, _rewardsAmount: uint25
     @param _rewardsAmount Value of the loans interest (including the protocol fee share) to receive in wei
     """
 
-    assert allowEth
+    assert self.allowEth
 
     assert msg.value > 0, "amount should be higher than 0"
     assert msg.value == _amount + _rewardsAmount, "recv amount not match partials"
@@ -788,7 +792,7 @@ def receiveFundsFromLiquidationEth(
 
     receivedAmount: uint256 = msg.value
 
-    assert allowEth
+    assert self.allowEth
     assert receivedAmount == _amount + _rewardsAmount, "recv amount not match partials"
 
     log PaymentReceived(msg.sender, msg.sender, receivedAmount)

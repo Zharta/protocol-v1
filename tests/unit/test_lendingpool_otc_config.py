@@ -18,20 +18,19 @@ PROTOCOL_FEE = 100  # bps
 @pytest.fixture(scope="module")
 def lendingpool_otc(lendingpool_otc_contract):
     with boa.env.prank(DEPLOYER):
-        return lendingpool_otc_contract.deploy(ERC20_ADDRESS, True)
+        return lendingpool_otc_contract.deploy(ERC20_ADDRESS)
 
 
 @pytest.fixture(scope="module")
 def lendingpool_otc_proxy(lendingpool_otc, lendingpool_otc_contract):
     with boa.env.prank(DEPLOYER):
-        proxy_address = lendingpool_otc.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER)
+        proxy_address = lendingpool_otc.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER, True)
         return lendingpool_otc_contract.at(proxy_address)
 
 
 def test_initial_state(lendingpool_otc, lendingpool_otc_proxy):
     assert lendingpool_otc.owner() == DEPLOYER
     assert lendingpool_otc.erc20TokenContract() == ERC20_ADDRESS
-    assert lendingpool_otc.allowEth()
     assert lendingpool_otc.lender() == ZERO_ADDRESS
     assert lendingpool_otc.isPoolDeprecated() is True
 
@@ -49,10 +48,10 @@ def test_proxy_initial_state(lendingpool_otc_proxy):
 
 def test_initialize(lendingpool_otc, lendingpool_otc_proxy):
     with boa.reverts("already initialized"):
-        lendingpool_otc.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, sender=DEPLOYER)
+        lendingpool_otc.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, True, sender=DEPLOYER)
 
     with boa.reverts("already initialized"):
-        lendingpool_otc_proxy.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, sender=DEPLOYER)
+        lendingpool_otc_proxy.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, True, sender=DEPLOYER)
 
 
 @pytest.mark.parametrize("contract_fixture", ["lendingpool_otc", "lendingpool_otc_proxy"])
@@ -157,17 +156,12 @@ def test_dont_allow_eth(lendingpool_otc_contract):
     erc20 = boa.env.generate_address()
 
     with boa.env.prank(DEPLOYER):
-        contract = lendingpool_otc_contract.deploy(erc20, False)
-        proxy_address = contract.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER)
+        contract = lendingpool_otc_contract.deploy(erc20)
+        proxy_address = contract.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER, False)
         proxy = lendingpool_otc_contract.at(proxy_address)
 
         assert not proxy.allowEth()
 
-@pytest.fixture(scope="module")
-def lendingpool_otc_proxy(lendingpool_otc, lendingpool_otc_contract):
-    with boa.env.prank(DEPLOYER):
-        proxy_address = lendingpool_otc.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER)
-        return lendingpool_otc_contract.at(proxy_address)
 
 def test_change_status(lendingpool_otc_proxy):
     account1 = boa.env.generate_address()
