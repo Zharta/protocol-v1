@@ -173,7 +173,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     project_path = Path.cwd() / "contracts"
 
     # get contract addresses config file
-    config_file = Path.cwd() / "configs" / env / "contracts.json"
+    config_file = Path.cwd() / "configs" / env / "pools.json"
     config = json.loads(read_file(config_file))
 
     nfts_file = Path.cwd() / "configs" / env / "collections.json"
@@ -186,19 +186,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     else:
         output_directory = Path("")
 
-    config = {
-        "pools": {
-            pool_id: {
-                "pool_name": pool_names[pool_id],
-                "token_symbol": pool_tokens[pool_id],
-                "token_decimals": token_decimals[pool_tokens[pool_id]],
-                "use_native_token": native_token[pool_id],
-                "genesis_enabled": genesis_enabled[pool_id],
-                "legacy_ids": legacy_ids.get(pool_id, []),
-                "contracts": pool_config,
-            }
-            for pool_id, pool_config in config["tokens"].items()}
-    }
+    config = {"pools": config["pools"]}
 
     for contract in contracts:
         contract_output_name = contract.split("/")[-1]
