@@ -89,15 +89,15 @@
         "SWIMMING": {
             "contracts": {
                 "collateral_vault_core": {
-                    "contract": "0xE0Ab3B998e7ADfFb84083eF200ec0852387bBA1f",
+                    "contract": "0xB5a37414eACac95480b3cfd6Ea213E500af1dcfC",
                     "key": "swimming.collateral_vault"
                 },
                 "collateral_vault_peripheral": {
-                    "contract": "0xE0Ab3B998e7ADfFb84083eF200ec0852387bBA1f",
+                    "contract": "0xB5a37414eACac95480b3cfd6Ea213E500af1dcfC",
                     "key": "swimming.collateral_vault"
                 },
                 "cryptopunks_vault_core": {
-                    "contract": "0xE0Ab3B998e7ADfFb84083eF200ec0852387bBA1f",
+                    "contract": "0xB5a37414eACac95480b3cfd6Ea213E500af1dcfC",
                     "key": "swimming.collateral_vault"
                 },
                 "delegation_registry": {
@@ -109,19 +109,19 @@
                     "key": "genesis"
                 },
                 "lending_pool": {
-                    "contract": "0x359BCAd1b4011039BB882E99c345E7F0d302C4EE",
+                    "contract": "0x51AccFf4a2F8c5A8d72273ee5EcDa46Cf930072a",
                     "key": "swimming.lending_pool"
                 },
                 "lending_pool_core": {
-                    "contract": "0x359BCAd1b4011039BB882E99c345E7F0d302C4EE",
+                    "contract": "0x51AccFf4a2F8c5A8d72273ee5EcDa46Cf930072a",
                     "key": "swimming.lending_pool"
                 },
                 "liquidations_core": {
-                    "contract": "0x4B4b29ae12Fda27Fd1277cBc351B012ec5037e2e",
+                    "contract": "0xC8a568D40F8aAcBf247a32C58F0EcA4f7BD8e1BB",
                     "key": "swimming.liquidations"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0x4B4b29ae12Fda27Fd1277cBc351B012ec5037e2e",
+                    "contract": "0xC8a568D40F8aAcBf247a32C58F0EcA4f7BD8e1BB",
                     "key": "swimming.liquidations"
                 },
                 "liquidity_controls": {
@@ -129,11 +129,11 @@
                     "key": "swimming.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "0x0dF477C2375920b0C1B91e1A516582eFd9BF4A93",
+                    "contract": "0xA923EC387D802eeEf7fFA22b6E486795dFD8d805",
                     "key": "swimming.loans"
                 },
                 "loans_core": {
-                    "contract": "0x0dF477C2375920b0C1B91e1A516582eFd9BF4A93",
+                    "contract": "0xA923EC387D802eeEf7fFA22b6E486795dFD8d805",
                     "key": "swimming.loans"
                 },
                 "token": {

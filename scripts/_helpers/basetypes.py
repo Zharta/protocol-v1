@@ -190,9 +190,6 @@ class MinimalProxy(InternalContract):
     impl: str = ""
     factory_func: str = "create_proxy"
 
-    # def __init__(self, name: str, impl: str):
-    #     super().__init__(name)
-    #     self.impl = impl
 
     def deploy(self, context: DeploymentContext, dryrun: bool = False) -> ContractConfig:
         if self.contract is not None:
@@ -206,4 +203,5 @@ class MinimalProxy(InternalContract):
         kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
         print(f"## {self.pools} {self.name} <- {self.impl}.invoke_transaction({self.factory_func}, {','.join(str(a) for a in print_args)}, {kwargs_str})")
         if not dryrun:
-            self.contract = impl_contract.invoke_transaction(self.factory_func, *self.deployment_args(context), **kwargs)
+            tx = impl_contract.invoke_transaction(self.factory_func, *self.deployment_args(context), **kwargs)
+            self.contract = self.container.at(tx.return_value)

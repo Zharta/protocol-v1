@@ -114,8 +114,7 @@ class Transaction:
         execute(
             context,
             context[pool, "collateral_vault"],
-            "addLoansPeripheralAddress",
-            context[pool, "token"],
+            "setLoansAddress",
             context[pool, "loans"],
             dryrun=dryrun
         )
@@ -198,7 +197,7 @@ class Transaction:
             execute(context, lp, "setCollateralVaultPeripheralAddress", cvp, dryrun=dryrun)
 
     @staticmethod
-    def loansotcperiph_set_liquidationsperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+    def loansotc_set_liquidations(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,
             context[pool, "loans"],
@@ -218,19 +217,19 @@ class Transaction:
         )
 
     @staticmethod
-    def loansotcperiph_set_lpperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+    def loansotc_set_lendingpool(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         lpp = context[pool, "lending_pool"]
         lp = context[pool, "loans"]
         lpp_address = context[lpp].contract
-        if execute_read(context, lp, "lendingPoolPeripheralContract", dryrun=dryrun) != lpp_address or dryrun:
+        if execute_read(context, lp, "lendingPoolContract", dryrun=dryrun) != lpp_address or dryrun:
             execute(context, lp, "setLendingPoolPeripheralAddress", lpp, dryrun=dryrun)
 
     @staticmethod
-    def loansotcperiph_set_cvperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+    def loansotc_set_collateral_vault(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         cvp = context[pool, "collateral_vault"]
         lp = context[pool, "loans"]
         cvp_address = context[cvp].contract
-        if execute_read(context, lp, "collateralVaultPeripheralContract", dryrun=dryrun) != cvp_address or dryrun:
+        if execute_read(context, lp, "collateralVaultContract", dryrun=dryrun) != cvp_address or dryrun:
             execute(context, lp, "setCollateralVaultPeripheralAddress", cvp, dryrun=dryrun)
 
     @staticmethod
@@ -295,24 +294,22 @@ class Transaction:
         )
 
     @staticmethod
-    def liquidationsotc_add_loanscore(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+    def liquidationsotc_set_loans(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,
             context[pool, "liquidations"],
-            "addLoansCoreAddress",
-            context[pool, "token"],
-            context[pool, "loans_core"],
+            "setLoansContract",
+            context[pool, "loans"],
             dryrun=dryrun
         )
 
     @staticmethod
-    def liquidationsotc_add_lpperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+    def liquidationsotc_set_lendingpool(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,
             context[pool, "liquidations"],
-            "addLendingPoolPeripheralAddress",
-            context[pool, "token"],
-            context[pool, "lending_pool_peripheral"],
+            "setLendingPoolContract",
+            context[pool, "lending_pool"],
             dryrun=dryrun
         )
 
@@ -401,4 +398,5 @@ def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun:
     if not dryrun:
         function = getattr(contract_instance, func)
         deploy_args = [context[a].address() for a in args]
+        print(f"{function=} {deploy_args=}")
         return function(*deploy_args, **({"sender": context.owner} | context.gas_options() | (options or {})))

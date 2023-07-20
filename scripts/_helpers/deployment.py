@@ -31,15 +31,16 @@ from .contracts import (
     LendingPoolCoreContract,
     LendingPoolLockContract,
     LendingPoolOTCContract,
-    LendingPoolOTCEthImplContract,
+    LendingPoolOTCImplContract,
     LendingPoolPeripheralContract,
     LiquidationsCoreContract,
     LiquidationsPeripheralContract,
     LiquidationsOTCContract,
+    LiquidationsOTCImplContract,
     LiquidityControlsContract,
     LoansCoreContract,
-    LoansOTCCoreContract,
-    LoansOTCPeripheralContract,
+    LoansOTCContract,
+    LoansOTCImplContract,
     LoansPeripheralContract,
     USDCMockContract,
     WETH9MockContract,
@@ -103,23 +104,22 @@ def contract_instances(env: Environment) -> dict:
         CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
         LendingPoolOTCContract(scope="swimming", pools=["swimming"]),
         LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
-        LiquidityControlsContract(scope="swimming", pools=["swimming"]), ## TO REMOVE
-        LoansOTCPeripheralContract(scope="swimming", pools=["swimming"]),
-        LoansOTCCoreContract(scope="swimming", pools=["swimming"]),
+        LoansOTCContract(scope="swimming", pools=["swimming"]),
 
         ## Proxy Implementations
-        LendingPoolOTCEthImplContract(),
+        LendingPoolOTCImplContract(),
         CollateralVaultOTCImplContract(),
-        # "collateral_vault_otc_impl": None,
+        LoansOTCImplContract(),
+        LiquidationsOTCImplContract(),
 
     ]
     return {c.key(): c for c in contracts}
 
 
-def load_contracts(env: Environment) -> set[ContractConfig]:
+def load_contracts(env: Environment) -> list[ContractConfig]:
     contracts = contract_instances(env)
-    for k, v in contracts.items():
-        print(k, v)
+    # for k, v in contracts.items():
+    #     print(k, v)
 
     config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
     with open(config_file, "r") as f:
@@ -141,11 +141,11 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
         config = json.load(f)
 
     contracts_dict = {c.key(): c for c in contracts}
-    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + config["other"].values()
+    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(config["other"].values())
     for c in contract_configs:
         k = c["key"]
         if k in contracts_dict:
-            c["contract"] = contracts_dict[k].address
+            c["contract"] = contracts_dict[k].address()
 
     with open(config_file, "w") as f:
         f.write(json.dumps(config, indent=4, sort_keys=True))
@@ -272,20 +272,21 @@ class DeploymentManager:
         return {
             "nft_borrowable_amounts": nft_borrowable_amounts,
             "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
-            "lpp_whitelist_enabled.eth-squiggledao": True,
+            "lpp_whitelist_enabled.eth-grails": True,
             "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            "lpp_protocol_wallet_fees.eth-squiggledao": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.eth-grails": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_fees_share.weth": 0,
             "lpp_protocol_fees_share.usdc": 0,
-            "lpp_protocol_fees_share.eth-squiggledao": 0,
+            "lpp_protocol_fees_share.eth-grails": 0,
             "lpp_max_capital_efficiency.weth": 8000,
             "lpp_max_capital_efficiency.usdc": 8000,
-            "lpp_max_capital_efficiency.eth-squiggledao": 10000,
+            "lpp_max_capital_efficiency.eth-grails": 10000,
             "loansperipheral_ispayable.weth": True,
             "loansperipheral_ispayable.usdc": False,
-            "loansperipheral_ispayable.eth-squiggledao": True,
-            "swimming.lender": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
+            "loansperipheral_ispayable.swimming": True,
+            "loansperipheral_ispayable.eth-grails": True,
+            "lender.swimming": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
         }
 
     def _save_state(self):
