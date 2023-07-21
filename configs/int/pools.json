@@ -1,19 +1,19 @@
 {
     "other": {
         "collateral_vault_otc_impl": {
-            "contract": "",
+            "contract": "0x7B162a893F25f647Dc8c4B857222c83aCbffAb17",
             "key": "collateral_vault_otc_impl"
         },
         "lending_pool_otc_impl": {
-            "contract": "",
+            "contract": "0xa28B2c8b36A0f78710c52EA11C6103dFcb05dbcc",
             "key": "lending_pool_otc_impl"
         },
         "liquidations_otc_impl": {
-            "contract": "",
+            "contract": "0x7783BF29846aB325B1084D313Bf68aaAEC742D52",
             "key": "liquidations_otc_impl"
         },
         "loans_otc_impl": {
-            "contract": "",
+            "contract": "0x50516FDBacDCaC4775a1Fb29c7Fb888d8dfAd22c",
             "key": "loans_otc_impl"
         }
     },
@@ -82,6 +82,68 @@
                 "ETH-SQUIGGLEDAO"
             ],
             "pool_name": "Grail NFTs",
+            "token_decimals": 18,
+            "token_symbol": "WETH",
+            "use_native_token": true
+        },
+        "SWIMMING": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0x4A128912703243f11A569c88cb148e020756d60F",
+                    "key": "swimming.collateral_vault"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0x4A128912703243f11A569c88cb148e020756d60F",
+                    "key": "swimming.collateral_vault"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0x4A128912703243f11A569c88cb148e020756d60F",
+                    "key": "swimming.collateral_vault"
+                },
+                "delegation_registry": {
+                    "contract": "0xB18CF5BCe0266C688361e10E4155709880d1b6D6",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0x36d3C8e6202a953A80e6a8168BC06C80Ff96334F",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0x06cAbDf811Ea3994C7fc181c4B1B4f5EC54a4EA8",
+                    "key": "swimming.lending_pool"
+                },
+                "lending_pool_core": {
+                    "contract": "0x06cAbDf811Ea3994C7fc181c4B1B4f5EC54a4EA8",
+                    "key": "swimming.lending_pool"
+                },
+                "liquidations_core": {
+                    "contract": "0xb1340549f336200c03c50CaFC34Af1e349de60b7",
+                    "key": "swimming.liquidations"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0xb1340549f336200c03c50CaFC34Af1e349de60b7",
+                    "key": "swimming.liquidations"
+                },
+                "liquidity_controls": {
+                    "contract": "",
+                    "key": "swimming.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0xF2a677d6848768727904664d99DD7F960D74ad09",
+                    "key": "swimming.loans"
+                },
+                "loans_core": {
+                    "contract": "0xF2a677d6848768727904664d99DD7F960D74ad09",
+                    "key": "swimming.loans"
+                },
+                "token": {
+                    "contract": "0xB7603602860a4816154F2A3bA4d6aBDDd8937b84",
+                    "key": "weth.token"
+                }
+            },
+            "genesis_enabled": true,
+            "legacy_ids": [],
+            "pool_name": "OTC Test",
             "token_decimals": 18,
             "token_symbol": "WETH",
             "use_native_token": true

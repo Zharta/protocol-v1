@@ -533,8 +533,7 @@ class LendingPoolOTCContract(MinimalProxy):
         return set_loansperiph | set_liquidationsperiph
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
-        return set().union(
-            {context[pool, "lending_pool"] for pool in self.pools},
+        return {"lending_pool_otc_impl"}.union(
             {context[pool, "token"] for pool in self.pools},
         )
 
