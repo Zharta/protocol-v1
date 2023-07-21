@@ -52,11 +52,11 @@ def liquidations_otc_contract(erc20_contract, liquidations_otc_contract_def, con
 
 
 @pytest.fixture(scope="module")
-def lendingpool_otc_contract(erc20_contract, lending_pool_otc_contract_def, contract_owner, investor, protocol_wallet):
+def lendingpool_otc_contract(erc20_contract, lending_pool_eth_otc_contract_def, contract_owner, investor, protocol_wallet):
     with boa.env.prank(contract_owner):
-        contract = lending_pool_otc_contract_def.deploy(erc20_contract)
-        proxy_address = contract.create_proxy(protocol_wallet, PROTOCOL_FEE, investor, True)
-        return lending_pool_otc_contract_def.at(proxy_address)
+        contract = lending_pool_eth_otc_contract_def.deploy(erc20_contract)
+        proxy_address = contract.create_proxy(protocol_wallet, PROTOCOL_FEE, investor)
+        return lending_pool_eth_otc_contract_def.at(proxy_address)
 
 
 @pytest.fixture(scope="module", autouse=True)

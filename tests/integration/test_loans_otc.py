@@ -76,11 +76,11 @@ def liquidations_otc_contract(erc20_contract, liquidations_otc_contract_def, con
 
 
 @pytest.fixture(scope="module")
-def lending_pool_otc_contract(erc20_contract, lending_pool_otc_contract_def, contract_owner, investor, protocol_wallet):
+def lending_pool_otc_contract(erc20_contract, lending_pool_eth_otc_contract_def, contract_owner, investor, protocol_wallet):
     with boa.env.prank(contract_owner):
-        contract = lending_pool_otc_contract_def.deploy(erc20_contract)
-        proxy_address = contract.create_proxy(protocol_wallet, PROTOCOL_FEES_SHARE, investor, True)
-        return lending_pool_otc_contract_def.at(proxy_address)
+        contract = lending_pool_eth_otc_contract_def.deploy(erc20_contract)
+        proxy_address = contract.create_proxy(protocol_wallet, PROTOCOL_FEES_SHARE, investor)
+        return lending_pool_eth_otc_contract_def.at(proxy_address)
 
 
 @pytest.fixture(scope="module")
@@ -842,7 +842,7 @@ def test_pay_loan_insufficient_balance(
 
     (v, r, s) = create_signature()
 
-    loan_id = loans_otc_contract.reserve(
+    loan_id = loans_otc_contract.reserveEth(
         LOAN_AMOUNT,
         LOAN_INTEREST,
         MATURITY,

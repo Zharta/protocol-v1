@@ -91,8 +91,13 @@ def lending_pool_peripheral_contract_def():
 
 
 @pytest.fixture(scope="session")
-def lending_pool_otc_contract_def():
-    return boa.load_partial("contracts/LendingPoolOTC.vy")
+def lending_pool_eth_otc_contract_def():
+    return boa.load_partial("contracts/LendingPoolEthOTC.vy")
+
+
+@pytest.fixture(scope="session")
+def lending_pool_erc20_otc_contract_def():
+    return boa.load_partial("contracts/LendingPoolERC20OTC.vy")
 
 
 @pytest.fixture(scope="session")

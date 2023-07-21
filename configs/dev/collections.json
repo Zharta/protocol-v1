@@ -593,27 +593,26 @@
   "fidenza": {
     "appraisal_method": "standard",
     "conditions": {
-      "ETH-GRAILS": {
-        "debt_limit": 125.0,
-        "floor_multiple_cap": 3.0,
+      "DEADPOOL": {
+        "debt_limit": 250000.0,
+        "floor_multiple_cap": 1.0,
         "tier_pricing": {
           "30d": {
-            "apr": 0.25,
-            "ltv": 1.0
+            "apr": 0.15,
+            "ltv": 0.4
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 1.0
+            "ltv": 0.45
           },
           "90d": {
-            "apr": 0.15,
-            "ltv": 1.0
+            "apr": 0.125,
+            "ltv": 0.3
           }
         },
-        "token_whitelist": "fidenzas-squigglespool",
         "whitelisted": true
       },
-      "ETH-SQUIGGLEDAO": {
+      "ETH-GRAILS": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 3.0,
         "tier_pricing": {

@@ -492,14 +492,14 @@ class CollateralVaultOTCContract(MinimalProxy):
 
 
 @dataclass
-class LendingPoolOTCImplContract(InternalContract):
+class LendingPoolEthOTCImplContract(InternalContract):
 
     def __init__(self, contract: Optional[ContractInstance] = None):
         super().__init__(
-            "lending_pool_otc_impl",
+            "lending_pool_eth_otc_impl",
             contract,
-            project.LendingPoolOTC,
-            container_name="LendingPoolOTC",
+            project.LendingPoolEthOTC,
+            container_name="LendingPoolEthOTC",
             deployment_deps={"token"},
             config_deps={},
         )
@@ -509,17 +509,34 @@ class LendingPoolOTCImplContract(InternalContract):
 
 
 @dataclass
+class LendingPoolERC20OTCImplContract(InternalContract):
+
+    def __init__(self, token: str, token_scope: str, contract: Optional[ContractInstance] = None):
+        super().__init__(
+            f"lending_pool_{token}_otc_impl",
+            contract,
+            project.LendingPoolERC20OTC,
+            container_name="LendingPoolERC20OTC",
+            deployment_deps=[f"{token_scope}.token"],
+        )
+        self.token_scope = token_scope
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        return [context[context[self.token_scope, "token"]].contract]
+
+
+@dataclass
 class LendingPoolOTCContract(MinimalProxy):
 
-    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+    def __init__(self, scope: str, pools: list[str], impl, contract: Optional[ContractInstance] = None):
         super().__init__(
             "lending_pool",
             contract,
-            project.LendingPoolOTC,
+            project.LendingPoolEthOTC,
             scope=scope,
             pools=pools,
-            container_name="LendingPoolOTC",
-            impl="lending_pool_otc_impl",
+            container_name="LendingPoolEthOTC",
+            impl=impl,
         )
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
@@ -533,17 +550,14 @@ class LendingPoolOTCContract(MinimalProxy):
         return set_loansperiph | set_liquidationsperiph
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
-        return {"lending_pool_otc_impl"}.union(
-            {context[pool, "token"] for pool in self.pools},
-        )
+        return {self.impl}.union({context[pool, "token"] for pool in self.pools})
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         pool = self.pools[0]
         lender = context.config[f"lender.{pool}"]
         protocol_wallet_fees = context.config.get(f"lpp_protocol_wallet_fees.{pool}", context.owner)
         protocol_fees_share = context.config.get(f"lpp_protocol_fees_share.{pool}", 2500)
-        is_payable = context.config.get(f"loansperipheral_ispayable.{pool}", False)
-        return [protocol_wallet_fees, protocol_fees_share, lender, is_payable]
+        return [protocol_wallet_fees, protocol_fees_share, lender]
 
 
 @dataclass

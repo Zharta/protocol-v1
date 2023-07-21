@@ -4,9 +4,13 @@
             "contract": "0x11a634E76640BE041Aca30174486101abbE6716e",
             "key": "collateral_vault_otc_impl"
         },
-        "lending_pool_otc_impl": {
+        "lending_pool_eth_otc_impl": {
             "contract": "0x4b9BacbC75C355F6e96f4f0F6430d2E42Fe7A468",
-            "key": "lending_pool_otc_impl"
+            "key": "lending_pool_eth_otc_impl"
+        },
+        "lending_pool_usdc_otc_impl": {
+            "contract": "0x4Ff58591640299553bEAE5206f53310E6a9838Ac",
+            "key": "lending_pool_usdc_otc_impl"
         },
         "liquidations_otc_impl": {
             "contract": "0x1573178cC489000C90CCB28c8a3566C1315D3555",
@@ -18,6 +22,68 @@
         }
     },
     "pools": {
+        "DEADPOOL": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0x75d4b46E494d98143e18b0b7e3046D47cF679EF3",
+                    "key": "deadpool.collateral_vault"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0x75d4b46E494d98143e18b0b7e3046D47cF679EF3",
+                    "key": "deadpool.collateral_vault"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0x75d4b46E494d98143e18b0b7e3046D47cF679EF3",
+                    "key": "deadpool.collateral_vault"
+                },
+                "delegation_registry": {
+                    "contract": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0xb6286fAFd0451320ad6A8143089b216C2152c025",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0xd0E45961C36750c41B5BE054e17Cbee5d9418810",
+                    "key": "deadpool.lending_pool"
+                },
+                "lending_pool_core": {
+                    "contract": "0xd0E45961C36750c41B5BE054e17Cbee5d9418810",
+                    "key": "deadpool.lending_pool"
+                },
+                "liquidations_core": {
+                    "contract": "0xAEddb551E0375BCC0B5025581550c31FeF9358dc",
+                    "key": "deadpool.liquidations"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0xAEddb551E0375BCC0B5025581550c31FeF9358dc",
+                    "key": "deadpool.liquidations"
+                },
+                "liquidity_controls": {
+                    "contract": "",
+                    "key": "deadpool.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0xF220Ac673d277D016171151D8BAda79a3eC7C869",
+                    "key": "deadpool.loans"
+                },
+                "loans_core": {
+                    "contract": "0xF220Ac673d277D016171151D8BAda79a3eC7C869",
+                    "key": "deadpool.loans"
+                },
+                "token": {
+                    "contract": "0x602C71e4DAC47a042Ee7f46E0aee17F94A3bA0B6",
+                    "key": "usdc.token"
+                }
+            },
+            "genesis_enabled": false,
+            "legacy_ids": [],
+            "pool_name": "OTC USDC Test",
+            "token_decimals": 6,
+            "token_symbol": "USDC",
+            "use_native_token": false
+        },
         "ETH-GRAILS": {
             "contracts": {
                 "collateral_vault_core": {

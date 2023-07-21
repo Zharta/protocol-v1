@@ -16,16 +16,16 @@ PROTOCOL_FEE = 100  # bps
 
 
 @pytest.fixture(scope="module")
-def lendingpool_otc(lendingpool_otc_contract):
+def lendingpool_otc(lendingpool_eth_otc_contract):
     with boa.env.prank(DEPLOYER):
-        return lendingpool_otc_contract.deploy(ERC20_ADDRESS)
+        return lendingpool_eth_otc_contract.deploy(ERC20_ADDRESS)
 
 
 @pytest.fixture(scope="module")
-def lendingpool_otc_proxy(lendingpool_otc, lendingpool_otc_contract):
+def lendingpool_otc_proxy(lendingpool_otc, lendingpool_eth_otc_contract):
     with boa.env.prank(DEPLOYER):
-        proxy_address = lendingpool_otc.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER, True)
-        return lendingpool_otc_contract.at(proxy_address)
+        proxy_address = lendingpool_otc.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER)
+        return lendingpool_eth_otc_contract.at(proxy_address)
 
 
 def test_initial_state(lendingpool_otc, lendingpool_otc_proxy):
@@ -43,15 +43,14 @@ def test_proxy_initial_state(lendingpool_otc_proxy):
     assert lendingpool_otc_proxy.protocolFeesShare() == PROTOCOL_FEE
     assert lendingpool_otc_proxy.isPoolActive() is True
     assert lendingpool_otc_proxy.isPoolDeprecated() is False
-    assert lendingpool_otc_proxy.allowEth()
 
 
 def test_initialize(lendingpool_otc, lendingpool_otc_proxy):
     with boa.reverts("already initialized"):
-        lendingpool_otc.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, True, sender=DEPLOYER)
+        lendingpool_otc.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, sender=DEPLOYER)
 
     with boa.reverts("already initialized"):
-        lendingpool_otc_proxy.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, True, sender=DEPLOYER)
+        lendingpool_otc_proxy.initialize(DEPLOYER, LENDER, PROTOCOL_WALLET, PROTOCOL_FEE, sender=DEPLOYER)
 
 
 @pytest.mark.parametrize("contract_fixture", ["lendingpool_otc", "lendingpool_otc_proxy"])
@@ -150,17 +149,6 @@ def test_deprecate_blockers(lendingpool_otc, lendingpool_otc_proxy):
 
     with boa.reverts():
         lendingpool_otc_proxy.sendFunds(account2, 1, sender=account1)
-
-
-def test_dont_allow_eth(lendingpool_otc_contract):
-    erc20 = boa.env.generate_address()
-
-    with boa.env.prank(DEPLOYER):
-        contract = lendingpool_otc_contract.deploy(erc20)
-        proxy_address = contract.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER, False)
-        proxy = lendingpool_otc_contract.at(proxy_address)
-
-        assert not proxy.allowEth()
 
 
 def test_change_status(lendingpool_otc_proxy):

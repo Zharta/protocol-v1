@@ -1,12 +1,6 @@
 import boa
-from web3 import Web3
 from eth_account import Account
-from ..conftest_base import get_last_event, ZERO_ADDRESS
-from datetime import datetime as dt
-from boa.environment import Env
-
 import pytest
-import os
 
 
 @pytest.fixture(scope="session")
@@ -62,8 +56,13 @@ def erc721_contract(contract_owner):
 
 
 @pytest.fixture(scope="session")
-def lendingpool_otc_contract():
-    return boa.load_partial("contracts/LendingPoolOTC.vy")
+def lendingpool_eth_otc_contract():
+    return boa.load_partial("contracts/LendingPoolEthOTC.vy")
+
+
+@pytest.fixture(scope="session")
+def lendingpool_erc20_otc_contract():
+    return boa.load_partial("contracts/LendingPoolERC20OTC.vy")
 
 
 @pytest.fixture(scope="session")

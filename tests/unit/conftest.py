@@ -76,8 +76,13 @@ def genesis_contract():
 
 
 @pytest.fixture(scope="session")
-def lendingpool_otc_contract():
-    return boa.load_partial("contracts/LendingPoolOTC.vy")
+def lendingpool_eth_otc_contract():
+    return boa.load_partial("contracts/LendingPoolEthOTC.vy")
+
+
+@pytest.fixture(scope="session")
+def lendingpool_erc20_otc_contract():
+    return boa.load_partial("contracts/LendingPoolERC20OTC.vy")
 
 
 @pytest.fixture(scope="session")

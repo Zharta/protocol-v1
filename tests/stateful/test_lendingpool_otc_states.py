@@ -34,22 +34,22 @@ def erc20_token(weth9_contract):
 
 
 @pytest.fixture(scope="module")
-def weth_pool(lendingpool_otc_contract, erc20_token):
+def weth_pool(lendingpool_eth_otc_contract, erc20_token):
     with boa.env.prank(DEPLOYER):
-        contract = lendingpool_otc_contract.deploy(erc20_token.address)
-        proxy_address = contract.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER, True)
-        proxy = lendingpool_otc_contract.at(proxy_address)
+        contract = lendingpool_eth_otc_contract.deploy(erc20_token.address)
+        proxy_address = contract.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER)
+        proxy = lendingpool_eth_otc_contract.at(proxy_address)
         proxy.setLoansPeripheralAddress(boa.env.generate_address())
         proxy.setLiquidationsPeripheralAddress(boa.env.generate_address())
         return proxy
 
 
 @pytest.fixture(scope="module")
-def erc20_pool(lendingpool_otc_contract, erc20_token):
+def erc20_pool(lendingpool_erc20_otc_contract, erc20_token):
     with boa.env.prank(DEPLOYER):
-        contract = lendingpool_otc_contract.deploy(erc20_token.address)
-        proxy_address = contract.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER, False)
-        proxy = lendingpool_otc_contract.at(proxy_address)
+        contract = lendingpool_erc20_otc_contract.deploy(erc20_token.address)
+        proxy_address = contract.create_proxy(PROTOCOL_WALLET, PROTOCOL_FEE, LENDER)
+        proxy = lendingpool_erc20_otc_contract.at(proxy_address)
         proxy.setLoansPeripheralAddress(boa.env.generate_address())
         proxy.setLiquidationsPeripheralAddress(boa.env.generate_address())
         return proxy
