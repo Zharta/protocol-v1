@@ -113,7 +113,6 @@ event OwnerProposed:
 event AdminTransferred:
     adminIndexed: indexed(address)
     newAdminIndexed: indexed(address)
-    admin: address
     newAdmin: address
 
 event GracePeriodDurationChanged:
@@ -198,7 +197,6 @@ event PaymentReceived:
 # Global variables
 
 owner: public(address)
-admin: public(address)
 proposedOwner: public(address)
 
 gracePeriodDuration: public(uint256)
@@ -381,7 +379,6 @@ def __init__(_wethAddress: address):
     assert _wethAddress != empty(address)  # reason: address is the zero address
 
     self.owner = msg.sender
-    self.admin = msg.sender
     wethAddress = _wethAddress
 
 
@@ -430,14 +427,6 @@ def claimOwnership():
 
     self.owner = self.proposedOwner
     self.proposedOwner = empty(address)
-
-
-@external
-def changeAdmin(_admin: address):
-    assert msg.sender == self.owner  # reason: msg.sender is not the owner
-    log AdminTransferred(self.admin, _admin, self.admin, _admin)
-
-    self.admin = _admin
 
 
 @external
