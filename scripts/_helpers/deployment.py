@@ -4,7 +4,7 @@ import warnings
 import os
 
 from typing import Any
-from ape import accounts, chain
+from ape import accounts
 from pathlib import Path
 from operator import itemgetter
 from itertools import groupby
@@ -21,6 +21,8 @@ from .basetypes import (
 )
 from .contracts import (
     CollateralVaultCoreV2Contract,
+    CollateralVaultOTCContract,
+    CollateralVaultOTCImplContract,
     CollateralVaultPeripheralContract,
     CryptoPunksMockContract,
     CryptoPunksVaultCoreContract,
@@ -28,94 +30,133 @@ from .contracts import (
     GenesisContract,
     LendingPoolCoreContract,
     LendingPoolLockContract,
+    LendingPoolOTCContract,
+    LendingPoolEthOTCImplContract,
+    LendingPoolERC20OTCImplContract,
     LendingPoolPeripheralContract,
     LiquidationsCoreContract,
     LiquidationsPeripheralContract,
+    LiquidationsOTCContract,
+    LiquidationsOTCImplContract,
     LiquidityControlsContract,
     LoansCoreContract,
+    LoansOTCContract,
+    LoansOTCImplContract,
     LoansPeripheralContract,
     USDCMockContract,
     WETH9MockContract,
 )
 
 ENV = Environment[os.environ.get("ENV", "local")]
-TOKENS = ["weth", "usdc", "eth-squiggledao"]
+POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
+OTC_POOLS = {"swimming"}
+# POOLS = ["weth", "usdc", "eth-grails"]
+# OTC_POOLS = set()
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 warnings.filterwarnings("ignore")
 
 
-def load_contracts(env: Environment) -> set[ContractConfig]:
-    config_file = f"{Path.cwd()}/configs/{env.name}/contracts.json"
+def contract_instances(env: Environment) -> dict:
+    contracts = [
+        Token("weth", "token", None, scope="weth") if env == Environment.prod else WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming"]),
+        Token("usdc", "token", None, scope="usdc") if env == Environment.prod else USDCMockContract(scope="usdc", pools=["usdc", "deadpool"]),
+        GenesisContract(pools=POOLS),
+        DelegationRegistryMockContract(pools=POOLS),
+
+        ## Shared
+        CollateralVaultCoreV2Contract(scope=None, pools=["weth", "usdc"]),
+        CollateralVaultPeripheralContract(scope=None, pools=["weth", "usdc"]),
+        CryptoPunksVaultCoreContract(scope=None, pools=["weth", "usdc"]),
+        LiquidationsCoreContract(scope=None, pools=["weth", "usdc"]),
+        LiquidationsPeripheralContract(scope=None, pools=["weth", "usdc"]),
+
+        ## WETH
+        LendingPoolPeripheralContract(scope="weth", pools=["weth"]),
+        LendingPoolCoreContract(scope="weth", pools=["weth"]),
+        LendingPoolLockContract(scope="weth", pools=["weth"]),
+        LiquidityControlsContract(scope="weth", pools=["weth"]),
+        LoansPeripheralContract(scope="weth", pools=["weth"]),
+        LoansCoreContract(scope="weth", pools=["weth"]),
+
+        ## USDC
+        LendingPoolPeripheralContract(scope="usdc", pools=["usdc"]),
+        LendingPoolCoreContract(scope="usdc", pools=["usdc"]),
+        LendingPoolLockContract(scope="usdc", pools=["usdc"]),
+        LiquidityControlsContract(scope="usdc", pools=["usdc"]),
+        LoansPeripheralContract(scope="usdc", pools=["usdc"]),
+        LoansCoreContract(scope="usdc", pools=["usdc"]),
+
+        ## Grails
+        CollateralVaultCoreV2Contract(scope="eth-grails", pools=["eth-grails"]),
+        CollateralVaultPeripheralContract(scope="eth-grails", pools=["eth-grails"]),
+        CryptoPunksVaultCoreContract(scope="eth-grails", pools=["eth-grails"]),
+        LendingPoolPeripheralContract(scope="eth-grails", pools=["eth-grails"]),
+        LendingPoolCoreContract(scope="eth-grails", pools=["eth-grails"]),
+        LendingPoolLockContract(scope="eth-grails", pools=["eth-grails"]),
+        LiquidationsCoreContract(scope="eth-grails", pools=["eth-grails"]),
+        LiquidationsPeripheralContract(scope="eth-grails", pools=["eth-grails"]),
+        LiquidityControlsContract(scope="eth-grails", pools=["eth-grails"]),
+        LoansPeripheralContract(scope="eth-grails", pools=["eth-grails"]),
+        LoansCoreContract(scope="eth-grails", pools=["eth-grails"]),
+
+        ## Swimming
+        CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
+        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
+        LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
+        LoansOTCContract(scope="swimming", pools=["swimming"]),
+
+        ## Deadpool
+        CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
+        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
+        LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
+        LoansOTCContract(scope="deadpool", pools=["deadpool"]),
+
+        ## Proxy Implementations
+        LendingPoolEthOTCImplContract(),
+        LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
+        CollateralVaultOTCImplContract(),
+        LoansOTCImplContract(),
+        LiquidationsOTCImplContract(),
+
+    ]
+    return {c.key(): c for c in contracts}
+
+
+def load_contracts(env: Environment) -> list[ContractConfig]:
+    contracts = contract_instances(env)
+    # for k, v in contracts.items():
+    #     print(k, v)
+
+    config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
     with open(config_file, "r") as f:
-        config = json.load(f)["tokens"]
+        config = json.load(f)
+    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(config["other"].values())
+    addresses = {c["key"]: c["contract"] for c in contract_configs if c["contract"]}
 
-    def load(contract: ContractConfig, token: str):
-        address = config[token].get(contract.config_key(), {}).get('contract', None)
-        if address and env != Environment.local:
-            contract.contract = contract.container.at(address)
-        return contract
+    if env != Environment.local:
+        for k, address in addresses.items():
+            c = contracts[k]
+            c.contract = c.container.at(address)
 
-    main_pools = ["weth", "usdc"]
-    additional_weth_pools = ["eth-squiggledao"]
-    weth_pools = ["weth"] + additional_weth_pools
-
-    common = [load(c, token.upper()) for token in TOKENS for c in [
-        GenesisContract(pools=TOKENS),
-        DelegationRegistryMockContract(pools=TOKENS),
-    ]]
-
-    if env == Environment.prod:
-        tokens = [
-            load(Token("weth", "token", None, scope="weth", pools=weth_pools), "WETH"),
-            load(Token("usdc", "token", None, scope="usdc", pools=["usdc"]), "USDC"),
-        ]
-    else:
-        tokens = [
-            load(WETH9MockContract(scope="weth", pools=weth_pools), "WETH"),
-            load(USDCMockContract(scope="usdc", pools=["usdc"]), "USDC"),
-        ]
-
-    additional_weth = [load(c, token.upper()) for token in additional_weth_pools for c in [
-        CollateralVaultCoreV2Contract(scope=token, pools=[token]),
-        CollateralVaultPeripheralContract(scope=token, pools=[token]),
-        CryptoPunksVaultCoreContract(scope=token, pools=[token]),
-        LiquidationsCoreContract(scope=token, pools=[token]),
-        LiquidationsPeripheralContract(scope=token, pools=[token]),
-    ]]
-
-    main_pools_shared = [load(c, token.upper()) for token in main_pools for c in [
-        CollateralVaultCoreV2Contract(scope=None, pools=main_pools),
-        CollateralVaultPeripheralContract(scope=None, pools=main_pools),
-        CryptoPunksVaultCoreContract(scope=None, pools=main_pools),
-        LiquidationsPeripheralContract(scope=None, pools=main_pools),
-        LiquidationsCoreContract(scope=None, pools=main_pools),
-    ]]
-
-    pool_specific = [load(c, token.upper()) for token in TOKENS for c in [
-        LendingPoolCoreContract(scope=token, pools=[token]),
-        LendingPoolLockContract(scope=token, pools=[token]),
-        LendingPoolPeripheralContract(scope=token, pools=[token]),
-        LoansCoreContract(scope=token, pools=[token]),
-        LoansPeripheralContract(scope=token, pools=[token]),
-        LiquidityControlsContract(scope=token, pools=[token]),
-    ]]
-
-    return common + tokens + additional_weth + main_pools_shared + pool_specific
+    return list(contracts.values())
 
 
 def store_contracts(env: Environment, contracts: list[ContractConfig]):
-    config_file = f"{Path.cwd()}/configs/{env.name}/contracts.json"
-    file_struct = {
-        'tokens': {
-            token.upper(): {
-                c.config_key(): {'contract': c.address()} for c in contracts if not c.nft and token in c.pools
-            } for token in TOKENS
-        }
-    }
+    config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
+    with open(config_file, "r") as f:
+        config = json.load(f)
+
+    contracts_dict = {c.key(): c for c in contracts}
+    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(config["other"].values())
+    for c in contract_configs:
+        k = c["key"]
+        if k in contracts_dict:
+            c["contract"] = contracts_dict[k].address()
+
     with open(config_file, "w") as f:
-        f.write(json.dumps(file_struct, indent=4, sort_keys=True))
+        f.write(json.dumps(config, indent=4, sort_keys=True))
 
 
 def load_nft_contracts(env: Environment) -> list[NFT]:
@@ -201,7 +242,7 @@ def load_borrowable_amounts(env: Environment) -> dict:
 
     collections = [v | {"collection_key": k} for k, v in values.items()]
     amounts = dict()
-    for pool in TOKENS:
+    for pool in POOLS:
         limit = lambda c: limit_for_pool(c, pool)
         max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
         amounts |= {(pool, collection_key(c)): limit(c) for c in max_collection_per_contract}
@@ -222,7 +263,7 @@ class DeploymentManager:
             case Environment.prod:
                 self.owner = accounts.load("prodacc")
 
-        self.context = DeploymentContext(self._get_contracts(), self.env, self.owner, TOKENS, self._get_configs())
+        self.context = DeploymentContext(self._get_contracts(), self.env, self.owner, POOLS, self._get_configs())
 
     def _get_contracts(self) -> dict[str, ContractConfig]:
         contracts = load_contracts(self.env)
@@ -239,19 +280,23 @@ class DeploymentManager:
         return {
             "nft_borrowable_amounts": nft_borrowable_amounts,
             "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
-            "lpp_whitelist_enabled.eth-squiggledao": True,
+            "lpp_whitelist_enabled.eth-grails": True,
             "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            "lpp_protocol_wallet_fees.eth-squiggledao": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.eth-grails": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_fees_share.weth": 0,
             "lpp_protocol_fees_share.usdc": 0,
-            "lpp_protocol_fees_share.eth-squiggledao": 0,
+            "lpp_protocol_fees_share.eth-grails": 0,
             "lpp_max_capital_efficiency.weth": 8000,
             "lpp_max_capital_efficiency.usdc": 8000,
-            "lpp_max_capital_efficiency.eth-squiggledao": 10000,
+            "lpp_max_capital_efficiency.eth-grails": 10000,
             "loansperipheral_ispayable.weth": True,
             "loansperipheral_ispayable.usdc": False,
-            "loansperipheral_ispayable.eth-squiggledao": True
+            "loansperipheral_ispayable.swimming": True,
+            "loansperipheral_ispayable.deadpool": False,
+            "loansperipheral_ispayable.eth-grails": True,
+            "lender.swimming": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
+            "lender.deadpool": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
         }
 
     def _save_state(self):

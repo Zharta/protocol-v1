@@ -157,6 +157,7 @@ event NFTPurchased:
     amount: uint256
     buyerAddress: address
     erc20TokenContract: address
+    loansCoreContract: address
     method: String[30]
 
 event AdminWithdrawal:
@@ -181,6 +182,11 @@ event PaymentReceived:
 @view
 @external
 def owner() -> address:
+    pass
+
+@view
+@external
+def admin() -> address:
     pass
 
 @view

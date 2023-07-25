@@ -140,6 +140,11 @@ def owner() -> address:
 
 @view
 @external
+def admin() -> address:
+    pass
+
+@view
+@external
 def proposedOwner() -> address:
     pass
 
@@ -186,6 +191,11 @@ def liquidityControlsContract() -> address:
 @view
 @external
 def genesisContract() -> address:
+    pass
+
+@view
+@external
+def isPayable() -> bool:
     pass
 
 @external

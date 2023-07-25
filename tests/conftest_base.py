@@ -1,15 +1,13 @@
 import pytest
 import boa
 import vyper
-import os
 from web3 import Web3
 from functools import cached_property
 
 
 # boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")
-boa.env.enable_gas_profiling()
+# boa.env.enable_gas_profiling()
 # boa.reset_env()
-boa.env.fork(url=os.environ["BOA_FORK_RPC_URL"])
 
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"

@@ -37,7 +37,6 @@ contracts = [
     "LoansCore",
     "auxiliary/token/ERC20",
     "auxiliary/token/ERC721",
-    "debug/SignatureDebug",
     "auxiliary/delegate/DelegationRegistryMock",
 ]
 
@@ -58,14 +57,28 @@ contracts_mapped = {
     "LoansCore": "loans_core",
     "auxiliary/token/ERC20": "token",
     "auxiliary/token/ERC721": "ERC721",
-    "debug/SignatureDebug": "signature_debug",
     "auxiliary/delegate/DelegationRegistryMock": "delegation_registry",
 }
 
 pool_tokens = {
-    "WETH": "WETH",
+    "ETH-GRAILS": "WETH",
+    "ETH-SQUIGGLEDAO": "WETH",
+    "SWIMMING": "WETH",
     "USDC": "USDC",
-    "ETH-SQUIGGLEDAO": "WETH"
+    "WETH": "WETH",
+}
+
+legacy_ids = {
+    "ETH-GRAILS": ["ETH-SQUIGGLEDAO"],
+    "WETH": [None],
+}
+
+pool_names = {
+    "ETH-GRAILS": "Grail NFTs",
+    "ETH-SQUIGGLEDAO": "Grail NFTs",
+    "SWIMMING": "OTC Test",
+    "USDC": "USDC",
+    "WETH": "ETH",
 }
 
 token_decimals = {
@@ -74,15 +87,19 @@ token_decimals = {
 }
 
 native_token = {
-    "WETH": True,
+    "ETH-GRAILS": True,
+    "ETH-SQUIGGLEDAO": True,
+    "SWIMMING": True,
     "USDC": False,
-    "ETH-SQUIGGLEDAO": True
+    "WETH": True,
 }
 
 genesis_enabled = {
-    "WETH": True,
+    "ETH-GRAILS": False,
+    "ETH-SQUIGGLEDAO": False,
+    "SWIMMING": False,
     "USDC": True,
-    "ETH-SQUIGGLEDAO": False
+    "WETH": True,
 }
 
 def read_file(filename: Path):
@@ -156,7 +173,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     project_path = Path.cwd() / "contracts"
 
     # get contract addresses config file
-    config_file = Path.cwd() / "configs" / env / "contracts.json"
+    config_file = Path.cwd() / "configs" / env / "pools.json"
     config = json.loads(read_file(config_file))
 
     nfts_file = Path.cwd() / "configs" / env / "collections.json"
@@ -169,17 +186,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     else:
         output_directory = Path("")
 
-    config = {
-        "pools": {
-            pool_id: {
-                "token_symbol": pool_tokens[pool_id],
-                "token_decimals": token_decimals[pool_tokens[pool_id]],
-                "use_native_token": native_token[pool_id],
-                "genesis_enabled": genesis_enabled[pool_id],
-                "contracts": pool_config,
-            }
-            for pool_id, pool_config in config["tokens"].items()}
-    }
+    config = {"pools": config["pools"]}
 
     for contract in contracts:
         contract_output_name = contract.split("/")[-1]
