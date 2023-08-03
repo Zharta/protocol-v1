@@ -15,6 +15,7 @@ env = os.environ.get("ENV", "dev")
 prefix = hashlib.sha256("zharta".encode()).hexdigest()[-5:]
 bucket_name = f"{prefix}-zharta-contracts-{env}"
 collections_table = f"collections-{env}"
+pools_table = f"pool-configs-{env}"
 s3 = boto3.resource("s3")
 dynamodb = boto3.resource("dynamodb")
 
@@ -145,6 +146,28 @@ def write_collections_to_dynamodb(data: dict):
         logger.error(f"Error writing to collections table: {e}")
 
 
+def write_pools_to_dynamodb(data: dict):
+    """Write pools to dynamodb pools table"""
+    try:
+        table = dynamodb.Table(pools_table)
+
+        for pool_id, pool_data in data["pools"].items():
+            indexed_attrs = list(enumerate(pool_data.items()))
+            update_expr = ", ".join(f"#k{i}=:v{i}" for i, (k, v) in indexed_attrs)
+            attrs = {f"#k{i}": k for i, (k, v) in indexed_attrs}
+            values = {f":v{i}": v for i, (k, v) in indexed_attrs}
+
+            table.update_item(
+                Key={"pool_id": pool_id},
+                UpdateExpression=f"SET {update_expr}",
+                ExpressionAttributeNames=attrs,
+                ExpressionAttributeValues=values,
+            )
+
+    except ClientError as e:
+        logger.error(f"Error writing to pools table: {e}")
+
+
 def dynamo_type(val):
     if isinstance(val, float):
         return Decimal(str(val))
@@ -247,6 +270,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         write_content_to_s3(Path("nfts.json"), json.dumps(nfts_final))
         if env != "local":
             write_collections_to_dynamodb(nfts)
+            write_pools_to_dynamodb(config)
 
     elif not write_to_s3 and output_directory:
         write_content_to_file(config_file, json.dumps(config))
