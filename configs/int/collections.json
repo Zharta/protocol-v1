@@ -1330,7 +1330,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x423bb9CC3746b936F46785aEfDbb28F35D65b10b",
+    "contract_address": "0x96D1000886E9F504184068DE3cd1270f0e00b286",
     "criteria": {
       "set_name": "kodas",
       "type": "token_not_in_set"
