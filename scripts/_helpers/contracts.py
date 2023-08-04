@@ -500,7 +500,7 @@ class LendingPoolEthOTCImplContract(InternalContract):
             contract,
             project.LendingPoolEthOTC,
             container_name="LendingPoolEthOTC",
-            deployment_deps={"token"},
+            deployment_deps=["weth.token"],
             config_deps={},
         )
 
