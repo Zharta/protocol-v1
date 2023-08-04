@@ -1,8 +1,7 @@
 {
   "autoglyphs": {
     "appraisal_method": "standard",
-    "conditions": {
-    },
+    "conditions": {},
     "contract_address": "",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
@@ -48,7 +47,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xC07927a4D78baeF9A5053574422aa48E62E985DD",
+    "contract_address": "0x6b4BDe1086912A6Cb24ce3dB43b3466e6c72AFd3",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -108,7 +107,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5D9361eC8eFca73bF0ba8001AFdE482F225F822B",
+    "contract_address": "0xD22363efee93190f82b52FCD62B7Dbcb920eF658",
     "debt_limit": 150,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -206,7 +205,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x237Ee74308dB72F6150f52c2ac755B53300a1fC3",
+    "contract_address": "0xBcb61491F1859f53438918F1A5aFCA542Af9D397",
     "debt_limit": 700,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -266,7 +265,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x81eE90A3D89f91fb8A27dbd3a9eB179c4E53A325",
+    "contract_address": "0x832698Daec363C9A7aB036C224Af5B21280b3AC6",
     "debt_limit": 50,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -345,7 +344,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5Ae300612EF2E53B3317Eb07cD0a8822F20AE479",
+    "contract_address": "0x741e3E1f81041c62C2A97d0b6E567AcaB09A6232",
     "criteria": {
       "max_id": 1000000,
       "min_id": 0,
@@ -408,7 +407,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xB734B673D9aaa3d19b10edfFa61F18663e848fD9",
+    "contract_address": "0x26f15335BB1C6a4C0B660eDd694a0555A9F1cce3",
     "debt_limit": 150,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -468,7 +467,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5BdE528eF1c4bECceA53975D39bE00dA848df157",
+    "contract_address": "0xcCB53c9429d32594F404d01fbe9E65ED1DCda8D9",
     "debt_limit": 15,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -528,7 +527,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xfae867E5af6bad2F6319b608778bdEa3844DC551",
+    "contract_address": "0xE7eD6747FaC5360f88a2EFC03E00d25789F69291",
     "debt_limit": 50,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -588,7 +587,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x49cf83a846EDd01575Fcea786C24336955E42f67",
+    "contract_address": "0x6951b5Bd815043E3F842c1b026b0Fa888Cc2DD85",
     "debt_limit": 125,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -706,7 +705,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x2347C310257cCD8BdE9e16CC108cb73F21336C60",
+    "contract_address": "0xdCF93F11ef216cEC9C07fd31dD801c9b2b39Afb4",
     "criteria": {
       "max_id": 79000000,
       "min_id": 78000000,
@@ -769,7 +768,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5DB39b8865Db3f58549C315B63F73CE57A3d78d2",
+    "contract_address": "0xFbD588c72B438faD4Cf7cD879c8F730Faa213Da0",
     "criteria": {
       "max_id": 216000000,
       "min_id": 215000000,
@@ -811,9 +810,8 @@
   },
   "gundead": {
     "appraisal_method": "standard",
-    "conditions": {
-    },
-    "contract_address": "0xC3B56a95966bC3c05aA9fA0ee4Bf8a899afd8851",
+    "conditions": {},
+    "contract_address": "0xf9C8Cf55f2E520B08d869df7bc76aa3d3ddDF913",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -837,9 +835,8 @@
   },
   "hm": {
     "appraisal_method": "standard",
-    "conditions": {
-    },
-    "contract_address": "0xAc786fdB7e79F72F92E17e2Ed3Aa03972fffAC9F",
+    "conditions": {},
+    "contract_address": "0x4D1B781ce59B8C184F63B99D39d6719A522f46B5",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -884,7 +881,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xeea13cb5c7429aBB9bc84cefa93b8073d7fd2480",
+    "contract_address": "0x2c15A315610Bfa5248E4CbCbd693320e9D8E03Cc",
     "debt_limit": 25.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -944,7 +941,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x31420eF2Def717e333F7298380b7CBa399f7C17B",
+    "contract_address": "0x4e3E7dC9D84dA7BE8f017f4C36153A61341736d4",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1004,7 +1001,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x4CC160c865CB8dcd420c9Eb4dBcfd2F99317D286",
+    "contract_address": "0xed00238F9A0F7b4d93842033cdF56cCB32C781c2",
     "debt_limit": 15,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1064,7 +1061,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x50F517fa3835D6722429e987dc1D9aB1a80F6c8c",
+    "contract_address": "0x654f70d8442EA18904FA1AD79114f7250F7E9336",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1124,7 +1121,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x3495B2609795AddC5fA325eEeE901F1c2759847F",
+    "contract_address": "0x42E8D004c84E6B5Bad559D3b5CE7947AADb9E0bc",
     "debt_limit": 100,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1184,7 +1181,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5b051c7aAFA8Bb34C1B199b83D3F40D2E2979367",
+    "contract_address": "0x7a3d735ee6873f17Dbdcab1d51B604928dc10d92",
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1244,7 +1241,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x0E435107E9e057F1cea11EE0104317DE914f917e",
+    "contract_address": "0x420b1099B9eF5baba6D92029594eF45E19A04A4A",
     "debt_limit": 125,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1282,12 +1279,11 @@
     "whitelisted": true
   },
   "oldquirkies": {
-    "contract_address": "0xEC118AbC2347533b08402ab85E9eb45F43cd0146"
+    "contract_address": "0xA95916C3D979400C7443961330b3092510a229Ba"
   },
   "opepen": {
     "appraisal_method": "standard",
-    "conditions": {
-    },
+    "conditions": {},
     "contract_address": "",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
@@ -1333,7 +1329,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xcCa93aF54060793ED3A7E6bd3Bb312CfC6C27e3A",
+    "contract_address": "0xe0aA552A10d7EC8760Fc6c246D391E698a82dDf9",
     "criteria": {
       "set_name": "kodas",
       "type": "token_not_in_set"
@@ -1397,7 +1393,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xBB41Eb7A00C0A8382D94A37fA30BB323421B7784",
+    "contract_address": "0x9E4c14403d7d9A8A782044E86a93CAE09D7B2ac9",
     "debt_limit": 25,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1457,7 +1453,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xcCa93aF54060793ED3A7E6bd3Bb312CfC6C27e3A",
+    "contract_address": "0xe0aA552A10d7EC8760Fc6c246D391E698a82dDf9",
     "criteria": {
       "set_name": "kodas",
       "type": "token_in_set"
@@ -1540,7 +1536,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x1dcF8304801e213914eE124a6FEE4AC215656955",
+    "contract_address": "0xADeD61D42dE86f9058386D1D0d739d20C7eAfC43",
     "debt_limit": 50,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1600,7 +1596,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x15485FDaC69393ECf720FFB373f1e999eDB2d14c",
+    "contract_address": "0xFE0F4Cf81B5c0a6Fd65a610FD9488F33aE9095cB",
     "debt_limit": 125,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1679,7 +1675,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x53Fc1ED64F2552b8583C2Acf83d24Ed66F8FBa66",
+    "contract_address": "0xaA7e46855e0506401214c9b1C35f3d889669609e",
     "debt_limit": 850,
     "floor_multiple_cap": 1.1,
     "floor_price_providers": [
@@ -1737,7 +1733,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xC647CaD7165308D6B87F06b2912aD295f924CEb9",
+    "contract_address": "0xF06D5f5BfFFCB6a52c84cfebc03AD35637728E73",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1797,7 +1793,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xacd25dE5C3d0fDB119016f24f4896B306bc4ca7a",
+    "contract_address": "0x724Ca58E1e6e64BFB1E15d7Eec0fe1E5f581c7bD",
     "debt_limit": 75,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1857,7 +1853,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x17e2c178cDef0d990E4b33930Cb50FB5f0ca2564",
+    "contract_address": "0xe65A7a341978d59d40d30FC23F5014FACB4f575A",
     "debt_limit": 40,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1917,7 +1913,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x2E9D9EB106C0E52E457E44BA6D19927aaAFc2635",
+    "contract_address": "0x82c83b7f88aef2eD99d4869D547b6ED28e69C8df",
     "criteria": {
       "max_id": 14000000,
       "min_id": 13000000,
@@ -1959,9 +1955,8 @@
   },
   "spaceriders": {
     "appraisal_method": "standard",
-    "conditions": {
-    },
-    "contract_address": "0x2217699536d237571D0C93960B3b14B6651C469A",
+    "conditions": {},
+    "contract_address": "0x34b97ffa01dc0DC959c5f1176273D0de3be914C1",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2006,7 +2001,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x16D98BABC68db06985D4025FC6b848FFB26f0EFf",
+    "contract_address": "0x4B0FccF53589c1F185B35db88bB315a0bBF9a3e0",
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2045,8 +2040,7 @@
   },
   "thecurrency": {
     "appraisal_method": "standard",
-    "conditions": {
-    },
+    "conditions": {},
     "contract_address": "",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
@@ -2071,9 +2065,8 @@
   },
   "theplague": {
     "appraisal_method": "floor_price",
-    "conditions": {
-    },
-    "contract_address": "0x5e3CEC8D417E9c8335d53D94902e4ee681dFBDA3",
+    "conditions": {},
+    "contract_address": "0x30375B532345B01cB8c2AD12541b09E9Aa53A93d",
     "debt_limit": 2.5,
     "floor_multiple_cap": 0.8,
     "floor_price_providers": [
@@ -2118,7 +2111,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x42E93ff627e146E09DccB32EEe593213BBd33f9f",
+    "contract_address": "0xb6286fAFd0451320ad6A8143089b216C2152c025",
     "debt_limit": 20.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2178,7 +2171,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x6313a418fabBF349D71Aa34eb9FD0066f0e578cA",
+    "contract_address": "0xc830Ad2FDfCC2f368fE5DeC93b1Dc72ecABb3691",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2238,7 +2231,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x375c7c356f262df415caF206c7Dc79c07Ee01cA6",
+    "contract_address": "0xa3B53dDCd2E3fC28e8E130288F2aBD8d5EE37472",
     "debt_limit": 10,
     "floor_multiple_cap": 7.5,
     "floor_price_providers": [
@@ -2298,7 +2291,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x05f76364BC7875D44B12691D24351B03a5860A86",
+    "contract_address": "0xDae02e4fE488952cFB8c95177154D188647a0146",
     "debt_limit": 10,
     "floor_multiple_cap": 5,
     "floor_price_providers": [
@@ -2358,7 +2351,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x68A9d1Da3eAA8767E41c9EDe1FB0141B0d0F8993",
+    "contract_address": "0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87",
     "debt_limit": 5,
     "floor_multiple_cap": 5,
     "floor_price_providers": [
@@ -2418,7 +2411,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5d244273a8aF07DFf944A5F7dB301FE8873E3908",
+    "contract_address": "0xbc8eCccb89650c3E796e803CB009BF9b898CB359",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2498,7 +2491,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x764c7A4A7c6e7Bc79e50b7bBcac6a8D6c171d640",
+    "contract_address": "0x602C71e4DAC47a042Ee7f46E0aee17F94A3bA0B6",
     "debt_limit": 850,
     "floor_multiple_cap": 1.1,
     "floor_price_providers": [
