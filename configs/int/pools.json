@@ -81,6 +81,7 @@
             "legacy_ids": [
                 "ETH-SQUIGGLEDAO"
             ],
+            "otc": false,
             "pool_name": "Grail NFTs",
             "token_decimals": 18,
             "token_symbol": "WETH",
@@ -143,6 +144,7 @@
             },
             "genesis_enabled": true,
             "legacy_ids": [],
+            "otc": true,
             "pool_name": "OTC Test",
             "token_decimals": 18,
             "token_symbol": "WETH",
@@ -209,6 +211,7 @@
             },
             "genesis_enabled": true,
             "legacy_ids": [],
+            "otc": false,
             "pool_name": "USDC",
             "token_decimals": 6,
             "token_symbol": "USDC",
@@ -277,6 +280,7 @@
             "legacy_ids": [
                 null
             ],
+            "otc": false,
             "pool_name": "ETH",
             "token_decimals": 18,
             "token_symbol": "WETH",
