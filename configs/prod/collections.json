@@ -2001,7 +2001,7 @@
             "ltv": 0.3
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xC9d198089D6c31d0Ca5Cc5B92C97a57A97BBfdE2",
