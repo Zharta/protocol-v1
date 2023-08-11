@@ -4,9 +4,9 @@
             "contract": "0x7B162a893F25f647Dc8c4B857222c83aCbffAb17",
             "key": "collateral_vault_otc_impl"
         },
-        "lending_pool_otc_impl": {
+        "lending_pool_eth_otc_impl": {
             "contract": "0xa28B2c8b36A0f78710c52EA11C6103dFcb05dbcc",
-            "key": "lending_pool_otc_impl"
+            "key": "lending_pool_eth_otc_impl"
         },
         "liquidations_otc_impl": {
             "contract": "0x7783BF29846aB325B1084D313Bf68aaAEC742D52",
@@ -85,6 +85,7 @@
             "pool_name": "Grail NFTs",
             "token_decimals": 18,
             "token_symbol": "WETH",
+            "underwriting_slug": "grails",
             "use_native_token": true
         },
         "SWIMMING": {
@@ -148,6 +149,7 @@
             "pool_name": "OTC Test",
             "token_decimals": 18,
             "token_symbol": "WETH",
+            "underwriting_slug": "grails",
             "use_native_token": true
         },
         "USDC": {
@@ -215,6 +217,7 @@
             "pool_name": "USDC",
             "token_decimals": 6,
             "token_symbol": "USDC",
+            "underwriting_slug": "stables",
             "use_native_token": false
         },
         "WETH": {
@@ -284,6 +287,7 @@
             "pool_name": "ETH",
             "token_decimals": 18,
             "token_symbol": "WETH",
+            "underwriting_slug": "main",
             "use_native_token": true
         }
     }
