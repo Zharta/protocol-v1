@@ -13,7 +13,7 @@
     "image_url": "https://i.seadn.io/gae/BX7cWHwWFzo6FVh-Ql_qzFbXtADQgLLlpLOl3l9tS6hUPlgtGHgHn_E1FxiHXmzNlvig00ZEAk9uZU-tMPT2Fg",
     "looksrare_url": "https://looksrare.org/collections/0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782",
     "mapped_address": "0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782",
-    "name": "[Internal] Autoglyphs",
+    "name": "[Sepolia] Autoglyphs",
     "opensea_slug": "autoglyphs",
     "opensea_url": "https://opensea.io/collection/autoglyphs",
     "simulation_token_id": 1,
@@ -871,27 +871,7 @@
   },
   "hm": {
     "appraisal_method": "standard",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": false
-      }
-    },
+    "conditions": { },
     "contract_address": "0x5A4b9aeFcEd0BBAf2a5cf81852b2Acb666ADEF45",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
@@ -907,20 +887,6 @@
     "opensea_slug": "hashmasks",
     "opensea_url": "https://opensea.io/collection/hashmasks",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
-      },
-      "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
-      }
-    },
     "tiers": [
       "7d",
       "30d",
@@ -1366,7 +1332,7 @@
     "image_url": "https://i.seadn.io/gcs/files/b1c9ed2e584b4f6e418bf1ca15311844.jpg?auto=format&dpr=1&w=1920",
     "looksrare_url": "https://looksrare.org/collections/0x6339e5E072086621540D0362C4e3Cea0d643E114",
     "mapped_address": "0x6339e5E072086621540D0362C4e3Cea0d643E114",
-    "name": "[Internal] Opepen Edition",
+    "name": "[Sepolia] Opepen Edition",
     "opensea_slug": "opepen-edition",
     "opensea_url": "https://opensea.io/collection/opepen-edition",
     "simulation_token_id": 1,
@@ -1562,7 +1528,7 @@
       "30d",
       "90d"
     ],
-    "underwriting_slug": "otherdeed-for-otherside",
+    "underwriting_slug": "otherside-koda",
     "whitelisted": true
   },
   "othersidekoda": {
@@ -2026,27 +1992,7 @@
   },
   "spaceriders": {
     "appraisal_method": "standard",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": true
-      }
-    },
+    "conditions": { },
     "contract_address": "0xC576a9Db2f307dA4C6C332913E860C839280C561",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
@@ -2158,7 +2104,7 @@
     "image_url": "https://i.seadn.io/gcs/files/2bf9bf9e1c30a066fde9408f641d5910.png?auto=format&dpr=1&w=1920",
     "looksrare_url": "https://looksrare.org/collections/0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
     "mapped_address": "0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
-    "name": "[Internal] Damien Hirst - The Currency",
+    "name": "[Sepolia] Damien Hirst - The Currency",
     "opensea_slug": "thecurrency",
     "opensea_url": "https://opensea.io/collection/thecurrency",
     "simulation_token_id": 1,
@@ -2171,27 +2117,7 @@
   },
   "theplague": {
     "appraisal_method": "floor_price",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 0.8,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": false
-      }
-    },
+    "conditions": {},
     "contract_address": "0x0473dFe63b30C66Ae5c92FCcE5bA6fd425F091D3",
     "debt_limit": 2.5,
     "floor_multiple_cap": 0.8,
