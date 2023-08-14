@@ -1,4 +1,29 @@
 {
+  "autoglyphs": {
+    "appraisal_method": "standard",
+    "conditions": {},
+    "contract_address": "0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782",
+    "debt_limit": 250,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gae/BX7cWHwWFzo6FVh-Ql_qzFbXtADQgLLlpLOl3l9tS6hUPlgtGHgHn_E1FxiHXmzNlvig00ZEAk9uZU-tMPT2Fg",
+    "looksrare_url": "https://looksrare.org/collections/0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782",
+    "mapped_address": "0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782",
+    "name": "Autoglyphs",
+    "opensea_slug": "autoglyphs",
+    "opensea_url": "https://opensea.io/collection/autoglyphs",
+    "simulation_token_id": 1,
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "underwriting_slug": "autoglyphs"
+  },
   "azuki": {
     "appraisal_method": "standard",
     "conditions": {
@@ -56,6 +81,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "azuki",
     "whitelisted": true
   },
   "bakc": {
@@ -115,6 +141,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "bored-ape-kennel-club",
     "whitelisted": true
   },
   "bayc": {
@@ -193,6 +220,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "bored-ape-yacht-club",
     "whitelisted": true
   },
   "beanz": {
@@ -252,6 +280,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "beanz-official",
     "whitelisted": true
   },
   "chromie": {
@@ -333,6 +362,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-chromie",
     "whitelisted": true
   },
   "clonex": {
@@ -392,6 +422,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "clone-x",
     "whitelisted": true
   },
   "cool": {
@@ -451,6 +482,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "cool-cats",
     "whitelisted": true
   },
   "degods": {
@@ -510,6 +542,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "degods",
     "whitelisted": true
   },
   "doodles": {
@@ -569,6 +602,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "doodles",
     "whitelisted": true
   },
   "fidenza": {
@@ -690,6 +724,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-fidenza",
     "whitelisted": true
   },
   "gazers": {
@@ -752,6 +787,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-gazers",
     "whitelisted": true
   },
   "gundead": {
@@ -811,6 +847,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "",
     "whitelisted": false
   },
   "hm": {
@@ -870,6 +907,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "",
     "whitelisted": false
   },
   "hvmtl": {
@@ -903,7 +941,7 @@
       "nftgo",
       "alchemy"
     ],
-    "image_url": "https://i.seadn.io/gae/a_frplnavZA9g4vN3SexO5rrtaBX_cBTaJYcgrPtwQIqPhzgzUendQxiwUdr51CGPE2QyPEa1DHnkW1wLrHAv5DgfC3BP-CWpFq6BA",
+    "image_url": "https://i.seadn.io/gcs/files/82a7f92df6d60e41327b69cdafea8831.jpg?auto=format&dpr=1&w=1920",
     "looksrare_url": "https://looksrare.org/collections/0x4b15a9c28034dC83db40CD810001427d3BD7163D",
     "mapped_address": "0x4b15a9c28034dC83db40CD810001427d3BD7163D",
     "name": "HV-MTL",
@@ -929,6 +967,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "the-hvmtl-heavy-metal",
     "whitelisted": true
   },
   "invsble": {
@@ -988,6 +1027,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "invisible-friends",
     "whitelisted": true
   },
   "lilpudgys": {
@@ -1047,6 +1087,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "lil-pudgys",
     "whitelisted": true
   },
   "mayc": {
@@ -1106,6 +1147,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "mutant-ape-yacht-club",
     "whitelisted": true
   },
   "meebits": {
@@ -1165,6 +1207,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "meebits",
     "whitelisted": true
   },
   "miladymaker": {
@@ -1224,6 +1267,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "milady-maker",
     "whitelisted": true
   },
   "moonbirds": {
@@ -1283,6 +1327,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "moonbirds",
     "whitelisted": true
   },
   "oldquirkies": {
@@ -1324,6 +1369,31 @@
       "90d"
     ],
     "whitelisted": false
+  },
+  "opepen": {
+    "appraisal_method": "standard",
+    "conditions": {},
+    "contract_address": "0x6339e5E072086621540D0362C4e3Cea0d643E114",
+    "debt_limit": 250,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gcs/files/b1c9ed2e584b4f6e418bf1ca15311844.jpg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x6339e5E072086621540D0362C4e3Cea0d643E114",
+    "mapped_address": "0x6339e5E072086621540D0362C4e3Cea0d643E114",
+    "name": "Opepen Edition",
+    "opensea_slug": "opepen-edition",
+    "opensea_url": "https://opensea.io/collection/opepen-edition",
+    "simulation_token_id": 1,
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "underwriting_slug": "opepen-edition"
   },
   "otherdeed": {
     "appraisal_method": "otherdeeds",
@@ -1386,6 +1456,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "otherdeed-for-otherside",
     "whitelisted": true
   },
   "otherdeedexpanded": {
@@ -1445,6 +1516,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "otherdeed-expanded",
     "whitelisted": true
   },
   "otherdeedkoda": {
@@ -1527,6 +1599,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "otherside-koda",
     "whitelisted": true
   },
   "othersidekoda": {
@@ -1605,6 +1678,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "otherside-koda",
     "whitelisted": true
   },
   "ppg": {
@@ -1664,6 +1738,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "pudgy-penguins",
     "whitelisted": true
   },
   "punk": {
@@ -1740,6 +1815,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "cryptopunks",
     "whitelisted": true
   },
   "quirkies": {
@@ -1799,6 +1875,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "quirkies-originals",
     "whitelisted": true
   },
   "rektguy": {
@@ -1858,6 +1935,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "rektguy",
     "whitelisted": true
   },
   "renga": {
@@ -1917,6 +1995,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "renga",
     "whitelisted": true
   },
   "ringers": {
@@ -1979,6 +2058,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-ringers",
     "whitelisted": true
   },
   "spaceriders": {
@@ -2038,6 +2118,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "",
     "whitelisted": true
   },
   "thecaptainz": {
@@ -2097,7 +2178,33 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "the-captainz",
     "whitelisted": true
+  },
+  "thecurrency": {
+    "appraisal_method": "standard",
+    "conditions": {},
+    "contract_address": "0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
+    "debt_limit": 250,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gcs/files/2bf9bf9e1c30a066fde9408f641d5910.png?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
+    "mapped_address": "0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
+    "name": "Damien Hirst - The Currency",
+    "opensea_slug": "thecurrency",
+    "opensea_url": "https://opensea.io/collection/thecurrency",
+    "simulation_token_id": 1,
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "underwriting_slug": "damien-hirst-the-currency"
   },
   "theplague": {
     "appraisal_method": "floor_price",
@@ -2156,6 +2263,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "",
     "whitelisted": false
   },
   "thepotatoz": {
@@ -2215,6 +2323,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "the-potatoz",
     "whitelisted": true
   },
   "vft": {
@@ -2274,6 +2383,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "veefriends",
     "whitelisted": true
   },
   "wgame": {
@@ -2333,6 +2443,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "wolf-game",
     "whitelisted": true
   },
   "wgamefarmer": {
@@ -2392,6 +2503,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "wolf-game-farmer",
     "whitelisted": true
   },
   "wgameland": {
@@ -2451,6 +2563,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "wolf-game-genesis-land",
     "whitelisted": true
   },
   "wow": {
@@ -2510,6 +2623,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "world-of-women",
     "whitelisted": true
   },
   "wpunk": {
@@ -2587,6 +2701,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "cryptopunks",
     "whitelisted": true
   }
 }

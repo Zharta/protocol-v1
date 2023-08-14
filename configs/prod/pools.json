@@ -85,6 +85,7 @@
             "pool_name": "Grail NFTs",
             "token_decimals": 18,
             "token_symbol": "WETH",
+            "underwriting_slug": "grails",
             "use_native_token": true
         },
         "USDC": {
@@ -152,6 +153,7 @@
             "pool_name": "USDC",
             "token_decimals": 6,
             "token_symbol": "USDC",
+            "underwriting_slug": "stables",
             "use_native_token": false
         },
         "WETH": {
@@ -221,6 +223,7 @@
             "pool_name": "ETH",
             "token_decimals": 18,
             "token_symbol": "WETH",
+            "underwriting_slug": "main",
             "use_native_token": true
         }
     }
