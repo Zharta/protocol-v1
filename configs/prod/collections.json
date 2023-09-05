@@ -625,7 +625,7 @@
             "ltv": 0.5
           }
         },
-        "token_whitelist": "fidenzas-squigglespool",
+        "token_whitelist": "fidenzas-grailspool",
         "whitelisted": true
       },
       "ETH-SQUIGGLEDAO": {
@@ -645,7 +645,7 @@
             "ltv": 0.5
           }
         },
-        "token_whitelist": "fidenzas-squigglespool",
+        "token_whitelist": "fidenzas-grailspool",
         "whitelisted": true
       },
       "USDC": {

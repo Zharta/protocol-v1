@@ -663,7 +663,7 @@
             "ltv": 1.0
           }
         },
-        "token_whitelist": "fidenzas-squigglespool",
+        "token_whitelist": "fidenzas-grailspool",
         "whitelisted": true
       },
       "USDC": {

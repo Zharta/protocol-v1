@@ -85,7 +85,7 @@
             "pool_name": "Grail NFTs",
             "token_decimals": 18,
             "token_symbol": "WETH",
-            "underwriting_slug": "grails",
+            "underwriting_slug": "main",
             "use_native_token": true
         },
         "SWIMMING": {
@@ -149,7 +149,7 @@
             "pool_name": "OTC Test",
             "token_decimals": 18,
             "token_symbol": "WETH",
-            "underwriting_slug": "grails",
+            "underwriting_slug": "main",
             "use_native_token": true
         },
         "USDC": {
