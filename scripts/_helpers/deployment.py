@@ -53,6 +53,9 @@ OTC_POOLS = {"swimming"}
 # POOLS = ["weth", "usdc", "eth-grails"]
 # OTC_POOLS = set()
 
+POOLS = ["weth", "usdc", "eth-grails"]
+OTC_POOLS = {}
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 warnings.filterwarnings("ignore")
@@ -60,8 +63,10 @@ warnings.filterwarnings("ignore")
 
 def contract_instances(env: Environment) -> dict:
     contracts = [
-        Token("weth", "token", None, scope="weth") if env == Environment.prod else WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming"]),
-        Token("usdc", "token", None, scope="usdc") if env == Environment.prod else USDCMockContract(scope="usdc", pools=["usdc", "deadpool"]),
+        # Token("weth", "token", None, scope="weth") if env == Environment.prod else WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming"]),
+        # Token("usdc", "token", None, scope="usdc") if env == Environment.prod else USDCMockContract(scope="usdc", pools=["usdc", "deadpool"]),
+        WETH9MockContract(scope="weth", pools=["weth", "eth-grails"]),
+        USDCMockContract(scope="usdc", pools=["usdc"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
 
@@ -102,23 +107,23 @@ def contract_instances(env: Environment) -> dict:
         LoansCoreContract(scope="eth-grails", pools=["eth-grails"]),
 
         ## Swimming
-        CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
-        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
-        LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
-        LoansOTCContract(scope="swimming", pools=["swimming"]),
+        # CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
+        # LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
+        # LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
+        # LoansOTCContract(scope="swimming", pools=["swimming"]),
 
         ## Deadpool
-        CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
-        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
-        LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
-        LoansOTCContract(scope="deadpool", pools=["deadpool"]),
+        # CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
+        # LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
+        # LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
+        # LoansOTCContract(scope="deadpool", pools=["deadpool"]),
 
         ## Proxy Implementations
-        LendingPoolEthOTCImplContract(),
-        LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
-        CollateralVaultOTCImplContract(),
-        LoansOTCImplContract(),
-        LiquidationsOTCImplContract(),
+        # LendingPoolEthOTCImplContract(),
+        # LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
+        # CollateralVaultOTCImplContract(),
+        # LoansOTCImplContract(),
+        # LiquidationsOTCImplContract(),
 
     ]
     return {c.key(): c for c in contracts}
