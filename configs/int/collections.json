@@ -1,9 +1,17 @@
 {
   "autoglyphs": {
     "appraisal_method": "standard",
-    "conditions": {},
+    "conditions": {
+      "WETH": {
+        "debt_limit": 150.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "tier_pricing": {
+    },
     "contract_address": "0x54740Bb8222FAFE7f01866414216d26c02BA3301",
-    "debt_limit": 250,
+    "debt_limit": 150,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
       "opensea",
@@ -22,7 +30,8 @@
       "30d",
       "90d"
     ],
-    "underwriting_slug": "autoglyphs"
+    "underwriting_slug": "autoglyphs",
+    "whitelisted": true
   },
   "azuki": {
     "appraisal_method": "standard",
