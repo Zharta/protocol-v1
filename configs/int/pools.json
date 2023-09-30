@@ -193,7 +193,7 @@
                     "key": "liquidations_core"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0xA62CAe8dbf5e3419D20dBBe0Ee6F6c9FF388D743",
+                    "contract": "0x1DB2bf25d50DD401e4F2973eDd19eEe001dAa312",
                     "key": "liquidations_peripheral"
                 },
                 "liquidity_controls": {
@@ -262,7 +262,7 @@
                     "key": "liquidations_core"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0xA62CAe8dbf5e3419D20dBBe0Ee6F6c9FF388D743",
+                    "contract": "0x1DB2bf25d50DD401e4F2973eDd19eEe001dAa312",
                     "key": "liquidations_peripheral"
                 },
                 "liquidity_controls": {
