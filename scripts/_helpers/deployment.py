@@ -171,6 +171,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         return contract
 
     return [load(c) for c in [
+        NFT("autoglyphs", None),
         NFT("azuki", None),
         NFT("bakc", None),
         NFT("bayc", None),
