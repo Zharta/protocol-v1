@@ -265,7 +265,7 @@ class DeploymentManager:
             case Environment.dev:
                 self.owner = accounts.load("devacc")
             case Environment.int:
-                self.owner = accounts.load("goerliacc")
+                self.owner = accounts.load("intacc")
             case Environment.prod:
                 self.owner = accounts.load("prodacc")
 
