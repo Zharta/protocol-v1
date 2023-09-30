@@ -23,8 +23,7 @@
     "opensea_slug": "autoglyphs",
     "opensea_url": "https://opensea.io/collection/autoglyphs",
     "simulation_token_id": 1,
-    "tier_pricing": {
-    },
+    "tier_pricing": {},
     "tiers": [
       "7d",
       "30d",
@@ -295,6 +294,26 @@
   "chromie": {
     "appraisal_method": "standard",
     "conditions": {
+      "ETH-GRAILS": {
+        "debt_limit": 150.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 1.0,
+            "ltv": 0.0
+          },
+          "7d": {
+            "apr": 1.0,
+            "ltv": 0.0
+          },
+          "90d": {
+            "apr": 0.115,
+            "ltv": 1.0
+          }
+        },
+        "token_whitelist": "squiggles-grailspool",
+        "whitelisted": true
+      },
       "USDC": {
         "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
@@ -305,7 +324,7 @@
           },
           "7d": {
             "apr": 0.35,
-            "ltv": 0.60
+            "ltv": 0.6
           },
           "90d": {
             "apr": 0.15,
@@ -331,26 +350,6 @@
             "ltv": 0.6
           }
         },
-        "whitelisted": true
-      },
-      "ETH-GRAILS": {
-        "debt_limit": 150.0,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 1.0,
-            "ltv": 0.0
-          },
-          "7d": {
-            "apr": 1.0,
-            "ltv": 0.0
-          },
-          "90d": {
-            "apr": 0.115,
-            "ltv": 1.0
-          }
-        },
-        "token_whitelist": "squiggles-grailspool",
         "whitelisted": true
       }
     },

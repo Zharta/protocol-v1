@@ -128,7 +128,7 @@
                     "key": "liquidations_core"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0xd8B4922667f8aB9EBb0d1C1ea97DD2328858520f",
+                    "contract": "0xeA15adFACD95fC0067589395B96f3587D0a44e8f",
                     "key": "liquidations_peripheral"
                 },
                 "liquidity_controls": {
@@ -197,7 +197,7 @@
                     "key": "liquidations_core"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0xd8B4922667f8aB9EBb0d1C1ea97DD2328858520f",
+                    "contract": "0xeA15adFACD95fC0067589395B96f3587D0a44e8f",
                     "key": "liquidations_peripheral"
                 },
                 "liquidity_controls": {
