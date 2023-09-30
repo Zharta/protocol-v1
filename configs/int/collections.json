@@ -8,8 +8,6 @@
         "whitelisted": true
       }
     },
-    "tier_pricing": {
-    },
     "contract_address": "0x54740Bb8222FAFE7f01866414216d26c02BA3301",
     "debt_limit": 150,
     "floor_multiple_cap": 1.0,
@@ -25,6 +23,7 @@
     "opensea_slug": "autoglyphs",
     "opensea_url": "https://opensea.io/collection/autoglyphs",
     "simulation_token_id": 1,
+    "tier_pricing": {},
     "tiers": [
       "7d",
       "30d",
@@ -880,7 +879,7 @@
   },
   "hm": {
     "appraisal_method": "standard",
-    "conditions": { },
+    "conditions": {},
     "contract_address": "0x5A4b9aeFcEd0BBAf2a5cf81852b2Acb666ADEF45",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
@@ -2001,7 +2000,7 @@
   },
   "spaceriders": {
     "appraisal_method": "standard",
-    "conditions": { },
+    "conditions": {},
     "contract_address": "0xC576a9Db2f307dA4C6C332913E860C839280C561",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
