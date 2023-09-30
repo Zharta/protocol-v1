@@ -399,11 +399,11 @@ class LiquidationsPeripheralContract(InternalContract):
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
         pool = self.pools[0]
         return [
-            context[pool, "liquidations_core"].contract,
+            context[context[pool, "liquidations_core"]].contract,
             2 * 86400,
             2 * 86400,
             2 * 86400,
-            context[pool, "token"].contract,
+            context[context[pool, "token"]].contract,
         ]
 
 
