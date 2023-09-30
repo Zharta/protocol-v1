@@ -421,6 +421,58 @@ def test_add_liquidation(
     assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, loan_id)
 
 
+def test_add_liquidation_without_pair(
+    liquidations_peripheral_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    lending_pool_peripheral_contract,
+    lending_pool_core_contract,
+    collateral_vault_core_contract,
+    otherdeed_for_otherside_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+    token_id: int = 95850
+
+    current_owner = otherdeed_for_otherside_contract.ownerOf(token_id)
+    otherdeed_for_otherside_contract.transferFrom(current_owner, borrower, token_id, sender=current_owner)
+
+    otherdeed_for_otherside_contract.safeTransferFrom(borrower, collateral_vault_core_contract.address, token_id, sender=borrower)
+
+    erc20_contract.approve(lending_pool_core_contract.address, LOAN_AMOUNT * 2)
+    lending_pool_peripheral_contract.deposit(LOAN_AMOUNT * 2)
+    lending_pool_peripheral_contract.sendFunds(contract_owner, LOAN_AMOUNT, sender=loans_peripheral_contract.address)
+
+    loan_id = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(otherdeed_for_otherside_contract.address, token_id, LOAN_AMOUNT)],
+        sender=loans_peripheral_contract.address
+    )
+    loans_core_contract.updateLoanStarted(borrower, loan_id, sender=loans_peripheral_contract.address)
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, sender=loans_peripheral_contract.address)
+
+    liquidations_peripheral_contract.addLiquidation(borrower, loan_id, erc20_contract.address)
+    event_liquidation_added = get_last_event(liquidations_peripheral_contract, name="LiquidationAdded")
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(otherdeed_for_otherside_contract.address, token_id)
+    liquidation_id = liquidation[0]
+    token_id = liquidation[2]
+
+    assert event_liquidation_added.liquidationId == liquidation_id
+    assert event_liquidation_added.collateralAddress == otherdeed_for_otherside_contract.address
+    assert event_liquidation_added.tokenId == token_id
+    assert event_liquidation_added.erc20TokenContract == erc20_contract.address
+    assert event_liquidation_added.gracePeriodPrice >= 0
+    assert event_liquidation_added.lenderPeriodPrice == event_liquidation_added.gracePeriodPrice
+    assert event_liquidation_added.loansCoreContract == loans_core_contract.address
+    assert event_liquidation_added.loanId == loan_id
+    assert event_liquidation_added.borrower == borrower
+
+
 def test_add_liquidation_loan_not_defaulted(
     liquidations_peripheral_contract,
     liquidations_core_contract,
