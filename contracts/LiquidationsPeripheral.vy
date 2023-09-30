@@ -36,10 +36,8 @@ interface ILiquidationsCore:
     def addLoanToLiquidated(_borrower: address, _loansCoreContract: address, _loanId: uint256): nonpayable
     def removeLiquidation(_collateralAddress: address, _tokenId: uint256): nonpayable
 
-
 interface ILoansCore:
     def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
-
 
 interface ILendingPoolPeripheral:
     def lenderFunds(_lender: address) -> InvestorFunds: view
@@ -62,15 +60,17 @@ interface ILendingPoolPeripheral:
     def lendingPoolCoreContract() -> address: view
     def protocolFeesShare() -> uint256: view
 
-
 interface ICollateralVaultPeripheral:
     def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address: view
     def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool: view
     def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: address, _tokenId: uint256): nonpayable
     def collateralVaultCoreDefaultAddress() -> address: view
 
+interface ISushiFactory:
+    def getPair(tokenA: address, tokenB: address) -> address: view
 
 interface ISushiRouter:
+    def factory() -> address: view
     def getAmountsOut(amountIn: uint256, path: DynArray[address, 2]) -> DynArray[uint256, 2]: view
     def swapExactTokensForTokens(
         amountIn: uint256,
@@ -99,6 +99,7 @@ interface CryptoPunksMarket:
 
 interface WrappedPunk:
     def burn(punkIndex: uint256): nonpayable
+
 
 # Structs
 
@@ -365,6 +366,14 @@ def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> 
         return 0
 
     if not INFTXVault(vaultAddr).allValidNFTs([_tokenId]):
+        return 0
+
+    # wrong setup of Sushi router
+    if ISushiRouter(self.sushiRouterAddress).factory() == empty(address):
+        return 0
+    
+    # token pair does not exist
+    if ISushiFactory(ISushiRouter(self.sushiRouterAddress).factory()).getPair(vaultAddr, wethAddress) == empty(address):
         return 0
 
     mintFee: uint256 = self._getNFTXVaultMintFee(vaultAddr)
