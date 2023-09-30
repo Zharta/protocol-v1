@@ -243,6 +243,11 @@ def hashmasks_contract(contract_owner, erc721_contract_def):
 
 
 @pytest.fixture(scope="module")
+def otherdeed_for_otherside_contract(contract_owner, erc721_contract_def):
+    return erc721_contract_def.at("0x34d85c9CDeB23FA97cb08333b511ac86E1C4E258")
+
+
+@pytest.fixture(scope="module")
 def delegation_registry_contract(contract_owner, delegation_registry_contract_def):
     return delegation_registry_contract_def.at("0x00000000000076A84feF008CDAbe6409d2FE638B")
 
