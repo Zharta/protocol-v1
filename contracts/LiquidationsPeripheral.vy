@@ -368,6 +368,10 @@ def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> 
     if not INFTXVault(vaultAddr).allValidNFTs([_tokenId]):
         return 0
 
+    # wrong setup of Sushi router
+    if ISushiRouter(self.sushiRouterAddress).factory() == empty(address):
+        return 0
+    
     # token pair does not exist
     if ISushiFactory(ISushiRouter(self.sushiRouterAddress).factory()).getPair(vaultAddr, wethAddress) == empty(address):
         return 0
