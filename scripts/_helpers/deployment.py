@@ -17,7 +17,6 @@ from .basetypes import (
     GenericExternalContract,
     InternalContract,
     NFT,
-    Token,
 )
 from .contracts import (
     CollateralVaultCoreV2Contract,
@@ -104,18 +103,6 @@ def contract_instances(env: Environment) -> dict:
         LoansPeripheralContract(scope="eth-grails", pools=["eth-grails"]),
         LoansCoreContract(scope="eth-grails", pools=["eth-grails"]),
 
-        ## Swimming
-        CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
-        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
-        LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
-        LoansOTCContract(scope="swimming", pools=["swimming"]),
-
-        ## Deadpool
-        CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
-        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
-        LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
-        LoansOTCContract(scope="deadpool", pools=["deadpool"]),
-
         ## Proxy Implementations
         LendingPoolEthOTCImplContract(),
         LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
@@ -124,6 +111,24 @@ def contract_instances(env: Environment) -> dict:
         LiquidationsOTCImplContract(),
 
     ]
+    if "swimming" in POOLS:
+        contracts += [
+
+            ## Swimming
+            CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
+            LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
+            LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
+            LoansOTCContract(scope="swimming", pools=["swimming"]),
+        ]
+    if "deadpool" in POOLS:
+        contracts += [
+
+            ## Deadpool
+            CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
+            LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
+            LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
+            LoansOTCContract(scope="deadpool", pools=["deadpool"]),
+        ]
     return {c.key(): c for c in contracts}
 
 
@@ -304,7 +309,7 @@ class DeploymentManager:
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contract.values() if c.nft]
-        contracts = [c for c in self.context.contract.values() if isinstance(c, InternalContract) or isinstance(c, Token)]
+        contracts = [c for c in self.context.contract.values() if isinstance(c, InternalContract)]
         store_nft_contracts(self.env, nft_contracts)
         store_contracts(self.env, contracts)
 

@@ -113,32 +113,6 @@ class NFT(ExternalContract):
         super().__init__(name, contract, project.ERC721, nft=True, container_name="ERC721")
 
 
-class Token(ExternalContract):
-
-    _config_key: str
-
-    def __init__(self, contract_name: str, name: str, contract: Optional[ContractInstance], scope=None, pools=None):
-        super().__init__("token", contract, project.ERC20, nft=False, container_name="ERC20", scope=scope, pools=pools)
-        self._config_key = name
-        self.container_name = contract_name
-
-    def config_key(self):
-        return self._config_key
-
-    def deploy(self, context: DeploymentContext, dryrun: bool = False):
-        if self.contract is not None:
-            print(f"WARNING: Deployment will override contract *{self.name}* at {self.contract}")
-        if not self.deployable(context):
-            raise Exception(f"Cant deploy contract {self} in current context")
-        args = [self.contract_name, self.contract_name, 18, 10**30]
-        kwargs = {"sender": context.owner} | context.gas_options()
-        kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
-        # print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}) [{self.name}]")
-        print(f"## {self.name} <- {self.container_name}.deploy({','.join(str(a) for a in args)}, {kwargs_str}) [{self.name}]")
-        if not dryrun:
-            self.contract = self.container.deploy(**kwargs)
-
-
 class GenericExternalContract(ExternalContract):
 
     _address: str
