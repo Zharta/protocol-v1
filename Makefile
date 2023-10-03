@@ -63,10 +63,10 @@ add-account:
 	${VENV}/bin/ape accounts import $(alias)
 
 console-local:
-	${VENV}/bin/ape console --network ethereum:local:ganache
+	${VENV}/bin/ape console --network ethereum:local:foundry
 
 deploy-local:
-	${VENV}/bin/ape run -I deployment --network ethereum:local:ganache
+	${VENV}/bin/ape run -I deployment --network ethereum:local:foundry
 
 console-dev:
 	${VENV}/bin/ape console --network https://network.dev.zharta.io

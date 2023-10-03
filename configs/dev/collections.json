@@ -8,8 +8,6 @@
         "whitelisted": true
       }
     },
-    "tier_pricing": {
-    },
     "contract_address": "0x69c70E143EC4E650cb66340D5205aDb0DbD0c4B5",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
@@ -25,6 +23,7 @@
     "opensea_slug": "autoglyphs",
     "opensea_url": "https://opensea.io/collection/autoglyphs",
     "simulation_token_id": 1,
+    "tier_pricing": {},
     "tiers": [
       "7d",
       "30d",

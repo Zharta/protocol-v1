@@ -48,13 +48,13 @@ from .contracts import (
 )
 
 ENV = Environment[os.environ.get("ENV", "local")]
-POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
-OTC_POOLS = {"swimming"}
-# POOLS = ["weth", "usdc", "eth-grails"]
-# OTC_POOLS = set()
 
-POOLS = ["weth", "usdc", "eth-grails"]
-OTC_POOLS = {}
+if ENV == Environment.dev:
+    POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
+elif ENV == Environment.int:
+    POOLS = ["weth", "usdc", "eth-grails", "swimming"]
+else:
+    POOLS = ["weth", "usdc", "eth-grails"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -63,10 +63,8 @@ warnings.filterwarnings("ignore")
 
 def contract_instances(env: Environment) -> dict:
     contracts = [
-        # Token("weth", "token", None, scope="weth") if env == Environment.prod else WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming"]),
-        # Token("usdc", "token", None, scope="usdc") if env == Environment.prod else USDCMockContract(scope="usdc", pools=["usdc", "deadpool"]),
-        WETH9MockContract(scope="weth", pools=["weth", "eth-grails"]),
-        USDCMockContract(scope="usdc", pools=["usdc"]),
+        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming"]),
+        USDCMockContract(scope="usdc", pools=["usdc", "deadpool"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
 
@@ -107,23 +105,23 @@ def contract_instances(env: Environment) -> dict:
         LoansCoreContract(scope="eth-grails", pools=["eth-grails"]),
 
         ## Swimming
-        # CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
-        # LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
-        # LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
-        # LoansOTCContract(scope="swimming", pools=["swimming"]),
+        CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
+        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
+        LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
+        LoansOTCContract(scope="swimming", pools=["swimming"]),
 
         ## Deadpool
-        # CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
-        # LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
-        # LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
-        # LoansOTCContract(scope="deadpool", pools=["deadpool"]),
+        CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
+        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
+        LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
+        LoansOTCContract(scope="deadpool", pools=["deadpool"]),
 
         ## Proxy Implementations
-        # LendingPoolEthOTCImplContract(),
-        # LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
-        # CollateralVaultOTCImplContract(),
-        # LoansOTCImplContract(),
-        # LiquidationsOTCImplContract(),
+        LendingPoolEthOTCImplContract(),
+        LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
+        CollateralVaultOTCImplContract(),
+        LoansOTCImplContract(),
+        LiquidationsOTCImplContract(),
 
     ]
     return {c.key(): c for c in contracts}
@@ -131,8 +129,6 @@ def contract_instances(env: Environment) -> dict:
 
 def load_contracts(env: Environment) -> list[ContractConfig]:
     contracts = contract_instances(env)
-    # for k, v in contracts.items():
-    #     print(k, v)
 
     config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
     with open(config_file, "r") as f:
@@ -159,6 +155,7 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
         k = c["key"]
         if k in contracts_dict:
             c["contract"] = contracts_dict[k].address()
+            c["contract_def"] = contracts_dict[k].container_name
 
     with open(config_file, "w") as f:
         f.write(json.dumps(config, indent=4, sort_keys=True))
