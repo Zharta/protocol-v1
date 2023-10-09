@@ -11,3 +11,4 @@ reports/
 .venv
 node_modules/
 .vscode
+contracts/.cache
