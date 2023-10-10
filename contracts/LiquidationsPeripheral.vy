@@ -225,6 +225,12 @@ event CryptoPunksAddressSet:
     currentValue: address
     newValue: address
 
+event MaxPenaltyFeeSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
 event LiquidationAdded:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
@@ -303,18 +309,20 @@ wrappedPunksAddress: public(address)
 cryptoPunksAddress: public(address)
 wethAddress: immutable(address)
 
+maxPenaltyFee: public(HashMap[address, uint256])
+
 ##### INTERNAL METHODS - VIEW #####
 
 @pure
 @internal
-def _penaltyFee(_principal: uint256) -> uint256:
-    return min(250 * _principal / 10000, as_wei_value(0.2, "ether"))
+def _penaltyFee(_principal: uint256, _max_penalty_fee: uint256) -> uint256:
+    return min(250 * _principal / 10000, _max_penalty_fee) if _max_penalty_fee > 0 else (250 * _principal / 10000)
 
 
 @pure
 @internal
-def _computeNFTPrice(principal: uint256, interestAmount: uint256) -> uint256:
-    return principal + interestAmount + self._penaltyFee(principal)
+def _computeNFTPrice(principal: uint256, interestAmount: uint256, _max_penalty_fee: uint256) -> uint256:
+    return principal + interestAmount + self._penaltyFee(principal, _max_penalty_fee)
 
 
 @pure
@@ -330,10 +338,10 @@ def _getNFTXVaultAddrFromCollateralAddr(_collateralAddress: address) -> address:
         return empty(address)
 
     vaultAddrs: DynArray[address, 2**10] = INFTXVaultFactory(self.nftxVaultFactoryAddress).vaultsForAsset(_collateralAddress)
-    
+
     if len(vaultAddrs) == 0:
         return empty(address)
-    
+
     return vaultAddrs[len(vaultAddrs) - 1]
 
 
@@ -371,7 +379,7 @@ def _getAutoLiquidationPrice(_collateralAddress: address, _tokenId: uint256) -> 
     # wrong setup of Sushi router
     if ISushiRouter(self.sushiRouterAddress).factory() == empty(address):
         return 0
-    
+
     # token pair does not exist
     if ISushiFactory(ISushiRouter(self.sushiRouterAddress).factory()).getPair(vaultAddr, wethAddress) == empty(address):
         return 0
@@ -717,6 +725,21 @@ def setCryptoPunksAddress(_address: address):
 
 
 @external
+def setMaxPenaltyFee(_erc20TokenContract: address, _fee: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _erc20TokenContract != empty(address), "addr is the zero addr"
+
+    log MaxPenaltyFeeSet(
+        _erc20TokenContract,
+        self.maxPenaltyFee[_erc20TokenContract],
+        _fee,
+        _erc20TokenContract
+    )
+
+    self.maxPenaltyFee[_erc20TokenContract] = _fee
+
+
+@external
 def addLiquidation(
     _borrower: address,
     _loanId: uint256,
@@ -725,7 +748,7 @@ def addLiquidation(
     borrowerLoan: Loan = ILoansCore(self.loansCoreAddresses[_erc20TokenContract]).getLoan(_borrower, _loanId)
     assert borrowerLoan.defaulted, "loan is not defaulted"
     assert not ILiquidationsCore(self.liquidationsCoreAddress).isLoanLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId), "loan already liquidated"
-    
+
     # APR from loan duration (maturity)
     loanAPR: uint256 = borrowerLoan.interest * 12
 
@@ -739,10 +762,12 @@ def addLiquidation(
             borrowerLoan.maturity - borrowerLoan.startTime
         )
 
-        gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount)
+        gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, self.maxPenaltyFee[_erc20TokenContract])
         unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(collateral.contractAddress)
         autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(unwrappedCollateralAddress, collateral.tokenId)
-        # autoLiquidationPrice: uint256 = 0
+        if _erc20TokenContract != wethAddress and autoLiquidationPrice > 0:
+            autoLiquidationPrice = self._getConvertedAutoLiquidationPrice(autoLiquidationPrice, _erc20TokenContract)
+
         lenderPeriodPrice: uint256 = 0
 
         if gracePeriodPrice > autoLiquidationPrice:
@@ -782,7 +807,7 @@ def addLiquidation(
             _loanId,
             _borrower
         )
-    
+
     ILiquidationsCore(self.liquidationsCoreAddress).addLoanToLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId)
 
 

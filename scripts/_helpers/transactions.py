@@ -334,6 +334,28 @@ class Transaction:
         )
 
     @staticmethod
+    def liquidationsperiph_set_max_fee(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        max_fee = context["max_penalty_fees"][pool]
+        contract = context[pool, "liquidations_peripheral"]
+        contract_instance = context[contract].contract
+        if not contract_instance:
+            print(f"[{pool}] Skipping setMaxPenaltyFee for undeployed {contract}")
+            return
+        erc20_contract_address = context[pool, "token"].address()
+        args = [erc20_contract_address, max_fee]
+        kwargs = {"sender": context.owner} | context.gas_options()
+
+        current_value = contract_instance.maxPenaltyFee(erc20_contract_address)
+        if current_value != max_fee:
+            print(f"[{pool}] Changing maxPenaltyFee for {pool}, from {current_value} to {max_value}")
+            print(f"## {contract}.setMaxPenaltyFee({','.join(str(a) for a in args)}")
+            if not dryrun:
+                contract_instance.setMaxPenaltyFee(*args, **kwargs)
+        else:
+            print(f"[{pool}] Skip setMaxPenaltyFee for {pool}, current value is already {max_fee}")
+
+
+    @staticmethod
     def liquidationsperiph_set_nftxvaultfactory(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         if context.env in [Environment.local, Environment.prod]:
             execute(context, context[pool, "liquidations_peripheral"], "setNFTXVaultFactoryAddress", "nftxvaultfactory", dryrun=dryrun)
