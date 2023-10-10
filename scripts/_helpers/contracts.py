@@ -387,7 +387,9 @@ class LiquidationsPeripheralContract(InternalContract):
         }
         wpunk = { "wpunk": with_pool(Transaction.liquidationsperiph_set_wpunks, pool) for pool in self.pools }
 
-        return add_loanscore | add_lpperiph | set_cvperiph | set_liquidatonscore | nftxvaultfactory | nftxmarketplacezap | sushirouter | wpunk
+        max_penaly_fee = {"max_penaly_fee": with_pool(Transaction.liquidationsperiph_set_max_fee, pool) for pool in self.pools}
+
+        return add_loanscore | add_lpperiph | set_cvperiph | set_liquidatonscore | nftxvaultfactory | nftxmarketplacezap | sushirouter | wpunk | max_penaly_fee
 
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
@@ -601,8 +603,9 @@ class LiquidationsOTCContract(MinimalProxy):
         set_cvperiph = {
             context[pool, "collateral_vault"]: with_pool(Transaction.liquidationsotc_set_cvperiph, pool) for pool in self.pools
         }
+        max_penaly_fee = {"max_penaly_fee": with_pool(Transaction.liquidationsperiph_set_max_fee, pool) for pool in self.pools}
 
-        return add_loanscore | add_lpperiph | set_cvperiph
+        return add_loanscore | add_lpperiph | set_cvperiph | max_penaly_fee
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
         return {"liquidations_otc_impl"}

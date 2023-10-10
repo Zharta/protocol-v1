@@ -131,6 +131,12 @@ event CollateralVaultAddressSet:
     currentValue: address
     newValue: address
 
+event MaxPenaltyFeeSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
 event LiquidationAdded:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
@@ -207,6 +213,7 @@ liquidatedLoans: HashMap[bytes32, bool]
 loansContract: public(ILoans)
 lendingPoolContract: public(ILendingPool)
 collateralVaultContract: public(ICollateralVault)
+maxPenaltyFee: public(HashMap[address, uint256])
 
 wethAddress: immutable(address)
 
@@ -244,14 +251,14 @@ def _getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidati
 
 @pure
 @internal
-def _penaltyFee(_principal: uint256) -> uint256:
-    return min(250 * _principal / 10000, as_wei_value(0.2, "ether"))
+def _penaltyFee(_principal: uint256, _max_penalty_fee: uint256) -> uint256:
+    return min(250 * _principal / 10000, _max_penalty_fee) if _max_penalty_fee > 0 else (250 * _principal / 10000)
 
 
 @pure
 @internal
-def _computeNFTPrice(principal: uint256, interestAmount: uint256) -> uint256:
-    return principal + interestAmount + self._penaltyFee(principal)
+def _computeNFTPrice(principal: uint256, interestAmount: uint256, _max_penalty_fee: uint256) -> uint256:
+    return principal + interestAmount + self._penaltyFee(principal, _max_penalty_fee)
 
 
 @pure
@@ -472,6 +479,21 @@ def setCollateralVaultPeripheralAddress(_address: address):
     self.collateralVaultContract = ICollateralVault(_address)
 
 
+@external
+def setMaxPenaltyFee(_erc20TokenContract: address, _fee: uint256):
+    assert msg.sender == self.owner, "msg.sender is not the owner"
+    assert _erc20TokenContract != empty(address), "addr is the zero addr"
+
+    log MaxPenaltyFeeSet(
+        _erc20TokenContract,
+        self.maxPenaltyFee[_erc20TokenContract],
+        _fee,
+        _erc20TokenContract
+    )
+
+    self.maxPenaltyFee[_erc20TokenContract] = _fee
+
+
 
 @external
 def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
@@ -493,7 +515,7 @@ def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: ad
             borrowerLoan.maturity - borrowerLoan.startTime
         )
 
-        gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount)
+        gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, self.maxPenaltyFee[_erc20TokenContract])
 
         lid: bytes32 = self._addLiquidation(
             collateral.contractAddress,

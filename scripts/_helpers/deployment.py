@@ -285,8 +285,13 @@ class DeploymentManager:
 
     def _get_configs(self) -> dict[str, Any]:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
+        max_penalty_fees = {
+            "WETH": 2 * 10**17,
+            "USDC": 300 * 10**6,
+        }
         return {
             "nft_borrowable_amounts": nft_borrowable_amounts,
+            "max_penalty_fees": max_penalty_fees,
             "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
             "lpp_whitelist_enabled.eth-grails": True,
             "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,

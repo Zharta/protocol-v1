@@ -1,5 +1,5 @@
 -r requirements.txt
-titanoboa @ git+https://github.com/vyperlang/titanoboa@44c14406eda4fefc0dad99a287dff7fae2172a18
+titanoboa @ git+https://github.com/vyperlang/titanoboa@e29a70640b67c3e87c248a582454ae6fe8eeec00
 black
 boto3
 click

@@ -399,3 +399,27 @@ def test_set_collateral_vault_address_zero_address(liquidations_peripheral, cont
     with boa.reverts("address is the zero addr"):
         liquidations_peripheral.setCollateralVaultPeripheralAddress(ZERO_ADDRESS, sender=contract_owner)
 
+
+def test_set_max_penalty_fee(liquidations_peripheral, contract_owner):
+    erc20 = boa.env.generate_address()
+    max_fee = 123
+    liquidations_peripheral.setMaxPenaltyFee(erc20, max_fee, sender=contract_owner)
+
+    event = get_last_event(liquidations_peripheral, name="MaxPenaltyFeeSet")
+
+    assert liquidations_peripheral.maxPenaltyFee(erc20) == max_fee
+
+    assert event.erc20TokenContract == erc20
+    assert event.currentValue == 0
+    assert event.newValue == max_fee
+
+
+def test_set_max_penalty_fee_wrong_sender(liquidations_peripheral, borrower):
+    erc20 = boa.env.generate_address()
+    with boa.reverts("msg.sender is not the owner"):
+        liquidations_peripheral.setMaxPenaltyFee(erc20, 1, sender=borrower)
+
+
+def test_set_max_penalty_fee_zero_address(liquidations_peripheral, contract_owner):
+    with boa.reverts("addr is the zero addr"):
+        liquidations_peripheral.setMaxPenaltyFee(ZERO_ADDRESS, 1, sender=contract_owner)

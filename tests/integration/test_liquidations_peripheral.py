@@ -406,12 +406,16 @@ def test_add_liquidation(
     assert liquidation[13] == loans_core_contract.address
     assert liquidation[14] == erc20_contract.address
 
+    penalty_fee = int(0.025 * LOAN_AMOUNT)
+    auto_liq_price_eth = liquidations_peripheral_contract.eval(f"self._getAutoLiquidationPrice({erc20_contract.address}, 0)")
+
+
     assert event.liquidationId.hex() == liquidation_id[2:]
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
     assert event.erc20TokenContract == erc20_contract.address
-    assert event.gracePeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether")))
-    assert event.lenderPeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether")))
+    assert event.gracePeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + penalty_fee
+    assert event.lenderPeriodPrice == max(auto_liq_price_eth, Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + penalty_fee)
     assert event.gracePeriodMaturity == liquidation[3] + GRACE_PERIOD_DURATION
     assert event.lenderPeriodMaturity == liquidation[3] + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
     assert event.loansCoreContract == loans_core_contract.address
@@ -419,6 +423,198 @@ def test_add_liquidation(
     assert event.borrower == borrower
 
     assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, loan_id)
+
+
+def test_add_liquidation_with_max_fee(
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    loans_peripheral_contract,
+    loans_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    erc721_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+    max_penalty_fee = Web3.to_wei(0.001, "ether")
+    erc721_contract.mint(collateral_vault_core_contract, 0)
+
+    loan_id = loans_core_contract.addLoan(
+        borrower,
+        LOAN_AMOUNT,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract.address, 0, LOAN_AMOUNT)],
+        sender=loans_peripheral_contract.address
+    )
+    loans_core_contract.updateLoanStarted(borrower, loan_id, sender=loans_peripheral_contract.address)
+    loans_core_contract.updateDefaultedLoan(borrower, loan_id, sender=loans_peripheral_contract.address)
+    liquidations_peripheral_contract.setMaxPenaltyFee(erc20_contract.address, max_penalty_fee)
+    liquidations_peripheral_contract.addLiquidation(borrower, loan_id, erc20_contract.address)
+    event = get_last_event(liquidations_peripheral_contract, name="LiquidationAdded")
+
+    liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+    loan = loans_core_contract.getLoan(borrower, loan_id)
+
+    interest_amount = int(Decimal(loan[1]) * Decimal(loan[2] * Decimal(loan[3] - loan[4])) / Decimal(25920000000))
+
+    assert event.collateralAddress == erc721_contract.address
+    assert event.tokenId == 0
+    assert event.erc20TokenContract == erc20_contract.address
+    assert event.gracePeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + max_penalty_fee
+    assert event.lenderPeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + max_penalty_fee
+    assert event.loanId == loan_id
+    assert event.borrower == borrower
+
+    assert liquidations_core_contract.isLoanLiquidated(borrower, loans_core_contract, loan_id)
+
+
+def test_add_liquidation_with_max_fee_usdc(
+    usdc_contracts_config,
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    usdc_loans_peripheral_contract,
+    usdc_loans_core_contract,
+    usdc_lending_pool_peripheral_contract,
+    usdc_lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    hashmasks_contract,
+    usdc_contract,
+    erc20_contract,
+    borrower,
+    contract_owner
+):
+    loan_amount = 10**9  # 1000 USDC
+    max_penalty_fee = 10**6  # 1 USDC
+
+    token_id = 0
+    current_owner = hashmasks_contract.ownerOf(token_id)
+    hashmasks_contract.transferFrom(current_owner, borrower, token_id, sender=current_owner)
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, 2*loan_amount, sender=contract_owner)
+    usdc_lending_pool_peripheral_contract.deposit(2*loan_amount, sender=contract_owner)
+    usdc_lending_pool_peripheral_contract.sendFunds(contract_owner, loan_amount, sender=usdc_loans_peripheral_contract.address)
+
+    loan_id = usdc_loans_core_contract.addLoan(
+        borrower,
+        loan_amount,
+        LOAN_INTEREST,
+        MATURITY,
+        [(hashmasks_contract.address, 0, loan_amount)],
+        sender=usdc_loans_peripheral_contract.address
+    )
+
+    usdc_loans_core_contract.updateLoanStarted(borrower, loan_id, sender=usdc_loans_peripheral_contract.address)
+    usdc_loans_core_contract.updateDefaultedLoan(borrower, loan_id, sender=usdc_loans_peripheral_contract.address)
+
+    liquidations_peripheral_contract.setMaxPenaltyFee(usdc_contract.address, max_penalty_fee)
+    liquidations_peripheral_contract.addLiquidation(
+        borrower,
+        loan_id,
+        usdc_contract
+    )
+    event = get_last_event(liquidations_peripheral_contract, name="LiquidationAdded")
+
+    loan = usdc_loans_core_contract.getLoan(borrower, loan_id)
+
+    interest_amount = int(Decimal(loan[1]) * Decimal(loan[2] * Decimal(loan[3] - loan[4])) / Decimal(25920000000))
+    auto_liq_price_eth = liquidations_peripheral_contract.eval(f"self._getAutoLiquidationPrice({hashmasks_contract.address}, 0)")
+    assert auto_liq_price_eth > 0
+
+    auto_liq_price_usdc = liquidations_peripheral_contract.eval(f"self._getConvertedAutoLiquidationPrice({auto_liq_price_eth}, {usdc_contract.address})")
+    assert auto_liq_price_usdc > 0
+
+    assert event.collateralAddress == hashmasks_contract.address
+    assert event.tokenId == 0
+    assert event.erc20TokenContract == usdc_contract.address
+    assert event.gracePeriodPrice == Decimal(loan_amount) + Decimal(interest_amount) + max_penalty_fee
+    assert event.lenderPeriodPrice == max(Decimal(loan_amount) + Decimal(interest_amount) + max_penalty_fee, auto_liq_price_usdc)
+    assert event.loanId == loan_id
+    assert event.borrower == borrower
+
+    assert liquidations_core_contract.isLoanLiquidated(borrower, usdc_loans_core_contract, loan_id)
+
+
+def test_pay_loan_liquidations_grace_period_usdc(
+    usdc_contracts_config,
+    liquidations_peripheral_contract,
+    liquidations_core_contract,
+    usdc_loans_peripheral_contract,
+    usdc_loans_core_contract,
+    usdc_lending_pool_peripheral_contract,
+    usdc_lending_pool_core_contract,
+    collateral_vault_peripheral_contract,
+    collateral_vault_core_contract,
+    liquidity_controls_contract,
+    erc721_contract,
+    usdc_contract,
+    borrower,
+    contract_owner
+):
+    loan_amount = 10**9  # 1000 USDC
+
+    erc721_contract.mint(collateral_vault_core_contract, 0, sender=contract_owner)
+
+    usdc_contract.approve(usdc_lending_pool_core_contract, 2*loan_amount, sender=contract_owner)
+    usdc_lending_pool_peripheral_contract.deposit(2*loan_amount, sender=contract_owner)
+    usdc_lending_pool_peripheral_contract.sendFunds(contract_owner, loan_amount, sender=usdc_loans_peripheral_contract.address)
+
+    loan_id = usdc_loans_core_contract.addLoan(
+        borrower,
+        loan_amount,
+        LOAN_INTEREST,
+        MATURITY,
+        [(erc721_contract.address, 0, loan_amount)],
+        sender=usdc_loans_peripheral_contract.address
+    )
+
+    usdc_loans_core_contract.updateLoanStarted(borrower, loan_id, sender=usdc_loans_peripheral_contract.address)
+    usdc_loans_core_contract.updateDefaultedLoan(borrower, loan_id, sender=usdc_loans_peripheral_contract.address)
+
+    liquidations_peripheral_contract.addLiquidation(
+        borrower,
+        loan_id,
+        usdc_contract
+    )
+
+    liquidation1 = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
+
+    usdc_contract.transfer(borrower, liquidation1[9], sender=contract_owner)
+    usdc_contract.approve(usdc_lending_pool_core_contract, liquidation1[9], sender=borrower)
+
+
+    liquidations_peripheral_contract.payLoanLiquidationsGracePeriod(
+        loan_id,
+        usdc_contract,
+        sender=borrower
+    )
+    event_liquidation_removed = get_last_event(liquidations_peripheral_contract, name="LiquidationRemoved")
+    event_nft_purchased = get_last_event(liquidations_peripheral_contract, name="NFTPurchased")
+    fund_receipt_events = get_events(liquidations_peripheral_contract, name="FundsReceipt")
+
+    assert event_liquidation_removed.liquidationId == liquidation1[0]
+    assert event_liquidation_removed.collateralAddress == erc721_contract.address
+    assert event_liquidation_removed.tokenId == 0
+    assert event_liquidation_removed.erc20TokenContract == usdc_contract.address
+    assert event_liquidation_removed.loansCoreContract == usdc_loans_core_contract.address
+    assert event_liquidation_removed.loanId == loan_id
+    assert event_liquidation_removed.borrower == borrower
+
+    assert event_nft_purchased.liquidationId == liquidation1[0]
+    assert event_nft_purchased.collateralAddress == erc721_contract.address
+    assert event_nft_purchased.tokenId == 0
+    assert event_nft_purchased.amount == liquidation1[9]
+    assert event_nft_purchased.buyerAddress == borrower
+    assert event_nft_purchased.erc20TokenContract == usdc_contract.address
+    assert event_nft_purchased.method == "GRACE_PERIOD"
+
+    for event in fund_receipt_events:
+        assert event.fundsOrigin == "liquidation_grace_period"
+
+    assert liquidations_core_contract.isLoanLiquidated(borrower, usdc_loans_core_contract, loan_id)
 
 
 def test_add_liquidation_without_pair(
@@ -1268,7 +1464,6 @@ def test_admin_liquidation_fail_on_collateral_in_liquidation(
             sender=contract_owner
         )
 
-@pytest.mark.skip(reason="fix RawEvent() takes no argument")
 def test_cryptopunks_nftx_buy(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -1341,7 +1536,6 @@ def test_cryptopunks_nftx_buy(
     assert event_funds_receipt.fundsOrigin == "liquidation_nftx"
 
 
-@pytest.mark.skip(reason="fix RawEvent() takes no argument")
 def test_hashmasks_nftx_buy(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -1414,7 +1608,6 @@ def test_hashmasks_nftx_buy(
     assert event_funds_receipt.fundsOrigin == "liquidation_nftx"
 
 
-@pytest.mark.skip(reason="fix RawEvent() takes no argument")
 def test_hashmasks_nftx_buy_usdc(
     liquidations_peripheral_contract,
     liquidations_core_contract,
@@ -1469,6 +1662,13 @@ def test_hashmasks_nftx_buy_usdc(
 
     boa.env.time_travel(seconds=GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION + 1)
 
+    auto_liq_price_eth = liquidations_peripheral_contract.eval(f"self._getAutoLiquidationPrice({hashmasks_contract.address}, 0)")
+    assert auto_liq_price_eth > 0
+
+    auto_liq_price_usdc = liquidations_peripheral_contract.eval(f"self._getConvertedAutoLiquidationPrice({auto_liq_price_eth}, {usdc_contract.address})")
+    assert auto_liq_price_usdc > 0
+    assert auto_liq_price_usdc * 10**6 < auto_liq_price_eth
+
     liquidations_peripheral_contract.liquidateNFTX(collateral_address, token_id, sender=contract_owner)
     event_liquidation_removed = get_last_event(liquidations_peripheral_contract, name="LiquidationRemoved")
     event_nft_purchased = get_last_event(liquidations_peripheral_contract, name="NFTPurchased")
@@ -1488,11 +1688,11 @@ def test_hashmasks_nftx_buy_usdc(
     assert event_nft_purchased.buyerAddress == liquidations_peripheral_contract.nftxMarketplaceZapAddress()
     assert event_nft_purchased.erc20TokenContract == usdc_contract.address
     assert event_nft_purchased.method == "BACKSTOP_PERIOD_NFTX"
+    assert event_nft_purchased.amount == auto_liq_price_usdc
 
     assert event_funds_receipt.fundsOrigin == "liquidation_nftx"
 
 
-@pytest.mark.skip(reason="fix RawEvent() takes no argument")
 def test_wpunks_nftx_buy(
     liquidations_peripheral_contract,
     liquidations_core_contract,
