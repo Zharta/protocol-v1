@@ -286,8 +286,8 @@ class DeploymentManager:
     def _get_configs(self) -> dict[str, Any]:
         nft_borrowable_amounts = load_borrowable_amounts(self.env)
         max_penalty_fees = {
-            "WETH": 2 * 10**17,
-            "USDC": 300 * 10**6,
+            "weth": 2 * 10**17,
+            "usdc": 300 * 10**6,
         }
         return {
             "nft_borrowable_amounts": nft_borrowable_amounts,
