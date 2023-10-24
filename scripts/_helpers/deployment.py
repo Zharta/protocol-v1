@@ -178,6 +178,8 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         return contract
 
     return [load(c) for c in [
+        NFT("anticyclone", None),
+        NFT("archetype", None),
         NFT("autoglyphs", None),
         NFT("azuki", None),
         NFT("bakc", None),
@@ -197,9 +199,12 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("lilpudgys", None),
         NFT("mayc", None),
         NFT("meebits", None),
+        NFT("memoriesofqilin", None),
+        NFT("meridian", None),
         NFT("miladymaker", None),
         NFT("moonbirds", None),
         NFT("oldquirkies", None),
+        NFT("opepen", None),
         NFT("otherdeed", None),
         NFT("otherdeedexpanded", None),
         NFT("otherdeedkoda", None),
@@ -212,12 +217,15 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("ringers", None),
         NFT("spaceriders", None),
         NFT("thecaptainz", None),
+        NFT("thecurrency", None),
+        NFT("theharvest", None),
         NFT("theplague", None),
         NFT("thepotatoz", None),
         NFT("vft", None),
         NFT("wgame", None),
         NFT("wgamefarmer", None),
         NFT("wgameland", None),
+        NFT("windsofyawanawa", None),
         NFT("wow", None),
         NFT("wpunk", None),
     ]]
