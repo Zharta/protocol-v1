@@ -1832,23 +1832,16 @@
   "ppg": {
     "appraisal_method": "standard",
     "conditions": {
-      "WETH": {
-        "debt_limit": 50.0,
+      "USDC": {
+        "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.25,
-            "ltv": 0.675
-          },
-          "7d": {
-            "apr": 0.5,
-            "ltv": 0.725
-          },
-          "90d": {
-            "apr": 0.2,
-            "ltv": 0.575
-          }
-        },
+        "tier_pricing": { },
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": { },
         "whitelisted": true
       }
     },
@@ -2349,7 +2342,7 @@
     "name": "Damien Hirst - The Currency",
     "opensea_slug": "thecurrency",
     "opensea_url": "https://opensea.io/collection/thecurrency",
-    "simulation_token_id": 1,
+    "simulation_token_id": 50,
     "tiers": [ ],
     "underwriting_slug": "damien-hirst-the-currency"
   },
