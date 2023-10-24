@@ -1,4 +1,64 @@
 {
+  "anticyclone": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x58ca89bcBF8796f583Fc7128A587f72C833Eb514",
+    "criteria": {
+      "max_id": 305000000,
+      "min_id": 304000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/A5QPbhrbiDiUsmLw5fc6p9uWc8rDFspy16_yCLlJHDVWGVnvPUeEtWG4FvrE1kIgdzjHpoRV0ZEX-5qhIy6qqChc-be0ALrtMRpMXg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Anticyclone by William Mapan",
+    "opensea_slug": "anticyclone-by-william-mapan",
+    "opensea_url": "https://opensea.io/collection/anticyclone-by-william-mapan",
+    "simulation_token_id": 304000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "anticyclone-by-william-mapan"
+  },
+  "archetype": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x4BB3421Be1C1f68cA8e9d4599a8FE93AFf67F46a",
+    "criteria": {
+      "max_id": 24000000,
+      "min_id": 23000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/lkRT5zSN8yjYwgv0G0TLoCosJq59Xn29upEo7hDLFENZYsUOFA8cCvnMmBNqr_MH9p7aQz0eKmL84_RZ5hBf1gva55_1W_hu_K6sCg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Archetype by Kjetil Golid",
+    "opensea_slug": "archetype-by-kjetil-golid",
+    "opensea_url": "https://opensea.io/collection/archetype-by-kjetil-golid",
+    "simulation_token_id": 23000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "archetype-art-blocks-curated"
+  },
   "autoglyphs": {
     "appraisal_method": "standard",
     "conditions": {
@@ -1166,6 +1226,66 @@
     "underwriting_slug": "meebits",
     "whitelisted": true
   },
+  "memoriesofqilin": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xcc43195CeC55844641A56A8a134243bc78e912b9",
+    "criteria": {
+      "max_id": 283000000,
+      "min_id": 282000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/0KmTGvcQRxI0g-1B3qV3RzpqpqHkfW43fH1fGMPWXPdT3CKuMJMYSWAgxNnwNQ_bqJMB8WIx4NuMN8T_qu4JFFfcf_UHInGoHDfp?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Memories of Qilin by Emily Xie",
+    "opensea_slug": "memories-of-qilin-by-emily-xie",
+    "opensea_url": "https://opensea.io/collection/memories-of-qilin-by-emily-xie",
+    "simulation_token_id": 282000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "memories-of-qilin-art-blocks-curated"
+  },
+  "meridian": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xaB572DD92a3D3455Ace4dA533C59b279da9c7e24",
+    "criteria": {
+      "max_id": 164000000,
+      "min_id": 163000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/o5Tt1FbaINxqvS47-r3weuCEaTKGbc5yZJS0yXtDyBDwVeyYVWr7angBivb3iGXKc_1Q-a-DBwxu_VMynRnPbJHVnkt4u1pbBTDz?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/",
+    "mapped_address": "",
+    "name": "[Internal] Meridian by Matt DesLauriers",
+    "opensea_slug": "meridian-by-matt-deslauriers",
+    "opensea_url": "https://opensea.io/collection/meridian-by-matt-deslauriers",
+    "simulation_token_id": 163000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "meridian-art-blocks-playground"
+  },
   "miladymaker": {
     "appraisal_method": "standard",
     "conditions": {
@@ -1291,15 +1411,18 @@
   },
   "opepen": {
     "appraisal_method": "standard",
-    "conditions": {},
-    "contract_address": "",
-    "debt_limit": 250,
-    "floor_multiple_cap": 1.0,
-    "floor_price_providers": [
-      "opensea",
-      "nftgo",
-      "alchemy"
-    ],
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x14e5a008102DF4f09ddd3081c054b0Ade6Dd29aE",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
     "image_url": "https://i.seadn.io/gcs/files/b1c9ed2e584b4f6e418bf1ca15311844.jpg?auto=format&dpr=1&w=1920",
     "looksrare_url": "https://looksrare.org/collections/0x6339e5E072086621540D0362C4e3Cea0d643E114",
     "mapped_address": "0x6339e5E072086621540D0362C4e3Cea0d643E114",
@@ -1307,11 +1430,8 @@
     "opensea_slug": "opepen-edition",
     "opensea_url": "https://opensea.io/collection/opepen-edition",
     "simulation_token_id": 1,
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
+    "tier_pricing": {},
+    "tiers": [],
     "underwriting_slug": "opepen-edition"
   },
   "otherdeed": {
@@ -2048,15 +2168,18 @@
   },
   "thecurrency": {
     "appraisal_method": "standard",
-    "conditions": {},
-    "contract_address": "",
-    "debt_limit": 250,
-    "floor_multiple_cap": 1.0,
-    "floor_price_providers": [
-      "opensea",
-      "nftgo",
-      "alchemy"
-    ],
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x1eB98E1b38DCc67898b4FBC27d52E1361Fc88Dc7",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
     "image_url": "https://i.seadn.io/gcs/files/2bf9bf9e1c30a066fde9408f641d5910.png?auto=format&dpr=1&w=1920",
     "looksrare_url": "https://looksrare.org/collections/0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
     "mapped_address": "0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
@@ -2064,12 +2187,38 @@
     "opensea_slug": "thecurrency",
     "opensea_url": "https://opensea.io/collection/thecurrency",
     "simulation_token_id": 1,
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
+    "tiers": [],
     "underwriting_slug": "damien-hirst-the-currency"
+  },
+  "theharvest": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xC45F3fF9b44f8D140710b84EDf1e9a0c8E80f058",
+    "criteria": {
+      "max_id": 408000000,
+      "min_id": 407000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gcs/files/e66607aa87a89005b573e509f8fa1ab0.png?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x99a9B7c1116f9ceEB1652de04d5969CcE509B069",
+    "mapped_address": "0x99a9B7c1116f9ceEB1652de04d5969CcE509B069",
+    "name": "[Internal] The Harvest by Per Kristian Stoveland",
+    "opensea_slug": "the-harvest-by-per-kristian-stoveland",
+    "opensea_url": "https://opensea.io/collection/the-harvest-by-per-kristian-stoveland",
+    "simulation_token_id": 407000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "the-harvest-by-per-kristian-stoveland"
   },
   "theplague": {
     "appraisal_method": "floor_price",
@@ -2395,6 +2544,31 @@
     ],
     "underwriting_slug": "wolf-game-genesis-land",
     "whitelisted": true
+  },
+  "windsofyawanawa": {
+    "appraisal_method": "standard",
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x763d45b0c02834F8068F021B2f0c55f1538a15f9",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gcs/files/98795786ed318c580e8438874c21603f.jpg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x7a63d17F5a59BCA04B6702F461b1f1A1c59b100B",
+    "mapped_address": "0x7a63d17F5a59BCA04B6702F461b1f1A1c59b100B",
+    "name": "[Internal] Winds of Yawanawa by Yawanawa and Refik Anadol",
+    "opensea_slug": "winds-of-yawanawa",
+    "opensea_url": "https://opensea.io/collection/winds-of-yawanawa",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "winds-of-yawanawa"
   },
   "wow": {
     "appraisal_method": "standard",
