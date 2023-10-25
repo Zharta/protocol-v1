@@ -181,7 +181,7 @@
             },
             "genesis_enabled": true,
             "legacy_ids": [],
-            "otc": false,
+            "otc": true,
             "otc_contracts": false,
             "pool_name": "USDC",
             "token_decimals": 6,
@@ -266,7 +266,7 @@
             "legacy_ids": [
                 null
             ],
-            "otc": false,
+            "otc": true,
             "otc_contracts": false,
             "pool_name": "ETH",
             "token_decimals": 18,
