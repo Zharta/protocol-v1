@@ -209,6 +209,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("otherdeedexpanded", None),
         NFT("otherdeedkoda", None),
         NFT("othersidekoda", None),
+        NFT("othersidemara", None),
         NFT("ppg", None),
         CryptoPunksMockContract(None) if env != Environment.prod else NFT("punk", None),
         NFT("quirkies", None),
