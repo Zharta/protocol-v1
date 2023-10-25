@@ -1626,52 +1626,22 @@
     "appraisal_method": "floor_price",
     "conditions": {
       "USDC": {
-        "debt_limit": 250000.0,
+        "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.4
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.3
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 50.0,
+        "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
-          },
-          "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
     "contract_address": "0xADeD61D42dE86f9058386D1D0d739d20C7eAfC43",
-    "debt_limit": 50,
-    "floor_multiple_cap": 1.0,
-    "floor_price_providers": [
-      "opensea",
-      "nftgo",
-      "alchemy"
-    ],
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0xE012Baf811CF9c05c408e879C399960D1f305903",
     "mapped_address": "0xE012Baf811CF9c05c408e879C399960D1f305903",
@@ -1679,26 +1649,28 @@
     "opensea_slug": "otherside-koda",
     "opensea_url": "https://opensea.io/collection/otherside-koda",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.2,
-        "ltv": 0.6
-      },
-      "7d": {
-        "apr": 0.4,
-        "ltv": 0.65
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
-      }
-    },
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
+    "tier_pricing": {},
+    "tiers": [],
     "underwriting_slug": "otherside-koda",
+    "whitelisted": true
+  },
+  "othersidemara": {
+    "appraisal_method": "floor_price",
+    "conditions": {},
+    "contract_address": "0x198120FB40B7301063fb7e2cd4b846D6E7d743c4",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/s/raw/files/310edfcfa8f4f4503ac78b87376a0ac1.png?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x3Bdca51226202Fc2a64211Aa35A8d95D61C6ca99",
+    "mapped_address": "0x3Bdca51226202Fc2a64211Aa35A8d95D61C6ca99",
+    "name": "[Internal] Otherside Mara",
+    "opensea_slug": "otherside-mara",
+    "opensea_url": "https://opensea.io/collection/otherside-mara",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "",
     "whitelisted": true
   },
   "ppg": {
@@ -1707,13 +1679,13 @@
       "USDC": {
         "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": { },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "WETH": {
         "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": { },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
