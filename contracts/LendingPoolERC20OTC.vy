@@ -24,6 +24,13 @@ struct InvestorFunds:
 
 # Events
 
+event ProxyCreated:
+    proxyAddress: address
+    owner: address
+    lender: address
+    protocolWallet: address
+    protocolFeesShare: uint256
+
 event OwnerProposed:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
@@ -453,6 +460,7 @@ def initialize(_owner: address, _lender: address, _protocolWallet: address, _pro
 def create_proxy(_protocolWallet: address, _protocolFeesShare: uint256, _lender: address) -> address:
     proxy: address = create_minimal_proxy_to(self)
     ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare)
+    log ProxyCreated(proxy, msg.sender, _lender, _protocolWallet, _protocolFeesShare)
     return proxy
 
 

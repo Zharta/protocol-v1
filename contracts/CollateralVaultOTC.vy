@@ -47,6 +47,10 @@ struct Offer:
 # Events
 
 
+event ProxyCreated:
+    proxyAddress: address
+    owner: address
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
@@ -286,6 +290,7 @@ def initialize(_owner: address):
 def create_proxy() -> address:
     proxy: address = create_minimal_proxy_to(self)
     ISelf(proxy).initialize(msg.sender)
+    log ProxyCreated(proxy, msg.sender)
     return proxy
 
 
