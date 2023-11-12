@@ -1109,7 +1109,7 @@ def adminLiquidation(_principal: uint256, _interestAmount: uint256, _loanPrincip
         _principal + _interestAmount,
         msg.sender,
         _erc20TokenContract,
-        liquidation.loansCoreContract,
+        self.loansCoreAddresses[_erc20TokenContract],
         "BACKSTOP_PERIOD_ADMIN"
     )
 

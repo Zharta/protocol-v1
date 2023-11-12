@@ -83,6 +83,15 @@ struct ReserveMessageContent:
 
 # Events
 
+event ProxyCreated:
+    proxyAddress: address
+    owner: address
+    interestAccrualPeriod: uint256
+    lendingPoolContract: address
+    collateralVaultContract: address
+    genesisContract: address
+    isPayable: bool
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
@@ -282,6 +291,17 @@ def create_proxy(
         _genesisContract,
         _isPayable
     )
+
+    log ProxyCreated(
+        proxy,
+        msg.sender,
+        _interestAccrualPeriod,
+        _lendingPoolContract,
+        _collateralVaultContract,
+        _genesisContract,
+        _isPayable
+    )
+
     return proxy
 
 

@@ -98,6 +98,11 @@ struct Liquidation:
 
 # Events
 
+event ProxyCreated:
+    proxyAddress: address
+    owner: address
+    gracePeriodDuration: uint256
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
@@ -403,6 +408,7 @@ def initialize(_owner: address, _gracePeriodDuration: uint256):
 def create_proxy(_gracePeriodDuration: uint256) -> address:
     proxy: address = create_minimal_proxy_to(self)
     ISelf(proxy).initialize(msg.sender, _gracePeriodDuration)
+    log ProxyCreated(proxy, msg.sender, _gracePeriodDuration)
     return proxy
 
 
