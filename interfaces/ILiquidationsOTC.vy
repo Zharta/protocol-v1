@@ -48,6 +48,9 @@ event ProxyCreated:
     proxyAddress: address
     owner: address
     gracePeriodDuration: uint256
+    loansContract: address
+    lendingPoolContract: address
+    collateralVaultContract: address
 
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
@@ -69,18 +72,6 @@ event AdminTransferred:
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-
-event LoansAddressSet:
-    currentValue: address
-    newValue: address
-
-event LendingPoolAddressSet:
-    currentValue: address
-    newValue: address
-
-event CollateralVaultAddressSet:
-    currentValue: address
-    newValue: address
 
 event MaxPenaltyFeeSet:
     erc20TokenContractIndexed: indexed(address)
@@ -238,11 +229,11 @@ def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: u
     pass
 
 @external
-def initialize(_owner: address, _gracePeriodDuration: uint256):
+def initialize(_owner: address, _gracePeriodDuration: uint256, _loansContract: address, _lendingPoolContract: address, _collateralVaultContract: address):
     pass
 
 @external
-def create_proxy(_gracePeriodDuration: uint256) -> address:
+def create_proxy(_gracePeriodDuration: uint256, _loansContract: address, _lendingPoolContract: address, _collateralVaultContract: address) -> address:
     pass
 
 @external
@@ -255,18 +246,6 @@ def claimOwnership():
 
 @external
 def setGracePeriodDuration(_duration: uint256):
-    pass
-
-@external
-def setLoansContract(_address: address):
-    pass
-
-@external
-def setLendingPoolContract(_address: address):
-    pass
-
-@external
-def setCollateralVaultPeripheralAddress(_address: address):
     pass
 
 @external

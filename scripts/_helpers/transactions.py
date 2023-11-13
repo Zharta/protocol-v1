@@ -294,36 +294,6 @@ class Transaction:
         )
 
     @staticmethod
-    def liquidationsotc_set_loans(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
-        execute(
-            context,
-            context[pool, "liquidations"],
-            "setLoansContract",
-            context[pool, "loans"],
-            dryrun=dryrun
-        )
-
-    @staticmethod
-    def liquidationsotc_set_lendingpool(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
-        execute(
-            context,
-            context[pool, "liquidations"],
-            "setLendingPoolContract",
-            context[pool, "lending_pool"],
-            dryrun=dryrun
-        )
-
-    @staticmethod
-    def liquidationsotc_set_cvperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
-        execute(
-            context,
-            context[pool, "liquidations"],
-            "setCollateralVaultPeripheralAddress",
-            context[pool, "collateral_vault"],
-            dryrun=dryrun
-        )
-
-    @staticmethod
     def liquidationsperiph_set_wpunks(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,

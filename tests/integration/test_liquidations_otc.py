@@ -44,19 +44,30 @@ class InvestorFunds():
 
 
 @pytest.fixture(scope="module")
-def liquidations_otc_contract(liquidations_otc_contract_def, contract_owner):
-    with boa.env.prank(contract_owner):
-        contract = liquidations_otc_contract_def.deploy()
-        proxy_address = contract.create_proxy(GRACE_PERIOD_DURATION)
-        return liquidations_otc_contract_def.at(proxy_address)
-
-
-@pytest.fixture(scope="module")
 def lendingpool_otc_contract(erc20_contract, lending_pool_eth_otc_contract_def, contract_owner, investor, protocol_wallet):
     with boa.env.prank(contract_owner):
         contract = lending_pool_eth_otc_contract_def.deploy(erc20_contract)
         proxy_address = contract.create_proxy(protocol_wallet, PROTOCOL_FEE, investor)
         return lending_pool_eth_otc_contract_def.at(proxy_address)
+
+
+@pytest.fixture(scope="module")
+def liquidations_otc_contract(
+    liquidations_otc_contract_def,
+    contract_owner,
+    lendingpool_otc_contract,
+    loans_core_contract,
+    collateral_vault_peripheral_contract
+):
+    with boa.env.prank(contract_owner):
+        contract = liquidations_otc_contract_def.deploy()
+        proxy_address = contract.create_proxy(
+            GRACE_PERIOD_DURATION,
+            loans_core_contract,
+            lendingpool_otc_contract,
+            collateral_vault_peripheral_contract
+        )
+        return liquidations_otc_contract_def.at(proxy_address)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -65,9 +76,7 @@ def setup(
     lendingpool_otc_contract,
     liquidations_otc_contract,
     erc20_contract,
-    loans_core_contract,
     loans_peripheral_contract,
-    collateral_vault_core_contract,
     collateral_vault_peripheral_contract,
     contract_owner,
 ):
@@ -75,9 +84,6 @@ def setup(
         lendingpool_otc_contract.setLoansPeripheralAddress(loans_peripheral_contract)
         lendingpool_otc_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
         collateral_vault_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
-        liquidations_otc_contract.setLendingPoolContract(lendingpool_otc_contract)
-        liquidations_otc_contract.setLoansContract(loans_core_contract)
-        liquidations_otc_contract.setCollateralVaultPeripheralAddress(collateral_vault_peripheral_contract)
         loans_peripheral_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
 
 
