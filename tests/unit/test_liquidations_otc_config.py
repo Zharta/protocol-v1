@@ -25,7 +25,10 @@ def liquidations_otc_impl(liquidations_otc_contract, owner):
 @pytest.fixture(scope="module")
 def liquidations_otc(liquidations_otc_contract, liquidations_otc_impl, weth, owner):
     with boa.env.prank(owner):
-        proxy_address = liquidations_otc_impl.create_proxy(GRACE_PERIOD_DURATION)
+        loans = boa.env.generate_address("loans")
+        lending_pool = boa.env.generate_address("loans")
+        collateral_vault = boa.env.generate_address("loans")
+        proxy_address = liquidations_otc_impl.create_proxy(GRACE_PERIOD_DURATION, loans, lending_pool, collateral_vault)
         return liquidations_otc_contract.at(proxy_address)
 
 
@@ -67,49 +70,6 @@ def test_claim_ownership(liquidations_otc, owner):
 
     assert liquidations_otc.owner() == random_account
     assert liquidations_otc.proposedOwner() == ZERO_ADDRESS
-
-
-def test_set_loans_address(liquidations_otc, owner):
-    loans_core = boa.env.generate_address()
-
-    with boa.reverts():
-        liquidations_otc.setLoansContract(loans_core, sender=boa.env.generate_address())
-
-    with boa.reverts():
-        liquidations_otc.setLoansContract(ZERO_ADDRESS, sender=owner)
-
-    liquidations_otc.setLoansContract(loans_core, sender=owner)
-    assert liquidations_otc.loansContract() == loans_core
-
-
-def test_set_lending_pool_address(liquidations_otc, owner):
-    peripheral_address = boa.env.generate_address()
-
-    # account not owner
-    with boa.reverts():
-        liquidations_otc.setLendingPoolContract(peripheral_address, sender=boa.env.generate_address())
-
-    # address is the zero addr
-    with boa.reverts():
-        liquidations_otc.setLendingPoolContract(ZERO_ADDRESS, sender=owner)
-
-    liquidations_otc.setLendingPoolContract(peripheral_address, sender=owner)
-    assert liquidations_otc.lendingPoolContract() == peripheral_address
-
-
-def test_set_collateral_vault_peripheral_address(liquidations_otc, owner):
-    peripheral_address = boa.env.generate_address()
-
-    # account not owner
-    with boa.reverts():
-        liquidations_otc.setCollateralVaultPeripheralAddress(peripheral_address, sender=boa.env.generate_address())
-
-    # address is the zero addr
-    with boa.reverts():
-        liquidations_otc.setCollateralVaultPeripheralAddress(ZERO_ADDRESS, sender=owner)
-
-    liquidations_otc.setCollateralVaultPeripheralAddress(peripheral_address, sender=owner)
-    assert liquidations_otc.collateralVaultContract() == peripheral_address
 
 
 def test_set_grace_period_duration(liquidations_otc, owner):

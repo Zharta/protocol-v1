@@ -46,7 +46,13 @@ interface ICollateralVault:
 
 
 interface ISelf:
-    def initialize(_owner: address, _gracePeriodDuration: uint256): nonpayable
+    def initialize(
+        _owner: address,
+        _gracePeriodDuration: uint256,
+        _loansContract: address,
+        _lendingPoolContract: address,
+        _collateralVaultContract: address
+    ): nonpayable
 
 
 
@@ -102,6 +108,9 @@ event ProxyCreated:
     proxyAddress: address
     owner: address
     gracePeriodDuration: uint256
+    loansContract: address
+    lendingPoolContract: address
+    collateralVaultContract: address
 
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
@@ -123,18 +132,6 @@ event AdminTransferred:
 event GracePeriodDurationChanged:
     currentValue: uint256
     newValue: uint256
-
-event LoansAddressSet:
-    currentValue: address
-    newValue: address
-
-event LendingPoolAddressSet:
-    currentValue: address
-    newValue: address
-
-event CollateralVaultAddressSet:
-    currentValue: address
-    newValue: address
 
 event MaxPenaltyFeeSet:
     erc20TokenContractIndexed: indexed(address)
@@ -390,20 +387,34 @@ def __init__():
 
 
 @external
-def initialize(_owner: address, _gracePeriodDuration: uint256):
+def initialize(
+    _owner: address,
+    _gracePeriodDuration: uint256,
+    _loansContract: address,
+    _lendingPoolContract: address,
+    _collateralVaultContract: address
+):
     assert _owner != empty(address), "owner is the zero address"
     assert self.owner == empty(address), "already initialized"
     assert _gracePeriodDuration > 0  # reason: duration is 0
 
     self.owner = _owner
     self.gracePeriodDuration = _gracePeriodDuration
+    self.loansContract = ILoans(_loansContract)
+    self.lendingPoolContract = ILendingPool(_lendingPoolContract)
+    self.collateralVaultContract = ICollateralVault(_collateralVaultContract)
 
 
 @external
-def create_proxy(_gracePeriodDuration: uint256) -> address:
+def create_proxy(
+    _gracePeriodDuration: uint256,
+    _loansContract: address,
+    _lendingPoolContract: address,
+    _collateralVaultContract: address
+) -> address:
     proxy: address = create_minimal_proxy_to(self)
-    ISelf(proxy).initialize(msg.sender, _gracePeriodDuration)
-    log ProxyCreated(proxy, msg.sender, _gracePeriodDuration)
+    ISelf(proxy).initialize(msg.sender, _gracePeriodDuration, _loansContract, _lendingPoolContract, _collateralVaultContract)
+    log ProxyCreated(proxy, msg.sender, _gracePeriodDuration, _loansContract, _lendingPoolContract, _collateralVaultContract)
     return proxy
 
 
@@ -448,36 +459,6 @@ def setGracePeriodDuration(_duration: uint256):
     )
 
     self.gracePeriodDuration = _duration
-
-
-@external
-def setLoansContract(_address: address):
-    assert msg.sender == self.owner  #reason: msg.sender is not the owner
-    assert _address != empty(address)  # reason: address is the zero addr
-
-    log LoansAddressSet(self.loansContract.address, _address)
-
-    self.loansContract = ILoans(_address)
-
-
-@external
-def setLendingPoolContract(_address: address):
-    assert msg.sender == self.owner  # reason: msg.sender is not the owner
-    assert _address != empty(address)  # reason: address is the zero addr
-
-    log LendingPoolAddressSet(self.lendingPoolContract.address, _address)
-
-    self.lendingPoolContract = ILendingPool(_address)
-
-
-@external
-def setCollateralVaultPeripheralAddress(_address: address):
-    assert msg.sender == self.owner  # reason: msg.sender is not the owner
-    assert _address != empty(address)  # reason: address is the zero addr
-
-    log CollateralVaultAddressSet(self.collateralVaultContract.address, _address)
-
-    self.collateralVaultContract = ICollateralVault(_address)
 
 
 @external

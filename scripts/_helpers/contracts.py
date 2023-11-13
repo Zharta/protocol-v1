@@ -598,28 +598,28 @@ class LiquidationsOTCContract(MinimalProxy):
         )
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
-        add_loanscore = {
-            context[pool, "loans"]: with_pool(Transaction.liquidationsotc_set_loans, pool) for pool in self.pools
-        }
-        add_lpperiph = {
-            context[pool, "lending_pool"]: with_pool(Transaction.liquidationsotc_set_lendingpool, pool) for pool in self.pools
-        }
-        set_cvperiph = {
-            context[pool, "collateral_vault"]: with_pool(Transaction.liquidationsotc_set_cvperiph, pool) for pool in self.pools
-        }
         max_penalty_fee = {
             f"{pool}.max_penalty_fee": with_pool(Transaction.liquidationsperiph_set_max_fee, pool)
             for pool in self.pools
             if pool in context["max_penalty_fees"]
         }
 
-        return add_loanscore | add_lpperiph | set_cvperiph | max_penalty_fee
+        return max_penalty_fee
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
-        return {"liquidations_otc_impl"}
+        return {"liquidations_otc_impl"}.union(
+            {context[pool, "loans"] for pool in self.pools},
+            {context[pool, "lending_pool"] for pool in self.pools},
+            {context[pool, "collateral_vault"] for pool in self.pools},
+        )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
-        return [2 * 86400]
+        return [
+            2 * 86400,
+            context[context[pool, "loans"]].contract,
+            context[context[pool, "lending_pool"]].contract,
+            context[context[pool, "collateral_vault"]].contract,
+        ]
 
 
 @dataclass

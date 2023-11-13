@@ -68,14 +68,6 @@ class Liquidation():
 
 
 @pytest.fixture(scope="module")
-def liquidations_otc_contract(liquidations_otc_contract_def, contract_owner):
-    with boa.env.prank(contract_owner):
-        contract = liquidations_otc_contract_def.deploy()
-        proxy_address = contract.create_proxy(GRACE_PERIOD_DURATION)
-        return liquidations_otc_contract_def.at(proxy_address)
-
-
-@pytest.fixture(scope="module")
 def lending_pool_otc_contract(erc20_contract, lending_pool_eth_otc_contract_def, contract_owner, investor, protocol_wallet):
     with boa.env.prank(contract_owner):
         contract = lending_pool_eth_otc_contract_def.deploy(erc20_contract)
@@ -117,6 +109,25 @@ def loans_otc_contract(
         return loans_otc_contract_def.at(proxy_address)
 
 
+@pytest.fixture(scope="module")
+def liquidations_otc_contract(
+    liquidations_otc_contract_def,
+    contract_owner,
+    loans_otc_contract,
+    lending_pool_otc_contract,
+    collateral_vault_otc_contract
+):
+    with boa.env.prank(contract_owner):
+        contract = liquidations_otc_contract_def.deploy()
+        proxy_address = contract.create_proxy(
+            GRACE_PERIOD_DURATION,
+            loans_otc_contract,
+            lending_pool_otc_contract,
+            collateral_vault_otc_contract
+        )
+        return liquidations_otc_contract_def.at(proxy_address)
+
+
 @pytest.fixture(scope="module", autouse=True)
 def setup(
     contracts_config,
@@ -132,9 +143,6 @@ def setup(
         lending_pool_otc_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
         collateral_vault_otc_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
         collateral_vault_otc_contract.setLoansAddress(loans_otc_contract)
-        liquidations_otc_contract.setLendingPoolContract(lending_pool_otc_contract)
-        liquidations_otc_contract.setLoansContract(loans_otc_contract)
-        liquidations_otc_contract.setCollateralVaultPeripheralAddress(collateral_vault_otc_contract)
         loans_otc_contract.setLiquidationsPeripheralAddress(liquidations_otc_contract)
 
 
