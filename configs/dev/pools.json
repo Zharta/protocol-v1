@@ -1,27 +1,27 @@
 {
     "other": {
         "collateral_vault_otc_impl": {
-            "contract": "0xc859A0721d3EF2449556a85753B177Ac37bb3666",
+            "contract": "0xA50248c99B398C8d41610D4caBeDCbFF2E14d45e",
             "contract_def": "CollateralVaultOTC",
             "key": "collateral_vault_otc_impl"
         },
         "lending_pool_eth_otc_impl": {
-            "contract": "0x1Dd8F5dCbe1D5e02AfC00B713bBe312AEfB048BA",
+            "contract": "0xD5Aa5C4861D571E235E3Ec3A6c9108632272a417",
             "contract_def": "LendingPoolEthOTC",
             "key": "lending_pool_eth_otc_impl"
         },
         "lending_pool_usdc_otc_impl": {
-            "contract": "0x4f53C468a3AaC1e528C2AB15f18D777D083d642E",
+            "contract": "0x135cB58256ff757a571c4cDac6968F3C78286B8C",
             "contract_def": "LendingPoolERC20OTC",
             "key": "lending_pool_usdc_otc_impl"
         },
         "liquidations_otc_impl": {
-            "contract": "0xa1910C6e0Fbd0E38cfBabAeC5D1C1D539F81CC63",
+            "contract": "0xe100996481411aD923c83f835e38AE53463B44BE",
             "contract_def": "LiquidationsOTC",
             "key": "liquidations_otc_impl"
         },
         "loans_otc_impl": {
-            "contract": "0x8b1B440724DCe2EE9779B58af841Ec59F545838B",
+            "contract": "0x9273b5EFBEC2aac6147bd47fA9Ed7a85E2174117",
             "contract_def": "LoansOTC",
             "key": "loans_otc_impl"
         }
@@ -30,17 +30,17 @@
         "DEADPOOL": {
             "contracts": {
                 "collateral_vault_core": {
-                    "contract": "0xbd75d3D471e827570bBECF4ecf5063D21C78db27",
+                    "contract": "0x0F665E1c2fEB494B21021718739eD708e6A62fC4",
                     "contract_def": "CollateralVaultOTC",
                     "key": "deadpool.collateral_vault"
                 },
                 "collateral_vault_peripheral": {
-                    "contract": "0xbd75d3D471e827570bBECF4ecf5063D21C78db27",
+                    "contract": "0x0F665E1c2fEB494B21021718739eD708e6A62fC4",
                     "contract_def": "CollateralVaultOTC",
                     "key": "deadpool.collateral_vault"
                 },
                 "cryptopunks_vault_core": {
-                    "contract": "0xbd75d3D471e827570bBECF4ecf5063D21C78db27",
+                    "contract": "0x0F665E1c2fEB494B21021718739eD708e6A62fC4",
                     "contract_def": "CollateralVaultOTC",
                     "key": "deadpool.collateral_vault"
                 },
@@ -55,22 +55,22 @@
                     "key": "genesis"
                 },
                 "lending_pool": {
-                    "contract": "0x4a870F35bc3Ab7B5029F86aCa240D1Ede1cc01eD",
+                    "contract": "0xe659B76fAe9F86b71e6A7f2dD2E4d6c0cA98075B",
                     "contract_def": "LendingPoolEthOTC",
                     "key": "deadpool.lending_pool"
                 },
                 "lending_pool_core": {
-                    "contract": "0x4a870F35bc3Ab7B5029F86aCa240D1Ede1cc01eD",
+                    "contract": "0xe659B76fAe9F86b71e6A7f2dD2E4d6c0cA98075B",
                     "contract_def": "LendingPoolEthOTC",
                     "key": "deadpool.lending_pool"
                 },
                 "liquidations_core": {
-                    "contract": "0x121605259cD3812F8b65460E581623B1Cb324F75",
+                    "contract": "0x0809d5C355306c9CE15df1f32b26ec94fa7d0B72",
                     "contract_def": "LiquidationsOTC",
                     "key": "deadpool.liquidations"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0x121605259cD3812F8b65460E581623B1Cb324F75",
+                    "contract": "0x0809d5C355306c9CE15df1f32b26ec94fa7d0B72",
                     "contract_def": "LiquidationsOTC",
                     "key": "deadpool.liquidations"
                 },
@@ -79,12 +79,12 @@
                     "key": "deadpool.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "0x41e8293D5Cd509582687CB96AFeECcfbcDc861eF",
+                    "contract": "0x2f386F066318fe950A249c4761448C6d3b23d772",
                     "contract_def": "LoansOTC",
                     "key": "deadpool.loans"
                 },
                 "loans_core": {
-                    "contract": "0x41e8293D5Cd509582687CB96AFeECcfbcDc861eF",
+                    "contract": "0x2f386F066318fe950A249c4761448C6d3b23d772",
                     "contract_def": "LoansOTC",
                     "key": "deadpool.loans"
                 },
@@ -189,20 +189,97 @@
             "underwriting_slug": "main",
             "use_native_token": true
         },
+        "ETH-META4": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0xE0B7Cd77Fc072C330AEC9523a1919367623028ac",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-meta4.collateral_vault"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0xE0B7Cd77Fc072C330AEC9523a1919367623028ac",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-meta4.collateral_vault"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0xE0B7Cd77Fc072C330AEC9523a1919367623028ac",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-meta4.collateral_vault"
+                },
+                "delegation_registry": {
+                    "contract": "0xEfE66132727f3831AB4E020357B5Bf615076Df6A",
+                    "contract_def": "DelegationRegistryMock",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0x5847798CE8c89e3Fff59AE5fA30BEC0d406b5687",
+                    "contract_def": "GenesisPass",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0x82791FCA7deAba2c16A86A52688474E727C36cc1",
+                    "contract_def": "LendingPoolEthOTC",
+                    "key": "eth-meta4.lending_pool"
+                },
+                "lending_pool_core": {
+                    "contract": "0x82791FCA7deAba2c16A86A52688474E727C36cc1",
+                    "contract_def": "LendingPoolEthOTC",
+                    "key": "eth-meta4.lending_pool"
+                },
+                "liquidations_core": {
+                    "contract": "0xD17d50cA6b33Dc4D76c16EFeD29B20524537EBaf",
+                    "contract_def": "LiquidationsOTC",
+                    "key": "eth-meta4.liquidations"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0xD17d50cA6b33Dc4D76c16EFeD29B20524537EBaf",
+                    "contract_def": "LiquidationsOTC",
+                    "key": "eth-meta4.liquidations"
+                },
+                "liquidity_controls": {
+                    "contract": "",
+                    "key": "eth-meta4.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0xc077063f70dAb2B0CFF8851506FD8B30aCF005E3",
+                    "contract_def": "LoansOTC",
+                    "key": "eth-meta4.loans"
+                },
+                "loans_core": {
+                    "contract": "0xc077063f70dAb2B0CFF8851506FD8B30aCF005E3",
+                    "contract_def": "LoansOTC",
+                    "key": "eth-meta4.loans"
+                },
+                "token": {
+                    "contract": "0xA2ea57c9C7ED08D48F5d92Dd774b6Fe55465d86f",
+                    "contract_def": "WETH9Mock",
+                    "key": "weth.token"
+                }
+            },
+            "genesis_enabled": false,
+            "legacy_ids": [],
+            "otc": true,
+            "otc_contracts": true,
+            "pool_name": "Meta4 Capital",
+            "token_decimals": 18,
+            "token_symbol": "WETH",
+            "underwriting_slug": "main",
+            "use_native_token": true
+        },
         "SWIMMING": {
             "contracts": {
                 "collateral_vault_core": {
-                    "contract": "0xa652f5A41Ba3A9FBe2DDb83D0F4bCCb245A6d61f",
+                    "contract": "0x1621c3deCc8d5586558c045Bbac1514f151a598e",
                     "contract_def": "CollateralVaultOTC",
                     "key": "swimming.collateral_vault"
                 },
                 "collateral_vault_peripheral": {
-                    "contract": "0xa652f5A41Ba3A9FBe2DDb83D0F4bCCb245A6d61f",
+                    "contract": "0x1621c3deCc8d5586558c045Bbac1514f151a598e",
                     "contract_def": "CollateralVaultOTC",
                     "key": "swimming.collateral_vault"
                 },
                 "cryptopunks_vault_core": {
-                    "contract": "0xa652f5A41Ba3A9FBe2DDb83D0F4bCCb245A6d61f",
+                    "contract": "0x1621c3deCc8d5586558c045Bbac1514f151a598e",
                     "contract_def": "CollateralVaultOTC",
                     "key": "swimming.collateral_vault"
                 },
@@ -217,22 +294,22 @@
                     "key": "genesis"
                 },
                 "lending_pool": {
-                    "contract": "0xdbFd1694e8bE90A88DE81a63Cb6245F074AA5361",
+                    "contract": "0xE376442b7B0682304feec9275BFC3ea9405F22C2",
                     "contract_def": "LendingPoolEthOTC",
                     "key": "swimming.lending_pool"
                 },
                 "lending_pool_core": {
-                    "contract": "0xdbFd1694e8bE90A88DE81a63Cb6245F074AA5361",
+                    "contract": "0xE376442b7B0682304feec9275BFC3ea9405F22C2",
                     "contract_def": "LendingPoolEthOTC",
                     "key": "swimming.lending_pool"
                 },
                 "liquidations_core": {
-                    "contract": "0x8e74330330012d72736760024dF761C3e7e98d58",
+                    "contract": "0x6041382e1356E8547a05fd9eBF8CffcF9F07b4B2",
                     "contract_def": "LiquidationsOTC",
                     "key": "swimming.liquidations"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0x8e74330330012d72736760024dF761C3e7e98d58",
+                    "contract": "0x6041382e1356E8547a05fd9eBF8CffcF9F07b4B2",
                     "contract_def": "LiquidationsOTC",
                     "key": "swimming.liquidations"
                 },
@@ -241,12 +318,12 @@
                     "key": "swimming.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "0xC0AB8c68013357bf0F152EE106c9009A6C921a27",
+                    "contract": "0xC1Dd624149B0b6c0517D6c9d9ee0113A4B7dE098",
                     "contract_def": "LoansOTC",
                     "key": "swimming.loans"
                 },
                 "loans_core": {
-                    "contract": "0xC0AB8c68013357bf0F152EE106c9009A6C921a27",
+                    "contract": "0xC1Dd624149B0b6c0517D6c9d9ee0113A4B7dE098",
                     "contract_def": "LoansOTC",
                     "key": "swimming.loans"
                 },

@@ -49,11 +49,11 @@ from .contracts import (
 ENV = Environment[os.environ.get("ENV", "local")]
 
 if ENV == Environment.dev:
-    POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "swimming", "deadpool"]
 elif ENV == Environment.int:
-    POOLS = ["weth", "usdc", "eth-grails", "swimming"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "swimming"]
 else:
-    POOLS = ["weth", "usdc", "eth-grails"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -62,7 +62,7 @@ warnings.filterwarnings("ignore")
 
 def contract_instances(env: Environment) -> dict:
     contracts = [
-        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming"]),
+        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4"]),
         USDCMockContract(scope="usdc", pools=["usdc", "deadpool"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
@@ -110,7 +110,13 @@ def contract_instances(env: Environment) -> dict:
         LoansOTCImplContract(),
         LiquidationsOTCImplContract(),
 
+        ## ETH-META4
+        CollateralVaultOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-meta4", pools=["eth-meta4"]),
+        LiquidationsOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+        LoansOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
     ]
+
     if "swimming" in POOLS:
         contracts += [
 
@@ -120,6 +126,7 @@ def contract_instances(env: Environment) -> dict:
             LiquidationsOTCContract(scope="swimming", pools=["swimming"]),
             LoansOTCContract(scope="swimming", pools=["swimming"]),
         ]
+
     if "deadpool" in POOLS:
         contracts += [
 
@@ -307,6 +314,7 @@ class DeploymentManager:
             "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_wallet_fees.eth-grails": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.eth-meta4": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_fees_share.weth": 0,
             "lpp_protocol_fees_share.usdc": 0,
             "lpp_protocol_fees_share.eth-grails": 0,
@@ -318,8 +326,10 @@ class DeploymentManager:
             "loansperipheral_ispayable.swimming": True,
             "loansperipheral_ispayable.deadpool": False,
             "loansperipheral_ispayable.eth-grails": True,
+            "loansperipheral_ispayable.eth-meta4": True,
             "lender.swimming": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
             "lender.deadpool": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
+            "lender.eth-meta4": "0x37B6a8fDee08Fe2F0aeAfDcf70DFC6ee842E27a9" if self.env == Environment.prod else "0x72651bb532a1feD9bb82266469242986ef5a70A3"
         }
 
     def _save_state(self):

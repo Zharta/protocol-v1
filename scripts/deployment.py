@@ -28,7 +28,14 @@ def cli(network):
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {"liquidations_peripheral"}
+    changes |= {
+        "collateral_vault_otc_impl",
+        "lending_pool_eth_otc_impl",
+        "lending_pool_usdc_otc_impl",
+        "liquidations_otc_impl",
+        "loans_otc_impl"
+    }
+
     dm.deploy(changes, dryrun=True)
 
     print("Done")

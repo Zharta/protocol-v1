@@ -614,6 +614,7 @@ class LiquidationsOTCContract(MinimalProxy):
         )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        pool = self.pools[0]
         return [
             2 * 86400,
             context[context[pool, "loans"]].contract,
