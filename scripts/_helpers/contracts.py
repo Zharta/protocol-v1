@@ -575,12 +575,12 @@ class LiquidationsOTCImplContract(InternalContract):
             contract,
             project.LiquidationsOTC,
             container_name="LiquidationsOTC",
-            deployment_deps={"token"},
+            deployment_deps={},
             config_deps={},
         )
 
     def deployment_args(self, context: DeploymentContext) -> list[Any]:
-        return [context[context["weth", "token"]].contract]
+        return []
 
 
 @dataclass

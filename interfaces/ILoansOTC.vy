@@ -36,6 +36,15 @@ struct ReserveMessageContent:
 
 # Events
 
+event ProxyCreated:
+    proxyAddress: address
+    owner: address
+    interestAccrualPeriod: uint256
+    lendingPoolContract: address
+    collateralVaultContract: address
+    genesisContract: address
+    isPayable: bool
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
@@ -51,10 +60,8 @@ event OwnerProposed:
     erc20TokenContract: address
 
 event AdminTransferred:
-    adminIndexed: indexed(address)
-    newAdminIndexed: indexed(address)
-    admin: address
-    newAdmin: address
+    currentValue: address
+    newValue: address
 
 event InterestAccrualPeriodChanged:
     erc20TokenContractIndexed: indexed(address)

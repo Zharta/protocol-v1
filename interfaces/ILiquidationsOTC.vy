@@ -44,6 +44,11 @@ struct Liquidation:
 
 # Events
 
+event ProxyCreated:
+    proxyAddress: address
+    owner: address
+    gracePeriodDuration: uint256
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)
@@ -59,7 +64,6 @@ event OwnerProposed:
 event AdminTransferred:
     adminIndexed: indexed(address)
     newAdminIndexed: indexed(address)
-    admin: address
     newAdmin: address
 
 event GracePeriodDurationChanged:
@@ -77,6 +81,12 @@ event LendingPoolAddressSet:
 event CollateralVaultAddressSet:
     currentValue: address
     newValue: address
+
+event MaxPenaltyFeeSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
 
 event LiquidationAdded:
     erc20TokenContractIndexed: indexed(address)
@@ -149,11 +159,6 @@ def owner() -> address:
 
 @view
 @external
-def admin() -> address:
-    pass
-
-@view
-@external
 def proposedOwner() -> address:
     pass
 
@@ -175,6 +180,11 @@ def lendingPoolContract() -> ILendingPool:
 @view
 @external
 def collateralVaultContract() -> ICollateralVault:
+    pass
+
+@view
+@external
+def maxPenaltyFee(arg0: address) -> uint256:
     pass
 
 @view
@@ -244,10 +254,6 @@ def claimOwnership():
     pass
 
 @external
-def changeAdmin(_admin: address):
-    pass
-
-@external
 def setGracePeriodDuration(_duration: uint256):
     pass
 
@@ -261,6 +267,10 @@ def setLendingPoolContract(_address: address):
 
 @external
 def setCollateralVaultPeripheralAddress(_address: address):
+    pass
+
+@external
+def setMaxPenaltyFee(_erc20TokenContract: address, _fee: uint256):
     pass
 
 @external
