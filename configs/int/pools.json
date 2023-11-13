@@ -1,22 +1,22 @@
 {
     "other": {
         "collateral_vault_otc_impl": {
-            "contract": "0x7B162a893F25f647Dc8c4B857222c83aCbffAb17",
+            "contract": "0xE89B5a76265beE60Ea49aF1fcf039746d065F3BF",
             "contract_def": "CollateralVaultOTC",
             "key": "collateral_vault_otc_impl"
         },
         "lending_pool_eth_otc_impl": {
-            "contract": "0xa28B2c8b36A0f78710c52EA11C6103dFcb05dbcc",
+            "contract": "0x14760331352d3507815065edBFE0db72F2E4e0d3",
             "contract_def": "LendingPoolEthOTC",
             "key": "lending_pool_eth_otc_impl"
         },
         "liquidations_otc_impl": {
-            "contract": "0x7783BF29846aB325B1084D313Bf68aaAEC742D52",
+            "contract": "0x340A130C872BE746d595bA68eb11033159439Bb6",
             "contract_def": "LiquidationsOTC",
             "key": "liquidations_otc_impl"
         },
         "loans_otc_impl": {
-            "contract": "0x50516FDBacDCaC4775a1Fb29c7Fb888d8dfAd22c",
+            "contract": "0xE07C6679302914D1EAd53736a20926fC019a895d",
             "contract_def": "LoansOTC",
             "key": "loans_otc_impl"
         }
@@ -102,6 +102,83 @@
             "otc": true,
             "otc_contracts": false,
             "pool_name": "Grail NFTs",
+            "token_decimals": 18,
+            "token_symbol": "WETH",
+            "underwriting_slug": "main",
+            "use_native_token": true
+        },
+        "ETH-META4": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "0xb82815b67c16b5169365223a3e0b90Cad5986912",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-meta4.collateral_vault"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "0xb82815b67c16b5169365223a3e0b90Cad5986912",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-meta4.collateral_vault"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "0xb82815b67c16b5169365223a3e0b90Cad5986912",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-meta4.collateral_vault"
+                },
+                "delegation_registry": {
+                    "contract": "0xB18CF5BCe0266C688361e10E4155709880d1b6D6",
+                    "contract_def": "DelegationRegistryMock",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0x36d3C8e6202a953A80e6a8168BC06C80Ff96334F",
+                    "contract_def": "GenesisPass",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "0x65971A505F19FD57e422A1D183159449823eC16a",
+                    "contract_def": "LendingPoolEthOTC",
+                    "key": "eth-meta4.lending_pool"
+                },
+                "lending_pool_core": {
+                    "contract": "0x65971A505F19FD57e422A1D183159449823eC16a",
+                    "contract_def": "LendingPoolEthOTC",
+                    "key": "eth-meta4.lending_pool"
+                },
+                "liquidations_core": {
+                    "contract": "0x396265FBEa082a4d937Ad7B03d91901d254eB18b",
+                    "contract_def": "LiquidationsOTC",
+                    "key": "eth-meta4.liquidations"
+                },
+                "liquidations_peripheral": {
+                    "contract": "0x396265FBEa082a4d937Ad7B03d91901d254eB18b",
+                    "contract_def": "LiquidationsOTC",
+                    "key": "eth-meta4.liquidations"
+                },
+                "liquidity_controls": {
+                    "contract": "",
+                    "key": "eth-meta4.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "0xbc3f1C7Ad58013723cB5b5c602320489705F88a3",
+                    "contract_def": "LoansOTC",
+                    "key": "eth-meta4.loans"
+                },
+                "loans_core": {
+                    "contract": "0xbc3f1C7Ad58013723cB5b5c602320489705F88a3",
+                    "contract_def": "LoansOTC",
+                    "key": "eth-meta4.loans"
+                },
+                "token": {
+                    "contract": "0xB7603602860a4816154F2A3bA4d6aBDDd8937b84",
+                    "contract_def": "WETH9Mock",
+                    "key": "weth.token"
+                }
+            },
+            "genesis_enabled": false,
+            "legacy_ids": [],
+            "otc": true,
+            "otc_contracts": true,
+            "pool_name": "Meta4 Capital",
             "token_decimals": 18,
             "token_symbol": "WETH",
             "underwriting_slug": "main",
