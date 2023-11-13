@@ -220,6 +220,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("thecaptainz", None),
         NFT("thecurrency", None),
         NFT("theharvest", None),
+        NFT("theeternalpump", None),
         NFT("theplague", None),
         NFT("thepotatoz", None),
         NFT("vft", None),
