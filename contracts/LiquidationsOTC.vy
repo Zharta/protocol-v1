@@ -220,8 +220,6 @@ lendingPoolContract: public(ILendingPool)
 collateralVaultContract: public(ICollateralVault)
 maxPenaltyFee: public(HashMap[address, uint256])
 
-wethAddress: immutable(address)
-
 ##### INTERNAL METHODS - VIEW #####
 
 @pure
@@ -387,11 +385,8 @@ def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: u
 
 ##### EXTERNAL METHODS - WRITE #####
 @external
-def __init__(_wethAddress: address):
-    assert _wethAddress != empty(address)  # reason: address is the zero address
-
+def __init__():
     self.owner = msg.sender
-    wethAddress = _wethAddress
 
 
 @external

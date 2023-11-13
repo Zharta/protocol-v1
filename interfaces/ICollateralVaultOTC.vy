@@ -9,6 +9,10 @@ struct Offer:
 
 # Events
 
+event ProxyCreated:
+    proxyAddress: address
+    owner: address
+
 event OwnershipTransferred:
     ownerIndexed: indexed(address)
     proposedOwnerIndexed: indexed(address)

@@ -121,6 +121,12 @@ event CryptoPunksAddressSet:
     currentValue: address
     newValue: address
 
+event MaxPenaltyFeeSet:
+    erc20TokenContractIndexed: indexed(address)
+    currentValue: uint256
+    newValue: uint256
+    erc20TokenContract: address
+
 event LiquidationAdded:
     erc20TokenContractIndexed: indexed(address)
     collateralAddressIndexed: indexed(address)
@@ -256,6 +262,11 @@ def cryptoPunksAddress() -> address:
 
 @view
 @external
+def maxPenaltyFee(arg0: address) -> uint256:
+    pass
+
+@view
+@external
 def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4:
     pass
 
@@ -326,6 +337,10 @@ def setWrappedPunksAddress(_address: address):
 
 @external
 def setCryptoPunksAddress(_address: address):
+    pass
+
+@external
+def setMaxPenaltyFee(_erc20TokenContract: address, _fee: uint256):
     pass
 
 @external

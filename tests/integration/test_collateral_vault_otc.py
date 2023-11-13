@@ -5,9 +5,9 @@ from ..conftest_base import ZERO_ADDRESS, get_last_event
 
 
 @pytest.fixture(scope="module")
-def liquidations_otc_contract(erc20_contract, liquidations_otc_contract_def, contract_owner):
+def liquidations_otc_contract(liquidations_otc_contract_def, contract_owner):
     with boa.env.prank(contract_owner):
-        contract = liquidations_otc_contract_def.deploy(erc20_contract)
+        contract = liquidations_otc_contract_def.deploy()
         proxy_address = contract.create_proxy(50)
         return liquidations_otc_contract_def.at(proxy_address)
 

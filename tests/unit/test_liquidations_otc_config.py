@@ -17,9 +17,9 @@ def weth():
 
 
 @pytest.fixture(scope="module")
-def liquidations_otc_impl(liquidations_otc_contract, weth, owner):
+def liquidations_otc_impl(liquidations_otc_contract, owner):
     with boa.env.prank(owner):
-        return liquidations_otc_contract.deploy(weth)
+        return liquidations_otc_contract.deploy()
 
 
 @pytest.fixture(scope="module")
