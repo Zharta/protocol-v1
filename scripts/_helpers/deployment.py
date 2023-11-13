@@ -329,7 +329,7 @@ class DeploymentManager:
             "loansperipheral_ispayable.eth-meta4": True,
             "lender.swimming": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
             "lender.deadpool": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
-            "lender.eth-meta4": "0x37B6a8fDee08Fe2F0aeAfDcf70DFC6ee842E27a9" if self.env == Environment.prod else "0x72651bb532a1feD9bb82266469242986ef5a70A3"
+            "lender.eth-meta4": "0x37B6a8fDee08Fe2F0aeAfDcf70DFC6ee842E27a9" if self.env == Environment.prod else self.owner,
         }
 
     def _save_state(self):
