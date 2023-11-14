@@ -2255,6 +2255,7 @@
       "ETH-META4": {
         "floor_multiple_cap": 1.0,
         "tier_pricing": {},
+        "token_whitelist": "theeternalpump-meta4pool",
         "whitelisted": true
       },
       "WETH": {
