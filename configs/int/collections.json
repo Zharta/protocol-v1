@@ -1800,6 +1800,12 @@
     "appraisal_method": "punks",
     "check_flagging": false,
     "conditions": {
+      "USDC-TAILORED1": {
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "token_whitelist": "punk-tailored1pool",
+        "whitelisted": true
+      },
       "USDC": {
         "debt_limit": 800000.0,
         "floor_multiple_cap": 1.0,
