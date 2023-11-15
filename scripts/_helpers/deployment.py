@@ -51,7 +51,7 @@ ENV = Environment[os.environ.get("ENV", "local")]
 if ENV == Environment.dev:
     POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "swimming", "deadpool"]
 elif ENV == Environment.int:
-    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "swimming"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "swimming", "usdc-tailored1"]
 else:
     POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "usdc-tailored1"]
 
