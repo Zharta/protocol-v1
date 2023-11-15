@@ -11,7 +11,7 @@
             "key": "lending_pool_eth_otc_impl"
         },
         "lending_pool_usdc_otc_impl": {
-            "contract": "",
+            "contract": "0xBb79B6e309C549725469b77836128E2dAa5554f1",
             "contract_def": "LendingPoolERC20OTC",
             "key": "lending_pool_usdc_otc_impl"
         },
@@ -352,47 +352,47 @@
         "USDC-TAILORED1": {
             "contracts": {
                 "collateral_vault_core": {
-                    "contract": "",
+                    "contract": "0x1E95651Ab6BF193693ae7E6DBACc1aCAD8E08822",
                     "contract_def": "CollateralVaultOTC",
                     "key": "usdc-tailored1.collateral_vault"
                 },
                 "collateral_vault_peripheral": {
-                    "contract": "",
+                    "contract": "0x1E95651Ab6BF193693ae7E6DBACc1aCAD8E08822",
                     "contract_def": "CollateralVaultOTC",
                     "key": "usdc-tailored1.collateral_vault"
                 },
                 "cryptopunks_vault_core": {
-                    "contract": "",
+                    "contract": "0x1E95651Ab6BF193693ae7E6DBACc1aCAD8E08822",
                     "contract_def": "CollateralVaultOTC",
                     "key": "usdc-tailored1.collateral_vault"
                 },
                 "delegation_registry": {
-                    "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B",
+                    "contract": "0xB18CF5BCe0266C688361e10E4155709880d1b6D6",
                     "contract_def": "DelegationRegistryMock",
                     "key": "delegation_registry"
                 },
                 "genesis": {
-                    "contract": "0xCa54733A772C83096E40f644c9286c9779191e50",
+                    "contract": "0x36d3C8e6202a953A80e6a8168BC06C80Ff96334F",
                     "contract_def": "GenesisPass",
                     "key": "genesis"
                 },
                 "lending_pool": {
-                    "contract": "",
-                    "contract_def": "LendingPoolERC20OTC",
+                    "contract": "0x6EF20Eee7fcf5a1C890c748c9C62cFC814e716F1",
+                    "contract_def": "LendingPoolEthOTC",
                     "key": "usdc-tailored1.lending_pool"
                 },
                 "lending_pool_core": {
-                    "contract": "",
-                    "contract_def": "LendingPoolERC20OTC",
+                    "contract": "0x6EF20Eee7fcf5a1C890c748c9C62cFC814e716F1",
+                    "contract_def": "LendingPoolEthOTC",
                     "key": "usdc-tailored1.lending_pool"
                 },
                 "liquidations_core": {
-                    "contract": "",
+                    "contract": "0xbD94A10b8C440183647A90729a0b0d94359F90cF",
                     "contract_def": "LiquidationsOTC",
                     "key": "usdc-tailored1.liquidations"
                 },
                 "liquidations_peripheral": {
-                    "contract": "",
+                    "contract": "0xbD94A10b8C440183647A90729a0b0d94359F90cF",
                     "contract_def": "LiquidationsOTC",
                     "key": "usdc-tailored1.liquidations"
                 },
@@ -401,17 +401,17 @@
                     "key": "usdc-tailored1.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "",
+                    "contract": "0x744d25E447b6bD5bA918c3A408914dcab7a9A2B8",
                     "contract_def": "LoansOTC",
                     "key": "usdc-tailored1.loans"
                 },
                 "loans_core": {
-                    "contract": "",
+                    "contract": "0x744d25E447b6bD5bA918c3A408914dcab7a9A2B8",
                     "contract_def": "LoansOTC",
                     "key": "usdc-tailored1.loans"
                 },
                 "token": {
-                    "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "contract": "0x74540605Dc99f9cd65A3eA89231fFA727B1049E2",
                     "contract_def": "WETH9Mock",
                     "key": "usdc.token"
                 }
