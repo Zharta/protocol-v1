@@ -53,7 +53,7 @@ if ENV == Environment.dev:
 elif ENV == Environment.int:
     POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "swimming"]
 else:
-    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "usdc-tailored1"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -63,7 +63,7 @@ warnings.filterwarnings("ignore")
 def contract_instances(env: Environment) -> dict:
     contracts = [
         WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4"]),
-        USDCMockContract(scope="usdc", pools=["usdc", "deadpool"]),
+        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
 
@@ -115,6 +115,12 @@ def contract_instances(env: Environment) -> dict:
         LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-meta4", pools=["eth-meta4"]),
         LiquidationsOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
         LoansOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+
+        ## USDC-TAILORED1
+        CollateralVaultOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
+        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-tailored1", pools=["usdc-tailored1"]),
+        LiquidationsOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
+        LoansOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
     ]
 
     if "swimming" in POOLS:
@@ -330,6 +336,7 @@ class DeploymentManager:
             "lender.swimming": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
             "lender.deadpool": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
             "lender.eth-meta4": "0x37B6a8fDee08Fe2F0aeAfDcf70DFC6ee842E27a9" if self.env == Environment.prod else self.owner,
+            "lender.usdc-tailored1": "0x4d1572Ea399cfcb0a4b25B364dF2c5ba68697e18" if self.env == Environment.prod else self.owner,
         }
 
     def _save_state(self):
