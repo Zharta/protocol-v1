@@ -62,10 +62,14 @@ clean:
 add-account:
 	${VENV}/bin/ape accounts import $(alias)
 
+compile:
+	rm -rf .build/*
+	${VENV}/bin/ape compile
+
 console-local:
 	${VENV}/bin/ape console --network ethereum:local:foundry
 
-deploy-local:
+deploy-local: 
 	${VENV}/bin/ape run -I deployment --network ethereum:local:foundry
 
 console-dev:
@@ -83,5 +87,5 @@ deploy-int:
 console-prod:
 	${VENV}/bin/ape console --network ethereum:mainnet:alchemy
 
-deploy-prod:
+deploy-prod: compile
 	${VENV}/bin/ape run -I deployment --network ethereum:mainnet:alchemy
