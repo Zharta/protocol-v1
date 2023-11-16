@@ -7,10 +7,12 @@
         },
         "lending_pool_eth_otc_impl": {
             "contract": "0x4BEA7f7EcCE5ffA2067702034505EbE0bd6d64a3",
+            "contract_def": "LendingPoolEthOTC",
             "key": "lending_pool_eth_otc_impl"
         },
         "lending_pool_usdc_otc_impl": {
             "contract": "0x9D682092259a78e13202841Fca5e0E96E2b3AaBa",
+            "contract_def": "LendingPoolERC20OTC",
             "key": "lending_pool_usdc_otc_impl"
         },
         "liquidations_otc_impl": {
@@ -273,17 +275,17 @@
         "USDC-RUDOLPH": {
             "contracts": {
                 "collateral_vault_core": {
-                    "contract": "",
+                    "contract": "0x692bB2878c5983D5753BD1733eED4f1f02E1fFee",
                     "contract_def": "CollateralVaultOTC",
                     "key": "usdc-rudolph.collateral_vault"
                 },
                 "collateral_vault_peripheral": {
-                    "contract": "",
+                    "contract": "0x692bB2878c5983D5753BD1733eED4f1f02E1fFee",
                     "contract_def": "CollateralVaultOTC",
                     "key": "usdc-rudolph.collateral_vault"
                 },
                 "cryptopunks_vault_core": {
-                    "contract": "",
+                    "contract": "0x692bB2878c5983D5753BD1733eED4f1f02E1fFee",
                     "contract_def": "CollateralVaultOTC",
                     "key": "usdc-rudolph.collateral_vault"
                 },
@@ -298,22 +300,22 @@
                     "key": "genesis"
                 },
                 "lending_pool": {
-                    "contract": "",
-                    "contract_def": "LendingPoolERC20OTC",
+                    "contract": "0xc2cB00781C11621eCdA8791717E163f25eF246Da",
+                    "contract_def": "LendingPoolEthOTC",
                     "key": "usdc-rudolph.lending_pool"
                 },
                 "lending_pool_core": {
-                    "contract": "",
-                    "contract_def": "LendingPoolERC20OTC",
+                    "contract": "0xc2cB00781C11621eCdA8791717E163f25eF246Da",
+                    "contract_def": "LendingPoolEthOTC",
                     "key": "usdc-rudolph.lending_pool"
                 },
                 "liquidations_core": {
-                    "contract": "",
+                    "contract": "0x5115e8110fC8DaE953d354b721faBfF88f49D4BD",
                     "contract_def": "LiquidationsOTC",
                     "key": "usdc-rudolph.liquidations"
                 },
                 "liquidations_peripheral": {
-                    "contract": "",
+                    "contract": "0x5115e8110fC8DaE953d354b721faBfF88f49D4BD",
                     "contract_def": "LiquidationsOTC",
                     "key": "usdc-rudolph.liquidations"
                 },
@@ -322,12 +324,12 @@
                     "key": "usdc-rudolph.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "",
+                    "contract": "0x57572BDdc610551ad82F869492E6436fFcf472C0",
                     "contract_def": "LoansOTC",
                     "key": "usdc-rudolph.loans"
                 },
                 "loans_core": {
-                    "contract": "",
+                    "contract": "0x57572BDdc610551ad82F869492E6436fFcf472C0",
                     "contract_def": "LoansOTC",
                     "key": "usdc-rudolph.loans"
                 },
