@@ -29,10 +29,10 @@ def cli(network):
 
     changes = set()
     changes |= {
-        "usdc-tailored1.loans",
-        "usdc-tailored1.collateral_vault",
-        "usdc-tailored1.lending_pool",
-        "usdc-tailored1.liquidations",
+        "usdc-rudolph.loans",
+        "usdc-rudolph.collateral_vault",
+        "usdc-rudolph.lending_pool",
+        "usdc-rudolph.liquidations",
     }
 
     dm.deploy(changes, dryrun=True)
