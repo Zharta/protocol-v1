@@ -477,8 +477,6 @@ def _reserve(
     assert self.isAcceptingLoans, "contract is not accepting loans"
     assert block.timestamp < _maturity, "maturity is in the past"
     assert block.timestamp <= _deadline, "deadline has passed"
-    assert self._are_collaterals_owned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
-    assert self._are_collaterals_approved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collaterals_amounts(_collaterals) == _amount, "amount in collats != than amount"
     assert self.lendingPoolContract.maxFundsInvestable() >= _amount, "insufficient liquidity"
 

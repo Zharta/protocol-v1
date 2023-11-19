@@ -666,7 +666,12 @@ class LoansOTCContract(MinimalProxy):
 
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
-        return {"loans_otc_impl"}.union(
+        # return {"loans_otc_impl"}.union(
+        #     {context[pool, "lending_pool"] for pool in self.pools},
+        #     {context[pool, "collateral_vault"] for pool in self.pools},
+        #     {context[pool, "genesis"] for pool in self.pools},
+        # )
+        return set().union(
             {context[pool, "lending_pool"] for pool in self.pools},
             {context[pool, "collateral_vault"] for pool in self.pools},
             {context[pool, "genesis"] for pool in self.pools},
