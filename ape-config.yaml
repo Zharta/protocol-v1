@@ -5,6 +5,3 @@ plugins:
   - name: foundry
   - name: alchemy
   - name: ganache
-
-vyper:
-  evm_version: paris
