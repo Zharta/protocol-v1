@@ -45,6 +45,7 @@ contract_def_to_path = {
     "Loans": "Loans",
     "LoansCore": "LoansCore",
     "LoansOTC": "LoansOTC",
+    "LoansOTCPunksFixed": "LoansOTC",
     "WETH9Mock": "auxiliary/token/ERC20",
     "ERC721": "auxiliary/token/ERC721",
 }
