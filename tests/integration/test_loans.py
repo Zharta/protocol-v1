@@ -470,7 +470,7 @@ def test_create_collaterals_not_owned(
     erc721_contract.mint(investor, 0, sender=contract_owner)
     (v, r, s) = create_signature()
 
-    with boa.reverts("msg.sender does not own all NFTs"):
+    with boa.reverts("collateral not owned by wallet"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
@@ -504,7 +504,7 @@ def test_create_loan_collateral_not_approved(
 
     (v, r, s) = create_signature()
 
-    with boa.reverts("not all NFTs are approved"):
+    with boa.reverts("transfer is not approved"):
         loans_peripheral_contract.reserveEth(
             LOAN_AMOUNT,
             LOAN_INTEREST,
