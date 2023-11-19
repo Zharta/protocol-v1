@@ -26,7 +26,7 @@
             "key": "loans_otc_impl"
         },
         "loans_otc_punksfixed_impl": {
-            "contract": "",
+            "contract": "0x285E17700867C8f46548c955d7e0D9B2D2a894c9",
             "contract_def": "LoansOTCPunksFixed",
             "key": "loans_otc_punksfixed_impl"
         }
@@ -315,12 +315,12 @@
                     "key": "usdc-rudolph.lending_pool"
                 },
                 "liquidations_core": {
-                    "contract": "0x5115e8110fC8DaE953d354b721faBfF88f49D4BD",
+                    "contract": "0x49D3DF6f89985c9Fe18c3AdF94c12d36DAf2B8eA",
                     "contract_def": "LiquidationsOTC",
                     "key": "usdc-rudolph.liquidations"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0x5115e8110fC8DaE953d354b721faBfF88f49D4BD",
+                    "contract": "0x49D3DF6f89985c9Fe18c3AdF94c12d36DAf2B8eA",
                     "contract_def": "LiquidationsOTC",
                     "key": "usdc-rudolph.liquidations"
                 },
@@ -329,12 +329,12 @@
                     "key": "usdc-rudolph.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "",
+                    "contract": "0xD41bf2Ef18BDC61117CbAF7595f012B7437906ca",
                     "contract_def": "LoansOTCPunksFixed",
                     "key": "usdc-rudolph.loans"
                 },
                 "loans_core": {
-                    "contract": "",
+                    "contract": "0xD41bf2Ef18BDC61117CbAF7595f012B7437906ca",
                     "contract_def": "LoansOTCPunksFixed",
                     "key": "usdc-rudolph.loans"
                 },
