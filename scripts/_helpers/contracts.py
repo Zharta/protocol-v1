@@ -638,6 +638,20 @@ class LoansOTCImplContract(InternalContract):
 
 
 @dataclass
+class LoansOTCPunksFixedImplContract(InternalContract):
+
+    def __init__(self, contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "loans_otc_punksfixed_impl",
+            contract,
+            project.LoansOTC,
+            container_name="LoansOTCPunksFixed",
+            deployment_deps={"token"},
+            config_deps={},
+        )
+
+
+@dataclass
 class LoansOTCContract(MinimalProxy):
 
     def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
@@ -666,12 +680,54 @@ class LoansOTCContract(MinimalProxy):
 
 
     def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
-        # return {"loans_otc_impl"}.union(
-        #     {context[pool, "lending_pool"] for pool in self.pools},
-        #     {context[pool, "collateral_vault"] for pool in self.pools},
-        #     {context[pool, "genesis"] for pool in self.pools},
-        # )
-        return set().union(
+        return {"loans_otc_impl"}.union(
+            {context[pool, "lending_pool"] for pool in self.pools},
+            {context[pool, "collateral_vault"] for pool in self.pools},
+            {context[pool, "genesis"] for pool in self.pools},
+        )
+
+    def deployment_args(self, context: DeploymentContext) -> list[Any]:
+        pool = self.pools[0]
+        is_payable = context.config.get(f"loansperipheral_ispayable.{pool}", False)
+        return [
+            24 * 60 * 60,
+            context[context[pool, "lending_pool"]].contract,
+            context[context[pool, "collateral_vault"]].contract,
+            context[context[pool, "genesis"]].contract,
+            is_payable,
+        ]
+
+
+@dataclass
+class LoansOTCPunksFixedContract(MinimalProxy):
+
+    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "loans",
+            contract,
+            project.LoansOTC,
+            scope=scope,
+            pools=pools,
+            container_name="LoansOTCPunksFixed",
+            impl="loans_otc_punksfixed_impl",
+        )
+
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
+        set_liquidationsperiph = {
+            context[pool, "liquidations"]: with_pool(Transaction.loansotc_set_liquidations, pool)
+            for pool in self.pools
+        }
+        set_lpperiph = {
+            context[pool, "lending_pool"]: with_pool(Transaction.loansotc_set_lendingpool, pool) for pool in self.pools
+        }
+        set_cvperiph = {
+            context[pool, "collateral_vault"]: with_pool(Transaction.loansotc_set_collateral_vault, pool) for pool in self.pools
+        }
+        return set_liquidationsperiph | set_lpperiph | set_cvperiph
+
+
+    def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
+        return {"loans_otc_punksfixed_impl"}.union(
             {context[pool, "lending_pool"] for pool in self.pools},
             {context[pool, "collateral_vault"] for pool in self.pools},
             {context[pool, "genesis"] for pool in self.pools},
