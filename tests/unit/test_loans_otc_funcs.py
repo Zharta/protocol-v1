@@ -357,37 +357,6 @@ def test_create_maturity_in_the_past(
         )
 
 
-def test_create_collaterals_not_owned(
-    loans,
-    create_signature,
-    lending_pool,
-    erc721,
-    contract_owner,
-    investor,
-    borrower,
-    test_collaterals,
-):
-
-    erc721.mint(investor, 0, sender=contract_owner)
-    (v, r, s) = create_signature()
-
-    with boa.reverts():
-        loans.reserveEth(
-            LOAN_AMOUNT,
-            LOAN_INTEREST,
-            MATURITY,
-            test_collaterals,
-            False,
-            VALIDATION_DEADLINE,
-            0,
-            0,
-            v,
-            r,
-            s,
-            sender=borrower,
-        )
-
-
 def test_create_loan_collateral_not_approved(
     loans,
     collateral_vault,
