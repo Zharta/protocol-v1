@@ -28,12 +28,10 @@ def cli(network):
     dm.context.gas_func = gas_cost
 
     changes = set()
-    # changes |= {
-    #     "usdc-rudolph.loans",
-    #     "usdc-rudolph.collateral_vault",
-    #     "usdc-rudolph.lending_pool",
-    #     "usdc-rudolph.liquidations",
-    # }
+    changes |= {
+        "loans_otc_impl",
+        "usdc-rudolph.loans",
+    }
 
     dm.deploy(changes, dryrun=True)
 
