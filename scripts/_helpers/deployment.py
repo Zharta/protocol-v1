@@ -40,7 +40,9 @@ from .contracts import (
     LiquidityControlsContract,
     LoansCoreContract,
     LoansOTCContract,
+    LoansOTCPunksFixedContract,
     LoansOTCImplContract,
+    LoansOTCPunksFixedImplContract,
     LoansPeripheralContract,
     USDCMockContract,
     WETH9MockContract,
@@ -108,6 +110,7 @@ def contract_instances(env: Environment) -> dict:
         LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
         CollateralVaultOTCImplContract(),
         LoansOTCImplContract(),
+        LoansOTCPunksFixedImplContract(),
         LiquidationsOTCImplContract(),
 
         ## ETH-META4
@@ -120,7 +123,7 @@ def contract_instances(env: Environment) -> dict:
         CollateralVaultOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
         LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-rudolph", pools=["usdc-rudolph"]),
         LiquidationsOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
-        LoansOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
+        LoansOTCPunksFixedContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
     ]
 
     if "swimming" in POOLS:

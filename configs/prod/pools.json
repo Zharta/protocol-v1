@@ -24,6 +24,11 @@
             "contract": "0x8D84b38D86D00dC1f1942Bd99bce4DF76E0C2562",
             "contract_def": "LoansOTC",
             "key": "loans_otc_impl"
+        },
+        "loans_otc_punksfixed_impl": {
+            "contract": "",
+            "contract_def": "LoansOTCPunksFixed",
+            "key": "loans_otc_punksfixed_impl"
         }
     },
     "pools": {
@@ -324,13 +329,13 @@
                     "key": "usdc-rudolph.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "0x57572BDdc610551ad82F869492E6436fFcf472C0",
-                    "contract_def": "LoansOTC",
+                    "contract": "",
+                    "contract_def": "LoansOTCPunksFixed",
                     "key": "usdc-rudolph.loans"
                 },
                 "loans_core": {
-                    "contract": "0x57572BDdc610551ad82F869492E6436fFcf472C0",
-                    "contract_def": "LoansOTC",
+                    "contract": "",
+                    "contract_def": "LoansOTCPunksFixed",
                     "key": "usdc-rudolph.loans"
                 },
                 "token": {

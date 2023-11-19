@@ -29,7 +29,7 @@ def cli(network):
 
     changes = set()
     changes |= {
-        "loans_otc_impl",
+        # "loans_otc_impl",
         "usdc-rudolph.loans",
     }
 
