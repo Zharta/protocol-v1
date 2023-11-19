@@ -264,27 +264,6 @@ def __init__(
     )
 
 
-@internal
-def _areCollateralsOwned(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
-    for collateral in _collaterals:
-        if IERC721(collateral.contractAddress).ownerOf(collateral.tokenId) != _borrower:
-            return False
-    return True
-
-
-@view
-@internal
-def _areCollateralsApproved(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
-    for collateral in _collaterals:
-        if not ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).isCollateralApprovedForVault(
-            _borrower,
-            collateral.contractAddress,
-            collateral.tokenId
-        ):
-            return False
-    return True
-
-
 @pure
 @internal
 def _collateralsAmounts(_collaterals: DynArray[Collateral, 100]) -> uint256:
@@ -396,8 +375,6 @@ def _reserve(
     assert self.isAcceptingLoans, "contract is not accepting loans"
     assert block.timestamp < _maturity, "maturity is in the past"
     assert block.timestamp <= _deadline, "deadline has passed"
-    assert self._areCollateralsOwned(msg.sender, _collaterals), "msg.sender does not own all NFTs"
-    assert self._areCollateralsApproved(msg.sender, _collaterals) == True, "not all NFTs are approved"
     assert self._collateralsAmounts(_collaterals) == _amount, "amount in collats != than amount"
     assert ILendingPoolPeripheral(self.lendingPoolPeripheralContract).maxFundsInvestable() >= _amount, "insufficient liquidity"
 
