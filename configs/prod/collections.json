@@ -2576,6 +2576,12 @@
           }
         },
         "whitelisted": true
+      },
+      "USDC-SPRINGBOKS": {
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "token_whitelist": "vft-springbokspool",
+        "whitelisted": true
       }
     },
     "contract_address": "0xa3AEe8BcE55BEeA1951EF834b99f3Ac60d1ABeeB",
