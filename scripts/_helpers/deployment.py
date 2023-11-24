@@ -55,7 +55,7 @@ if ENV == Environment.dev:
 elif ENV == Environment.int:
     POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "swimming", "usdc-tailored1"]
 else:
-    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "usdc-rudolph"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-meta4", "usdc-rudolph", "usdc-springboks"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -65,7 +65,7 @@ warnings.filterwarnings("ignore")
 def contract_instances(env: Environment) -> dict:
     contracts = [
         WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4"]),
-        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-rudolph"]),
+        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-rudolph", "usdc-springboks"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
 
@@ -124,6 +124,12 @@ def contract_instances(env: Environment) -> dict:
         LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-rudolph", pools=["usdc-rudolph"]),
         LiquidationsOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
         LoansOTCPunksFixedContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
+
+        ## USDC-SPRINGBOKS
+        CollateralVaultOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
+        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-springboks", pools=["usdc-springboks"]),
+        LiquidationsOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
+        LoansOTCPunksFixedContract(scope="usdc-springboks", pools=["usdc-springboks"]),
     ]
 
     if "swimming" in POOLS:
@@ -145,6 +151,16 @@ def contract_instances(env: Environment) -> dict:
             LiquidationsOTCContract(scope="deadpool", pools=["deadpool"]),
             LoansOTCContract(scope="deadpool", pools=["deadpool"]),
         ]
+
+    if "usdc-tailored1" in POOLS:
+        contracts += [
+            ## USDC-TAILORED1
+            CollateralVaultOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
+            LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-tailored1", pools=["usdc-tailored1"]),
+            LiquidationsOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
+            LoansOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
+        ]
+
     return {c.key(): c for c in contracts}
 
 

@@ -28,9 +28,9 @@ def cli(network):
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {
-        "usdc-rudolph.loans",
-    }
+    # changes |= {
+    #     "usdc-rudolph.loans",
+    # }
 
     dm.deploy(changes, dryrun=True)
 
