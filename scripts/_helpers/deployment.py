@@ -119,17 +119,6 @@ def contract_instances(env: Environment) -> dict:
         LiquidationsOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
         LoansOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
 
-        ## USDC-RUDOLPH
-        CollateralVaultOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
-        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-rudolph", pools=["usdc-rudolph"]),
-        LiquidationsOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
-        LoansOTCPunksFixedContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
-
-        ## USDC-SPRINGBOKS
-        CollateralVaultOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
-        LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-springboks", pools=["usdc-springboks"]),
-        LiquidationsOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
-        LoansOTCPunksFixedContract(scope="usdc-springboks", pools=["usdc-springboks"]),
     ]
 
     if "swimming" in POOLS:
@@ -159,6 +148,24 @@ def contract_instances(env: Environment) -> dict:
             LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-tailored1", pools=["usdc-tailored1"]),
             LiquidationsOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
             LoansOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
+        ]
+
+    if "usdc-rudolph" in POOLS:
+        contracts += [
+            ## USDC-RUDOLPH
+            CollateralVaultOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
+            LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-rudolph", pools=["usdc-rudolph"]),
+            LiquidationsOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
+            LoansOTCPunksFixedContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
+        ]
+
+    if "usdc-springboks" in POOLS:
+        contracts += [
+            ## USDC-SPRINGBOKS
+            CollateralVaultOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
+            LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-springboks", pools=["usdc-springboks"]),
+            LiquidationsOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
+            LoansOTCPunksFixedContract(scope="usdc-springboks", pools=["usdc-springboks"]),
         ]
 
     return {c.key(): c for c in contracts}
