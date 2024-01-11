@@ -90,7 +90,7 @@
                     "key": "eth-grails.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "0x1693C261947731505B30C96883E3797f4EDA3B09",
+                    "contract": "0x3F8AC2349463c6Bd759A18648E67C82c77b00F6c",
                     "contract_def": "Loans",
                     "key": "eth-grails.loans"
                 },
