@@ -65,7 +65,7 @@ warnings.filterwarnings("ignore")
 def contract_instances(env: Environment) -> dict:
     contracts = [
         WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4"]),
-        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-rudolph", "usdc-springboks"]),
+        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-springboks"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
 
@@ -148,15 +148,6 @@ def contract_instances(env: Environment) -> dict:
             LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-tailored1", pools=["usdc-tailored1"]),
             LiquidationsOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
             LoansOTCContract(scope="usdc-tailored1", pools=["usdc-tailored1"]),
-        ]
-
-    if "usdc-rudolph" in POOLS:
-        contracts += [
-            ## USDC-RUDOLPH
-            CollateralVaultOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
-            LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-rudolph", pools=["usdc-rudolph"]),
-            LiquidationsOTCContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
-            LoansOTCPunksFixedContract(scope="usdc-rudolph", pools=["usdc-rudolph"]),
         ]
 
     if "usdc-springboks" in POOLS:
