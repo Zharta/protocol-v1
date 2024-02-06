@@ -382,6 +382,26 @@
         "token_whitelist": "squiggles-grailspool",
         "whitelisted": true
       },
+      "ETH-KASHI": {
+        "debt_limit": 100.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 1.0,
+            "ltv": 0.0
+          },
+          "7d": {
+            "apr": 1.0,
+            "ltv": 0.0
+          },
+          "90d": {
+            "apr": 0.115,
+            "ltv": 1.0
+          }
+        },
+        "token_whitelist": "squiggles-kashipool",
+        "whitelisted": true
+      },
       "USDC": {
         "debt_limit": 100000.0,
         "floor_multiple_cap": 1.0,
