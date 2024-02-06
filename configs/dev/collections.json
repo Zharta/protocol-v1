@@ -1431,6 +1431,26 @@
     "underwriting_slug": "moonbirds",
     "whitelisted": true
   },
+  "mutanthounds": {
+    "appraisal_method": "floor_price",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0xeB040c0aAaD210fd0F5502F7a7125E66ccDb8AFB",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://pbs.twimg.com/profile_images/1575877987815211008/LvoQKNXx_400x400.png",
+    "looksrare_url": "https://looksrare.org/collections/0x354634c4621cDfb7a25E6486cCA1E019777D841B",
+    "mapped_address": "0x354634c4621cDfb7a25E6486cCA1E019777D841B",
+    "name": "[Internal] Mutant Hounds",
+    "opensea_slug": "mutant-hounds",
+    "opensea_url": "https://opensea.io/collection/mutant-hounds",
+    "simulation_token_id": 20,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "",
+    "whitelisted": true
+  },
   "oldquirkies": {
     "check_flagging": true,
     "contract_address": "0xC6D563d5c2243b27e7294511063f563ED701EA2C"

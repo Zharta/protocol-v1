@@ -1468,6 +1468,26 @@
     "underwriting_slug": "moonbirds",
     "whitelisted": true
   },
+  "mutanthounds": {
+    "appraisal_method": "floor_price",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0xe591C8e71B8f3e2e7DF5764f389F7F71535bc143",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://pbs.twimg.com/profile_images/1575877987815211008/LvoQKNXx_400x400.png",
+    "looksrare_url": "https://looksrare.org/collections/0x354634c4621cDfb7a25E6486cCA1E019777D841B",
+    "mapped_address": "0x354634c4621cDfb7a25E6486cCA1E019777D841B",
+    "name": "[Sepolia] Mutant Hounds",
+    "opensea_slug": "mutant-hounds",
+    "opensea_url": "https://opensea.io/collection/mutant-hounds",
+    "simulation_token_id": 20,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "",
+    "whitelisted": true
+  },
   "oldquirkies": {
     "check_flagging": true,
     "contract_address": "0xCaeBFCe83d26592C9EE14Ad19b053fDbf1cB9cd0"
@@ -1800,12 +1820,6 @@
     "appraisal_method": "punks",
     "check_flagging": false,
     "conditions": {
-      "USDC-TAILORED1": {
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {},
-        "token_whitelist": "punk-tailored1pool",
-        "whitelisted": true
-      },
       "USDC": {
         "debt_limit": 800000.0,
         "floor_multiple_cap": 1.0,
@@ -1823,6 +1837,12 @@
             "ltv": 0.35
           }
         },
+        "whitelisted": true
+      },
+      "USDC-TAILORED1": {
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "token_whitelist": "punk-tailored1pool",
         "whitelisted": true
       },
       "WETH": {
