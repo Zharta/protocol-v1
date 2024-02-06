@@ -120,17 +120,17 @@
         "ETH-KASHI": {
             "contracts": {
                 "collateral_vault_core": {
-                    "contract": "",
+                    "contract": "0x96C0DE7A1874C8F89e3746134a2E3BA0D2AfcDAC",
                     "contract_def": "CollateralVaultOTC",
                     "key": "eth-kashi.collateral_vault"
                 },
                 "collateral_vault_peripheral": {
-                    "contract": "",
+                    "contract": "0x96C0DE7A1874C8F89e3746134a2E3BA0D2AfcDAC",
                     "contract_def": "CollateralVaultOTC",
                     "key": "eth-kashi.collateral_vault"
                 },
                 "cryptopunks_vault_core": {
-                    "contract": "",
+                    "contract": "0x96C0DE7A1874C8F89e3746134a2E3BA0D2AfcDAC",
                     "contract_def": "CollateralVaultOTC",
                     "key": "eth-kashi.collateral_vault"
                 },
@@ -145,22 +145,22 @@
                     "key": "genesis"
                 },
                 "lending_pool": {
-                    "contract": "",
+                    "contract": "0xAc13913E6d5daB4e7d5c52494eEbF9E61081Ced0",
                     "contract_def": "LendingPoolEthOTC",
                     "key": "eth-kashi.lending_pool"
                 },
                 "lending_pool_core": {
-                    "contract": "",
+                    "contract": "0xAc13913E6d5daB4e7d5c52494eEbF9E61081Ced0",
                     "contract_def": "LendingPoolEthOTC",
                     "key": "eth-kashi.lending_pool"
                 },
                 "liquidations_core": {
-                    "contract": "",
+                    "contract": "0x9055A9e7dBeb2Be28b76673BA2520EE7f6e35538",
                     "contract_def": "LiquidationsOTC",
                     "key": "eth-kashi.liquidations"
                 },
                 "liquidations_peripheral": {
-                    "contract": "",
+                    "contract": "0x9055A9e7dBeb2Be28b76673BA2520EE7f6e35538",
                     "contract_def": "LiquidationsOTC",
                     "key": "eth-kashi.liquidations"
                 },
@@ -169,12 +169,12 @@
                     "key": "eth-kashi.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "",
+                    "contract": "0xf76f34FAEE3f0781955F138Fd943bcA4BC5aAf13",
                     "contract_def": "LoansOTC",
                     "key": "eth-kashi.loans"
                 },
                 "loans_core": {
-                    "contract": "",
+                    "contract": "0xf76f34FAEE3f0781955F138Fd943bcA4BC5aAf13",
                     "contract_def": "LoansOTC",
                     "key": "eth-kashi.loans"
                 },
