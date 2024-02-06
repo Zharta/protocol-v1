@@ -64,7 +64,7 @@ warnings.filterwarnings("ignore")
 
 def contract_instances(env: Environment) -> dict:
     contracts = [
-        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4"]),
+        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4", "eth-kashi"]),
         USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-springboks"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
