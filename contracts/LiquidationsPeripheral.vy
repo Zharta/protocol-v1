@@ -327,8 +327,14 @@ def _computeNFTPrice(principal: uint256, interestAmount: uint256, _max_penalty_f
 
 @pure
 @internal
-def _computeLoanInterestAmount(principal: uint256, interest: uint256, duration: uint256) -> uint256:
-    return principal * interest * duration / 25920000000 # 25920000000 = 30 days * 10000 base percentage points
+def _computeLoanAPR(loanInterest: uint256, loanMaturity: uint256, loanStartTime: uint256) -> uint256:
+    return loanInterest * 31536000 / (loanMaturity - loanStartTime) # 31536000 = 365 days * 24 hours * 60 minutes * 60 seconds 
+
+
+@pure
+@internal
+def _computeLoanInterestAmount(principal: uint256, interest: uint256) -> uint256:
+    return principal * interest / 10000
 
 
 @view
@@ -750,7 +756,7 @@ def addLiquidation(
     assert not ILiquidationsCore(self.liquidationsCoreAddress).isLoanLiquidated(_borrower, self.loansCoreAddresses[_erc20TokenContract], _loanId), "loan already liquidated"
 
     # APR from loan duration (maturity)
-    loanAPR: uint256 = borrowerLoan.interest * 12
+    loanAPR: uint256 = self._computeLoanAPR(borrowerLoan.interest, borrowerLoan.maturity, borrowerLoan.startTime)
 
     for collateral in borrowerLoan.collaterals:
         assert ILiquidationsCore(self.liquidationsCoreAddress).getLiquidationStartTime(collateral.contractAddress, collateral.tokenId) == 0, "liquidation already exists"
@@ -758,8 +764,7 @@ def addLiquidation(
         principal: uint256 = collateral.amount
         interestAmount: uint256 = self._computeLoanInterestAmount(
             principal,
-            borrowerLoan.interest,
-            borrowerLoan.maturity - borrowerLoan.startTime
+            borrowerLoan.interest
         )
 
         gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, self.maxPenaltyFee[_erc20TokenContract])
