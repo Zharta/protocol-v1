@@ -80,7 +80,7 @@
                     "key": "eth-grails.liquidations_core"
                 },
                 "liquidations_peripheral": {
-                    "contract": "0xa2e592159905De72B6c7fBF835F65B56985834aB",
+                    "contract": "0x9Cf98d3cf0d05b2B57ec2D0894affB9AFB9aeD23",
                     "contract_def": "LiquidationsPeripheral",
                     "key": "eth-grails.liquidations_peripheral"
                 },
