@@ -762,10 +762,7 @@ def addLiquidation(
         assert ILiquidationsCore(self.liquidationsCoreAddress).getLiquidationStartTime(collateral.contractAddress, collateral.tokenId) == 0, "liquidation already exists"
 
         principal: uint256 = collateral.amount
-        interestAmount: uint256 = self._computeLoanInterestAmount(
-            principal,
-            borrowerLoan.interest
-        )
+        interestAmount: uint256 = self._computeLoanInterestAmount(principal, borrowerLoan.interest)
 
         gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, self.maxPenaltyFee[_erc20TokenContract])
         unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(collateral.contractAddress)
