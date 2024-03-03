@@ -766,16 +766,6 @@ def addLiquidation(
 
         gracePeriodPrice: uint256 = self._computeNFTPrice(principal, interestAmount, self.maxPenaltyFee[_erc20TokenContract])
         unwrappedCollateralAddress: address = self._unwrappedCollateralAddressIfWrapped(collateral.contractAddress)
-        autoLiquidationPrice: uint256 = self._getAutoLiquidationPrice(unwrappedCollateralAddress, collateral.tokenId)
-        if _erc20TokenContract != wethAddress and autoLiquidationPrice > 0:
-            autoLiquidationPrice = self._getConvertedAutoLiquidationPrice(autoLiquidationPrice, _erc20TokenContract)
-
-        lenderPeriodPrice: uint256 = 0
-
-        if gracePeriodPrice > autoLiquidationPrice:
-            lenderPeriodPrice = gracePeriodPrice
-        else:
-            lenderPeriodPrice = autoLiquidationPrice
 
         lid: bytes32 = ILiquidationsCore(self.liquidationsCoreAddress).addLiquidation(
             collateral.contractAddress,
@@ -787,7 +777,7 @@ def addLiquidation(
             interestAmount,
             loanAPR,
             gracePeriodPrice,
-            lenderPeriodPrice,
+            gracePeriodPrice,
             _borrower,
             _loanId,
             self.loansCoreAddresses[_erc20TokenContract],
@@ -802,7 +792,7 @@ def addLiquidation(
             collateral.tokenId,
             _erc20TokenContract,
             gracePeriodPrice,
-            lenderPeriodPrice,
+            gracePeriodPrice,
             block.timestamp + self.gracePeriodDuration,
             block.timestamp + self.gracePeriodDuration + self.lenderPeriodDuration,
             self.loansCoreAddresses[_erc20TokenContract],
