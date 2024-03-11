@@ -194,6 +194,83 @@
             "underwriting_slug": "main",
             "use_native_token": true
         },
+        "ETH-KEYROCK": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-keyrock.collateral_vault"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-keyrock.collateral_vault"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "",
+                    "contract_def": "CollateralVaultOTC",
+                    "key": "eth-keyrock.collateral_vault"
+                },
+                "delegation_registry": {
+                    "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B",
+                    "contract_def": "DelegationRegistryMock",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0xCa54733A772C83096E40f644c9286c9779191e50",
+                    "contract_def": "GenesisPass",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "",
+                    "contract_def": "LendingPoolEthOTC",
+                    "key": "eth-keyrock.lending_pool"
+                },
+                "lending_pool_core": {
+                    "contract": "",
+                    "contract_def": "LendingPoolEthOTC",
+                    "key": "eth-keyrock.lending_pool"
+                },
+                "liquidations_core": {
+                    "contract": "",
+                    "contract_def": "LiquidationsOTC",
+                    "key": "eth-keyrock.liquidations"
+                },
+                "liquidations_peripheral": {
+                    "contract": "",
+                    "contract_def": "LiquidationsOTC",
+                    "key": "eth-keyrock.liquidations"
+                },
+                "liquidity_controls": {
+                    "contract": "",
+                    "key": "eth-keyrock.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "",
+                    "contract_def": "LoansOTC",
+                    "key": "eth-keyrock.loans"
+                },
+                "loans_core": {
+                    "contract": "",
+                    "contract_def": "LoansOTC",
+                    "key": "eth-keyrock.loans"
+                },
+                "token": {
+                    "contract": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                    "contract_def": "WETH9Mock",
+                    "key": "weth.token"
+                }
+            },
+            "genesis_enabled": false,
+            "legacy_ids": [],
+            "otc": true,
+            "otc_contracts": true,
+            "pool_name": "Keyrock",
+            "token_decimals": 18,
+            "token_symbol": "WETH",
+            "underwriting_slug": "main",
+            "use_native_token": true
+        },
         "ETH-META4": {
             "contracts": {
                 "collateral_vault_core": {
