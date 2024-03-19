@@ -354,6 +354,89 @@
             "underwriting_slug": "stables",
             "use_native_token": false
         },
+        "USDC-SGDAO": {
+            "contracts": {
+                "collateral_vault_core": {
+                    "contract": "",
+                    "contract_def": "CollateralVaultCoreV2",
+                    "key": "usdc-sgdao.collateral_vault_core"
+                },
+                "collateral_vault_peripheral": {
+                    "contract": "",
+                    "contract_def": "CollateralVaultPeripheral",
+                    "key": "usdc-sgdao.collateral_vault_peripheral"
+                },
+                "cryptopunks_vault_core": {
+                    "contract": "",
+                    "contract_def": "CryptoPunksVaultCore",
+                    "key": "usdc-sgdao.cryptopunks_vault_core"
+                },
+                "delegation_registry": {
+                    "contract": "0x00000000000076A84feF008CDAbe6409d2FE638B",
+                    "contract_def": "DelegationRegistryMock",
+                    "key": "delegation_registry"
+                },
+                "genesis": {
+                    "contract": "0xCa54733A772C83096E40f644c9286c9779191e50",
+                    "contract_def": "GenesisPass",
+                    "key": "genesis"
+                },
+                "lending_pool": {
+                    "contract": "",
+                    "contract_def": "LendingPoolPeripheral",
+                    "key": "usdc-sgdao.lending_pool_peripheral"
+                },
+                "lending_pool_core": {
+                    "contract": "",
+                    "contract_def": "LendingPoolCore",
+                    "key": "usdc-sgdao.lending_pool_core"
+                },
+                "lending_pool_lock": {
+                    "contract": "",
+                    "contract_def": "LendingPoolLock",
+                    "key": "usdc-sgdao.lending_pool_lock"
+                },
+                "liquidations_core": {
+                    "contract": "",
+                    "contract_def": "LiquidationsCore",
+                    "key": "usdc-sgdao.liquidations_core"
+                },
+                "liquidations_peripheral": {
+                    "contract": "",
+                    "contract_def": "LiquidationsPeripheral",
+                    "key": "usdc-sgdao.liquidations_peripheral"
+                },
+                "liquidity_controls": {
+                    "contract": "",
+                    "contract_def": "LiquidityControls",
+                    "key": "usdc-sgdao.liquidity_controls"
+                },
+                "loans": {
+                    "contract": "",
+                    "contract_def": "Loans",
+                    "key": "usdc-sgdao.loans"
+                },
+                "loans_core": {
+                    "contract": "",
+                    "contract_def": "LoansCore",
+                    "key": "usdc-sgdao.loans_core"
+                },
+                "token": {
+                    "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "contract_def": "WETH9Mock",
+                    "key": "usdc.token"
+                }
+            },
+            "genesis_enabled": false,
+            "legacy_ids": [],
+            "otc": true,
+            "otc_contracts": false,
+            "pool_name": "SquiggleDAO",
+            "token_decimals": 6,
+            "token_symbol": "USDC",
+            "underwriting_slug": "stables",
+            "use_native_token": false
+        },
         "WETH": {
             "contracts": {
                 "collateral_vault_core": {
