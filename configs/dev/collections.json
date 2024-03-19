@@ -224,62 +224,23 @@
       "SWIMMING": {
         "debt_limit": 500.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.675
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.725
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.575
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "USDC": {
         "debt_limit": 800000.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.4
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.3
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "WETH": {
         "debt_limit": 500.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.675
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.725
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.575
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x4D1B781ce59B8C184F63B99D39d6719A522f46B5",
+    "contract_address": "0x1B25d2175926F02db6259c57F4Eeee0ccdb65E54",
     "debt_limit": 700,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -294,20 +255,7 @@
     "opensea_slug": "boredapeyachtclub",
     "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.175,
-        "ltv": 0.675
-      },
-      "7d": {
-        "apr": 0.35,
-        "ltv": 0.725
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.575
-      }
-    },
+    "tier_pricing": {},
     "tiers": [
       "7d",
       "30d",
@@ -1132,24 +1080,11 @@
       "WETH": {
         "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
-          },
-          "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0xf9C8Cf55f2E520B08d869df7bc76aa3d3ddDF913",
+    "contract_address": "0xc9dBaa36b01c8fCAE5db1e03a20Cd94cf7d749F5",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1164,20 +1099,7 @@
     "opensea_slug": "mutant-ape-yacht-club",
     "opensea_url": "https://opensea.io/collection/mutant-ape-yacht-club",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.2,
-        "ltv": 0.6
-      },
-      "7d": {
-        "apr": 0.4,
-        "ltv": 0.65
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
-      }
-    },
+    "tier_pricing": {},
     "tiers": [
       "7d",
       "30d",

@@ -113,24 +113,6 @@ def contract_instances(env: Environment) -> dict:
         LoansOTCPunksFixedImplContract(),
         LiquidationsOTCImplContract(),
 
-        # ## ETH-META4
-        # CollateralVaultOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
-        # LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-meta4", pools=["eth-meta4"]),
-        # LiquidationsOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
-        # LoansOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
-
-        ## ETH-KASHI
-        CollateralVaultOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
-        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-kashi", pools=["eth-kashi"]),
-        LiquidationsOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
-        LoansOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
-
-        ## ETH-KEYROCK
-        CollateralVaultOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
-        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-keyrock", pools=["eth-keyrock"]),
-        LiquidationsOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
-        LoansOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
-
     ]
 
     if "swimming" in POOLS:
@@ -169,6 +151,33 @@ def contract_instances(env: Environment) -> dict:
             LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-springboks", pools=["usdc-springboks"]),
             LiquidationsOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
             LoansOTCPunksFixedContract(scope="usdc-springboks", pools=["usdc-springboks"]),
+        ]
+
+    if "eth-meta4" in POOLS:
+        contracts += [
+            ## ETH-META4
+            CollateralVaultOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+            LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-meta4", pools=["eth-meta4"]),
+            LiquidationsOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+            LoansOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+        ]
+
+    if "eth-kashi" in POOLS:
+        contracts += [
+            ## ETH-KASHI
+            CollateralVaultOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
+            LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-kashi", pools=["eth-kashi"]),
+            LiquidationsOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
+            LoansOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
+        ]
+
+    if "eth-keyrock" in POOLS:
+        contracts += [
+            ## ETH-KEYROCK
+            CollateralVaultOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
+            LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-keyrock", pools=["eth-keyrock"]),
+            LiquidationsOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
+            LoansOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
         ]
 
     return {c.key(): c for c in contracts}
