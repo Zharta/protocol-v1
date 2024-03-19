@@ -403,3 +403,13 @@ def burn(_tokenId: uint256):
 @external
 def walletOf(_wallet: address) -> DynArray[uint256, 2**16]:
     return self.wallet[_wallet]
+
+@view
+@external
+def tokenByIndex(_index: uint256) -> uint256:
+    return _index
+
+@view
+@external
+def tokenOfOwnerByIndex(_owner: address, _index: uint256) -> uint256:
+    return self.wallet[_owner][_index]
