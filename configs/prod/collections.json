@@ -421,6 +421,13 @@
         },
         "whitelisted": true
       },
+      "USDC-SGDAO": {
+        "debt_limit": 150.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "token_whitelist": "squiggles-sgdaopool",
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 150.0,
         "floor_multiple_cap": 1.0,
