@@ -55,7 +55,7 @@ if ENV == Environment.dev:
 elif ENV == Environment.int:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1"]
 else:
-    POOLS = ["weth", "usdc", "eth-grails", "eth-kashi", "eth-keyrock", "usdc-rudolph", "usdc-sgdao"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-kashi", "eth-keyrock", "usdc-rudolph", "usdc-sgdao", "usdc-3cc"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -65,7 +65,7 @@ warnings.filterwarnings("ignore")
 def contract_instances(env: Environment) -> dict:
     contracts = [
         WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-kashi", "eth-keyrock"]),
-        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-sgdao"]),
+        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-sgdao", "usdc-3cc"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
 
@@ -185,6 +185,15 @@ def contract_instances(env: Environment) -> dict:
             LiquidityControlsContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
             LoansPeripheralContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
             LoansCoreContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+        ]
+
+    if "usdc-3cc" in POOLS:
+        contracts += [
+            ## USDC-3CC
+            CollateralVaultOTCContract(scope="usdc-3cc", pools=["usdc-3cc"]),
+            LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="usdc-3cc", pools=["usdc-3cc"]),
+            LiquidationsOTCContract(scope="usdc-3cc", pools=["usdc-3cc"]),
+            LoansOTCPunksFixedContract(scope="usdc-3cc", pools=["usdc-3cc"]),
         ]
 
     return {c.key(): c for c in contracts}
@@ -417,6 +426,13 @@ class DeploymentManager:
             "lpp_protocol_fees_share.usdc-sgdao": 0,
             "lpp_max_capital_efficiency.usdc-sgdao": 10000,
             "loansperipheral_ispayable.usdc-sgdao": False,
+
+            # USDC-3CC
+            "lpp_protocol_wallet_fees.usdc-3cc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_fees_share.usdc-3cc": 0,
+            "lpp_max_capital_efficiency.usdc-3cc": 10000,
+            "loansperipheral_ispayable.usdc-3cc": False,
+            "lender.usdc-3cc": "0x74E671372EEB8c78Cf686EfF5252B31907953baF" if self.env == Environment.prod else self.owner,
             
             # SWIMMING, DEADPOOL
             "loansperipheral_ispayable.swimming": True,
