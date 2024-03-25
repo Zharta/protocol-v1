@@ -329,7 +329,7 @@
                     "key": "usdc.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "0x0A51802d25620FFe869430861A7D0E2DD5e1D0AB",
+                    "contract": "0xb9FBD12Fa931C2071c45d203Dc3C557c72bb1b29",
                     "contract_def": "Loans",
                     "key": "usdc.loans"
                 },
@@ -495,7 +495,7 @@
                     "key": "weth.liquidity_controls"
                 },
                 "loans": {
-                    "contract": "0xaF2F471d3B46171f876f465165dcDF2F0E788636",
+                    "contract": "0x1Cf3DAB407aa14389f9C79b80B16E48cbc7246EE",
                     "contract_def": "Loans",
                     "key": "weth.loans"
                 },
