@@ -28,9 +28,9 @@ def cli(network):
     dm.context.gas_func = gas_cost
 
     changes = set()
-    changes |= {
-        "eth-grails.loans",
-    }
+    # changes |= {
+    #     "eth-grails.loans",
+    # }
 
     dm.deploy(changes, dryrun=True)
 

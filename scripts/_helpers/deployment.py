@@ -55,7 +55,7 @@ if ENV == Environment.dev:
 elif ENV == Environment.int:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1", "eth-meta4"]
 else:
-    POOLS = ["weth", "usdc", "eth-grails", "eth-kashi", "eth-keyrock", "usdc-rudolph"]
+    POOLS = ["weth", "usdc", "eth-grails", "eth-kashi", "eth-keyrock", "usdc-rudolph", "usdc-sgdao"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -65,7 +65,7 @@ warnings.filterwarnings("ignore")
 def contract_instances(env: Environment) -> dict:
     contracts = [
         WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4", "eth-kashi", "eth-keyrock"]),
-        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1"]),
+        USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-sgdao"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
 
@@ -178,6 +178,21 @@ def contract_instances(env: Environment) -> dict:
             LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-keyrock", pools=["eth-keyrock"]),
             LiquidationsOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
             LoansOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
+
+    if "usdc-sgdao" in POOLS:
+        contracts += [
+            ## USDC-SGDAO
+            CollateralVaultCoreV2Contract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            CollateralVaultPeripheralContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            CryptoPunksVaultCoreContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LiquidationsCoreContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LiquidationsPeripheralContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LendingPoolPeripheralContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LendingPoolCoreContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LendingPoolLockContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LiquidityControlsContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LoansPeripheralContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
+            LoansCoreContract(scope="usdc-sgdao", pools=["usdc-sgdao"]),
         ]
 
     return {c.key(): c for c in contracts}
@@ -349,47 +364,73 @@ class DeploymentManager:
         max_penalty_fees = {
             "weth": 2 * 10**17,
             "usdc": 300 * 10**6,
+            "usdc-sgdao": 300 * 10**6,
         }
         return {
             "nft_borrowable_amounts": nft_borrowable_amounts,
             "max_penalty_fees": max_penalty_fees,
             "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
-            "lpp_whitelist_enabled.eth-grails": True,
+            
+            # WETH
             "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            "lpp_protocol_wallet_fees.eth-grails": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            "lpp_protocol_wallet_fees.eth-kashi": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            "lpp_protocol_wallet_fees.eth-keyrock": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            # "lpp_protocol_wallet_fees.eth-meta4": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            "lpp_protocol_wallet_fees.usdc-rudolph": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
-            # "lpp_protocol_wallet_fees.usdc-springboks": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             "lpp_protocol_fees_share.weth": 0,
-            "lpp_protocol_fees_share.usdc": 0,
-            "lpp_protocol_fees_share.eth-grails": 0,
-            "lpp_protocol_fees_share.usdc-rudolph": 500,
-            # "lpp_protocol_fees_share.usdc-springboks": 500,
             "lpp_max_capital_efficiency.weth": 8000,
-            "lpp_max_capital_efficiency.usdc": 8000,
-            "lpp_max_capital_efficiency.eth-grails": 10000,
-            "lpp_max_capital_efficiency.usdc-rudolph": 10000,
-            # "lpp_max_capital_efficiency.usdc-springboks": 10000,
             "loansperipheral_ispayable.weth": True,
+
+            #USDC
+            "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_fees_share.usdc": 0,
+            "lpp_max_capital_efficiency.usdc": 8000,
             "loansperipheral_ispayable.usdc": False,
+
+            # ETH-GRAILS
+            "lpp_whitelist_enabled.eth-grails": True,
+            "lpp_protocol_wallet_fees.eth-grails": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_fees_share.eth-grails": 0,
+            "lpp_max_capital_efficiency.eth-grails": 10000,
+            "loansperipheral_ispayable.eth-grails": True,
+
+            # ETH-KASHI
+            "lpp_protocol_wallet_fees.eth-kashi": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "loansperipheral_ispayable.eth-kashi": True,
+            "lender.eth-kashi": "0xDd3e9d0eE979E5c1689A18992647312b42d6d8F3" if self.env == Environment.prod else self.owner,
+
+            # ETH-KEYROCK
+            "lpp_protocol_wallet_fees.eth-keyrock": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "loansperipheral_ispayable.eth-keyrock": True,
+            "lender.eth-keyrock": "0xf1a9676B03Dd3B2066214D2aD8B4B59ED6642C53" if self.env == Environment.prod else self.owner,
+
+            #ETH-META4
+            # "lpp_protocol_wallet_fees.eth-meta4": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            # "loansperipheral_ispayable.eth-meta4": True,
+            # "lender.eth-meta4": "0x37B6a8fDee08Fe2F0aeAfDcf70DFC6ee842E27a9" if self.env == Environment.prod else self.owner,
+
+            # USDC-RUDOLPH
+            "lpp_protocol_wallet_fees.usdc-rudolph": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_fees_share.usdc-rudolph": 500,
+            "lpp_max_capital_efficiency.usdc-rudolph": 10000,
+            "loansperipheral_ispayable.usdc-rudolph": False,
+            "lender.usdc-rudolph": "0x4d1572Ea399cfcb0a4b25B364dF2c5ba68697e18" if self.env == Environment.prod else self.owner,
+
+            # USDC-SPRINGBOKS
+            # "lpp_protocol_wallet_fees.usdc-springboks": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            # "lpp_protocol_fees_share.usdc-springboks": 500,
+            # "lpp_max_capital_efficiency.usdc-springboks": 10000,
+            # "loansperipheral_ispayable.usdc-springboks": False,
+            # "lender.usdc-springboks": "0xd7Fc4Ab828AFc1bb4b217f337f1777Ca856Efd12" if self.env == Environment.prod else self.owner,
+
+            # USDC-SGDAO
+            "lpp_whitelist_enabled.usdc-sgdao": True,
+            "lpp_protocol_wallet_fees.usdc-sgdao": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_fees_share.usdc-sgdao": 0,
+            "lpp_max_capital_efficiency.usdc-sgdao": 10000,
+            "loansperipheral_ispayable.usdc-sgdao": False,
+            
+            # SWIMMING, DEADPOOL
             "loansperipheral_ispayable.swimming": True,
             "loansperipheral_ispayable.deadpool": False,
-            "loansperipheral_ispayable.eth-grails": True,
-            "loansperipheral_ispayable.eth-kashi": True,
-            "loansperipheral_ispayable.eth-keyrock": True,
-            # "loansperipheral_ispayable.eth-meta4": True,
-            "loansperipheral_ispayable.usdc-rudolph": False,
-            # "loansperipheral_ispayable.usdc-springboks": False,
             "lender.swimming": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
             "lender.deadpool": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
-            "lender.eth-kashi": "0xDd3e9d0eE979E5c1689A18992647312b42d6d8F3" if self.env == Environment.prod else self.owner,
-            "lender.eth-keyrock": "0xf1a9676B03Dd3B2066214D2aD8B4B59ED6642C53" if self.env == Environment.prod else self.owner,
-            # "lender.eth-meta4": "0x37B6a8fDee08Fe2F0aeAfDcf70DFC6ee842E27a9" if self.env == Environment.prod else self.owner,
-            "lender.usdc-rudolph": "0x4d1572Ea399cfcb0a4b25B364dF2c5ba68697e18" if self.env == Environment.prod else self.owner,
-            # "lender.usdc-springboks": "0xd7Fc4Ab828AFc1bb4b217f337f1777Ca856Efd12" if self.env == Environment.prod else self.owner,
         }
 
     def _save_state(self):
