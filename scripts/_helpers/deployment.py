@@ -53,7 +53,7 @@ ENV = Environment[os.environ.get("ENV", "local")]
 if ENV == Environment.dev:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
 elif ENV == Environment.int:
-    POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1"]
+    POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1", "eth-meta4"]
 else:
     POOLS = ["weth", "usdc", "eth-grails", "eth-kashi", "eth-keyrock", "usdc-rudolph"]
 
@@ -64,7 +64,7 @@ warnings.filterwarnings("ignore")
 
 def contract_instances(env: Environment) -> dict:
     contracts = [
-        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-kashi", "eth-keyrock"]),
+        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4", "eth-kashi", "eth-keyrock"]),
         USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
