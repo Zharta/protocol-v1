@@ -53,7 +53,7 @@ ENV = Environment[os.environ.get("ENV", "local")]
 if ENV == Environment.dev:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
 elif ENV == Environment.int:
-    POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1"]
+    POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1", "eth-meta4"]
 else:
     POOLS = ["weth", "usdc", "eth-grails", "eth-kashi", "eth-keyrock", "usdc-rudolph", "usdc-sgdao"]
 
@@ -64,7 +64,7 @@ warnings.filterwarnings("ignore")
 
 def contract_instances(env: Environment) -> dict:
     contracts = [
-        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-kashi", "eth-keyrock"]),
+        WETH9MockContract(scope="weth", pools=["weth", "eth-grails", "swimming", "eth-meta4", "eth-kashi", "eth-keyrock"]),
         USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-sgdao"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
@@ -113,24 +113,6 @@ def contract_instances(env: Environment) -> dict:
         LoansOTCPunksFixedImplContract(),
         LiquidationsOTCImplContract(),
 
-        # ## ETH-META4
-        # CollateralVaultOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
-        # LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-meta4", pools=["eth-meta4"]),
-        # LiquidationsOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
-        # LoansOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
-
-        ## ETH-KASHI
-        CollateralVaultOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
-        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-kashi", pools=["eth-kashi"]),
-        LiquidationsOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
-        LoansOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
-
-        ## ETH-KEYROCK
-        CollateralVaultOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
-        LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-keyrock", pools=["eth-keyrock"]),
-        LiquidationsOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
-        LoansOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
-
     ]
 
     if "swimming" in POOLS:
@@ -170,6 +152,32 @@ def contract_instances(env: Environment) -> dict:
             LiquidationsOTCContract(scope="usdc-springboks", pools=["usdc-springboks"]),
             LoansOTCPunksFixedContract(scope="usdc-springboks", pools=["usdc-springboks"]),
         ]
+
+    if "eth-meta4" in POOLS:
+        contracts += [
+            ## ETH-META4
+            CollateralVaultOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+            LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-meta4", pools=["eth-meta4"]),
+            LiquidationsOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+            LoansOTCContract(scope="eth-meta4", pools=["eth-meta4"]),
+        ]
+
+    if "eth-kashi" in POOLS:
+        contracts += [
+            ## ETH-KASHI
+            CollateralVaultOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
+            LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-kashi", pools=["eth-kashi"]),
+            LiquidationsOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
+            LoansOTCContract(scope="eth-kashi", pools=["eth-kashi"]),
+        ]
+
+    if "eth-keyrock" in POOLS:
+        contracts += [
+            ## ETH-KEYROCK
+            CollateralVaultOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
+            LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-keyrock", pools=["eth-keyrock"]),
+            LiquidationsOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
+            LoansOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
 
     if "usdc-sgdao" in POOLS:
         contracts += [

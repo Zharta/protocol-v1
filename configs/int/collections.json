@@ -224,69 +224,26 @@
       "SWIMMING": {
         "debt_limit": 500.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.675
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.725
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.575
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "USDC": {
         "debt_limit": 800000.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.4
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.3
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "WETH": {
         "debt_limit": 500.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.675
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.725
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.575
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x34E0918F75FA9E07fC4461De01468185Badaf1b5",
+    "contract_address": "0xFB710286BcA67cfCCDa256471F543F492ED27F8a",
     "debt_limit": 500.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": [
-      "opensea",
-      "nftgo",
-      "alchemy"
-    ],
+    "floor_price_providers": [],
     "image_url": "https://i.seadn.io/gae/Ju9CkWtV-1Okvf45wo8UctR-M9He2PjILP0oOvxE89AyiPPGtrR3gysu1Zgy0hjd2xKIgjJJtWIc0ybj4Vd7wv8t3pxDGHoJBzDB",
     "looksrare_url": "https://looksrare.org/collections/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
     "mapped_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -294,25 +251,8 @@
     "opensea_slug": "boredapeyachtclub",
     "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.175,
-        "ltv": 0.675
-      },
-      "7d": {
-        "apr": 0.35,
-        "ltv": 0.725
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.575
-      }
-    },
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
+    "tier_pricing": {},
+    "tiers": [],
     "underwriting_slug": "bored-ape-yacht-club",
     "whitelisted": true
   },
@@ -1169,31 +1109,14 @@
       "WETH": {
         "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
-          },
-          "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x170a934DB411912D2D557F28B3866b994e246b83",
+    "contract_address": "0x1a10c8d607a6Ab49c4C8d813Df118B64323F1dF1",
     "debt_limit": 250.0,
     "floor_multiple_cap": 1.0,
-    "floor_price_providers": [
-      "opensea",
-      "nftgo",
-      "alchemy"
-    ],
+    "floor_price_providers": [],
     "image_url": "https://i.seadn.io/gae/lHexKRMpw-aoSyB1WdFBff5yfANLReFxHzt1DOj_sg7mS14yARpuvYcUtsyyx-Nkpk6WTcUPFoG53VnLJezYi8hAs0OxNZwlw6Y-dmI",
     "looksrare_url": "https://looksrare.org/collections/0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
     "mapped_address": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
@@ -1201,25 +1124,8 @@
     "opensea_slug": "mutant-ape-yacht-club",
     "opensea_url": "https://opensea.io/collection/mutant-ape-yacht-club",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.2,
-        "ltv": 0.6
-      },
-      "7d": {
-        "apr": 0.4,
-        "ltv": 0.65
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
-      }
-    },
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
+    "tier_pricing": {},
+    "tiers": [],
     "underwriting_slug": "mutant-ape-yacht-club",
     "whitelisted": true
   },
