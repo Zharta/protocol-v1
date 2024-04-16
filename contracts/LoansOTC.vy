@@ -8,7 +8,6 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 from vyper.interfaces import ERC20 as IERC20
 

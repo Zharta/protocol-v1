@@ -13,7 +13,6 @@
 # Interfaces
 
 
-from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 
 interface CryptoPunksMarket:
@@ -140,12 +139,6 @@ def _is_punk(_collateralAddress: address) -> bool:
 
 @view
 @internal
-def _is_erc721(_collateralAddress: address) -> bool:
-    return IERC165(_collateralAddress).supportsInterface(0x80ac58cd)
-
-
-@view
-@internal
 def _punk_owner(_collateralAddress: address, _tokenId: uint256) -> address:
     return CryptoPunksMarket(_collateralAddress).punkIndexToAddress(_tokenId)
 
@@ -179,10 +172,7 @@ def _is_erc721_approved_for_vault(_borrower: address, _collateralAddress: addres
 def _vault_owns_collateral(_collateralAddress: address, _tokenId: uint256) -> bool:
     if self._is_punk(_collateralAddress):
         return self._punk_owner(_collateralAddress, _tokenId) == self
-    elif self._is_erc721(_collateralAddress):
-        return self._erc721_owner(_collateralAddress, _tokenId) == self
-    else:
-        return False
+    return self._erc721_owner(_collateralAddress, _tokenId) == self
 
 
 
@@ -231,10 +221,8 @@ def _transfer_collateral(_wallet: address, _collateralAddress: address, _tokenId
 
     if self._is_punk(_collateralAddress):
         self._transfer_punk(_wallet, _collateralAddress, _tokenId)
-    elif self._is_erc721(_collateralAddress):
-        self._transfer_erc721(_wallet, _collateralAddress, _tokenId)
     else:
-        raise "address not supported by vault"
+        self._transfer_erc721(_wallet, _collateralAddress, _tokenId)
 
     self._setDelegation(_delegateWallet, _collateralAddress, _tokenId, False)
 
@@ -259,10 +247,8 @@ def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool:
 def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool:
     if self._is_punk(_collateralAddress):
         return self._is_punk_approved_for_vault(_borrower, _collateralAddress, _tokenId)
-    elif self._is_erc721(_collateralAddress):
-        return self._is_erc721_approved_for_vault(_borrower, _collateralAddress, _tokenId)
     else:
-        raise "address not supported by vault"
+        return self._is_erc721_approved_for_vault(_borrower, _collateralAddress, _tokenId)
 
 
 @view
@@ -371,13 +357,11 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
         assert self._is_punk_approved_for_vault(_wallet, _collateralAddress, _tokenId), "transfer is not approved"
         self._store_punk(_wallet, _collateralAddress, _tokenId)
 
-    elif  self._is_erc721(_collateralAddress):
+    else:
         assert self._erc721_owner(_collateralAddress, _tokenId) == _wallet, "collateral not owned by wallet"
         assert self._is_erc721_approved_for_vault(_wallet, _collateralAddress, _tokenId), "transfer is not approved"
         self._store_erc721(_wallet, _collateralAddress, _tokenId)
 
-    else:
-        raise "address not supported by vault"
 
     if _createDelegation:
         self._setDelegation(_wallet, _collateralAddress, _tokenId, True)
