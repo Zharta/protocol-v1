@@ -410,6 +410,11 @@
                     "contract_def": "LoansCore",
                     "key": "usdc.loans_core"
                 },
+                "renting_vault_core": {
+                    "contract": "0x6fA1aAc979537C9BAE26507588A118e74655f017",
+                    "contract_def": "CollateralVaultCoreV2",
+                    "key": "renting_vault_core"
+                },
                 "token": {
                     "contract": "0x741D86951a8b99159be52644e60de7826033Ee44",
                     "contract_def": "WETH9Mock",
@@ -492,6 +497,11 @@
                     "contract": "0xEfE66132727f3831AB4E020357B5Bf615076Df6A",
                     "contract_def": "LoansCore",
                     "key": "weth.loans_core"
+                },
+                "renting_vault_core": {
+                    "contract": "0x6fA1aAc979537C9BAE26507588A118e74655f017",
+                    "contract_def": "CollateralVaultCoreV2",
+                    "key": "renting_vault_core"
                 },
                 "token": {
                     "contract": "0xFb7C5F938835aE34aF48c278C6763E134907Acdb",

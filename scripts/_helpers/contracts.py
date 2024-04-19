@@ -54,6 +54,28 @@ class CryptoPunksVaultCoreContract(InternalContract):
 
 
 @dataclass
+class RentingVaultCoreContract(InternalContract):
+
+    def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):
+        super().__init__(
+            "renting_vault_core",
+            contract,
+            project.CollateralVaultCoreV2,
+            scope=scope,
+            pools=pools,
+            container_name="CollateralVaultCoreV2",
+            deployment_deps={"delegation_registry"},
+            config_deps={
+                f"{scope}.collateral_vault_peripheral": partial(Transaction.rentingvault_set_cvperiph, scope=scope),
+            },
+            deployment_args_contracts=["delegation_registry"],
+        )
+
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
+        return {context[pool, "collateral_vault_peripheral"]: with_pool(Transaction.rentingvault_set_cvperiph, pool) for pool in self.pools}
+
+
+@dataclass
 class CollateralVaultPeripheralContract(InternalContract):
 
     def __init__(self, scope: str, pools: list[str], contract: Optional[ContractInstance] = None):

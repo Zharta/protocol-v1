@@ -44,6 +44,7 @@ from .contracts import (
     LoansOTCImplContract,
     LoansOTCPunksFixedImplContract,
     LoansPeripheralContract,
+    RentingVaultCoreContract,
     USDCMockContract,
     WETH9MockContract,
 )
@@ -51,7 +52,7 @@ from .contracts import (
 ENV = Environment[os.environ.get("ENV", "local")]
 
 if ENV == Environment.dev:
-    POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
+    POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool", "eth-meta4"]
 elif ENV == Environment.int:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1", "eth-meta4"]
 else:
@@ -75,6 +76,7 @@ def contract_instances(env: Environment) -> dict:
         CryptoPunksVaultCoreContract(scope=None, pools=["weth", "usdc"]),
         LiquidationsCoreContract(scope=None, pools=["weth", "usdc"]),
         LiquidationsPeripheralContract(scope=None, pools=["weth", "usdc"]),
+        RentingVaultCoreContract(scope=None, pools=["weth", "usdc"]),
 
         ## WETH
         LendingPoolPeripheralContract(scope="weth", pools=["weth"]),
@@ -178,6 +180,7 @@ def contract_instances(env: Environment) -> dict:
             LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-keyrock", pools=["eth-keyrock"]),
             LiquidationsOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
             LoansOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
+        ]
 
     if "usdc-sgdao" in POOLS:
         contracts += [

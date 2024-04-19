@@ -99,6 +99,16 @@ class Transaction:
         )
 
     @staticmethod
+    def rentingvault_set_cvperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
+        execute(
+            context,
+            context[pool, "renting_vault_core"],
+            "setCollateralVaultPeripheralAddress",
+            context[pool, "collateral_vault_peripheral"],
+            dryrun=dryrun
+        )
+
+    @staticmethod
     def cvperiph_add_loansperiph(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
         execute(
             context,
