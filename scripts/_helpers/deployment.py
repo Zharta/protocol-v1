@@ -51,7 +51,7 @@ from .contracts import (
 ENV = Environment[os.environ.get("ENV", "local")]
 
 if ENV == Environment.dev:
-    POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool"]
+    POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool", "eth-meta4"]
 elif ENV == Environment.int:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "usdc-tailored1", "eth-meta4"]
 else:
@@ -178,6 +178,7 @@ def contract_instances(env: Environment) -> dict:
             LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="eth-keyrock", pools=["eth-keyrock"]),
             LiquidationsOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
             LoansOTCContract(scope="eth-keyrock", pools=["eth-keyrock"]),
+        ]
 
     if "usdc-sgdao" in POOLS:
         contracts += [
@@ -275,6 +276,7 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
         NFT("otherdeedexpanded", None),
         NFT("otherdeedkoda", None),
         NFT("othersidekoda", None),
+        NFT("othersidekodamara", None),
         NFT("othersidemara", None),
         NFT("ppg", None),
         CryptoPunksMockContract(None) if env != Environment.prod else NFT("punk", None),
