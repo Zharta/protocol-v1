@@ -1860,6 +1860,26 @@
     "underwriting_slug": "otherside-koda",
     "whitelisted": true
   },
+  "othersidekodamara": {
+    "appraisal_method": "floor_price",
+    "check_flagging": false,
+    "conditions": {},
+    "contract_address": "0x56e6F1BFFde5DCcd9A183585cE31f2902FC52707",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/s/raw/files/cef557b2b7bbd40dc5e11e2cd9e08eb8.png?auto=format&dpr=1&w=3840",
+    "looksrare_url": "https://looksrare.org/collections/0x56e6F1BFFde5DCcd9A183585cE31f2902FC52707",
+    "mapped_address": "0x56e6F1BFFde5DCcd9A183585cE31f2902FC52707",
+    "name": "Otherside Kodamara",
+    "opensea_slug": "otherside-kodamara",
+    "opensea_url": "https://opensea.io/collection/otherside-kodamara",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "",
+    "whitelisted": false
+  },
   "othersidemara": {
     "appraisal_method": "floor_price",
     "check_flagging": true,
