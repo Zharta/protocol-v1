@@ -44,6 +44,7 @@ from .contracts import (
     LoansOTCImplContract,
     LoansOTCPunksFixedImplContract,
     LoansPeripheralContract,
+    RentingVaultCoreContract,
     USDCMockContract,
     WETH9MockContract,
 )
@@ -75,6 +76,7 @@ def contract_instances(env: Environment) -> dict:
         CryptoPunksVaultCoreContract(scope=None, pools=["weth", "usdc"]),
         LiquidationsCoreContract(scope=None, pools=["weth", "usdc"]),
         LiquidationsPeripheralContract(scope=None, pools=["weth", "usdc"]),
+        RentingVaultCoreContract(scope=None, pools=["weth", "usdc"]),
 
         ## WETH
         LendingPoolPeripheralContract(scope="weth", pools=["weth"]),

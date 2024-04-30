@@ -9,9 +9,6 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC165 as IERC165
-from vyper.interfaces import ERC721 as IERC721
-
 interface ILegacyVault:
     def setCollateralVaultPeripheralAddress(_address: address): nonpayable
     def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256): nonpayable

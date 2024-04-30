@@ -3,7 +3,6 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC165 as IERC165
 from vyper.interfaces import ERC721 as IERC721
 
 interface IDelegationRegistry:
@@ -51,7 +50,6 @@ def _setDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint
 @view
 @internal
 def _collateralOwner(_collateralAddress: address, _tokenId: uint256) -> address:
-    assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
     return IERC721(_collateralAddress).ownerOf(_tokenId)
 
 ##### EXTERNAL METHODS - VIEW #####
