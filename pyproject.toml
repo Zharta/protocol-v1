@@ -1,0 +1,62 @@
+[project]
+name = "protocol-v1"
+description = "Lending Protocol by Zharta"
+classifiers = ["Private :: Do Not Upload"]
+version = "0"
+dependencies = [
+    "eth-ape",
+    "vyper==0.3.10",
+    "ape-vyper",
+    "ape-foundry",
+    "ape-alchemy",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "titanoboa==0.1.9",
+    "boto3",
+    "click",
+    "coverage",
+    "hypothesis",
+    "ipython",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "pytest-xdist",
+    "python-lsp-server",
+    "rich",
+    "rope",
+    "ruff",
+    # "vyper-lsp",
+]
+
+[build-system]
+requires = ["setuptools>=63", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["scripts"]
+
+[tool.pytest.ini_options]
+log_file = "pytest-logs.txt"
+addopts = """
+    -p no:ape_test
+    -vv
+    --durations=10
+"""
+
+[tool.ruff]
+lint.select = ["ALL"]
+lint.ignore = ["ANN", "B905", "BLE", "COM812", "CPY", "D", "DTZ", "EM", "FIX", "ISC001", "PLR0913", "PLR2004", "S", "TCH", "TD", "TRY003"]
+line-length = 127
+lint.preview = true
+target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*.py" = ["ARG001", "F401", "PLC1901", "PLR0917", "PT022", "PTH", "RUF029", "T201"]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false

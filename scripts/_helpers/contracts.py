@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from functools import partial, partialmethod
+from rich import print
 from typing import Any, Callable, Optional
 
 from ape import project
 from ape.contracts.base import ContractInstance
 
-from .basetypes import ContractConfig, DeploymentContext, InternalContract, MinimalProxy
+from .basetypes import ContractConfig, DeploymentContext, MinimalProxy
 from .transactions import Transaction
 
 
@@ -14,7 +15,14 @@ def with_pool(f, pool):
 
 
 @dataclass
-class CollateralVaultCoreV2Contract(ContractConfig):
+class ERC721(ContractConfig):
+    def __init__(self, *, key: str, abi_key: str, address: str | None = None):
+        super().__init__(key, None, project.ERC721, abi_key=abi_key, container_name="ERC721", nft=True)
+        if address:
+            self.load_contract(address)
+
+@dataclass
+class CollateralVaultCoreV2(ContractConfig):
     def __init__(
         self,
         *,
@@ -51,7 +59,7 @@ class CollateralVaultCoreV2Contract(ContractConfig):
 
 
 @dataclass
-class CryptoPunksVaultCoreContract(ContractConfig):
+class CryptoPunksVaultCore(ContractConfig):
     def __init__(
         self,
         *,
@@ -83,7 +91,7 @@ class CryptoPunksVaultCoreContract(ContractConfig):
 
 
 @dataclass
-class CollateralVaultPeripheralContract(ContractConfig):
+class CollateralVaultPeripheral(ContractConfig):
     def __init__(
         self,
         *,
@@ -136,7 +144,7 @@ class CollateralVaultPeripheralContract(ContractConfig):
 
 
 @dataclass
-class LendingPoolCoreContract(ContractConfig):
+class LendingPoolCore(ContractConfig):
     def __init__(
         self,
         *,
@@ -167,7 +175,7 @@ class LendingPoolCoreContract(ContractConfig):
 
 
 @dataclass
-class LendingPoolLockContract(ContractConfig):
+class LendingPoolLock(ContractConfig):
     def __init__(
         self,
         *,
@@ -198,7 +206,7 @@ class LendingPoolLockContract(ContractConfig):
 
 
 @dataclass
-class ERC20Contract(ContractConfig):
+class ERC20(ContractConfig):
     def __init__(
         self,
         *,
@@ -208,7 +216,7 @@ class ERC20Contract(ContractConfig):
         name: str,
         symbol: str,
         decimals: int,
-        supply: int,
+        supply: str,
         address: str | None = None,
     ):
         super().__init__(
@@ -218,14 +226,14 @@ class ERC20Contract(ContractConfig):
             version=version,
             abi_key=abi_key,
             container_name="WETH9Mock",
-            deployment_args=[name, symbol, decimals, supply],
+            deployment_args=[name, symbol, decimals, int(supply)],
         )
         if address:
             self.load_contract(address)
 
 
 @dataclass
-class CryptoPunksContract(ContractConfig):
+class CryptoPunks(ContractConfig):
     def __init__(
         self,
         *,
@@ -248,7 +256,7 @@ class CryptoPunksContract(ContractConfig):
 
 
 @dataclass
-class DelegationRegistryContract(ContractConfig):
+class DelegationRegistry(ContractConfig):
     def __init__(
         self,
         *,
@@ -270,7 +278,7 @@ class DelegationRegistryContract(ContractConfig):
 
 
 @dataclass
-class LendingPoolPeripheralContract(ContractConfig):
+class LendingPoolPeripheral(ContractConfig):
     def __init__(
         self,
         *,
@@ -330,7 +338,7 @@ class LendingPoolPeripheralContract(ContractConfig):
 
 
 @dataclass
-class LoansCoreContract(ContractConfig):
+class LoansCore(ContractConfig):
     def __init__(
         self,
         *,
@@ -358,7 +366,7 @@ class LoansCoreContract(ContractConfig):
 
 
 @dataclass
-class LoansPeripheralContract(ContractConfig):
+class LoansPeripheral(ContractConfig):
     def __init__(
         self,
         *,
@@ -416,7 +424,7 @@ class LoansPeripheralContract(ContractConfig):
 
 
 @dataclass
-class LiquidationsCoreContract(ContractConfig):
+class LiquidationsCore(ContractConfig):
     def __init__(
         self,
         *,
@@ -444,7 +452,7 @@ class LiquidationsCoreContract(ContractConfig):
 
 
 @dataclass
-class LiquidationsPeripheralContract(InternalContract):
+class LiquidationsPeripheral(ContractConfig):
     def __init__(
         self,
         *,
@@ -541,7 +549,7 @@ class LiquidationsPeripheralContract(InternalContract):
 
 
     def set_max_fee(self, context: DeploymentContext, *, token_key, max_fee_key):
-        max_fee = context[max_fee_key]
+        max_fee = int(context[max_fee_key])
         contract_instance = context[self.key].contract
         if not contract_instance:
             print(f"[{pool}] Skipping setMaxPenaltyFee for undeployed {self.key}")
@@ -558,7 +566,7 @@ class LiquidationsPeripheralContract(InternalContract):
 
 
 @dataclass
-class LiquidityControlsContract(ContractConfig):
+class LiquidityControls(ContractConfig):
     def __init__(
         self,
         *,
@@ -596,7 +604,7 @@ class LiquidityControlsContract(ContractConfig):
 
 
 @dataclass
-class GenesisContract(InternalContract):
+class Genesis(ContractConfig):
     def __init__(
         self,
         *,
@@ -620,7 +628,7 @@ class GenesisContract(InternalContract):
 
 
 @dataclass
-class CollateralVaultOTCImplContract(ContractConfig):
+class CollateralVaultOTCImpl(ContractConfig):
     def __init__(
         self,
         *,
@@ -646,13 +654,13 @@ class CollateralVaultOTCImplContract(ContractConfig):
 
 
 @dataclass
-class CollateralVaultOTCContract(MinimalProxy):
+class CollateralVaultOTC(MinimalProxy):
     def __init__(
         self,
         *,
         key: str,
         version: str | None = None,
-        collateral_vault_otc_impl_key: str,
+        implementation_key: str,
         loans_key: str,
         liquidations_key: str,
         abi_key: str,
@@ -665,8 +673,8 @@ class CollateralVaultOTCContract(MinimalProxy):
             version=version,
             abi_key=abi_key,
             container_name="CollateralVaultOTC",
-            impl=collateral_vault_otc_impl_key,
-            deployment_deps={collateral_vault_otc_impl_key},
+            impl=implementation_key,
+            deployment_deps={implementation_key},
             config_deps={
                 loans_key: self.set_loans,
                 liquidations_key: self.set_liquidations,
@@ -686,7 +694,7 @@ class CollateralVaultOTCContract(MinimalProxy):
 
 
 @dataclass
-class LendingPoolEthOTCImplContract(ContractConfig):
+class LendingPoolEthOTCImpl(ContractConfig):
     def __init__(
         self,
         *,
@@ -711,7 +719,7 @@ class LendingPoolEthOTCImplContract(ContractConfig):
 
 
 @dataclass
-class LendingPoolERC20OTCImplContract(ContractConfig):
+class LendingPoolERC20OTCImpl(ContractConfig):
     def __init__(
         self,
         *,
@@ -736,7 +744,7 @@ class LendingPoolERC20OTCImplContract(ContractConfig):
 
 
 @dataclass
-class LendingPoolOTCContract(MinimalProxy):
+class LendingPoolOTC(MinimalProxy):
     def __init__(
         self,
         *,
@@ -780,7 +788,7 @@ class LendingPoolOTCContract(MinimalProxy):
 
 
 @dataclass
-class LiquidationsOTCImplContract(ContractConfig):
+class LiquidationsOTCImpl(ContractConfig):
     def __init__(
         self,
         *,
@@ -802,7 +810,7 @@ class LiquidationsOTCImplContract(ContractConfig):
 
 
 @dataclass
-class LiquidationsOTCContract(MinimalProxy):
+class LiquidationsOTC(MinimalProxy):
     def __init__(
         self,
         *,
@@ -813,7 +821,7 @@ class LiquidationsOTCContract(MinimalProxy):
         lending_pool_key: str,
         collateral_vault_key: str,
         grace_period_duration: int = 2 * 86400,
-        max_penalty_fee: int,
+        max_penalty_fee: str,
         abi_key: str,
         address: str | None = None,
     ):
@@ -828,7 +836,7 @@ class LiquidationsOTCContract(MinimalProxy):
             deployment_deps={implementation_key, loans_key, lending_pool_key, collateral_vault_key},
             deployment_args=[grace_period_duration, loans_key, lending_pool_key, collateral_vault_key],
         )
-        self.max_penalty_fee = max_penalty_fee
+        self.max_penalty_fee = int(max_penalty_fee)
         if address:
             self.load_contract(address)
 
@@ -842,7 +850,7 @@ class LiquidationsOTCContract(MinimalProxy):
 
 
 @dataclass
-class LoansOTCImplContract(ContractConfig):
+class LoansOTCImpl(ContractConfig):
     def __init__(
         self,
         *,
@@ -864,7 +872,7 @@ class LoansOTCImplContract(ContractConfig):
 
 
 @dataclass
-class LoansOTCPunksFixedImplContract(ContractConfig):
+class LoansOTCPunksFixedImpl(ContractConfig):
     def __init__(
         self,
         *,
@@ -889,7 +897,7 @@ class LoansOTCPunksFixedImplContract(ContractConfig):
 
 
 @dataclass
-class LoansOTCContract(MinimalProxy):
+class LoansOTC(MinimalProxy):
     def __init__(
         self,
         *,
@@ -942,7 +950,7 @@ class LoansOTCContract(MinimalProxy):
 
 
 @dataclass
-class LoansOTCPunksFixedContract(MinimalProxy):
+class LoansOTCPunksFixed(MinimalProxy):
     def __init__(
         self,
         *,
