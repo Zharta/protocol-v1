@@ -1,12 +1,13 @@
 import json
+from pathlib import Path
+
 import click
 from vyper import compile_code
-from pathlib import Path
 
 FUNCTIONS_BLACKLIST = ["__init__", "__default__"]
 
 
-def nested_get(d: dict, *args, default = None):
+def nested_get(d: dict, *args, default=None):
     if not args:
         return default
     for a in args[:-1]:
@@ -19,6 +20,7 @@ def traverse_filtering(node: dict, handler: callable = None, **kwargs):
 
     def filter_keys(_node):
         return all(_node.get(k, None) == v for k, v in kwargs.items())
+
     yield from traverse(node, handler=handler, _filter=filter_keys)
 
 
@@ -26,12 +28,12 @@ def traverse(node: dict, handler: callable = None, _filter: callable = None):
     _handler = handler or (lambda x: x)
     if _filter is None or _filter(node):
         yield _handler(node)
-    for child in node.get('body', []):
+    for child in node.get("body", []):
         yield from traverse(child, handler=handler, _filter=_filter)
 
 
 def node_summary(node: dict):
-    attrs = ['node_id', 'name', 'ast_type', 'level', 'alias', 'module']
+    attrs = ["node_id", "name", "ast_type", "level", "alias", "module"]
     return ",".join(f"{attr}={node.get(attr, '')}" for attr in attrs)
 
 
@@ -56,7 +58,7 @@ def is_struct(node):
 
 
 def get_arg_type(node: dict):
-    match node['ast_type']:
+    match node["ast_type"]:
         case "Name":
             return node["id"]
         case "Int":
@@ -66,11 +68,11 @@ def get_arg_type(node: dict):
         case "Tuple":
             return ", ".join(get_arg_type(e) for e in node["elements"])
         case "Subscript":
-            return get_arg_type(node["value"]) + get_arg_type(node['slice'])
+            return get_arg_type(node["value"]) + get_arg_type(node["slice"])
         case "BinOp":
-            return get_arg_type(node["op"])(get_arg_type(node['left']), get_arg_type(node['right']))
+            return get_arg_type(node["op"])(get_arg_type(node["left"]), get_arg_type(node["right"]))
         case "Pow":
-            return (lambda x, y: str(int(x)**int(y)))
+            return lambda x, y: str(int(x) ** int(y))
         case _:
             return None
 
@@ -95,11 +97,17 @@ def get_event(node: dict):
     name = node.get("name")
     event_code = [f"event {name}:"]
     attr_list = traverse(node, _filter=lambda n: n["ast_type"] == "AnnAssign")
-    attrs = [(nested_get(a, "target", "id"),
-              get_arg_type(a["annotation"]) or nested_get(a, "annotation", "args", default=[])[0]["id"],
-              nested_get(a, "annotation", "func", "id")) for a in attr_list]
+    attrs = [
+        (
+            nested_get(a, "target", "id"),
+            get_arg_type(a["annotation"]) or nested_get(a, "annotation", "args", default=[])[0]["id"],
+            nested_get(a, "annotation", "func", "id"),
+        )
+        for a in attr_list
+    ]
     attr_code = [f"    {name}: " + (f"{func}({target})" if func else f"{target}") for name, target, func in attrs]
     return "\n".join(event_code + attr_code)
+
 
 def get_events(ast):
     events = traverse(ast, _filter=is_event)
@@ -118,11 +126,9 @@ def get_function(node: dict):
     return_node = node.get("returns")
     return_type = get_arg_type(return_node) if return_node else None
     return_code = f" -> {return_type}" if return_type else ""
-    function_code = [
-        f"def {name}({', '.join(args_code)}){return_code}:",
-        "    pass"
-    ]
+    function_code = [f"def {name}({', '.join(args_code)}){return_code}:", "    pass"]
     return "\n".join(decorators_code + function_code)
+
 
 def get_public_var(node: dict):
     name = nested_get(node, "target", "id")
@@ -141,10 +147,7 @@ def get_public_var(node: dict):
     args_code = [f"{name}: {type}" for (name, type) in args]
     return_code = f" -> {return_type}"
 
-    function_code = [
-        f"def {name}({', '.join(args_code)}){return_code}:",
-        "    pass"
-    ]
+    function_code = [f"def {name}({', '.join(args_code)}){return_code}:", "    pass"]
 
     return "\n".join(decorators_code + function_code)
 
@@ -154,15 +157,15 @@ def get_functions(ast: dict):
     public_variables = traverse(ast, _filter=is_public_variable)
     header = ["# Functions"]
     public_vars_code = [get_public_var(v) for v in public_variables]
-    functions_code = [get_function(f) for f in external_functions if f['name'] not in FUNCTIONS_BLACKLIST]
+    functions_code = [get_function(f) for f in external_functions if f["name"] not in FUNCTIONS_BLACKLIST]
     return "\n\n".join(header + public_vars_code + functions_code)
 
 
 def generate_interface(input_file: Path, output_file: Path):
     with input_file.open("r") as f:
         code = f.read()
-    compiler_output = compile_code(code, ['ast_dict'])
-    ast = compiler_output['ast_dict']['ast']
+    compiler_output = compile_code(code, ["ast_dict"])
+    ast = compiler_output["ast_dict"]["ast"]
 
     structs = get_structs(ast)
     events = get_events(ast)
@@ -174,8 +177,8 @@ def generate_interface(input_file: Path, output_file: Path):
 
 
 @click.command()
-@click.argument('filenames', nargs=-1, type=click.Path(path_type=Path, exists=True))
-@click.option('-o', '--output-dir', type=click.Path(path_type=Path, exists=True), default="interfaces")
+@click.argument("filenames", nargs=-1, type=click.Path(path_type=Path, exists=True))
+@click.option("-o", "--output-dir", type=click.Path(path_type=Path, exists=True), default="interfaces")
 def generate_interfaces(filenames: list, output_dir: str):
     for f in filenames:
         opath = output_dir / f"I{f.name}"

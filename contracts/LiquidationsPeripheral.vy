@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
 @title LiquidationsPeripheral
@@ -328,7 +328,7 @@ def _computeNFTPrice(principal: uint256, interestAmount: uint256, _max_penalty_f
 @pure
 @internal
 def _computeLoanAPR(loanInterest: uint256, loanMaturity: uint256, loanStartTime: uint256) -> uint256:
-    return loanInterest * 31536000 / (loanMaturity - loanStartTime) # 31536000 = 365 days * 24 hours * 60 minutes * 60 seconds 
+    return loanInterest * 31536000 / (loanMaturity - loanStartTime) # 31536000 = 365 days * 24 hours * 60 minutes * 60 seconds
 
 
 @pure

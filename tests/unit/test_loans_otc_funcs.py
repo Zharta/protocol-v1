@@ -1,21 +1,18 @@
-import boa
-import pytest
-
-from ..conftest_base import ZERO_ADDRESS, get_last_event
-
 from dataclasses import dataclass
+from decimal import Decimal
 from textwrap import dedent
 
-from hypothesis import settings, given
+import boa
+import pytest
+from eth_abi import encode
+from eth_account import Account
+from eth_account.messages import HexBytes, SignableMessage
+from eth_utils import keccak
+from hypothesis import given, settings
 from hypothesis import strategies as st
-from decimal import Decimal
 from web3 import Web3
 
-from eth_account.messages import SignableMessage, HexBytes
-from eth_account import Account
-from eth_utils import keccak
-from eth_abi import encode
-
+from ..conftest_base import ZERO_ADDRESS, get_last_event
 
 NOW = boa.eval("block.timestamp")
 MATURITY = NOW + 7 * 86400
@@ -26,7 +23,7 @@ VALIDATION_DEADLINE = MATURITY + 1800
 
 
 @dataclass
-class LoanInfo():
+class LoanInfo:
     id: int
     amount: int
     interest: int
@@ -43,7 +40,7 @@ class LoanInfo():
 
 
 @dataclass
-class Liquidation():
+class Liquidation:
     lid: bytes
     collateralAddress: str
     tokenId: int
@@ -85,7 +82,8 @@ def erc721(erc721_contract, contract_owner):
 
 @pytest.fixture(scope="module")
 def lending_pool():
-    return boa.loads(dedent("""
+    return boa.loads(
+        dedent("""
     @view
     @external
     def maxFundsInvestable() -> uint256:
@@ -112,12 +110,14 @@ def lending_pool():
     @payable
     def __default__():
         pass
-     """))
+     """)
+    )
 
 
 @pytest.fixture(scope="module")
 def collateral_vault(empty_contract):
-    return boa.loads(dedent("""
+    return boa.loads(
+        dedent("""
     @external
     def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _createDelegation: bool):
         pass
@@ -133,16 +133,19 @@ def collateral_vault(empty_contract):
     @external
     def setCollateralDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _value: bool):
         pass
-     """))
+     """)
+    )
 
 
 @pytest.fixture(scope="module")
 def liquidations(empty_contract):
-    return boa.loads(dedent("""
+    return boa.loads(
+        dedent("""
     @external
     def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
         pass
-     """))
+     """)
+    )
 
 
 @pytest.fixture(scope="module")
@@ -173,7 +176,6 @@ def test_collaterals(erc721):
 
 @pytest.fixture(name="create_signature", scope="module")
 def create_signature_fixture(test_collaterals, loans, owner_account, borrower):
-
     # Can't use eth_account.messages.encode_structured_data (as of version 0.5.9) because dynamic arrays are not correctly hashed:
     # https://github.com/ethereum/eth-account/blob/v0.5.9/eth_account/_utils/structured_data/hashing.py#L236
     # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be used when brownie allows eth-account==0.7.0
@@ -194,13 +196,12 @@ def create_signature_fixture(test_collaterals, loans, owner_account, borrower):
         domain_version="1",
         chain_id=boa.env.chain.chain_id,
     ):
-
-        print(f"_create_signature {collaterals=} {delegations=} {amount=} {interest=} {maturity=} {deadline=} {nonce=} {genesis_token=} {borrower=} {signer=} {verifier=} {chain_id=}")
+        print(
+            f"_create_signature {collaterals=} {delegations=} {amount=} {interest=} {maturity=} {deadline=} {nonce=} {genesis_token=} {borrower=} {signer=} {verifier=} {chain_id=}"
+        )
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)"
-        collateral_type_def = (
-            "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
-        )
+        collateral_type_def = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 
         domain_type_hash = keccak(text=domain_type_def)
         reserve_type_hash = keccak(text=reserve_type_def + collateral_type_def)
@@ -367,7 +368,6 @@ def test_create_loan_collateral_not_approved(
     investor,
     borrower,
 ):
-
     test_collaterals = [(erc721.address, 100 + k, LOAN_AMOUNT // 5) for k in range(5)]
 
     for k in range(5):
@@ -403,17 +403,12 @@ def test_create_loan_sum_collaterals_amounts_not_amount(
     investor,
     borrower,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
 
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
-    (v, r, s) = create_signature(
-        collaterals=[(erc721.address, k, 0) for k in range(5)]
-    )
+    (v, r, s) = create_signature(collaterals=[(erc721.address, k, 0) for k in range(5)])
 
     with boa.reverts():
         loans.reserveEth(
@@ -443,12 +438,9 @@ def test_create_loan(
     investor,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     (v, r, s) = create_signature()
 
@@ -501,12 +493,9 @@ def test_create_loan_wrong_signature(
     investor,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     signature_inconsistencies = [
         ("amount", LOAN_AMOUNT + 1),
@@ -515,10 +504,7 @@ def test_create_loan_wrong_signature(
         ("deadline", VALIDATION_DEADLINE + 1),
         (
             "collaterals",
-            [
-                (lending_pool.address, c[1], c[2])
-                for c in test_collaterals
-            ],
+            [(lending_pool.address, c[1], c[2]) for c in test_collaterals],
         ),
         ("collaterals", [(c[0], c[1] + 1, c[2]) for c in test_collaterals]),
         ("collaterals", [(c[0], c[1], c[2] // 10) for c in test_collaterals]),
@@ -529,7 +515,7 @@ def test_create_loan_wrong_signature(
         ("domain_version", "2"),
         ("chain_id", 42),
     ]
-    for (k, v) in signature_inconsistencies:
+    for k, v in signature_inconsistencies:
         print(f"creating signature with {k} = {v}")
         (v, r, s) = create_signature(**{k: v})
         with boa.reverts():
@@ -560,12 +546,9 @@ def test_create_loan_past_signature_deadline(
     investor,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     deadline_in_the_past = boa.eval("block.timestamp") - 10
     (v, r, s) = create_signature(deadline=deadline_in_the_past)
@@ -604,12 +587,9 @@ def test_pay_loan_defaulted(
     borrower,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     maturity = boa.eval("block.timestamp") + 10
     (v, r, s) = create_signature(maturity=maturity)
@@ -653,12 +633,9 @@ def test_pay_loan_insufficient_balance(
     investor,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     (v, r, s) = create_signature()
 
@@ -686,7 +663,6 @@ def test_pay_loan_insufficient_balance(
         loans.pay(loan_id, sender=borrower)
 
 
-
 def test_pay_loan_insufficient_allowance(
     loans,
     create_signature,
@@ -699,12 +675,9 @@ def test_pay_loan_insufficient_allowance(
     investor,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
 
@@ -734,7 +707,7 @@ def test_pay_loan_insufficient_allowance(
         loans.pay(loan_id, sender=borrower)
 
     with boa.reverts():
-        loans.pay(loan_id, sender=borrower, value= amount_paid // 2)
+        loans.pay(loan_id, sender=borrower, value=amount_paid // 2)
 
 
 def test_pay_loan(
@@ -748,12 +721,9 @@ def test_pay_loan(
     investor,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
-    erc721.setApprovalForAll(
-        collateral_vault, True, sender=borrower
-    )
+    erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     (v, r, s) = create_signature()
 
@@ -775,9 +745,7 @@ def test_pay_loan(
     boa.env.time_travel(seconds=6 * 86400)
 
     loan_details = loans.getLoan(borrower, loan_id)
-    payable_amount = loans.getLoanPayableAmount(
-        borrower, loan_id, boa.eval("block.timestamp")
-    )
+    payable_amount = loans.getLoanPayableAmount(borrower, loan_id, boa.eval("block.timestamp"))
 
     boa.env.set_balance(borrower, payable_amount)
     loans.pay(loan_id, sender=borrower, value=payable_amount)
@@ -787,15 +755,9 @@ def test_pay_loan(
     loan_details = loans.getLoan(borrower, loan_id)
     loan_details = LoanInfo(*loan_details)
     assert loans.getLoanPaid(borrower, loan_id)
-    assert (
-        loans.getLoanPaidPrincipal(borrower, loan_id)
-        + loans.getLoanPaidInterestAmount(borrower, loan_id)
-        == payable_amount
-    )
+    assert loans.getLoanPaidPrincipal(borrower, loan_id) + loans.getLoanPaidInterestAmount(borrower, loan_id) == payable_amount
     assert loan_details.paid == loans.getLoanPaid(borrower, loan_id)
-    assert loan_details.paidPrincipal == loans.getLoanPaidPrincipal(
-        borrower, loan_id
-    )
+    assert loan_details.paidPrincipal == loans.getLoanPaidPrincipal(borrower, loan_id)
     assert loan_details.paidInterestAmount == loans.getLoanPaidInterestAmount(borrower, loan_id)
     assert loans.getLoanPayableAmount(borrower, loan_id, boa.eval("block.timestamp")) == 0
 
@@ -820,7 +782,6 @@ def test_pay_loan_already_paid(
     investor,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
     erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
@@ -859,9 +820,7 @@ def test_set_default_loan_wrong_sender(loans, investor, borrower):
         loans.settleDefault(borrower, 0, sender=investor)
 
 
-def test_set_default_loan_not_started(
-    loans, contract_owner, borrower
-):
+def test_set_default_loan_not_started(loans, contract_owner, borrower):
     with boa.reverts():
         loans.settleDefault(borrower, 0, sender=contract_owner)
 
@@ -879,7 +838,6 @@ def test_set_default_loan(
     borrower,
     test_collaterals,
 ):
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
     erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
@@ -916,7 +874,6 @@ def test_set_default_loan(
     assert loans.getLoanDefaulted(borrower, loan_id)
 
 
-
 @given(
     loan_duration=st.integers(min_value=1, max_value=90),
     passed_time=st.integers(min_value=1, max_value=200),
@@ -940,11 +897,9 @@ def test_payable_amount(
     amount = LOAN_AMOUNT
     maturity = NOW + loan_duration * 24 * 3600
 
-
     for k in range(5):
         erc721.mint(borrower, k, sender=contract_owner)
     erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
-
 
     (v, r, s) = create_signature(maturity=maturity, interest=interest)
 
@@ -971,13 +926,15 @@ def test_payable_amount(
 
     contract_time_passed = boa.eval("block.timestamp") - loan_details.startTime
     loan_duration_in_contract = maturity - loan_details.startTime
-    minimum_interest_period = 7*86400
+    minimum_interest_period = 7 * 86400
 
     payable_duration = max(
         minimum_interest_period,
-        contract_time_passed + INTEREST_ACCRUAL_PERIOD - contract_time_passed % INTEREST_ACCRUAL_PERIOD
+        contract_time_passed + INTEREST_ACCRUAL_PERIOD - contract_time_passed % INTEREST_ACCRUAL_PERIOD,
     )
-    due_amount = amount * (loan_duration_in_contract * 10000 + interest * payable_duration) // (loan_duration_in_contract * 10000)
+    due_amount = (
+        amount * (loan_duration_in_contract * 10000 + interest * payable_duration) // (loan_duration_in_contract * 10000)
+    )
 
     assert payable_amount == due_amount
 

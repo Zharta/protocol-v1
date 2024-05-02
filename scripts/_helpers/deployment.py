@@ -1,22 +1,21 @@
 import json
 import logging
-import warnings
 import os
-
-from typing import Any
-from ape import accounts
-from pathlib import Path
-from operator import itemgetter
+import warnings
 from itertools import groupby
+from operator import itemgetter
+from pathlib import Path
+from typing import Any
 
-from .dependency import DependencyManager
+from ape import accounts
+
 from .basetypes import (
+    NFT,
     ContractConfig,
     DeploymentContext,
     Environment,
     GenericExternalContract,
     InternalContract,
-    NFT,
 )
 from .contracts import (
     CollateralVaultCoreV2Contract,
@@ -28,27 +27,73 @@ from .contracts import (
     DelegationRegistryMockContract,
     GenesisContract,
     LendingPoolCoreContract,
+    LendingPoolERC20OTCImplContract,
+    LendingPoolEthOTCImplContract,
     LendingPoolLockContract,
     LendingPoolOTCContract,
-    LendingPoolEthOTCImplContract,
-    LendingPoolERC20OTCImplContract,
     LendingPoolPeripheralContract,
     LiquidationsCoreContract,
-    LiquidationsPeripheralContract,
     LiquidationsOTCContract,
     LiquidationsOTCImplContract,
+    LiquidationsPeripheralContract,
     LiquidityControlsContract,
     LoansCoreContract,
     LoansOTCContract,
-    LoansOTCPunksFixedContract,
     LoansOTCImplContract,
+    LoansOTCPunksFixedContract,
     LoansOTCPunksFixedImplContract,
     LoansPeripheralContract,
     USDCMockContract,
     WETH9MockContract,
 )
+from .dependency import DependencyManager
 
 ENV = Environment[os.environ.get("ENV", "local")]
+
+# def load_contracts(env: Environment) -> list[ContractConfig]:
+#     config_file = f"{Path.cwd()}/configs/{env.name}/renting.json"
+#     with open(config_file, "r") as f:
+#         config = json.load(f)
+#     contracts = [
+#         contract_map[c["contract"]](
+#             key=f"{scope}.{name}", address=c.get("address"), abi_key=c.get("abi_key"), **c.get("properties", {})
+#         )
+#         for scope in ["common", "renting"]
+#         for name, c in config[scope].items()
+#     ]
+
+#     # always deploy everything in local
+#     if env == Environment.local:
+#         for contract in contracts:
+#             contract.contract = None
+
+#     return contracts
+
+
+# def store_contracts(env: Environment, contracts: list[ContractConfig]):
+#     config_file = f"{Path.cwd()}/configs/{env.name}/renting.json"
+#     with open(config_file, "r") as f:
+#         config = json.load(f)
+
+#     contracts_dict = {c.key: c for c in contracts}
+#     for scope in ["common", "renting"]:
+#         for name, c in config[scope].items():
+#             key = f"{scope}.{name}"
+#             if key in contracts_dict:
+#                 c["address"] = contracts_dict[key].address()
+#                 if contracts_dict[key].abi_key:
+#                     c["abi_key"] = contracts_dict[key].abi_key
+#                 if contracts_dict[key].version:
+#                     c["version"] = contracts_dict[key].version
+#             properties = c.get("properties", {})
+#             addresses = c.get("properties_addresses", {})
+#             for prop_key, prop_val in properties.items():
+#                 if prop_key.endswith("_key"):
+#                     addresses[prop_key[:-4]] = contracts_dict[prop_val].address()
+#             c["properties_addresses"] = addresses
+
+#     with open(config_file, "w") as f:
+#         f.write(json.dumps(config, indent=4, sort_keys=True))
 
 if ENV == Environment.dev:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool", "eth-meta4"]
@@ -68,14 +113,12 @@ def contract_instances(env: Environment) -> dict:
         USDCMockContract(scope="usdc", pools=["usdc", "deadpool", "usdc-tailored1", "usdc-sgdao"]),
         GenesisContract(pools=POOLS),
         DelegationRegistryMockContract(pools=POOLS),
-
         ## Shared
         CollateralVaultCoreV2Contract(scope=None, pools=["weth", "usdc"]),
         CollateralVaultPeripheralContract(scope=None, pools=["weth", "usdc"]),
         CryptoPunksVaultCoreContract(scope=None, pools=["weth", "usdc"]),
         LiquidationsCoreContract(scope=None, pools=["weth", "usdc"]),
         LiquidationsPeripheralContract(scope=None, pools=["weth", "usdc"]),
-
         ## WETH
         LendingPoolPeripheralContract(scope="weth", pools=["weth"]),
         LendingPoolCoreContract(scope="weth", pools=["weth"]),
@@ -83,7 +126,6 @@ def contract_instances(env: Environment) -> dict:
         LiquidityControlsContract(scope="weth", pools=["weth"]),
         LoansPeripheralContract(scope="weth", pools=["weth"]),
         LoansCoreContract(scope="weth", pools=["weth"]),
-
         ## USDC
         LendingPoolPeripheralContract(scope="usdc", pools=["usdc"]),
         LendingPoolCoreContract(scope="usdc", pools=["usdc"]),
@@ -91,7 +133,6 @@ def contract_instances(env: Environment) -> dict:
         LiquidityControlsContract(scope="usdc", pools=["usdc"]),
         LoansPeripheralContract(scope="usdc", pools=["usdc"]),
         LoansCoreContract(scope="usdc", pools=["usdc"]),
-
         ## Grails
         CollateralVaultCoreV2Contract(scope="eth-grails", pools=["eth-grails"]),
         CollateralVaultPeripheralContract(scope="eth-grails", pools=["eth-grails"]),
@@ -104,7 +145,6 @@ def contract_instances(env: Environment) -> dict:
         LiquidityControlsContract(scope="eth-grails", pools=["eth-grails"]),
         LoansPeripheralContract(scope="eth-grails", pools=["eth-grails"]),
         LoansCoreContract(scope="eth-grails", pools=["eth-grails"]),
-
         ## Proxy Implementations
         LendingPoolEthOTCImplContract(),
         LendingPoolERC20OTCImplContract(token="usdc", token_scope="usdc"),
@@ -112,12 +152,10 @@ def contract_instances(env: Environment) -> dict:
         LoansOTCImplContract(),
         LoansOTCPunksFixedImplContract(),
         LiquidationsOTCImplContract(),
-
     ]
 
     if "swimming" in POOLS:
         contracts += [
-
             ## Swimming
             CollateralVaultOTCContract(scope="swimming", pools=["swimming"]),
             LendingPoolOTCContract(impl="lending_pool_eth_otc_impl", scope="swimming", pools=["swimming"]),
@@ -127,7 +165,6 @@ def contract_instances(env: Environment) -> dict:
 
     if "deadpool" in POOLS:
         contracts += [
-
             ## Deadpool
             CollateralVaultOTCContract(scope="deadpool", pools=["deadpool"]),
             LendingPoolOTCContract(impl="lending_pool_usdc_otc_impl", scope="deadpool", pools=["deadpool"]),
@@ -205,7 +242,9 @@ def load_contracts(env: Environment) -> list[ContractConfig]:
     config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
     with open(config_file, "r") as f:
         config = json.load(f)
-    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(config["other"].values())
+    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(
+        config["other"].values()
+    )
     addresses = {c["key"]: c["contract"] for c in contract_configs if c["contract"]}
 
     if env != Environment.local:
@@ -222,7 +261,9 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
         config = json.load(f)
 
     contracts_dict = {c.key(): c for c in contracts}
-    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(config["other"].values())
+    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(
+        config["other"].values()
+    )
     for c in contract_configs:
         k = c["key"]
         if k in contracts_dict:
@@ -244,61 +285,64 @@ def load_nft_contracts(env: Environment) -> list[NFT]:
             contract.contract = contract.container.at(address)
         return contract
 
-    return [load(c) for c in [
-        NFT("anticyclone", None),
-        NFT("archetype", None),
-        NFT("autoglyphs", None),
-        NFT("azuki", None),
-        NFT("bakc", None),
-        NFT("bayc", None),
-        NFT("beanz", None),
-        NFT("chromie", None),
-        NFT("clonex", None),
-        NFT("cool", None),
-        NFT("degods", None),
-        NFT("doodles", None),
-        NFT("fidenza", None),
-        NFT("gazers", None),
-        NFT("gundead", None),
-        NFT("hm", None),
-        NFT("hvmtl", None),
-        NFT("invsble", None),
-        NFT("lilpudgys", None),
-        NFT("mayc", None),
-        NFT("meebits", None),
-        NFT("memoriesofqilin", None),
-        NFT("meridian", None),
-        NFT("miladymaker", None),
-        NFT("moonbirds", None),
-        NFT("oldquirkies", None),
-        NFT("opepen", None),
-        NFT("otherdeed", None),
-        NFT("otherdeedexpanded", None),
-        NFT("otherdeedkoda", None),
-        NFT("othersidekoda", None),
-        NFT("othersidekodamara", None),
-        NFT("othersidemara", None),
-        NFT("ppg", None),
-        CryptoPunksMockContract(None) if env != Environment.prod else NFT("punk", None),
-        NFT("quirkies", None),
-        NFT("rektguy", None),
-        NFT("renga", None),
-        NFT("ringers", None),
-        NFT("spaceriders", None),
-        NFT("thecaptainz", None),
-        NFT("thecurrency", None),
-        NFT("theharvest", None),
-        NFT("theeternalpump", None),
-        NFT("theplague", None),
-        NFT("thepotatoz", None),
-        NFT("vft", None),
-        NFT("wgame", None),
-        NFT("wgamefarmer", None),
-        NFT("wgameland", None),
-        NFT("windsofyawanawa", None),
-        NFT("wow", None),
-        NFT("wpunk", None),
-    ]]
+    return [
+        load(c)
+        for c in [
+            NFT("anticyclone", None),
+            NFT("archetype", None),
+            NFT("autoglyphs", None),
+            NFT("azuki", None),
+            NFT("bakc", None),
+            NFT("bayc", None),
+            NFT("beanz", None),
+            NFT("chromie", None),
+            NFT("clonex", None),
+            NFT("cool", None),
+            NFT("degods", None),
+            NFT("doodles", None),
+            NFT("fidenza", None),
+            NFT("gazers", None),
+            NFT("gundead", None),
+            NFT("hm", None),
+            NFT("hvmtl", None),
+            NFT("invsble", None),
+            NFT("lilpudgys", None),
+            NFT("mayc", None),
+            NFT("meebits", None),
+            NFT("memoriesofqilin", None),
+            NFT("meridian", None),
+            NFT("miladymaker", None),
+            NFT("moonbirds", None),
+            NFT("oldquirkies", None),
+            NFT("opepen", None),
+            NFT("otherdeed", None),
+            NFT("otherdeedexpanded", None),
+            NFT("otherdeedkoda", None),
+            NFT("othersidekoda", None),
+            NFT("othersidekodamara", None),
+            NFT("othersidemara", None),
+            NFT("ppg", None),
+            CryptoPunksMockContract(None) if env != Environment.prod else NFT("punk", None),
+            NFT("quirkies", None),
+            NFT("rektguy", None),
+            NFT("renga", None),
+            NFT("ringers", None),
+            NFT("spaceriders", None),
+            NFT("thecaptainz", None),
+            NFT("thecurrency", None),
+            NFT("theharvest", None),
+            NFT("theeternalpump", None),
+            NFT("theplague", None),
+            NFT("thepotatoz", None),
+            NFT("vft", None),
+            NFT("wgame", None),
+            NFT("wgamefarmer", None),
+            NFT("wgameland", None),
+            NFT("windsofyawanawa", None),
+            NFT("wow", None),
+            NFT("wpunk", None),
+        ]
+    ]
 
 
 def store_nft_contracts(env: Environment, nfts: list[NFT]):
@@ -337,7 +381,6 @@ def load_borrowable_amounts(env: Environment) -> dict:
 
 class DeploymentManager:
     def __init__(self, env: Environment):
-
         self.env = env
         match env:
             case Environment.local:
@@ -372,62 +415,68 @@ class DeploymentManager:
             "nft_borrowable_amounts": nft_borrowable_amounts,
             "max_penalty_fees": max_penalty_fees,
             "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
-            
             # WETH
-            "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.weth": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6"
+            if self.env == Environment.prod
+            else self.owner,
             "lpp_protocol_fees_share.weth": 0,
             "lpp_max_capital_efficiency.weth": 8000,
             "loansperipheral_ispayable.weth": True,
-
-            #USDC
-            "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            # USDC
+            "lpp_protocol_wallet_fees.usdc": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6"
+            if self.env == Environment.prod
+            else self.owner,
             "lpp_protocol_fees_share.usdc": 0,
             "lpp_max_capital_efficiency.usdc": 8000,
             "loansperipheral_ispayable.usdc": False,
-
             # ETH-GRAILS
             "lpp_whitelist_enabled.eth-grails": True,
-            "lpp_protocol_wallet_fees.eth-grails": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.eth-grails": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6"
+            if self.env == Environment.prod
+            else self.owner,
             "lpp_protocol_fees_share.eth-grails": 0,
             "lpp_max_capital_efficiency.eth-grails": 10000,
             "loansperipheral_ispayable.eth-grails": True,
-
             # ETH-KASHI
-            "lpp_protocol_wallet_fees.eth-kashi": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.eth-kashi": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6"
+            if self.env == Environment.prod
+            else self.owner,
             "loansperipheral_ispayable.eth-kashi": True,
             "lender.eth-kashi": "0xDd3e9d0eE979E5c1689A18992647312b42d6d8F3" if self.env == Environment.prod else self.owner,
-
             # ETH-KEYROCK
-            "lpp_protocol_wallet_fees.eth-keyrock": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.eth-keyrock": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6"
+            if self.env == Environment.prod
+            else self.owner,
             "loansperipheral_ispayable.eth-keyrock": True,
             "lender.eth-keyrock": "0xf1a9676B03Dd3B2066214D2aD8B4B59ED6642C53" if self.env == Environment.prod else self.owner,
-
-            #ETH-META4
+            # ETH-META4
             # "lpp_protocol_wallet_fees.eth-meta4": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             # "loansperipheral_ispayable.eth-meta4": True,
             # "lender.eth-meta4": "0x37B6a8fDee08Fe2F0aeAfDcf70DFC6ee842E27a9" if self.env == Environment.prod else self.owner,
-
             # USDC-RUDOLPH
-            "lpp_protocol_wallet_fees.usdc-rudolph": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.usdc-rudolph": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6"
+            if self.env == Environment.prod
+            else self.owner,
             "lpp_protocol_fees_share.usdc-rudolph": 500,
             "lpp_max_capital_efficiency.usdc-rudolph": 10000,
             "loansperipheral_ispayable.usdc-rudolph": False,
-            "lender.usdc-rudolph": "0x4d1572Ea399cfcb0a4b25B364dF2c5ba68697e18" if self.env == Environment.prod else self.owner,
-
+            "lender.usdc-rudolph": "0x4d1572Ea399cfcb0a4b25B364dF2c5ba68697e18"
+            if self.env == Environment.prod
+            else self.owner,
             # USDC-SPRINGBOKS
             # "lpp_protocol_wallet_fees.usdc-springboks": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
             # "lpp_protocol_fees_share.usdc-springboks": 500,
             # "lpp_max_capital_efficiency.usdc-springboks": 10000,
             # "loansperipheral_ispayable.usdc-springboks": False,
             # "lender.usdc-springboks": "0xd7Fc4Ab828AFc1bb4b217f337f1777Ca856Efd12" if self.env == Environment.prod else self.owner,
-
             # USDC-SGDAO
             "lpp_whitelist_enabled.usdc-sgdao": True,
-            "lpp_protocol_wallet_fees.usdc-sgdao": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6" if self.env == Environment.prod else self.owner,
+            "lpp_protocol_wallet_fees.usdc-sgdao": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6"
+            if self.env == Environment.prod
+            else self.owner,
             "lpp_protocol_fees_share.usdc-sgdao": 0,
             "lpp_max_capital_efficiency.usdc-sgdao": 10000,
             "loansperipheral_ispayable.usdc-sgdao": False,
-            
             # SWIMMING, DEADPOOL
             "loansperipheral_ispayable.swimming": True,
             "loansperipheral_ispayable.deadpool": False,
@@ -443,16 +492,17 @@ class DeploymentManager:
 
     def deploy(self, changes: set[str], dryrun=False, save_state=True):
         self.owner.set_autosign(True)
+        self.context.dryrun = dryrun
         dependency_manager = DependencyManager(self.context, changes)
         contracts_to_deploy = dependency_manager.build_contract_deploy_set()
         dependencies_tx = dependency_manager.build_transaction_set()
 
         for contract in contracts_to_deploy:
             if contract.deployable(self.context):
-                contract.deploy(self.context, dryrun)
+                contract.deploy(self.context)
 
         for dependency_tx in dependencies_tx:
-            dependency_tx(self.context, dryrun)
+            dependency_tx(self.context)
 
         if save_state and not dryrun:
             self._save_state()

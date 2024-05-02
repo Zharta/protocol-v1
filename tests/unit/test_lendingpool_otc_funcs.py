@@ -46,7 +46,6 @@ def erc20_pool(lendingpool_erc20_otc_contract, erc20_token):
 
 
 def test_deposit_eth_fail(erc20_pool, weth_pool):
-
     amount = 10**18
     account1 = boa.env.generate_address()
     boa.env.set_balance(LENDER, amount)
@@ -76,7 +75,6 @@ def test_deposit_eth_fail(erc20_pool, weth_pool):
 
 
 def test_deposit_eth_success(erc20_pool, weth_pool, erc20_token):
-
     amount = 10**18
     boa.env.set_balance(LENDER, amount)
 
@@ -100,7 +98,6 @@ def test_deposit_eth_success(erc20_pool, weth_pool, erc20_token):
 
 
 def test_deposit_erc20_fail(erc20_pool, weth9_contract):
-
     amount = 10**18
     account1 = boa.env.generate_address()
     erc20_token = weth9_contract.at(erc20_pool.erc20TokenContract())
@@ -113,7 +110,6 @@ def test_deposit_erc20_fail(erc20_pool, weth9_contract):
         erc20_pool.deposit(amount, sender=account1)
 
     with boa.env.prank(LENDER):
-
         # not enough funds allowed
         erc20_token.approve(erc20_pool.address, amount - 1)
         with boa.reverts():
@@ -136,7 +132,6 @@ def test_deposit_erc20_fail(erc20_pool, weth9_contract):
 
 
 def test_deposit_erc20_success(erc20_pool, erc20_token):
-
     amount = 10**18
     erc20_token.eval(f"self.balanceOf[{LENDER}] = {amount}")
 
@@ -161,7 +156,6 @@ def test_deposit_erc20_success(erc20_pool, erc20_token):
 
 
 def test_withdraw_eth_fail(erc20_pool, weth_pool, erc20_token):
-
     amount = 10**18
     account1 = boa.env.generate_address()
 
@@ -189,7 +183,6 @@ def test_withdraw_eth_fail(erc20_pool, weth_pool, erc20_token):
 
 
 def test_withdraw_eth_success(weth_pool, erc20_token):
-
     amount = 10**18
     erc20_token.eval(f"self.balanceOf[{weth_pool.address}] = {amount}")
 
@@ -218,7 +211,6 @@ def test_withdraw_eth_success(weth_pool, erc20_token):
 
 
 def test_withdraw_erc20_fail(erc20_pool, erc20_token):
-
     amount = 10**18
     account1 = boa.env.generate_address()
 
@@ -240,7 +232,6 @@ def test_withdraw_erc20_fail(erc20_pool, erc20_token):
 
 
 def test_withdraw_erc20_success(erc20_pool, erc20_token):
-
     amount = 10**18
     erc20_token.eval(f"self.balanceOf[{erc20_pool.address}] = {amount}")
 
@@ -268,7 +259,6 @@ def test_withdraw_erc20_success(erc20_pool, erc20_token):
 
 
 def test_send_funds_fail(erc20_pool, erc20_token):
-
     amount = 10**18
     wallet = boa.env.generate_address()
     loans = boa.env.generate_address()
@@ -291,7 +281,6 @@ def test_send_funds_fail(erc20_pool, erc20_token):
 
 
 def test_send_funds_success(erc20_pool, erc20_token):
-
     amount = 10**18
     wallet = boa.env.generate_address()
 
@@ -312,7 +301,6 @@ def test_send_funds_success(erc20_pool, erc20_token):
 
 
 def test_send_funds_eth_fail(weth_pool):
-
     amount = 10**18
     wallet = boa.env.generate_address()
 
@@ -334,7 +322,6 @@ def test_send_funds_eth_fail(weth_pool):
 
 
 def test_send_funds_eth_success(weth_pool, erc20_token):
-
     amount = 10**18
     wallet = boa.env.generate_address()
 
@@ -355,7 +342,6 @@ def test_send_funds_eth_success(weth_pool, erc20_token):
 
 
 def test_receive_funds_eth_fail(weth_pool):
-
     amount = 10**18
     pool_rewards = 10**17
     borrower = boa.env.generate_address()
@@ -383,7 +369,6 @@ def test_receive_funds_eth_fail(weth_pool):
 
 
 def test_receive_funds_eth_success(weth_pool, erc20_token):
-
     amount = 10**18
     pool_rewards = 10**17
     protocol_rewards = pool_rewards * weth_pool.protocolFeesShare() // 10000
@@ -413,7 +398,6 @@ def test_receive_funds_eth_success(weth_pool, erc20_token):
 
 
 def test_receive_funds_fail(erc20_pool, erc20_token):
-
     amount = 10**18
     pool_rewards = 10**17
     borrower = boa.env.generate_address()
@@ -443,7 +427,6 @@ def test_receive_funds_fail(erc20_pool, erc20_token):
 
 
 def test_receive_funds_success(erc20_pool, erc20_token):
-
     amount = 10**18
     pool_rewards = 10**17
     protocol_rewards = pool_rewards * erc20_pool.protocolFeesShare() // 10000
@@ -472,7 +455,6 @@ def test_receive_funds_success(erc20_pool, erc20_token):
 
 
 def test_receive_collateral_from_liquidation_fail(erc20_pool, erc20_token):
-
     amount = 10**18
     borrower = boa.env.generate_address()
     liquidationsPeripheralContract = erc20_pool.liquidationsPeripheralContract()
@@ -496,7 +478,6 @@ def test_receive_collateral_from_liquidation_fail(erc20_pool, erc20_token):
 
 
 def test_receive_collateral_from_liquidation_success(erc20_pool, erc20_token):
-
     amount = 10**18
     borrower = boa.env.generate_address()
     liquidationsPeripheralContract = erc20_pool.liquidationsPeripheralContract()
@@ -518,7 +499,6 @@ def test_receive_collateral_from_liquidation_success(erc20_pool, erc20_token):
 
 
 def test_receive_funds_from_liquidation_fail(erc20_pool, erc20_token):
-
     amount = 10**18
     rewardsAmount = 10**17
     borrower = boa.env.generate_address()
@@ -539,14 +519,12 @@ def test_receive_funds_from_liquidation_fail(erc20_pool, erc20_token):
     with boa.reverts():
         erc20_pool.receiveFundsFromLiquidation(borrower, 0, 0, True, "origin", sender=borrower)
 
-
     # msg.sender not liquidations
     with boa.reverts():
         erc20_pool.receiveFundsFromLiquidation(borrower, amount, rewardsAmount, True, "origin", sender=borrower)
 
 
 def test_receive_funds_from_liquidation_success(erc20_pool, erc20_token):
-
     amount = 10**18
     rewardsAmount = 10**17
     protocol_rewards = rewardsAmount * erc20_pool.protocolFeesShare() // 10000
@@ -576,7 +554,6 @@ def test_receive_funds_from_liquidation_success(erc20_pool, erc20_token):
 
 
 def test_receive_funds_from_liquidation_eth_fail(weth_pool, erc20_token):
-
     amount = 10**18
     rewardsAmount = 10**17
     borrower = boa.env.generate_address()
@@ -584,15 +561,18 @@ def test_receive_funds_from_liquidation_eth_fail(weth_pool, erc20_token):
 
     # allowEth is False
     with boa.reverts():
-        weth_pool.receiveFundsFromLiquidationEth(borrower, amount, rewardsAmount, True, "origin", value=amount+rewardsAmount, sender=borrower)
+        weth_pool.receiveFundsFromLiquidationEth(
+            borrower, amount, rewardsAmount, True, "origin", value=amount + rewardsAmount, sender=borrower
+        )
 
     # recv amount not match partials
     with boa.reverts():
-        weth_pool.receiveFundsFromLiquidationEth(borrower, amount, rewardsAmount, True, "origin", value=amount, sender=borrower)
+        weth_pool.receiveFundsFromLiquidationEth(
+            borrower, amount, rewardsAmount, True, "origin", value=amount, sender=borrower
+        )
 
 
 def test_receive_funds_from_liquidation_eth_success(weth_pool, erc20_token):
-
     amount = 10**18
     rewardsAmount = 10**17
     protocol_rewards = rewardsAmount * weth_pool.protocolFeesShare() // 10000
@@ -602,7 +582,9 @@ def test_receive_funds_from_liquidation_eth_success(weth_pool, erc20_token):
     boa.env.set_balance(liquidations, amount + rewardsAmount)
     weth_pool.eval(f"self.fundsInvested = {amount}")
 
-    weth_pool.receiveFundsFromLiquidationEth(borrower, amount, rewardsAmount, True, "origin", value=amount+rewardsAmount, sender=liquidations)
+    weth_pool.receiveFundsFromLiquidationEth(
+        borrower, amount, rewardsAmount, True, "origin", value=amount + rewardsAmount, sender=liquidations
+    )
 
     event = get_last_event(weth_pool, name="FundsReceipt")
     assert event.walletIndexed == borrower

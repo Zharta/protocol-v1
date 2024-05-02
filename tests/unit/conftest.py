@@ -1,8 +1,14 @@
-import boa
-from eth_account import Account
 from textwrap import dedent
 
+import boa
 import pytest
+from eth_account import Account
+
+
+@pytest.fixture(scope="session", autouse=True)
+def boa_env():
+    boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")
+    return boa
 
 
 @pytest.fixture(scope="session")
@@ -147,9 +153,11 @@ def liquidations_peripheral_contract():
 
 @pytest.fixture(scope="module")
 def empty_contract():
-    return boa.loads_partial(dedent("""
+    return boa.loads_partial(
+        dedent("""
         dummy: uint256
-     """))
+     """)
+    )
 
 
 @pytest.fixture(scope="module")
@@ -157,7 +165,8 @@ def path_to_erc20_mock():
     # this is not required for loans core functionality, but is needed to find the erc20
     # to use in events.
     # TODO: consider remove the events dependency
-    return boa.loads_partial(dedent("""
+    return boa.loads_partial(
+        dedent("""
 
         @external
         @view
@@ -169,5 +178,5 @@ def path_to_erc20_mock():
         def erc20TokenContract() -> address:
             return self
 
-     """))
-
+     """)
+    )

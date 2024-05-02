@@ -95,11 +95,7 @@ def test_add_loans_peripheral_address_wrong_sender(collateral_vault_peripheral, 
 def test_add_loans_peripheral_address_zero_address(collateral_vault_peripheral, contract_owner):
     erc20 = boa.env.generate_address()
     with boa.reverts("address is the zero addr"):
-        collateral_vault_peripheral.addLoansPeripheralAddress(
-            erc20,
-            ZERO_ADDRESS,
-            sender=contract_owner
-        )
+        collateral_vault_peripheral.addLoansPeripheralAddress(erc20, ZERO_ADDRESS, sender=contract_owner)
 
 
 def test_add_loans_peripheral_address(collateral_vault_peripheral, contract_owner):

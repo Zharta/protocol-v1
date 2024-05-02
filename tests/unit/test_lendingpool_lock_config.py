@@ -1,5 +1,6 @@
 import boa
 import pytest
+
 from ..conftest_base import ZERO_ADDRESS, get_last_event
 
 
@@ -93,7 +94,6 @@ def test_set_lending_pool_peripheral_address_zero_address(lending_pool_lock, con
 
 
 def test_set_lending_pool_peripheral_address(lending_pool_lock, contract_owner):
-
     lending_pool_peripheral = boa.env.generate_address()
     lending_pool_lock.setLendingPoolPeripheralAddress(lending_pool_peripheral, sender=contract_owner)
     event = get_last_event(lending_pool_lock, name="LendingPoolPeripheralAddressSet")

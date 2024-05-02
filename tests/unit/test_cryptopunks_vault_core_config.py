@@ -104,5 +104,3 @@ def test_set_collateral_vault_peripheral_address(cryptopunks_vault_core, contrac
 
     assert event.currentValue == ZERO_ADDRESS
     assert event.newValue == collateral_vault_peripheral
-
-

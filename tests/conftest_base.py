@@ -1,9 +1,11 @@
-import pytest
-import boa
-import vyper
-from web3 import Web3
 from functools import cached_property
 
+import boa
+import pytest
+import vyper
+from boa.contracts.vyper.event import Event, RawEvent
+from boa.contracts.vyper.vyper_contract import VyperContract
+from web3 import Web3
 
 # boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")
 # boa.env.enable_gas_profiling()
@@ -13,18 +15,19 @@ from functools import cached_property
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
-def get_last_event(contract: boa.vyper.contract.VyperContract, name: str = None):
-    matching_events = [e for e in contract.get_logs() if isinstance(e, boa.vyper.event.Event) and (name is None or name == e.event_type.name)]
+def get_last_event(contract: VyperContract, name: str = None):
+    matching_events = [e for e in contract.get_logs() if isinstance(e, Event) and (name is None or name == e.event_type.name)]
     return EventWrapper(matching_events[-1])
 
 
-def get_events(contract: boa.vyper.contract.VyperContract, name: str = None):
-    return [EventWrapper(e) for e in contract.get_logs() if isinstance(e, boa.vyper.event.Event) and (name is None or name == e.event_type.name)]
+def get_events(contract: VyperContract, name: str = None):
+    return [
+        EventWrapper(e) for e in contract.get_logs() if isinstance(e, Event) and (name is None or name == e.event_type.name)
+    ]
 
 
-class EventWrapper():
-
-    def __init__(self, event: boa.vyper.event.Event):
+class EventWrapper:
+    def __init__(self, event: Event):
         self.event = event
         self.event_name = event.event_type.name
 
@@ -69,9 +72,9 @@ def checksummed(obj, vyper_type=None):
         return tuple(checksummed(*arg) for arg in zip(obj, vyper_type.tuple_members()))
 
     elif isinstance(vyper_type, vyper.codegen.types.types.BaseType):
-        if vyper_type.typ == 'address':
+        if vyper_type.typ == "address":
             return Web3.toChecksumAddress(obj)
-        elif vyper_type.typ == 'bytes32':
+        elif vyper_type.typ == "bytes32":
             return f"0x{obj.hex()}"
 
     return obj

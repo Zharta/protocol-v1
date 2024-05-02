@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 
 # Interfaces
@@ -391,7 +391,7 @@ def addCollateralToLoan(_borrower: address, _collateral: Collateral, _loanId: ui
 def removeCollateralFromLoan(_borrower: address, _collateral: Collateral, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
     assert self._isLoanCreated(_borrower, _loanId), "loan not found"
-    
+
     self._removeCollateralFromLoan(_borrower, _collateral, _loanId)
 
 
@@ -453,7 +453,7 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
 @external
 def updateLoanPaidAmount(_borrower: address, _loanId: uint256, _paidPrincipal: uint256, _paidInterestAmount: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-  
+
     self.loans[_borrower][_loanId].paidPrincipal += _paidPrincipal
     self.loans[_borrower][_loanId].paidInterestAmount += _paidInterestAmount
 
@@ -489,10 +489,10 @@ def updateDefaultedLoan(_borrower: address, _loanId: uint256):
 @external
 def updateHighestSingleCollateralLoan(_borrower: address, _loanId: uint256):
     assert msg.sender == self.loansPeripheral, "msg.sender is not the loans addr"
-  
+
     if len(self.loans[_borrower][_loanId].collaterals) == 1 and self.topStats.highestSingleCollateralLoan.amount < self.loans[_borrower][_loanId].amount:
         self.topStats.highestSingleCollateralLoan = self.loans[_borrower][_loanId]
-  
+
 
 @external
 def updateHighestCollateralBundleLoan(_borrower: address, _loanId: uint256):

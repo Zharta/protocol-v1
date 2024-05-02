@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
 Test contract to deliver funds to non payable contracts

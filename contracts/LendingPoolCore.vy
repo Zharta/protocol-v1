@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 
 # Interfaces
@@ -278,7 +278,7 @@ def deposit(_lender: address, _payer: address, _amount: uint256) -> bool:
         self.lenders.append(_lender)
         self.knownLenders[_lender] = True
         self.activeLenders += 1
-    
+
     self.fundsAvailable += _amount
     self.totalSharesBasisPoints += sharesAmount
 

@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 ## Interfaces
 
@@ -140,7 +140,7 @@ def _removeTokenFromEnumeration(_from: address, _tokenId: uint256):
 def _transferFrom(_from: address, _to: address, _tokenId: uint256):
     """
     @dev Execute transfer of a NFT.
-         Throws unless `msg.sender` is the current owner, an authorized operator, or the approved address for this NFT. 
+         Throws unless `msg.sender` is the current owner, an authorized operator, or the approved address for this NFT.
          Throws if `_to` is the zero address.
          Throws if `_from` is not the current owner.
          Throws if `_tokenId` is not a valid NFT.
@@ -153,7 +153,7 @@ def _transferFrom(_from: address, _to: address, _tokenId: uint256):
 
     self.tokenOwner[_tokenId] = _to
     self.tokenApprovals[_tokenId] = empty(address)
-    
+
     self.walletSupply[_from] = unsafe_sub(self.walletSupply[_from], 1)
     self.walletSupply[_to] = unsafe_add(self.walletSupply[_to], 1)
 
@@ -275,13 +275,13 @@ def tokenOfOwnerByIndex(_owner: address, _index: uint256) -> uint256:
 def transferFrom(_from: address, _to: address, _tokenId: uint256):
 
     """
-    @notice Transfer ownership of an NFT -- THE CALLER IS RESPONSIBLE TO CONFIRM THAT `_to` IS CAPABLE OF RECEIVING NFTS 
+    @notice Transfer ownership of an NFT -- THE CALLER IS RESPONSIBLE TO CONFIRM THAT `_to` IS CAPABLE OF RECEIVING NFTS
      OR ELSE THEY MAY BE PERMANENTLY LOST
     @dev Throws unless `msg.sender` is the current owner, an authorized operator, or the approved address for this NFT.
      Throws if `_from` is not the current owner. Throws if `_to` is the zero address. Throws if `_tokenId` is not a valid NFT.
     @param _from The current owner of the NFT
     @param _to The new owner
-    @param _tokenId The NFT to transfer   
+    @param _tokenId The NFT to transfer
     """
 
     self._transferFrom(_from, _to, _tokenId)
@@ -369,5 +369,3 @@ def renounceOwnership():
     """
 
     raise "not supported"
-
-

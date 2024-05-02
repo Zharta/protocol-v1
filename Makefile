@@ -2,7 +2,6 @@
 
 VENV?=./.venv
 PYTHON=${VENV}/bin/python3
-PIP=${VENV}/bin/pip
 
 CONTRACTS := $(shell find contracts -depth 1 -name '*.vy')
 NATSPEC := $(patsubst contracts/%, natspec/%, $(CONTRACTS:%.vy=%.json))
@@ -10,17 +9,26 @@ PATH := ${VENV}/bin:${PATH}
 
 vpath %.vy ./contracts
 
-$(VENV): requirements.txt
-	python3 -m venv $(VENV)
-	${PIP} install -U pip
-	${PIP} install wheel
+$(VENV):
+	if ! command -v uv > /dev/null; then python -m pip install -U uv; fi
+	uv venv $(VENV)
 
-install: ${VENV}
-	${PIP} install -r requirements.txt
-	${VENV}/bin/ape plugins install --upgrade .
+install: ${VENV} requirements.txt
+	uv pip sync requirements.txt
+	# uv pip install -U pip
+	# ${VENV}/bin/ape plugins install --upgrade .
 
-install-dev: ${VENV}
-	${PIP} install -r requirements-dev.txt
+install-dev: $(VENV) requirements-dev.txt
+	uv pip sync requirements-dev.txt
+	# uv pip install -U pip
+	# ${VENV}/bin/ape plugins install --upgrade .
+	$(VENV)/bin/pre-commit install
+
+requirements.txt: pyproject.toml overrides.txt
+	uv pip compile --override overrides.txt -o requirements.txt pyproject.toml
+
+requirements-dev.txt: pyproject.toml overrides.txt
+	uv pip compile --override  overrides.txt -o requirements-dev.txt --extra dev pyproject.toml
 
 test: ${VENV}
 	${VENV}/bin/pytest tests/unit --durations=0
@@ -53,6 +61,12 @@ natspec/%.json: %.vy
 clean:
 	rm -rf ${VENV} .cache
 
+lint:
+	$(VENV)/bin/ruff check .
+
+format:
+	$(VENV)/bin/ruff format scripts tests
+	$(VENV)/bin/ruff check --select I --fix
 
 %-local: export ENV=local
 %-dev: export ENV=dev
@@ -69,7 +83,7 @@ compile:
 console-local:
 	${VENV}/bin/ape console --network ethereum:local:foundry
 
-deploy-local: 
+deploy-local:
 	${VENV}/bin/ape run -I deployment --network ethereum:local:foundry
 
 console-dev:

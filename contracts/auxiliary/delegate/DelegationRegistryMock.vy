@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 # Structs
 
@@ -215,13 +215,13 @@ def getDelegatesForToken(vault: address, contract: address, tokenId: uint256) ->
 
 @view
 @external
-def getContractLevelDelegations(vault: address) -> DynArray[ContractDelegation, 2**10]: 
+def getContractLevelDelegations(vault: address) -> DynArray[ContractDelegation, 2**10]:
     return [] # not implemented
 
 
 @view
 @external
-def getTokenLevelDelegations(vault: address) -> DynArray[TokenDelegation, 2**10]: 
+def getTokenLevelDelegations(vault: address) -> DynArray[TokenDelegation, 2**10]:
     return [] # not implemented
 
 
@@ -308,4 +308,3 @@ def revokeDelegate(delegate: address):
 @external
 def revokeSelf(vault: address):
     self._revokeDelegate(msg.sender, vault)
-

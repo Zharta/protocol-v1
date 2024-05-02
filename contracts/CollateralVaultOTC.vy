@@ -1,5 +1,5 @@
 
-# @version 0.3.9
+# @version 0.3.10
 
 """
 @title CollateralVaultOTC
@@ -483,5 +483,3 @@ def collateralSupportsDelegation(_collateralAddress: address, _tokenId: uint256,
     """
 
     return self._vault_owns_collateral(_collateralAddress, _tokenId)
-
-

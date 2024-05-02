@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
 @title CollateralVaultPeripheral
@@ -383,5 +383,3 @@ def collateralSupportsDelegation(_collateralAddress: address, _tokenId: uint256,
     """
 
     return IVault(self._getVaultAddress(_collateralAddress, _tokenId)).ownsCollateral(_collateralAddress, _tokenId)
-
-
