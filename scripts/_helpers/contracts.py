@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from functools import partial, partialmethod
 from rich import print
+from rich.markup import escape
 from typing import Any, Callable, Optional
 
 from ape import project
@@ -12,6 +13,23 @@ from .transactions import Transaction
 
 def with_pool(f, pool):
     return partial(f, pool=pool)
+
+
+class GenericContract(ContractConfig):
+    _address: str
+
+    def __init__(self, *, key: str, address: str, version: str | None = None, abi_key: str):
+        super().__init__(key, None, None, version=version, abi_key=abi_key)
+        self._address = address
+
+    def address(self):
+        return self._address
+
+    def deployable(self, contract: DeploymentContext) -> bool:  # noqa: PLR6301, ARG002
+        return False
+
+    def __repr__(self):
+        return f"GenericContract[key={self.key}, address={self._address}]"
 
 
 @dataclass
@@ -41,20 +59,19 @@ class CollateralVaultCoreV2(ContractConfig):
             abi_key=abi_key,
             container_name="CollateralVaultCoreV2",
             deployment_deps={delegation_registry_key},
-            deployment_args_contracts=[delegation_registry_key],
+            deployment_args=[delegation_registry_key],
             config_deps={collateral_vault_peripheral_key: self.set_cvperiph},
         )
         self.collateral_vault_peripheral_key = collateral_vault_peripheral_key
         if address:
             self.load_contract(address)
 
-    def set_cvperiph(self, context: DeploymentContext, *, dryrun: bool = False):
+    def set_cvperiph(self, context: DeploymentContext):
         execute(
             context,
             self.key,
             "setCollateralVaultPeripheralAddress",
             self.collateral_vault_peripheral_key,
-            dryrun=dryrun,
         )
 
 
@@ -86,8 +103,8 @@ class CryptoPunksVaultCore(ContractConfig):
         if address:
             self.load_contract(address)
 
-    def set_cvperiph(self, context: DeploymentContext, *, dryrun: bool = False):
-        execute(context, self.key, "setCollateralVaultPeripheralAddress", self.collateral_vault_peripheral_key, dryrun=dryrun)
+    def set_cvperiph(self, context: DeploymentContext):
+        execute(context, self.key, "setCollateralVaultPeripheralAddress", self.collateral_vault_peripheral_key)
 
 
 @dataclass
@@ -122,7 +139,7 @@ class CollateralVaultPeripheral(ContractConfig):
                 punks_vault_core_key: self.add_punksvault,
             }
             | {
-                loans: partialmethod(self.add_loansperiph, token_key=token, loans_key=loans)
+                loans: partial(self.add_loansperiph, token_key=token, loans_key=loans)
                 for loans, token in zip(_loans_peripheral_keys, _tokens_keys)
             },
         )
@@ -133,14 +150,14 @@ class CollateralVaultPeripheral(ContractConfig):
         if address:
             self.load_contract(address)
 
-    def set_liquidationsperiph(self, context: DeploymentContext, *, dryrun: bool = False):
-        execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_peripheral_key, dryrun=dryrun)
+    def set_liquidationsperiph(self, context: DeploymentContext):
+        execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_peripheral_key)
 
-    def add_punksvault(self, context: DeploymentContext, *, dryrun: bool = False):
-        execute(context, self.key, "addVault", self.punks_contract_key, self.punks_vault_core_key, dryrun=dryrun)
+    def add_punksvault(self, context: DeploymentContext):
+        execute(context, self.key, "addVault", self.punks_contract_key, self.punks_vault_core_key)
 
-    def add_loansperiph(self, context: DeploymentContext, *, token_key, loans_key, dryrun: bool = False):
-        execute(context, self.key, "addLoansPeripheralAddress", token_key, loans_key, dryrun=dryrun)
+    def add_loansperiph(self, context: DeploymentContext, *, token_key, loans_key):
+        execute(context, self.key, "addLoansPeripheralAddress", token_key, loans_key)
 
 
 @dataclass
@@ -170,8 +187,8 @@ class LendingPoolCore(ContractConfig):
         if address:
             self.load_contract(address)
 
-    def set_lpperiph(self, context: DeploymentContext, *, dryrun: bool = False):
-        execute(context, self.key, "setLendingPoolPeripheralAddress", self.lending_pool_peripheral_key, dryrun=dryrun)
+    def set_lpperiph(self, context: DeploymentContext):
+        execute(context, self.key, "setLendingPoolPeripheralAddress", self.lending_pool_peripheral_key)
 
 
 @dataclass
@@ -201,8 +218,8 @@ class LendingPoolLock(ContractConfig):
         if address:
             self.load_contract(address)
 
-    def set_lpperiph(self, context: DeploymentContext, *, dryrun: bool = False):
-        execute(context, self.key, "setLendingPoolPeripheralAddress", self.lending_pool_peripheral_key, dryrun=dryrun)
+    def set_lpperiph(self, context: DeploymentContext):
+        execute(context, self.key, "setLendingPoolPeripheralAddress", self.lending_pool_peripheral_key)
 
 
 @dataclass
@@ -497,15 +514,13 @@ class LiquidationsPeripheral(ContractConfig):
                 nftx_marketplace_zap_key: self.set_nftxmarketplacezap,
             }
             | {
-                loans_core: partialmethod(self.add_loanscore, token_key=token, loans_core_key=loans_core),
+                loans_core: partial(self.add_loanscore, token_key=token, loans_core_key=loans_core)
                 for token, loans_core in zip(_tokens_keys, _loans_core_keys)
-            },
-            | {
-                lpp: partialmethod(self.add_lpperiph, token_key=token, lending_pool_peripheral_key=lpp),
+            } | {
+                lpp: partial(self.add_lpperiph, token_key=token, lending_pool_peripheral_key=lpp)
                 for token, lpp in zip(_tokens_keys, _lending_pool_peripheral_keys)
-            },
-            | {
-                max_fee_key: partialmethod(self.set_max_fee, token_key=token, max_fee_key=max_fee_key),
+            } | {
+                max_fee_key: partial(self.set_max_fee, token_key=token, max_fee_key=max_fee_key)
                 for token, max_fee_key in zip(_tokens_keys, _max_penalty_fee_keys)
             },
         )
@@ -903,7 +918,7 @@ class LoansOTC(MinimalProxy):
         *,
         key: str,
         version: str | None = None,
-        loans_otc_impl_key: str,
+        implementation_key: str,
         interest_accrual_period: int = 24 * 60 * 60,
         lending_pool_key: str,
         collateral_vault_key: str,
@@ -920,8 +935,8 @@ class LoansOTC(MinimalProxy):
             version=version,
             abi_key=abi_key,
             container_name="LoansOTC",
-            impl=loans_otc_impl_key,
-            deployment_deps={loans_otc_impl_key, lending_pool_key, collateral_vault_key, genesis_key},
+            impl=implementation_key,
+            deployment_deps={implementation_key, lending_pool_key, collateral_vault_key, genesis_key},
             deployment_args=[interest_accrual_period, lending_pool_key, collateral_vault_key, genesis_key, is_payable],
             config_deps={
                 liquidations_key: self.set_liquidations,
@@ -956,7 +971,7 @@ class LoansOTCPunksFixed(MinimalProxy):
         *,
         key: str,
         version: str | None = None,
-        loans_otc_impl_key: str,
+        implementation_key: str,
         interest_accrual_period: int = 24 * 60 * 60,
         lending_pool_key: str,
         collateral_vault_key: str,
@@ -973,8 +988,8 @@ class LoansOTCPunksFixed(MinimalProxy):
             version=version,
             abi_key=abi_key,
             container_name="LoansOTCPunksFixed",
-            impl=loans_otc_impl_key,
-            deployment_deps={loans_otc_impl_key, lending_pool_key, collateral_vault_key, genesis_key},
+            impl=implementation_key,
+            deployment_deps={implementation_key, lending_pool_key, collateral_vault_key, genesis_key},
             deployment_args=[interest_accrual_period, lending_pool_key, collateral_vault_key, genesis_key, is_payable],
             config_deps={
                 liquidations_key: self.set_liquidations,
@@ -1003,33 +1018,27 @@ class LoansOTCPunksFixed(MinimalProxy):
 
 
 def execute_read(context: DeploymentContext, contract: str, func: str, *args, options=None):
-    contract_instance = context.contract[contract].contract
-    print(f"## {contract}.{func}({','.join(args)})")
+    contract_instance = context.contracts[contract].contract
+    args_repr = [f"[blue]{escape(c)}[/blue]" if c in context else c for c in args]
+    print(f"Calling [blue]{escape(contract)}[/blue].{func}({', '.join(args_repr)})", end=" ")
     if not context.dryrun:
-        args_values = [context.get(c, c) for c in args]
+        args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
         args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]
-        # function = getattr(contract_instance, func)
-        # args_values = [context[a].address() for a in args]
-        # return function(*args_values, **({"sender": context.owner} | (options or {})))
-        # return function(*args_values, **(options or {}))
-        return contract_instance.call_view_method(func, *args_values, **(options or {}))
+
+        result = contract_instance.call_view_method(func, *args_values, **(options or {}))
+        print(f"= {result}")
+        return result
+
+    print()
+    return None
 
 
 def execute(context: DeploymentContext, contract: str, func: str, *args, options=None):
-    contract_instance = context.contract[contract].contract
-    print(f"## {contract}.{func}({','.join(args)})", {"from": context.owner} | context.gas_options() | (options or {}))
+    contract_instance = context.contracts[contract].contract
+    args_repr = [f"[blue]{escape(c)}[/blue]" if c in context else c for c in args]
+    print(f"Executing [blue]{escape(contract)}[/blue].{func}({', '.join(args_repr)})")
     if not context.dryrun:
         function = getattr(contract_instance, func)
-        args_values = [context.get(c, c) for c in args]
+        args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
         args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]
-        print(f"{function=} {args_values=}")
         return function(*args_values, **({"sender": context.owner} | context.gas_options() | (options or {})))
-
-        # deploy_args = [context[a].address() for a in args]
-        # print(f"{function=} {deploy_args=}")
-        # return function(*deploy_args, **({"sender": context.owner} | context.gas_options() | (options or {})))
-
-
-
-        values = [context.get(c, c) for c in self.deployment_args]
-        return [v.contract if isinstance(v, ContractConfig) else v for v in values]
