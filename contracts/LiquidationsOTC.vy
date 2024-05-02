@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
 @title LiquidationsOTC
@@ -663,4 +663,3 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         liquidation.principal,
         "OTC_CLAIM"
     )
-

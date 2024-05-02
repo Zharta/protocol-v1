@@ -1,16 +1,16 @@
-from vyper.cli.vyper_compile import compile_files
+import copy
+import hashlib
+import json
+import logging
+import os
+from decimal import Decimal
 from pathlib import Path
+
+import boto3
+import click
 from botocore.exceptions import ClientError
 from click.exceptions import BadParameter
-from decimal import Decimal
-
-import click
-import json
-import boto3
-import os
-import logging
-import hashlib
-import copy
+from vyper.cli.vyper_compile import compile_files
 
 env = os.environ.get("ENV", "dev")
 prefix = hashlib.sha256("zharta".encode()).hexdigest()[-5:]
@@ -66,7 +66,7 @@ def write_content_to_file(filename: Path, data: str):
 def write_content_to_s3(key: Path, data: str):
     """Write content to S3."""
     try:
-        kwargs = {"ContentType": "application/json"} if key.as_posix()[-5:] ==".json" else {}
+        kwargs = {"ContentType": "application/json"} if key.as_posix()[-5:] == ".json" else {}
         s3.Bucket(bucket_name).put_object(Key=key.as_posix(), Body=data, **kwargs)
     except ClientError as e:
         logger.error(f"Error writing to S3: {e}")
@@ -151,7 +151,7 @@ def abi_key(abi: list) -> str:
     "write_to_s3",
     type=bool,
     help="Write files to S3. If value is False, files will be written to local directory "
-    "specified by the output-directory parameter."
+    "specified by the output-directory parameter.",
 )
 @click.option(
     "--output-directory",
@@ -185,9 +185,7 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
         contract_def: compiled
         for contract_def, path in contract_def_to_path.items()
         for compiled in compile_files(
-            [project_path / f"{path}.vy"],
-            output_formats=["abi_python", "bytecode"],
-            root_folder="."
+            [project_path / f"{path}.vy"], output_formats=["abi_python", "bytecode"], root_folder="."
         ).values()
     }
 
@@ -215,7 +213,6 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
 
     logger.info("Publishing abi and bytecode files")
     for contract_def, contract_path in contract_def_to_path.items():
-
         abi_path = Path(output_directory) / "abi" / f"{contract_def}.json"
         binary_path = Path(output_directory) / "bytecode" / f"{contract_def}.bin"
 
@@ -224,7 +221,6 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
             write_content_to_s3(binary_path, bytecodes[contract_def])
 
         elif not write_to_s3 and output_directory:
-
             write_content_to_file(abi_path, json.dumps(abis[contract_def]))
             write_content_to_file(binary_path, bytecodes[contract_def])
         else:

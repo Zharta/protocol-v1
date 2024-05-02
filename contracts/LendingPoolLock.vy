@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 
 # Interfaces
@@ -151,5 +151,3 @@ def setInvestorLock(_lender: address, _amount: uint256, _lockPeriodEnd: uint256)
         lockPeriodEnd: _lockPeriodEnd,
         lockPeriodAmount: _amount
     })
-
-

@@ -1,7 +1,7 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
-WETH9 Mock based on 
+WETH9 Mock based on
 https://github.com/vyperlang/vyper/blob/master/examples/tokens/ERC20.vy
 https://github.com/gnosis/canonical-weth/blob/master/contracts/WETH9.sol
 """

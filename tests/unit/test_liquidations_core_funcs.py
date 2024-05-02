@@ -1,7 +1,7 @@
-from web3 import Web3
 import boa
-import pytest
 import eth_abi
+import pytest
+from web3 import Web3
 
 from ..conftest_base import ZERO_ADDRESS
 
@@ -38,21 +38,7 @@ def liquidations_core(liquidations_core_contract, contract_owner):
 def test_add_liquidation_wrong_sender(liquidations_core, borrower):
     with boa.reverts("msg.sender is not LiqPeriph addr"):
         liquidations_core.addLiquidation(
-            ZERO_ADDRESS,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            ZERO_ADDRESS,
-            0,
-            ZERO_ADDRESS,
-            ZERO_ADDRESS,
-            sender=borrower
+            ZERO_ADDRESS, 0, 0, 0, 0, 0, 0, 0, 0, 0, ZERO_ADDRESS, 0, ZERO_ADDRESS, ZERO_ADDRESS, sender=borrower
         )
 
 
@@ -82,13 +68,10 @@ def test_add_liquidation(liquidations_core, contract_owner, borrower):
         0,
         loans_core,
         erc20,
-        sender=liquidations_peripheral
+        sender=liquidations_peripheral,
     )
 
-    liquidation_id_abi_encoded = eth_abi.encode(
-        ["address", "uint256", "uint256"],
-        [erc721, 0, start_time]
-    )
+    liquidation_id_abi_encoded = eth_abi.encode(["address", "uint256", "uint256"], [erc721, 0, start_time])
     liquidation_id = Web3.solidity_keccak(["bytes32"], [liquidation_id_abi_encoded]).hex()
 
     liquidation = liquidations_core.getLiquidation(erc721, 0)
@@ -130,7 +113,7 @@ def test_add_liquidation_already_exists(liquidations_core, contract_owner, borro
         0,
         loans_core,
         erc20,
-        sender=liquidations_peripheral
+        sender=liquidations_peripheral,
     )
 
     with boa.reverts("liquidation already exists"):
@@ -149,7 +132,7 @@ def test_add_liquidation_already_exists(liquidations_core, contract_owner, borro
             0,
             loans_core,
             erc20,
-            sender=liquidations_peripheral
+            sender=liquidations_peripheral,
         )
 
 
@@ -164,12 +147,7 @@ def test_add_loan_to_liquidated(liquidations_core, contract_owner, borrower):
     liquidations_peripheral = boa.env.generate_address()
     liquidations_core.setLiquidationsPeripheralAddress(liquidations_peripheral, sender=contract_owner)
 
-    liquidations_core.addLoanToLiquidated(
-        borrower,
-        loans_core,
-        0,
-        sender=liquidations_peripheral
-    )
+    liquidations_core.addLoanToLiquidated(borrower, loans_core, 0, sender=liquidations_peripheral)
 
     assert liquidations_core.isLoanLiquidated(borrower, loans_core, 0)
 
@@ -212,7 +190,7 @@ def test_remove_liquidation(liquidations_core, contract_owner, borrower):
         0,
         loans_core,
         erc20,
-        sender=liquidations_peripheral
+        sender=liquidations_peripheral,
     )
 
     liquidations_core.removeLiquidation(erc721, 0, sender=liquidations_peripheral)

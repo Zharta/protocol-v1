@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
 @title Loans
@@ -44,7 +44,7 @@ interface IERC20Symbol:
     def symbol() -> String[100]: view
 
 interface ILendingPoolPeripheral:
-    def maxFundsInvestable() -> uint256: view 
+    def maxFundsInvestable() -> uint256: view
     def erc20TokenContract() -> address: view
     def sendFundsEth(_to: address, _amount: uint256): nonpayable
     def sendFunds(_to: address, _amount: uint256): nonpayable
@@ -389,7 +389,7 @@ def _reserve(
     assert not ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _nonce), "loan already created"
     if _nonce > 0:
         assert ILoansCore(self.loansCoreContract).isLoanCreated(msg.sender, _nonce - 1), "loan is not sequential"
-    
+
     signer: address = self._recoverReserveSigner(msg.sender, _amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
     assert signer == self.admin, "invalid message signature"
 
@@ -781,7 +781,7 @@ def pay(_loanId: uint256):
         paidInterestAmount,
         erc20TokenContract
     )
-    
+
     log LoanPaid(
         msg.sender,
         msg.sender,
@@ -800,7 +800,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
     """
     assert msg.sender == self.admin, "msg.sender is not the admin"
     assert ILoansCore(self.loansCoreContract).isLoanStarted(_borrower, _loanId), "loan not found"
-    
+
     loan: Loan = ILoansCore(self.loansCoreContract).getLoan(_borrower, _loanId)
     assert not loan.paid, "loan already paid"
     assert block.timestamp > loan.maturity, "loan is within maturity period"
@@ -843,7 +843,7 @@ def setDelegation(_loanId: uint256, _collateralAddress: address, _tokenId: uint2
     assert loan.amount > 0, "invalid loan id"
     assert block.timestamp <= loan.maturity, "loan maturity reached"
     assert not loan.paid, "loan already paid"
-    
+
     for collateral in loan.collaterals:
         if collateral.contractAddress ==_collateralAddress and collateral.tokenId == _tokenId:
             ICollateralVaultPeripheral(self.collateralVaultPeripheralContract).setCollateralDelegation(
@@ -853,4 +853,3 @@ def setDelegation(_loanId: uint256, _collateralAddress: address, _tokenId: uint2
                 ILendingPoolPeripheral(self.lendingPoolPeripheralContract).erc20TokenContract(),
                 _value
             )
-

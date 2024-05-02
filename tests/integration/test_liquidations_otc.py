@@ -1,13 +1,13 @@
-from decimal import Decimal
-from datetime import datetime as dt
 from dataclasses import dataclass
-from web3 import Web3
+from datetime import datetime as dt
+from decimal import Decimal
 
 import boa
 import eth_abi
 import pytest
+from web3 import Web3
 
-from ..conftest_base import get_last_event, get_events
+from ..conftest_base import get_events, get_last_event
 
 GRACE_PERIOD_DURATION = 50
 PROTOCOL_FEE = 250
@@ -18,7 +18,7 @@ LOAN_INTEREST = 250  # 2.5% in parts per 10000
 
 
 @dataclass
-class Liquidation():
+class Liquidation:
     lid: bytes
     collateralAddress: str
     tokenId: int
@@ -35,7 +35,7 @@ class Liquidation():
 
 
 @dataclass
-class InvestorFunds():
+class InvestorFunds:
     currentAmountDeposited: int
     totalAmountDeposited: int
     totalAmountWithdrawn: int
@@ -57,15 +57,12 @@ def liquidations_otc_contract(
     contract_owner,
     lendingpool_otc_contract,
     loans_core_contract,
-    collateral_vault_peripheral_contract
+    collateral_vault_peripheral_contract,
 ):
     with boa.env.prank(contract_owner):
         contract = liquidations_otc_contract_def.deploy()
         proxy_address = contract.create_proxy(
-            GRACE_PERIOD_DURATION,
-            loans_core_contract,
-            lendingpool_otc_contract,
-            collateral_vault_peripheral_contract
+            GRACE_PERIOD_DURATION, loans_core_contract, lendingpool_otc_contract, collateral_vault_peripheral_contract
         )
         return liquidations_otc_contract_def.at(proxy_address)
 
@@ -95,7 +92,7 @@ def test_add_liquidation(
     erc721_contract,
     erc20_contract,
     borrower,
-    contract_owner
+    contract_owner,
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, sender=contract_owner)
 
@@ -105,7 +102,7 @@ def test_add_liquidation(
         LOAN_INTEREST,
         MATURITY,
         [(erc721_contract.address, 0, LOAN_AMOUNT)],
-        sender=loans_peripheral_contract.address
+        sender=loans_peripheral_contract.address,
     )
     loans_core_contract.updateLoanStarted(borrower, loan_id, sender=loans_peripheral_contract.address)
     loans_core_contract.updateDefaultedLoan(borrower, loan_id, sender=loans_peripheral_contract.address)
@@ -120,8 +117,7 @@ def test_add_liquidation(
     apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
 
     liquidation_id_abi_encoded = eth_abi.encode(
-        ["address", "uint256", "uint256"],
-        [erc721_contract.address, 0, liquidation.startTime]
+        ["address", "uint256", "uint256"], [erc721_contract.address, 0, liquidation.startTime]
     )
     liquidation_id = Web3.solidity_keccak(["bytes32"], [liquidation_id_abi_encoded]).hex()
 
@@ -139,8 +135,12 @@ def test_add_liquidation(
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
     assert event.erc20TokenContract == erc20_contract.address
-    assert event.gracePeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether")))
-    assert event.lenderPeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether")))
+    assert event.gracePeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(
+        min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether"))
+    )
+    assert event.lenderPeriodPrice == Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(
+        min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether"))
+    )
     assert event.gracePeriodMaturity == liquidation.startTime + GRACE_PERIOD_DURATION
     assert event.loansCoreContract == loans_core_contract.address
     assert event.loanId == loan_id
@@ -158,7 +158,7 @@ def test_add_liquidation_loan_not_defaulted(
     erc721_contract,
     erc20_contract,
     borrower,
-    contract_owner
+    contract_owner,
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, sender=contract_owner)
     loan_id = loans_core_contract.addLoan(
@@ -167,15 +167,11 @@ def test_add_liquidation_loan_not_defaulted(
         LOAN_INTEREST,
         MATURITY,
         [(erc721_contract.address, 0, LOAN_AMOUNT)],
-        sender=loans_peripheral_contract.address
+        sender=loans_peripheral_contract.address,
     )
 
     with boa.reverts("loan is not defaulted"):
-        liquidations_otc_contract.addLiquidation(
-            borrower,
-            loan_id,
-            erc20_contract
-        )
+        liquidations_otc_contract.addLiquidation(borrower, loan_id, erc20_contract)
 
 
 def test_pay_loan_liquidations_grace_period(
@@ -195,7 +191,7 @@ def test_pay_loan_liquidations_grace_period(
     erc721_contract.mint(collateral_vault_core_contract, 0, sender=contract_owner)
     erc721_contract.mint(collateral_vault_core_contract, 1, sender=contract_owner)
 
-    lendingpool_otc_contract.depositEth(sender=investor, value= LOAN_AMOUNT * 2)
+    lendingpool_otc_contract.depositEth(sender=investor, value=LOAN_AMOUNT * 2)
     lendingpool_otc_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, sender=loans_peripheral_contract.address)
 
     loan_id = loans_core_contract.addLoan(
@@ -204,7 +200,7 @@ def test_pay_loan_liquidations_grace_period(
         LOAN_INTEREST,
         MATURITY,
         [(erc721_contract.address, 0, LOAN_AMOUNT // 2), (erc721_contract.address, 1, LOAN_AMOUNT // 2)],
-        sender=loans_peripheral_contract.address
+        sender=loans_peripheral_contract.address,
     )
 
     loans_core_contract.updateLoanStarted(borrower, loan_id, sender=loans_peripheral_contract.address)
@@ -218,12 +214,12 @@ def test_pay_loan_liquidations_grace_period(
     assert liquidations_otc_contract.lendingPoolContract() == lendingpool_otc_contract.address
     assert lendingpool_otc_contract.erc20TokenContract() == erc20_contract.address
     liquidations_otc_contract.payLoanLiquidationsGracePeriod(
-        loan_id,
-        erc20_contract,
-        sender=borrower, value=liquidation1.gracePeriodPrice + liquidation2.gracePeriodPrice
+        loan_id, erc20_contract, sender=borrower, value=liquidation1.gracePeriodPrice + liquidation2.gracePeriodPrice
     )
 
-    event_liquidation_removed1, event_liquidation_removed2 = get_events(liquidations_otc_contract, name="LiquidationRemoved")[-2:]
+    event_liquidation_removed1, event_liquidation_removed2 = get_events(liquidations_otc_contract, name="LiquidationRemoved")[
+        -2:
+    ]
     event_nft_purchased1, event_nft_purchased2 = get_events(liquidations_otc_contract, name="NFTPurchased")[-2:]
     fund_receipt_events = get_events(liquidations_otc_contract, name="FundsReceipt")
 
@@ -283,7 +279,7 @@ def test_claim(
 ):
     erc721_contract.mint(collateral_vault_core_contract, 0, sender=contract_owner)
 
-    lendingpool_otc_contract.depositEth(sender=investor, value= LOAN_AMOUNT * 2)
+    lendingpool_otc_contract.depositEth(sender=investor, value=LOAN_AMOUNT * 2)
     lendingpool_otc_contract.sendFundsEth(contract_owner, LOAN_AMOUNT, sender=loans_peripheral_contract.address)
 
     assert liquidations_otc_contract.lendingPoolContract() == lendingpool_otc_contract.address
@@ -295,7 +291,7 @@ def test_claim(
         LOAN_INTEREST,
         MATURITY,
         [(erc721_contract.address, 0, LOAN_AMOUNT)],
-        sender=loans_peripheral_contract.address
+        sender=loans_peripheral_contract.address,
     )
 
     loans_core_contract.updateLoanStarted(borrower, loan_id, sender=loans_peripheral_contract.address)

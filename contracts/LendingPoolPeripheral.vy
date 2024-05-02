@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
 @title LendingPoolPeripheral
@@ -214,7 +214,7 @@ def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bo
 def _poolHasFundsToInvest(_fundsAvailable: uint256, _fundsInvested: uint256, _capitalEfficienty: uint256) -> bool:
     if _fundsAvailable + _fundsInvested == 0:
         return False
-    
+
     return _fundsInvested * 10000 / (_fundsAvailable + _fundsInvested) < _capitalEfficienty
 
 
@@ -241,7 +241,7 @@ def _poolHasFundsToInvestAfterPayment(_amount: uint256, _rewards: uint256) -> bo
 def _poolHasFundsToInvestAfterWithdraw(_amount: uint256) -> bool:
     fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
     fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
-    
+
     return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
 
 
@@ -250,7 +250,7 @@ def _poolHasFundsToInvestAfterWithdraw(_amount: uint256) -> bool:
 def _poolHasFundsToInvestAfterInvestment(_amount: uint256) -> bool:
     fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
     fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested() + _amount
-    
+
     return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
 
 
@@ -264,7 +264,7 @@ def _maxFundsInvestable() -> uint256:
 
     if fundsBuffer > fundsAvailable:
         return 0
-    
+
     return fundsAvailable - fundsBuffer
 
 
@@ -339,7 +339,7 @@ def _deposit(_amount: uint256, _payer: address):
 @internal
 def _withdraw(_amount: uint256, _receiver: address):
     assert _amount > 0, "_amount has to be higher than 0"
-    
+
     withdrawableAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender)
     assert withdrawableAmount >= _amount, "_amount more than withdrawable"
     assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "withdraw within lock period"
@@ -418,7 +418,7 @@ def _transferReceivedFunds(
 
     if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_payer, _amount, _rewardsPool, _investedAmount):
         raise "error receiving funds in LPCore"
-    
+
     if _rewardsProtocol > 0:
         if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_payer, self.protocolWallet, _rewardsProtocol):
             raise "error transferring protocol fees"
@@ -537,7 +537,7 @@ def __init__(
     self.protocolFeesShare = _protocolFeesShare
     self.maxCapitalEfficienty = _maxCapitalEfficienty
     self.isPoolActive = True
-    
+
     if _whitelistEnabled:
         self.whitelistEnabled = _whitelistEnabled
 
@@ -733,7 +733,7 @@ def changePoolStatus(_flag: bool):
     assert msg.sender == self.owner, "msg.sender is not the owner"
 
     self.isPoolActive = _flag
-  
+
     if not _flag:
         self.isPoolInvesting = False
 

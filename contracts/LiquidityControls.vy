@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 """
 @title LiquidityControls
@@ -116,7 +116,7 @@ def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreCo
 def outOfLockPeriod(_lender: address, _remainingAmount: uint256, _lpLockContractAddress: address) -> bool:
     if not self.lockPeriodEnabled:
         return True
-    
+
     investorLock : InvestorLock = ILendingPoolLock(_lpLockContractAddress).investorLocks(_lender)
     return investorLock.lockPeriodEnd <= block.timestamp or _remainingAmount >= investorLock.lockPeriodAmount
 
@@ -126,7 +126,7 @@ def outOfLockPeriod(_lender: address, _remainingAmount: uint256, _lpLockContract
 def withinCollectionShareLimit(_amount: uint256, _collectionAddress: address, _loansCoreContractAddress: address, _lpCoreContractAddress: address) -> bool:
     if not self.maxCollectionBorrowableAmountEnabled:
         return True
-    
+
     if self.maxCollectionBorrowableAmount[_collectionAddress] == 0:
         return True
 
@@ -175,7 +175,7 @@ def changeMaxPoolShareConditions(_flag: bool, _value: uint256):
 
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value <= 10000, "max pool share exceeds 10000 bps"
-        
+
     self.maxPoolShare = _value
 
     log MaxPoolShareChanged(_value)
@@ -195,7 +195,7 @@ def changeMaxLoansPoolShareConditions(_flag: bool, _value: uint256):
     """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _value <= 10000, "max pool share exceeds 10000 bps"
-        
+
     self.maxLoansPoolShare = _value
 
     log MaxLoansPoolShareChanged(_value)
@@ -216,7 +216,7 @@ def changeMaxCollectionBorrowableAmount(_flag: bool, _collectionAddress: address
     """
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _collectionAddress != empty(address), "collection addr is empty addr"
-        
+
     self.maxCollectionBorrowableAmount[_collectionAddress] = _value
 
     log MaxCollectionBorrowableAmountChanged(_collectionAddress, _value)
@@ -235,7 +235,7 @@ def changeLockPeriodConditions(_flag: bool, _value: uint256):
     @param _value Sets the Lock Period value (seconds) to use if `_flag` enables it
     """
     assert msg.sender == self.owner, "msg.sender is not the owner"
-    
+
     self.lockPeriodDuration = _value
 
     log LockPeriodDurationChanged(_value)
@@ -243,5 +243,3 @@ def changeLockPeriodConditions(_flag: bool, _value: uint256):
     self.lockPeriodEnabled = _flag
 
     log LockPeriodFlagChanged(_flag)
-
-

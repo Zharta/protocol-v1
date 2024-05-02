@@ -5,6 +5,7 @@ from ..conftest_base import ZERO_ADDRESS, get_last_event
 
 INTEREST_ACCRUAL_PERIOD = 24 * 60 * 60
 
+
 @pytest.fixture(scope="module", autouse=True)
 def contract_owner():
     return boa.env.generate_address()
@@ -189,5 +190,3 @@ def test_change_admin(loans_otc, contract_owner):
     assert event.newValue == admin
 
     assert loans_otc.admin() == admin
-
-

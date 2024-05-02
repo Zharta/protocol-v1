@@ -1,10 +1,11 @@
+from textwrap import dedent
+
 import boa
 import pytest
+from boa.test import strategy
+from hypothesis import given
 
 from ..conftest_base import ZERO_ADDRESS, get_last_event
-from textwrap import dedent
-from hypothesis import given
-from boa.test import strategy
 
 DEPLOYER = boa.env.generate_address()
 LENDER = boa.env.generate_address()
@@ -149,7 +150,6 @@ def test_deprecate_blockers(lendingpool_otc, lendingpool_otc_proxy):
 
     with boa.reverts():
         lendingpool_otc_proxy.sendFunds(account2, 1, sender=account1)
-
 
 
 def test_change_status(lendingpool_otc_proxy):

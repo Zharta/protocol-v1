@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 
 # Interfaces
@@ -161,4 +161,3 @@ def setDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint2
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
 
     self._setDelegation(_wallet, _collateralAddress, _tokenId, _value)
-

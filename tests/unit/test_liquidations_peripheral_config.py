@@ -1,7 +1,6 @@
-from web3 import Web3
-
 import boa
 import pytest
+from web3 import Web3
 
 from ..conftest_base import ZERO_ADDRESS, get_last_event
 
@@ -44,11 +43,7 @@ def liquidations_core(liquidations_core_contract, erc20, contract_owner):
 def liquidations_peripheral(liquidations_peripheral_contract, liquidations_core, erc20, contract_owner):
     with boa.env.prank(contract_owner):
         return liquidations_peripheral_contract.deploy(
-            liquidations_core,
-            GRACE_PERIOD_DURATION,
-            LENDER_PERIOD_DURATION,
-            AUCTION_DURATION,
-            erc20
+            liquidations_core, GRACE_PERIOD_DURATION, LENDER_PERIOD_DURATION, AUCTION_DURATION, erc20
         )
 
 
@@ -215,7 +210,7 @@ def test_propose_owner(liquidations_peripheral, contract_owner, borrower):
 
 def test_propose_owner_same_proposed(liquidations_peripheral, contract_owner, borrower):
     liquidations_peripheral.proposeOwner(borrower, sender=contract_owner)
-    
+
     with boa.reverts("proposed owner addr is the same"):
         liquidations_peripheral.proposeOwner(borrower, sender=contract_owner)
 

@@ -36,12 +36,7 @@ def test_collaterals(erc721):
 
 def test_add_loan(loans_core, borrower, contract_owner, test_collaterals):
     loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_core.loansPeripheral()
+        borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_core.loansPeripheral()
     )
 
     assert loan_id == 0
@@ -71,7 +66,6 @@ def test_add_loan(loans_core, borrower, contract_owner, test_collaterals):
     assert len(pending_loan_collaterals) == len(test_collaterals)
     assert pending_loan_collaterals == test_collaterals
 
-
     assert loans_core.borrowedAmount(borrower) == 0
 
     assert loans_core.ongoingLoans(borrower) == 1
@@ -85,14 +79,7 @@ def test_update_paid_loan_wrong_sender(loans_core, contract_owner, borrower):
 def test_update_paid_loan(loans_core, erc721, borrower, contract_owner, test_collaterals):
     loans_peripheral = loans_core.loansPeripheral()
 
-    loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_peripheral
-    )
+    loan_id = loans_core.addLoan(borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_peripheral)
 
     loans_core.updateLoanStarted(borrower, loan_id, sender=loans_peripheral)
 
@@ -114,14 +101,7 @@ def test_update_defaulted_loan_wrong_sender(loans_core, contract_owner, borrower
 def test_update_defaulted_loan(loans_core, erc721, borrower, contract_owner, test_collaterals):
     loans_peripheral = loans_core.loansPeripheral()
 
-    loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_peripheral
-    )
+    loan_id = loans_core.addLoan(borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_peripheral)
 
     loans_core.updateLoanStarted(borrower, loan_id, sender=loans_peripheral)
 
@@ -135,42 +115,19 @@ def test_update_defaulted_loan(loans_core, erc721, borrower, contract_owner, tes
     assert loans_core.ongoingLoans(borrower) == 0
 
 
-def test_update_loan_started_wrong_sender(
-    loans_core,
-    contract_owner,
-    borrower,
-    test_collaterals
-):
+def test_update_loan_started_wrong_sender(loans_core, contract_owner, borrower, test_collaterals):
     loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_core.loansPeripheral()
+        borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_core.loansPeripheral()
     )
-
 
     with boa.reverts("msg.sender is not the loans addr"):
         loans_core.updateLoanStarted(borrower, loan_id, sender=contract_owner)
 
 
-def test_update_loan_started(
-    loans_core,
-    erc721,
-    contract_owner,
-    borrower,
-    test_collaterals
-):
+def test_update_loan_started(loans_core, erc721, contract_owner, borrower, test_collaterals):
     loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_core.loansPeripheral()
+        borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_core.loansPeripheral()
     )
-
 
     loans_core.updateLoanStarted(borrower, loan_id, sender=loans_core.loansPeripheral())
 
@@ -185,19 +142,9 @@ def test_update_loan_started(
     assert loans_core.collectionsBorrowedAmount(erc721) == LOAN_AMOUNT
 
 
-def test_update_paid_amount_wrong_sender(
-    loans_core,
-    contract_owner,
-    borrower,
-    test_collaterals
-):
+def test_update_paid_amount_wrong_sender(loans_core, contract_owner, borrower, test_collaterals):
     loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_core.loansPeripheral()
+        borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_core.loansPeripheral()
     )
 
     loans_core.updateLoanStarted(borrower, loan_id, sender=loans_core.loansPeripheral())
@@ -206,21 +153,10 @@ def test_update_paid_amount_wrong_sender(
         loans_core.updateLoanPaidAmount(borrower, loan_id, LOAN_AMOUNT, 0, sender=contract_owner)
 
 
-def test_update_paid_amount(
-    loans_core,
-    contract_owner,
-    borrower,
-    test_collaterals
-):
+def test_update_paid_amount(loans_core, contract_owner, borrower, test_collaterals):
     loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_core.loansPeripheral()
+        borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_core.loansPeripheral()
     )
-
 
     loans_core.updateLoanStarted(borrower, loan_id, sender=loans_core.loansPeripheral())
 
@@ -230,19 +166,9 @@ def test_update_paid_amount(
     assert loans_core.getLoanPaidInterestAmount(borrower, loan_id) == 0
 
 
-def test_update_paid_amount_multiple(
-    loans_core,
-    contract_owner,
-    borrower,
-    test_collaterals
-):
+def test_update_paid_amount_multiple(loans_core, contract_owner, borrower, test_collaterals):
     loan_id = loans_core.addLoan(
-        borrower,
-        LOAN_AMOUNT,
-        LOAN_INTEREST,
-        MATURITY,
-        test_collaterals,
-        sender=loans_core.loansPeripheral()
+        borrower, LOAN_AMOUNT, LOAN_INTEREST, MATURITY, test_collaterals, sender=loans_core.loansPeripheral()
     )
 
     loans_core.updateLoanStarted(borrower, loan_id, sender=loans_core.loansPeripheral())

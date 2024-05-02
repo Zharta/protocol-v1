@@ -1,6 +1,7 @@
+from datetime import datetime as dt
+
 import boa
 import pytest
-from datetime import datetime as dt
 
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 

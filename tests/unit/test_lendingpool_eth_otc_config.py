@@ -1,10 +1,11 @@
+from textwrap import dedent
+
 import boa
 import pytest
+from boa.test import strategy
+from hypothesis import given
 
 from ..conftest_base import ZERO_ADDRESS, get_last_event
-from textwrap import dedent
-from hypothesis import given
-from boa.test import strategy
 
 DEPLOYER = boa.env.generate_address()
 LENDER = boa.env.generate_address()

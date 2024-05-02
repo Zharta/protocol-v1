@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.10
 
 # Structs
 
@@ -164,7 +164,7 @@ def getPunk(punkIndex: uint256):
 def transferPunk(toAddress: address, punkIndex: uint256):
     assert self.punkIndexToAddress[punkIndex] == msg.sender
     assert punkIndex < 10000
-    
+
     if self.punksOfferedForSale[punkIndex].isForSale:
         self.punkNoLongerForSale(punkIndex)
 

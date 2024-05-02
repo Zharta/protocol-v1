@@ -1,6 +1,6 @@
-from web3 import Web3
 import boa
 import pytest
+from web3 import Web3
 
 from ..conftest_base import ZERO_ADDRESS, get_last_event
 
@@ -39,7 +39,10 @@ def liquidations_core(liquidations_core_contract, erc20, contract_owner):
         return liquidations_core_contract.deploy()
 
 
-def test_initial_state(liquidations_core, contract_owner,):
+def test_initial_state(
+    liquidations_core,
+    contract_owner,
+):
     assert liquidations_core.owner() == contract_owner
 
 

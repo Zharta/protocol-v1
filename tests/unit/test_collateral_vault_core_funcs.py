@@ -3,6 +3,7 @@ import pytest
 
 from ..conftest_base import ZERO_ADDRESS, get_last_event
 
+
 @pytest.fixture(scope="module", autouse=True)
 def contract_owner():
     return boa.env.generate_address()

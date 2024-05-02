@@ -1,11 +1,10 @@
-import boa
-import pytest
-
-import hypothesis.strategies as st
-from hypothesis import Verbosity, Phase, settings
-from hypothesis.stateful import RuleBasedStateMachine, initialize, invariant, rule, run_state_machine_as_test
 from dataclasses import dataclass
 
+import boa
+import hypothesis.strategies as st
+import pytest
+from hypothesis import Phase, Verbosity, settings
+from hypothesis.stateful import RuleBasedStateMachine, initialize, invariant, rule, run_state_machine_as_test
 
 DEPLOYER = boa.env.generate_address()
 LENDER = boa.env.generate_address()
@@ -15,7 +14,7 @@ PROTOCOL_FEE = 100  # bps
 
 
 @dataclass
-class PoolState():
+class PoolState:
     deposits: int = 0
     withdrawals: int = 0
     invested: int = 0
@@ -159,13 +158,7 @@ class StateMachine(RuleBasedStateMachine):
         boa.env.set_balance(liquidation, amount + rewards)
         if amount <= self.weth_pool.fundsInvested():
             self.weth_pool.receiveFundsFromLiquidationEth(
-                self.borrower,
-                amount,
-                rewards,
-                distribute,
-                "grace",
-                value=amount + rewards,
-                sender=liquidation
+                self.borrower, amount, rewards, distribute, "grace", value=amount + rewards, sender=liquidation
             )
             protocol_fee = rewards * self.erc20_pool.protocolFeesShare() // 10000 if distribute else 0
             self.eth.received += amount
@@ -174,13 +167,7 @@ class StateMachine(RuleBasedStateMachine):
         else:
             with boa.reverts():
                 self.weth_pool.receiveFundsFromLiquidationEth(
-                    self.borrower,
-                    amount,
-                    rewards,
-                    distribute,
-                    "grace",
-                    value=amount + rewards,
-                    sender=liquidation
+                    self.borrower, amount, rewards, distribute, "grace", value=amount + rewards, sender=liquidation
                 )
 
     @rule(
@@ -192,14 +179,18 @@ class StateMachine(RuleBasedStateMachine):
         liquidation = self.erc20_pool.liquidationsPeripheralContract()
         self.erc20_token.approve(self.erc20_pool, amount + rewards, sender=self.borrower)
         if amount <= self.erc20_pool.fundsInvested():
-            self.erc20_pool.receiveFundsFromLiquidation(self.borrower, amount, rewards, distribute, "grace", sender=liquidation)
+            self.erc20_pool.receiveFundsFromLiquidation(
+                self.borrower, amount, rewards, distribute, "grace", sender=liquidation
+            )
             protocol_fee = rewards * self.erc20_pool.protocolFeesShare() // 10000 if distribute else 0
             self.erc20.received += amount
             self.erc20.pool_rewards += rewards - protocol_fee
             self.erc20.protocol_rewards += protocol_fee
         else:
             with boa.reverts():
-                self.erc20_pool.receiveFundsFromLiquidation(self.borrower, amount, rewards, distribute, "grace", sender=liquidation)
+                self.erc20_pool.receiveFundsFromLiquidation(
+                    self.borrower, amount, rewards, distribute, "grace", sender=liquidation
+                )
 
     @rule(amount=st.integers(min_value=1, max_value=10**20))
     def receive_collateral_eth(self, amount):
@@ -233,8 +224,13 @@ class StateMachine(RuleBasedStateMachine):
 
     @invariant()
     def current_deposits(self):
-        assert self.weth_pool.currentAmountDeposited(LENDER) == self.eth.deposits + self.eth.pool_rewards - self.eth.withdrawals
-        assert self.erc20_pool.currentAmountDeposited(LENDER) == self.erc20.deposits + self.erc20.pool_rewards - self.erc20.withdrawals
+        assert (
+            self.weth_pool.currentAmountDeposited(LENDER) == self.eth.deposits + self.eth.pool_rewards - self.eth.withdrawals
+        )
+        assert (
+            self.erc20_pool.currentAmountDeposited(LENDER)
+            == self.erc20.deposits + self.erc20.pool_rewards - self.erc20.withdrawals
+        )
 
     @invariant()
     def claims_value(self):
@@ -243,8 +239,18 @@ class StateMachine(RuleBasedStateMachine):
 
     @invariant()
     def funds_available(self):
-        assert self.weth_pool.fundsAvailable() == self.eth.deposits + self.eth.received + self.eth.pool_rewards - self.eth.withdrawals - self.eth.invested
-        assert self.erc20_pool.fundsAvailable() == self.erc20.deposits + self.erc20.received + self.erc20.pool_rewards - self.erc20.withdrawals - self.erc20.invested
+        assert (
+            self.weth_pool.fundsAvailable()
+            == self.eth.deposits + self.eth.received + self.eth.pool_rewards - self.eth.withdrawals - self.eth.invested
+        )
+        assert (
+            self.erc20_pool.fundsAvailable()
+            == self.erc20.deposits
+            + self.erc20.received
+            + self.erc20.pool_rewards
+            - self.erc20.withdrawals
+            - self.erc20.invested
+        )
 
     @invariant()
     def total_rewards(self):
@@ -253,8 +259,20 @@ class StateMachine(RuleBasedStateMachine):
 
     @invariant()
     def pool_state(self):
-        assert self.weth_pool.totalAmountDeposited(LENDER) + self.weth_pool.totalRewards() == self.weth_pool.collateralClaimsValue() + self.weth_pool.totalAmountWithdrawn(LENDER) + self.weth_pool.fundsInvested() + self.weth_pool.fundsAvailable()
-        assert self.erc20_pool.totalAmountDeposited(LENDER) + self.erc20_pool.totalRewards() == self.erc20_pool.collateralClaimsValue() + self.erc20_pool.totalAmountWithdrawn(LENDER) + self.erc20_pool.fundsInvested() + self.erc20_pool.fundsAvailable()
+        assert (
+            self.weth_pool.totalAmountDeposited(LENDER) + self.weth_pool.totalRewards()
+            == self.weth_pool.collateralClaimsValue()
+            + self.weth_pool.totalAmountWithdrawn(LENDER)
+            + self.weth_pool.fundsInvested()
+            + self.weth_pool.fundsAvailable()
+        )
+        assert (
+            self.erc20_pool.totalAmountDeposited(LENDER) + self.erc20_pool.totalRewards()
+            == self.erc20_pool.collateralClaimsValue()
+            + self.erc20_pool.totalAmountWithdrawn(LENDER)
+            + self.erc20_pool.fundsInvested()
+            + self.erc20_pool.fundsAvailable()
+        )
 
     @invariant()
     def lender_balance(self):
@@ -275,10 +293,10 @@ def test_lendingpool_otc_states(weth_pool, erc20_pool, erc20_token):
     StateMachine.erc20_pool = erc20_pool
     StateMachine.erc20_token = erc20_token
     StateMachine.TestCase.settings = settings(
-        max_examples = 1000,
-        stateful_step_count = 10,
+        max_examples=1000,
+        stateful_step_count=10,
         # verbosity = Verbosity.verbose,
-        phases = tuple(Phase)[:Phase.shrink],
-        deadline = None,
+        phases=tuple(Phase)[: Phase.shrink],
+        deadline=None,
     )
     run_state_machine_as_test(StateMachine)

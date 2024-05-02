@@ -1,6 +1,6 @@
 import boa
-from eth_account import Account
 import pytest
+from eth_account import Account
 
 
 @pytest.fixture(scope="session")

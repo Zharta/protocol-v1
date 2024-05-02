@@ -51,7 +51,9 @@ def test_store_collateral_invalid(cryptopunks_vault_core, erc721, borrower, cont
     cryptopunks_vault_core.setCollateralVaultPeripheralAddress(collateral_vault_peripheral, sender=contract_owner)
 
     with boa.reverts("address not supported by vault"):
-        cryptopunks_vault_core.storeCollateral(contract_owner, ZERO_ADDRESS, 0, ZERO_ADDRESS, sender=collateral_vault_peripheral)
+        cryptopunks_vault_core.storeCollateral(
+            contract_owner, ZERO_ADDRESS, 0, ZERO_ADDRESS, sender=collateral_vault_peripheral
+        )
 
 
 def test_store_collateral(cryptopunks_vault_core, cryptopunks_market, contract_owner, borrower):

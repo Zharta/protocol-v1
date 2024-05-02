@@ -4,4 +4,3 @@ plugins:
   - name: vyper
   - name: foundry
   - name: alchemy
-  - name: ganache

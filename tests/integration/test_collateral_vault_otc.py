@@ -14,10 +14,7 @@ def lendingpool_otc_contract(erc20_contract, lending_pool_eth_otc_contract_def, 
 
 @pytest.fixture(scope="module")
 def collateral_vault_otc_contract(
-    collateral_vault_otc_contract_def,
-    cryptopunks_market_contract,
-    delegation_registry_contract,
-    contract_owner
+    collateral_vault_otc_contract_def, cryptopunks_market_contract, delegation_registry_contract, contract_owner
 ):
     with boa.env.prank(contract_owner):
         contract = collateral_vault_otc_contract_def.deploy(cryptopunks_market_contract, delegation_registry_contract)
@@ -27,20 +24,11 @@ def collateral_vault_otc_contract(
 
 @pytest.fixture(scope="module")
 def liquidations_otc_contract(
-    liquidations_otc_contract_def,
-    contract_owner,
-    loans_core_contract,
-    lendingpool_otc_contract,
-    collateral_vault_otc_contract
+    liquidations_otc_contract_def, contract_owner, loans_core_contract, lendingpool_otc_contract, collateral_vault_otc_contract
 ):
     with boa.env.prank(contract_owner):
         contract = liquidations_otc_contract_def.deploy()
-        proxy_address = contract.create_proxy(
-            50,
-            loans_core_contract,
-            lendingpool_otc_contract,
-            collateral_vault_otc_contract
-        )
+        proxy_address = contract.create_proxy(50, loans_core_contract, lendingpool_otc_contract, collateral_vault_otc_contract)
         return liquidations_otc_contract_def.at(proxy_address)
 
 
@@ -93,14 +81,8 @@ def test_store_collateral_zero_values(collateral_vault_otc_contract, erc721_cont
 
 
 def test_store_collateral_wrong_sender(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner
 ):
-
     with boa.reverts("msg.sender is not authorised"):
         collateral_vault_otc_contract.storeCollateral(
             borrower,
@@ -112,87 +94,44 @@ def test_store_collateral_wrong_sender(
 
 
 def test_store_collateral_not_nft_contract(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc20_contract, borrower, contract_owner
 ):
-
     with boa.reverts():
         collateral_vault_otc_contract.storeCollateral(
-            borrower,
-            erc20_contract,
-            0,
-            erc20_contract,
-            False,
-            sender=loans_peripheral_contract.address
+            borrower, erc20_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
         )
 
 
 def test_store_collateral_wrong_owner(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner
 ):
-
     erc721_contract.mint(contract_owner, 0, sender=contract_owner)
 
     with boa.reverts("collateral not owned by wallet"):
         collateral_vault_otc_contract.storeCollateral(
-            borrower,
-            erc721_contract,
-            0,
-            erc20_contract,
-            False,
-            sender=loans_peripheral_contract.address
+            borrower, erc721_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
         )
 
 
 def test_store_collateral_not_approved(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner
 ):
-
     erc721_contract.mint(borrower, 0, sender=contract_owner)
 
     with boa.reverts("transfer is not approved"):
         collateral_vault_otc_contract.storeCollateral(
-            borrower,
-            erc721_contract,
-            0,
-            erc20_contract,
-            False,
-            sender=loans_peripheral_contract.address
+            borrower, erc721_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
         )
 
 
 def test_store_collateral(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner
 ):
-
     erc721_contract.mint(borrower, 0, sender=contract_owner)
     erc721_contract.approve(collateral_vault_otc_contract, 0, sender=borrower)
 
     collateral_vault_otc_contract.storeCollateral(
-        borrower,
-        erc721_contract,
-        0,
-        erc20_contract,
-        False,
-        sender=loans_peripheral_contract.address
+        borrower, erc721_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
     )
     event = get_last_event(collateral_vault_otc_contract, name="CollateralStored")
 
@@ -210,17 +149,12 @@ def test_store_cryptopunk_collateral(
     cryptopunk_collaterals,
     erc20_contract,
     borrower,
-    contract_owner
+    contract_owner,
 ):
     cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, collateral_vault_otc_contract, sender=borrower)
 
     collateral_vault_otc_contract.storeCollateral(
-        borrower,
-        cryptopunks_market_contract,
-        0,
-        erc20_contract,
-        False,
-        sender=loans_peripheral_contract.address
+        borrower, cryptopunks_market_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
     )
     event = get_last_event(collateral_vault_otc_contract, name="CollateralStored")
 
@@ -235,116 +169,56 @@ def test_store_cryptopunk_collateral(
 
 def test_transfer_collateral_from_loan_zero_values(collateral_vault_otc_contract, erc721_contract, borrower):
     with boa.reverts("address is the zero addr"):
-        collateral_vault_otc_contract.transferCollateralFromLoan(
-            ZERO_ADDRESS,
-            ZERO_ADDRESS,
-            0,
-            ZERO_ADDRESS
-        )
+        collateral_vault_otc_contract.transferCollateralFromLoan(ZERO_ADDRESS, ZERO_ADDRESS, 0, ZERO_ADDRESS)
 
     with boa.reverts("collat addr is the zero addr"):
-        collateral_vault_otc_contract.transferCollateralFromLoan(
-            borrower,
-            ZERO_ADDRESS,
-            0,
-            ZERO_ADDRESS
-        )
+        collateral_vault_otc_contract.transferCollateralFromLoan(borrower, ZERO_ADDRESS, 0, ZERO_ADDRESS)
 
     with boa.reverts("address is the zero addr"):
-        collateral_vault_otc_contract.transferCollateralFromLoan(
-            borrower,
-            erc721_contract,
-            0,
-            ZERO_ADDRESS
-        )
+        collateral_vault_otc_contract.transferCollateralFromLoan(borrower, erc721_contract, 0, ZERO_ADDRESS)
 
 
 def test_transfer_collateral_from_loan_wrong_sender(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner
 ):
-
     with boa.reverts("msg.sender is not authorised"):
-        collateral_vault_otc_contract.transferCollateralFromLoan(
-            borrower,
-            erc721_contract,
-            0,
-            erc20_contract
-        )
+        collateral_vault_otc_contract.transferCollateralFromLoan(borrower, erc721_contract, 0, erc20_contract)
 
 
 def test_transfer_collateral_from_loan_not_nft_contract(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc20_contract, borrower, contract_owner
 ):
-
     with boa.reverts():
         collateral_vault_otc_contract.transferCollateralFromLoan(
-            borrower,
-            erc20_contract,
-            0,
-            erc20_contract,
-            sender=loans_peripheral_contract.address
+            borrower, erc20_contract, 0, erc20_contract, sender=loans_peripheral_contract.address
         )
 
 
 def test_transfer_collateral_from_loan_wrong_owner(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner
 ):
-
     erc721_contract.mint(contract_owner, 0, sender=contract_owner)
 
     with boa.reverts("collateral not owned by vault"):
         collateral_vault_otc_contract.transferCollateralFromLoan(
-            borrower,
-            erc721_contract,
-            0,
-            erc20_contract,
-            sender=loans_peripheral_contract.address
+            borrower, erc721_contract, 0, erc20_contract, sender=loans_peripheral_contract.address
         )
 
 
 def test_transfer_collateral_from_loan(
-    collateral_vault_otc_contract,
-    loans_peripheral_contract,
-    erc721_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, loans_peripheral_contract, erc721_contract, erc20_contract, borrower, contract_owner
 ):
-
     erc721_contract.mint(borrower, 0, sender=contract_owner)
     erc721_contract.approve(collateral_vault_otc_contract, 0, sender=borrower)
 
     collateral_vault_otc_contract.storeCollateral(
-        borrower,
-        erc721_contract,
-        0,
-        erc20_contract,
-        False,
-        sender=loans_peripheral_contract.address
+        borrower, erc721_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
     )
 
     assert erc721_contract.ownerOf(0) == collateral_vault_otc_contract.address
 
     collateral_vault_otc_contract.transferCollateralFromLoan(
-        borrower,
-        erc721_contract,
-        0,
-        erc20_contract,
-        sender=loans_peripheral_contract.address
+        borrower, erc721_contract, 0, erc20_contract, sender=loans_peripheral_contract.address
     )
     event = get_last_event(collateral_vault_otc_contract, name="CollateralFromLoanTransferred")
 
@@ -362,27 +236,18 @@ def test_transfer_cryptopunk_collateral_from_loan(
     cryptopunk_collaterals,
     erc20_contract,
     borrower,
-    contract_owner
+    contract_owner,
 ):
     cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, collateral_vault_otc_contract, sender=borrower)
 
     collateral_vault_otc_contract.storeCollateral(
-        borrower,
-        cryptopunks_market_contract,
-        0,
-        erc20_contract,
-        False,
-        sender=loans_peripheral_contract.address
+        borrower, cryptopunks_market_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
     )
 
     assert cryptopunks_market_contract.punkIndexToAddress(0) == collateral_vault_otc_contract.address
 
     collateral_vault_otc_contract.transferCollateralFromLoan(
-        borrower,
-        cryptopunks_market_contract,
-        0,
-        erc20_contract,
-        sender=loans_peripheral_contract.address
+        borrower, cryptopunks_market_contract, 0, erc20_contract, sender=loans_peripheral_contract.address
     )
     event = get_last_event(collateral_vault_otc_contract, name="CollateralFromLoanTransferred")
 
@@ -395,70 +260,40 @@ def test_transfer_cryptopunk_collateral_from_loan(
 
 def test_transfer_collateral_from_liquidation_wrong_sender(collateral_vault_otc_contract):
     with boa.reverts("msg.sender is not authorised"):
-        collateral_vault_otc_contract.transferCollateralFromLiquidation(
-            ZERO_ADDRESS,
-            ZERO_ADDRESS,
-            0
-        )
+        collateral_vault_otc_contract.transferCollateralFromLiquidation(ZERO_ADDRESS, ZERO_ADDRESS, 0)
 
 
 def test_transfer_collateral_from_liquidation_zero_values(
-    collateral_vault_otc_contract,
-    liquidations_otc_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, liquidations_otc_contract, borrower, contract_owner
 ):
-
     with boa.reverts("address is the zero addr"):
         collateral_vault_otc_contract.transferCollateralFromLiquidation(
-            ZERO_ADDRESS,
-            ZERO_ADDRESS,
-            0,
-            sender=liquidations_otc_contract.address
+            ZERO_ADDRESS, ZERO_ADDRESS, 0, sender=liquidations_otc_contract.address
         )
 
     with boa.reverts("collat addr is the zero addr"):
         collateral_vault_otc_contract.transferCollateralFromLiquidation(
-            borrower,
-            ZERO_ADDRESS,
-            0,
-            sender=liquidations_otc_contract.address
+            borrower, ZERO_ADDRESS, 0, sender=liquidations_otc_contract.address
         )
 
 
 def test_transfer_collateral_from_liquidation_not_nft_contract(
-    collateral_vault_otc_contract,
-    liquidations_otc_contract,
-    erc20_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, liquidations_otc_contract, erc20_contract, borrower, contract_owner
 ):
-
     with boa.reverts():
         collateral_vault_otc_contract.transferCollateralFromLiquidation(
-            borrower,
-            erc20_contract,
-            0,
-            sender=liquidations_otc_contract.address
+            borrower, erc20_contract, 0, sender=liquidations_otc_contract.address
         )
 
 
 def test_transfer_collateral_from_liquidation_wrong_owner(
-    collateral_vault_otc_contract,
-    liquidations_otc_contract,
-    erc721_contract,
-    borrower,
-    contract_owner
+    collateral_vault_otc_contract, liquidations_otc_contract, erc721_contract, borrower, contract_owner
 ):
-
     erc721_contract.mint(contract_owner, 0, sender=contract_owner)
 
     with boa.reverts("collateral not owned by vault"):
         collateral_vault_otc_contract.transferCollateralFromLiquidation(
-            borrower,
-            erc721_contract,
-            0,
-            sender=liquidations_otc_contract.address
+            borrower, erc721_contract, 0, sender=liquidations_otc_contract.address
         )
 
 
@@ -469,28 +304,19 @@ def test_transfer_collateral_from_liquidation(
     erc721_contract,
     erc20_contract,
     borrower,
-    contract_owner
+    contract_owner,
 ):
-
     erc721_contract.mint(borrower, 0, sender=contract_owner)
     erc721_contract.approve(collateral_vault_otc_contract, 0, sender=borrower)
 
     collateral_vault_otc_contract.storeCollateral(
-        borrower,
-        erc721_contract,
-        0,
-        erc20_contract,
-        False,
-        sender=loans_peripheral_contract.address
+        borrower, erc721_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
     )
 
     assert erc721_contract.ownerOf(0) == collateral_vault_otc_contract.address
 
     collateral_vault_otc_contract.transferCollateralFromLiquidation(
-        borrower,
-        erc721_contract,
-        0,
-        sender=liquidations_otc_contract.address
+        borrower, erc721_contract, 0, sender=liquidations_otc_contract.address
     )
     event = get_last_event(collateral_vault_otc_contract, name="CollateralFromLiquidationTransferred")
 
@@ -509,26 +335,18 @@ def test_transfer_punk_from_liquidation(
     cryptopunk_collaterals,
     erc20_contract,
     borrower,
-    contract_owner
+    contract_owner,
 ):
     cryptopunks_market_contract.offerPunkForSaleToAddress(0, 0, collateral_vault_otc_contract, sender=borrower)
 
     collateral_vault_otc_contract.storeCollateral(
-        borrower,
-        cryptopunks_market_contract,
-        0,
-        erc20_contract,
-        False,
-        sender=loans_peripheral_contract.address
+        borrower, cryptopunks_market_contract, 0, erc20_contract, False, sender=loans_peripheral_contract.address
     )
 
     assert cryptopunks_market_contract.punkIndexToAddress(0) == collateral_vault_otc_contract.address
 
     collateral_vault_otc_contract.transferCollateralFromLiquidation(
-        borrower,
-        cryptopunks_market_contract,
-        0,
-        sender=liquidations_otc_contract.address
+        borrower, cryptopunks_market_contract, 0, sender=liquidations_otc_contract.address
     )
     event = get_last_event(collateral_vault_otc_contract, name="CollateralFromLiquidationTransferred")
 
