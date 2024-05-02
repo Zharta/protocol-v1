@@ -20,7 +20,7 @@ def transfer(w3, wallet, val=10**60):
 
 
 def propose_owner(dm, from_wallet, to_wallet):
-    contracts = [c for c in dm.context.contract.values() if hasattr(c.contract, "proposeOwner")]
+    contracts = [c for c in dm.context.contracts.values() if hasattr(c.contract, "proposeOwner")]
     dm.owner.set_autosign(True)
     for i, c in enumerate(contracts):
         c.contract.proposeOwner(to_wallet, sender=from_wallet, gas_price=convert("28 gwei", int))
@@ -28,7 +28,7 @@ def propose_owner(dm, from_wallet, to_wallet):
 
 
 def claim_ownership(dm, wallet):
-    contracts = [c for c in dm.context.contract.values() if hasattr(c.contract, "claimOwnership")]
+    contracts = [c for c in dm.context.contracts.values() if hasattr(c.contract, "claimOwnership")]
     dm.owner.set_autosign(True)
     for i, c in enumerate(contracts):
         c.contract.claimOwnership(sender=wallet, gas_price=convert("28 gwei", int))
@@ -40,7 +40,7 @@ def ape_init_extras(network):
 
     globals()["dm"] = dm
     globals()["owner"] = dm.owner
-    for k, v in dm.context.contract.items():
+    for k, v in dm.context.contracts.items():
         globals()[k.replace(".", "_").replace("-", "_")] = v.contract
         print(k.replace(".", "_"), v.contract)
     for k, v in dm.context.config.items():

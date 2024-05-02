@@ -4,8 +4,8 @@
             "contract": "0x8cdA0807D6251FED06361710b50f5592C6Af74f5",
             "contract_def": "CollateralVaultOTCImpl",
             "properties": {
-                "punks_contract_key": "punks",
-                "delegation_registry_key": "common.delegation_registry"
+                "delegation_registry_key": "common.delegation_registry",
+                "punks_contract_key": "punk"
             }
         },
         "delegation_registry": {
@@ -36,8 +36,7 @@
         "liquidations_otc_impl": {
             "contract": "0xE67cf20A24c85f0417070668123102247a6cfcC1",
             "contract_def": "LiquidationsOTCImpl",
-            "properties": {
-            }
+            "properties": {}
         },
         "loans_otc_impl": {
             "contract": "0xA83Fad7514B39b12C0bAcA71e0A7cc63D2Ff1941",
@@ -59,78 +58,89 @@
             "contract": "0x741D86951a8b99159be52644e60de7826033Ee44",
             "contract_def": "ERC20",
             "properties": {
-                "name": "USDC",
-                "symbol": "USDC",
                 "decimals": 6,
-                "supply": "1000000000000000000"
+                "name": "USDC",
+                "supply": "1000000000000000000",
+                "symbol": "USDC"
             }
         },
         "weth": {
             "contract": "0xFb7C5F938835aE34aF48c278C6763E134907Acdb",
             "contract_def": "ERC20",
             "properties": {
-                "name": "WETH",
-                "symbol": "WETH",
                 "decimals": 18,
-                "supply": "1000000000000000000000000"
+                "name": "WETH",
+                "supply": "1000000000000000000000000",
+                "symbol": "WETH"
             }
         }
     },
     "configs": {
-        "max_penalty_fee_weth": "200000000000000000",
         "max_penalty_fee_usdc": "300000000",
-        "max_penalty_fee_usdc_sdgao": "300000000"
+        "max_penalty_fee_usdc_sdgao": "300000000",
+        "max_penalty_fee_weth": "200000000000000000"
     },
     "pools": {
         "DEADPOOL": {
             "contracts": {
                 "collateral_vault": {
-                    "contract": "0x44a0C6Dfa9EFb5B9Be9bFf92D9b471e5d5BE9807",
-                    "contract_def": "CollateralVaultOTC",
-                    "properties": {
-                        "implementation_key": "common.collateral_vault_otc_impl",
-                        "loans_key": "deadpool.loans",
-                        "liquidations_key": "deadpool.liquidations"
-                    },
                     "alias": [
                         "deadpool.collateral_vault_core",
                         "deadpool.collateral_vault_peripheral",
                         "deadpool.cryptopunks_vault_core"
-                    ]
-                },
-                "lending_pool": {
-                    "alias": ["deadpool.lending_pool_core"],
-                    "contract": "0xCdA4219336Af610251f1Ff3fEC9F83954BCA7A57",
-                    "contract_def": "LendingPoolOTC",
+                    ],
+                    "contract": "0x44a0C6Dfa9EFb5B9Be9bFf92D9b471e5d5BE9807",
+                    "contract_def": "CollateralVaultOTC",
                     "properties": {
-                        "implementation_key": "common.lending_pool_usdc_otc_impl",
-                        "token_key": "common.usdc",
-                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "protocol_fees_share": 0,
-                        "lender": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
+                        "implementation_key": "common.collateral_vault_otc_impl",
                         "liquidations_key": "deadpool.liquidations",
                         "loans_key": "deadpool.loans"
                     }
                 },
+                "lending_pool": {
+                    "alias": [
+                        "deadpool.lending_pool_core"
+                    ],
+                    "contract": "0xCdA4219336Af610251f1Ff3fEC9F83954BCA7A57",
+                    "contract_def": "LendingPoolOTC",
+                    "properties": {
+                        "implementation_key": "common.lending_pool_usdc_otc_impl",
+                        "lender": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
+                        "liquidations_key": "deadpool.liquidations",
+                        "loans_key": "deadpool.loans",
+                        "protocol_fees_share": 0,
+                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "token_key": "common.usdc"
+                    }
+                },
                 "liquidations": {
-                    "alias": ["deadpool.liquidations_core", "deadpool.liquidations_peripheral"],
+                    "alias": [
+                        "deadpool.liquidations_core",
+                        "deadpool.liquidations_peripheral"
+                    ],
                     "contract": "0x34CEA4eb99Ba806250f96331e58E8788CD8317a1",
                     "contract_def": "LiquidationsOTC",
                     "properties": {
-                        "implementation_key": "common.liquidations_otc_impl",
-                        "loans_key": "deadpool.loans",
-                        "lending_pool_key": "deadpool.lending_pool",
                         "collateral_vault_key": "deadpool.collateral_vault",
+                        "implementation_key": "common.liquidations_otc_impl",
+                        "lending_pool_key": "deadpool.lending_pool",
+                        "loans_key": "deadpool.loans",
                         "max_penalty_fee": "0"
                     }
                 },
                 "loans": {
-                    "alias": ["deadpool.loans_core"],
+                    "alias": [
+                        "deadpool.loans_core"
+                    ],
                     "contract": "0x939057913EEAf87D53Cb427C217d3D89BfBe3Cc4",
                     "contract_def": "LoansOTC",
                     "properties": {
+                        "collateral_vault_key": "deadpool.collateral_vault",
+                        "genesis_key": "common.genesis",
                         "implementation_key": "common.loans_otc_impl",
-                        "token_key": "common.usdc"
+                        "is_payable": false,
+                        "lending_pool_key": "deadpool.lending_pool",
+                        "liquidations_key": "deadpool.liquidations"
                     }
                 }
             },
@@ -140,8 +150,8 @@
             "otc_contracts": true,
             "pool_name": "OTC USDC Test",
             "token_decimals": 6,
-            "token_symbol": "USDC",
             "token_key": "common.usdc",
+            "token_symbol": "USDC",
             "underwriting_slug": "stables",
             "use_native_token": false
         },
@@ -151,8 +161,8 @@
                     "contract": "0x8dB41305cA5f2852135dC2B969ba6084A32D4700",
                     "contract_def": "CollateralVaultCoreV2",
                     "properties": {
-                        "delegation_registry_key": "common.collateral_vault_otc_impl",
-                        "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral"
+                        "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
+                        "delegation_registry_key": "common.collateral_vault_otc_impl"
                     }
                 },
                 "collateral_vault_peripheral": {
@@ -160,20 +170,20 @@
                     "contract_def": "CollateralVaultPeripheral",
                     "properties": {
                         "collateral_vault_core_key": "eth-grails.collateral_vault_core",
-                        "punks_contract_key": "eth-grails.punks",
-                        "punks_vault_core_key": "eth-grails.cryptopunks_vault_core",
                         "liquidations_peripheral_key": "eth-grails.liquidations_peripheral",
-                        "token_keys": "common.weth",
-                        "loans_peripheral_keys": "eth-grails.loans"
+                        "loans_peripheral_keys": "eth-grails.loans",
+                        "punks_contract_key": "punk",
+                        "punks_vault_core_key": "eth-grails.cryptopunks_vault_core",
+                        "token_keys": "common.weth"
                     }
                 },
                 "cryptopunks_vault_core": {
                     "contract": "0x63Cf24e22bbFAA28316Cca9b179eEC7810b8037B",
                     "contract_def": "CryptoPunksVaultCore",
                     "properties": {
-                        "nft_contract_key": "punks",
+                        "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
                         "delegation_registry_key": "common.collateral_vault_otc_impl",
-                        "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral"
+                        "nft_contract_key": "punk"
                     }
                 },
                 "lending_pool": {
@@ -182,13 +192,13 @@
                     "properties": {
                         "lending_pool_core_key": "eth-grails.lending_pool_core",
                         "lending_pool_lock_key": "eth-grails.lending_pool_lock",
-                        "token_key": "common.weth",
-                        "loans_peripheral_key": "eth-grails.loans",
                         "liquidations_peripheral_key": "eth-grails.liquidations_peripheral",
                         "liquidity_controls_key": "eth-grails.liquidity_controls",
-                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "protocol_fees_share": 0,
+                        "loans_peripheral_key": "eth-grails.loans",
                         "max_capital_efficiency": 10000,
+                        "protocol_fees_share": 0,
+                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "token_key": "common.weth",
                         "whitelisted": true
                     }
                 },
@@ -196,16 +206,16 @@
                     "contract": "0xA2ea57c9C7ED08D48F5d92Dd774b6Fe55465d86f",
                     "contract_def": "LendingPoolCore",
                     "properties": {
-                        "token_key": "common.weth",
-                        "lending_pool_peripheral_key": "eth-grails.lending_pool"
+                        "lending_pool_peripheral_key": "eth-grails.lending_pool",
+                        "token_key": "common.weth"
                     }
                 },
                 "lending_pool_lock": {
                     "contract": "0x64B334435888bb5E44D890a7B319981c4Bb4B47d",
                     "contract_def": "LendingPoolLock",
                     "properties": {
-                        "token_key": "common.weth",
-                        "lending_pool_peripheral_key": "eth-grails.lending_pool"
+                        "lending_pool_peripheral_key": "eth-grails.lending_pool",
+                        "token_key": "common.weth"
                     }
                 },
                 "liquidations_core": {
@@ -219,39 +229,39 @@
                     "contract": "0xBD01D701541D96399c338C9D66D4AE7bCAd878a2",
                     "contract_def": "LiquidationsPeripheral",
                     "properties": {
-                        "liquidations_core_key": "eth-grails.liquidations_core",
                         "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
-                        "weth_contract_key": "common.weth",
-                        "wpunks_contract_key": "wpunks",
-                        "token_keys": "common.weth",
-                        "loans_core_keys": "eth-grails.loans",
                         "lending_pool_peripheral_keys": "eth-grails.lending_pool",
+                        "liquidations_core_key": "eth-grails.liquidations_core",
+                        "loans_core_keys": "eth-grails.loans",
                         "max_penalty_fee_keys": "configs.max_penalty_fee_weth",
-                        "sushi_router_key": "common.sushi_router",
+                        "nftx_marketplace_zap_key": "common.nftx_marketplace_zap",
                         "nftx_vault_factory_key": "common.nftx_vault_factory",
-                        "nftx_marketplace_zap_key": "common.nftx_marketplace_zap"
+                        "sushi_router_key": "common.sushi_router",
+                        "token_keys": "common.weth",
+                        "weth_contract_key": "common.weth",
+                        "wpunks_contract_key": "wpunk"
                     }
                 },
                 "liquidity_controls": {
                     "contract": "0xc9D90614566289F796Eb9272a5ed37B8e311eC38",
                     "contract_def": "LiquidityControls",
                     "properties": {
-                        "max_pool_share_enabled": false,
                         "lock_period_enabled": false,
-                        "max_loans_pool_share_enabled": false
+                        "max_loans_pool_share_enabled": false,
+                        "max_pool_share_enabled": false
                     }
                 },
                 "loans": {
                     "contract": "0x9E2341550D43dac781A6c36fbdcBb3590bd1BC08",
                     "contract_def": "LoansPeripheral",
                     "properties": {
+                        "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
+                        "genesis_key": "common.genesis",
+                        "is_payable": true,
+                        "lending_pool_peripheral_key": "eth-grails.lending_pool",
                         "liquidations_peripheral_key": "eth-grails.liquidations_peripheral",
                         "liquidity_controls_key": "eth-grails.liquidity_controls",
-                        "lending_pool_peripheral_key": "eth-grails.lending_pool",
-                        "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
-                        "loans_core_key": "eth-grails.loans",
-                        "genesis_key": "common.genesis",
-                        "is_payable": true
+                        "loans_core_key": "eth-grails.loans"
                     }
                 },
                 "loans_core": {
@@ -286,43 +296,54 @@
                     "contract_def": "CollateralVaultOTC",
                     "properties": {
                         "implementation_key": "common.collateral_vault_otc_impl",
-                        "loans_key": "eth-meta4.loans",
-                        "liquidations_key": "eth-meta4.liquidations"
-                    }
-                },
-                "lending_pool": {
-                    "alias": ["eth-meta4.lending_pool_core"],
-                    "contract": "0x2e05eb40f45E0f93cC34569A71B3972239CAC60a",
-                    "contract_def": "LendingPoolEthOTC",
-                    "properties": {
-                        "implementation_key": "common.lending_pool_eth_otc_impl",
-                        "token_key": "common.weth",
-                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "protocol_fees_share": 0,
-                        "lender": "0x66aB6D9362d4F35596279692F0251Db635165871",
                         "liquidations_key": "eth-meta4.liquidations",
                         "loans_key": "eth-meta4.loans"
                     }
                 },
+                "lending_pool": {
+                    "alias": [
+                        "eth-meta4.lending_pool_core"
+                    ],
+                    "contract": "0x2e05eb40f45E0f93cC34569A71B3972239CAC60a",
+                    "contract_def": "LendingPoolOTC",
+                    "properties": {
+                        "implementation_key": "common.lending_pool_eth_otc_impl",
+                        "lender": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "liquidations_key": "eth-meta4.liquidations",
+                        "loans_key": "eth-meta4.loans",
+                        "protocol_fees_share": 0,
+                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "token_key": "common.weth"
+                    }
+                },
                 "liquidations": {
-                    "alias": ["eth-meta4.liquidations_core", "eth-meta4.liquidations_peripheral"],
+                    "alias": [
+                        "eth-meta4.liquidations_core",
+                        "eth-meta4.liquidations_peripheral"
+                    ],
                     "contract": "0x588DaCF3f3c61fC062C717433B82059A66F0ac92",
                     "contract_def": "LiquidationsOTC",
                     "properties": {
-                        "implementation_key": "common.liquidations_otc_impl",
-                        "loans_key": "eth-meta4.loans",
-                        "lending_pool_key": "eth-meta4.lending_pool",
                         "collateral_vault_key": "eth-meta4.collateral_vault",
+                        "implementation_key": "common.liquidations_otc_impl",
+                        "lending_pool_key": "eth-meta4.lending_pool",
+                        "loans_key": "eth-meta4.loans",
                         "max_penalty_fee": "0"
                     }
                 },
                 "loans": {
-                    "alias": ["eth-meta4.loans_core"],
+                    "alias": [
+                        "eth-meta4.loans_core"
+                    ],
                     "contract": "0x45f6C3Be62B2C29EbfDAb6AB4Fa48D5D1947fb46",
                     "contract_def": "LoansOTC",
                     "properties": {
+                        "collateral_vault_key": "eth-meta4.collateral_vault",
+                        "genesis_key": "common.genesis",
                         "implementation_key": "common.loans_otc_impl",
-                        "token_key": "common.weth"
+                        "is_payable": true,
+                        "lending_pool_key": "eth-meta4.lending_pool",
+                        "liquidations_key": "eth-meta4.liquidations"
                     }
                 }
             },
@@ -348,43 +369,54 @@
                     "contract_def": "CollateralVaultOTC",
                     "properties": {
                         "implementation_key": "common.collateral_vault_otc_impl",
-                        "loans_key": "swimming.loans",
-                        "liquidations_key": "swimming.liquidations"
-                    }
-                },
-                "lending_pool": {
-                    "alias": ["swimming.lending_pool_core"],
-                    "contract": "0xa15483A5AD408E5AEFb39FF22a75bbD729b00775",
-                    "contract_def": "LendingPoolEthOTC",
-                    "properties": {
-                        "implementation_key": "common.lending_pool_eth_otc_impl",
-                        "token_key": "common.weth",
-                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "protocol_fees_share": 0,
-                        "lender": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
                         "liquidations_key": "swimming.liquidations",
                         "loans_key": "swimming.loans"
                     }
                 },
+                "lending_pool": {
+                    "alias": [
+                        "swimming.lending_pool_core"
+                    ],
+                    "contract": "0xa15483A5AD408E5AEFb39FF22a75bbD729b00775",
+                    "contract_def": "LendingPoolOTC",
+                    "properties": {
+                        "implementation_key": "common.lending_pool_eth_otc_impl",
+                        "lender": "0x72651bb532a1feD9bb82266469242986ef5a70A3",
+                        "liquidations_key": "swimming.liquidations",
+                        "loans_key": "swimming.loans",
+                        "protocol_fees_share": 0,
+                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "token_key": "common.weth"
+                    }
+                },
                 "liquidations": {
-                    "alias": ["swimming.liquidations_core", "swimming.liquidations_peripheral"],
+                    "alias": [
+                        "swimming.liquidations_core",
+                        "swimming.liquidations_peripheral"
+                    ],
                     "contract": "0x5E3D5b8EBe443394Da2Dc04cB1c69ffe8F40175A",
                     "contract_def": "LiquidationsOTC",
                     "properties": {
-                        "implementation_key": "common.liquidations_otc_impl",
-                        "loans_key": "swimming.loans",
-                        "lending_pool_key": "swimming.lending_pool",
                         "collateral_vault_key": "swimming.collateral_vault",
+                        "implementation_key": "common.liquidations_otc_impl",
+                        "lending_pool_key": "swimming.lending_pool",
+                        "loans_key": "swimming.loans",
                         "max_penalty_fee": "0"
                     }
                 },
                 "loans": {
-                    "alias": ["swimming.loans_core"],
+                    "alias": [
+                        "swimming.loans_core"
+                    ],
                     "contract": "0xF6623f4aF6De4e0233bEc11d4889CC77614413Da",
                     "contract_def": "LoansOTC",
                     "properties": {
+                        "collateral_vault_key": "swimming.collateral_vault",
+                        "genesis_key": "common.genesis",
                         "implementation_key": "common.loans_otc_impl",
-                        "token_key": "common.weth"
+                        "is_payable": true,
+                        "lending_pool_key": "swimming.lending_pool",
+                        "liquidations_key": "swimming.liquidations"
                     }
                 }
             },
@@ -404,8 +436,8 @@
                     "contract": "0x7BCbd5DCBE1d42458D8C5b2397C68d1819BE8066",
                     "contract_def": "CollateralVaultCoreV2",
                     "properties": {
-                        "delegation_registry_key": "common.collateral_vault_otc_impl",
-                        "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral"
+                        "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
+                        "delegation_registry_key": "common.collateral_vault_otc_impl"
                     }
                 },
                 "collateral_vault_peripheral": {
@@ -413,20 +445,20 @@
                     "contract_def": "CollateralVaultPeripheral",
                     "properties": {
                         "collateral_vault_core_key": "usdc.collateral_vault_core",
-                        "punks_contract_key": "punks",
-                        "punks_vault_core_key": "usdc.cryptopunks_vault_core",
                         "liquidations_peripheral_key": "usdc.liquidations_peripheral",
-                        "token_keys": "common.usdc",
-                        "loans_peripheral_keys": "usdc.loans"
+                        "loans_peripheral_keys": "usdc.loans",
+                        "punks_contract_key": "punk",
+                        "punks_vault_core_key": "usdc.cryptopunks_vault_core",
+                        "token_keys": "common.usdc"
                     }
                 },
                 "cryptopunks_vault_core": {
                     "contract": "0x47a27C9881B5C5eC78c38FBBEE7DD0A5eb68633C",
                     "contract_def": "CryptoPunksVaultCore",
                     "properties": {
-                        "nft_contract_key": "punks",
+                        "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
                         "delegation_registry_key": "common.collateral_vault_otc_impl",
-                        "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral"
+                        "nft_contract_key": "punk"
                     }
                 },
                 "lending_pool": {
@@ -435,13 +467,13 @@
                     "properties": {
                         "lending_pool_core_key": "usdc.lending_pool_core",
                         "lending_pool_lock_key": "usdc.lending_pool_lock",
-                        "token_key": "common.usdc",
-                        "loans_peripheral_key": "usdc.loans",
                         "liquidations_peripheral_key": "usdc.liquidations_peripheral",
                         "liquidity_controls_key": "usdc.liquidity_controls",
-                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "protocol_fees_share": 0,
+                        "loans_peripheral_key": "usdc.loans",
                         "max_capital_efficiency": 8000,
+                        "protocol_fees_share": 0,
+                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "token_key": "common.usdc",
                         "whitelisted": false
                     }
                 },
@@ -449,16 +481,16 @@
                     "contract": "0x4f53C468a3AaC1e528C2AB15f18D777D083d642E",
                     "contract_def": "LendingPoolCore",
                     "properties": {
-                        "token_key": "common.usdc",
-                        "lending_pool_peripheral_key": "usdc.lending_pool"
+                        "lending_pool_peripheral_key": "usdc.lending_pool",
+                        "token_key": "common.usdc"
                     }
                 },
                 "lending_pool_lock": {
                     "contract": "0x953d9B708E446dcC9257d900C7cFc34Db2969A57",
                     "contract_def": "LendingPoolLock",
                     "properties": {
-                        "token_key": "common.usdc",
-                        "lending_pool_peripheral_key": "usdc.lending_pool"
+                        "lending_pool_peripheral_key": "usdc.lending_pool",
+                        "token_key": "common.usdc"
                     }
                 },
                 "liquidations_core": {
@@ -472,39 +504,39 @@
                     "contract": "0x54BA761038f133140659d8a5a4375b479D7c5582",
                     "contract_def": "LiquidationsPeripheral",
                     "properties": {
-                        "liquidations_core_key": "usdc.liquidations_core",
                         "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
-                        "weth_contract_key": "common.weth",
-                        "wpunks_contract_key": "wpunks",
-                        "token_keys": "common.usdc",
-                        "loans_core_keys": "usdc.loans",
                         "lending_pool_peripheral_keys": "usdc.lending_pool",
+                        "liquidations_core_key": "usdc.liquidations_core",
+                        "loans_core_keys": "usdc.loans",
                         "max_penalty_fee_keys": "configs.max_penalty_fee_usdc",
-                        "sushi_router_key": "common.sushi_router",
+                        "nftx_marketplace_zap_key": "common.nftx_marketplace_zap",
                         "nftx_vault_factory_key": "common.nftx_vault_factory",
-                        "nftx_marketplace_zap_key": "common.nftx_marketplace_zap"
+                        "sushi_router_key": "common.sushi_router",
+                        "token_keys": "common.usdc",
+                        "weth_contract_key": "common.weth",
+                        "wpunks_contract_key": "wpunk"
                     }
                 },
                 "liquidity_controls": {
                     "contract": "0x2acC1AbFdC76E48e49c91f55512066B4DD6555Dd",
                     "contract_def": "LiquidityControls",
                     "properties": {
-                        "max_pool_share_enabled": false,
                         "lock_period_enabled": false,
-                        "max_loans_pool_share_enabled": false
+                        "max_loans_pool_share_enabled": false,
+                        "max_pool_share_enabled": false
                     }
                 },
                 "loans": {
                     "contract": "0x12429A7C54a315b8325Ae6105417b04BEE258a27",
-                    "contract_def": "Loans",
+                    "contract_def": "LoansPeripheral",
                     "properties": {
+                        "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
+                        "genesis_key": "common.genesis",
+                        "is_payable": false,
+                        "lending_pool_peripheral_key": "usdc.lending_pool",
                         "liquidations_peripheral_key": "usdc.liquidations_peripheral",
                         "liquidity_controls_key": "usdc.liquidity_controls",
-                        "lending_pool_peripheral_key": "usdc.lending_pool",
-                        "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
-                        "loans_core_key": "usdc.loans",
-                        "genesis_key": "common.genesis",
-                        "is_payable": false
+                        "loans_core_key": "usdc.loans"
                     }
                 },
                 "loans_core": {
@@ -531,8 +563,8 @@
                     "contract": "0x7BCbd5DCBE1d42458D8C5b2397C68d1819BE8066",
                     "contract_def": "CollateralVaultCoreV2",
                     "properties": {
-                        "delegation_registry_key": "common.collateral_vault_otc_impl",
-                        "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral"
+                        "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
+                        "delegation_registry_key": "common.collateral_vault_otc_impl"
                     }
                 },
                 "collateral_vault_peripheral": {
@@ -540,20 +572,20 @@
                     "contract_def": "CollateralVaultPeripheral",
                     "properties": {
                         "collateral_vault_core_key": "weth.collateral_vault_core",
-                        "punks_contract_key": "punks",
-                        "punks_vault_core_key": "weth.cryptopunks_vault_core",
                         "liquidations_peripheral_key": "weth.liquidations_peripheral",
-                        "token_keys": "common.weth",
-                        "loans_peripheral_keys": "weth.loans"
+                        "loans_peripheral_keys": "weth.loans",
+                        "punks_contract_key": "punk",
+                        "punks_vault_core_key": "weth.cryptopunks_vault_core",
+                        "token_keys": "common.weth"
                     }
                 },
                 "cryptopunks_vault_core": {
                     "contract": "0x47a27C9881B5C5eC78c38FBBEE7DD0A5eb68633C",
                     "contract_def": "CryptoPunksVaultCore",
                     "properties": {
-                        "nft_contract_key": "punks",
+                        "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
                         "delegation_registry_key": "common.collateral_vault_otc_impl",
-                        "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral"
+                        "nft_contract_key": "punk"
                     }
                 },
                 "lending_pool": {
@@ -562,13 +594,13 @@
                     "properties": {
                         "lending_pool_core_key": "weth.lending_pool_core",
                         "lending_pool_lock_key": "weth.lending_pool_lock",
-                        "token_key": "common.weth",
-                        "loans_peripheral_key": "weth.loans",
                         "liquidations_peripheral_key": "weth.liquidations_peripheral",
                         "liquidity_controls_key": "weth.liquidity_controls",
-                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
-                        "protocol_fees_share": 0,
+                        "loans_peripheral_key": "weth.loans",
                         "max_capital_efficiency": 8000,
+                        "protocol_fees_share": 0,
+                        "protocol_wallet_fees": "0x66aB6D9362d4F35596279692F0251Db635165871",
+                        "token_key": "common.weth",
                         "whitelisted": false
                     }
                 },
@@ -576,16 +608,16 @@
                     "contract": "0xb291024F4b2E4C3767A96aB44566a8e93cC828C5",
                     "contract_def": "LendingPoolCore",
                     "properties": {
-                        "token_key": "common.weth",
-                        "lending_pool_peripheral_key": "weth.lending_pool"
+                        "lending_pool_peripheral_key": "weth.lending_pool",
+                        "token_key": "common.weth"
                     }
                 },
                 "lending_pool_lock": {
                     "contract": "0xa2c283F11108596AB76e47af4e487Ec5D9d6c5BF",
                     "contract_def": "LendingPoolLock",
                     "properties": {
-                        "token_key": "common.weth",
-                        "lending_pool_peripheral_key": "weth.lending_pool"
+                        "lending_pool_peripheral_key": "weth.lending_pool",
+                        "token_key": "common.weth"
                     }
                 },
                 "liquidations_core": {
@@ -599,39 +631,39 @@
                     "contract": "0x54BA761038f133140659d8a5a4375b479D7c5582",
                     "contract_def": "LiquidationsPeripheral",
                     "properties": {
-                        "liquidations_core_key": "weth.liquidations_core",
                         "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
-                        "weth_contract_key": "common.weth",
-                        "wpunks_contract_key": "wpunks",
-                        "token_keys": "common.weth",
-                        "loans_core_keys": "weth.loans",
                         "lending_pool_peripheral_keys": "weth.lending_pool",
+                        "liquidations_core_key": "weth.liquidations_core",
+                        "loans_core_keys": "weth.loans",
                         "max_penalty_fee_keys": "configs.max_penalty_fee_weth",
-                        "sushi_router_key": "common.sushi_router",
+                        "nftx_marketplace_zap_key": "common.nftx_marketplace_zap",
                         "nftx_vault_factory_key": "common.nftx_vault_factory",
-                        "nftx_marketplace_zap_key": "common.nftx_marketplace_zap"
+                        "sushi_router_key": "common.sushi_router",
+                        "token_keys": "common.weth",
+                        "weth_contract_key": "common.weth",
+                        "wpunks_contract_key": "wpunk"
                     }
                 },
                 "liquidity_controls": {
                     "contract": "0xe372E377902f1872Aaa458989B229974896022D2",
                     "contract_def": "LiquidityControls",
                     "properties": {
-                        "max_pool_share_enabled": false,
                         "lock_period_enabled": false,
-                        "max_loans_pool_share_enabled": false
+                        "max_loans_pool_share_enabled": false,
+                        "max_pool_share_enabled": false
                     }
                 },
                 "loans": {
                     "contract": "0x2847751f6a9902c2AB6e3C319901aCaC184f81b6",
-                    "contract_def": "Loans",
+                    "contract_def": "LoansPeripheral",
                     "properties": {
+                        "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
+                        "genesis_key": "common.genesis",
+                        "is_payable": true,
+                        "lending_pool_peripheral_key": "weth.lending_pool",
                         "liquidations_peripheral_key": "weth.liquidations_peripheral",
                         "liquidity_controls_key": "weth.liquidity_controls",
-                        "lending_pool_peripheral_key": "weth.lending_pool",
-                        "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
-                        "loans_core_key": "weth.loans",
-                        "genesis_key": "common.genesis",
-                        "is_payable": true
+                        "loans_core_key": "weth.loans"
                     }
                 },
                 "loans_core": {

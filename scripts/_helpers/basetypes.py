@@ -5,10 +5,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from ape import project
 from ape.contracts.base import ContractContainer, ContractInstance
 from ape_accounts.accounts import KeyfileAccount
-from rich import print
+from rich import print as rprint
+from rich.markup import escape
 
 Environment = Enum("Environment", ["local", "dev", "int", "prod"])
 
@@ -24,7 +24,6 @@ class DeploymentContext:
     contracts: dict[str, Any]
     env: Environment
     owner: KeyfileAccount
-    pools: list[str]
     config: dict[str, Any] = field(default_factory=dict)
     gas_func: Callable | None = None
     dryrun: bool = False
@@ -33,6 +32,9 @@ class DeploymentContext:
         if key in self.contracts:
             return self.contracts[key]
         return self.config[key]
+
+    def __contains__(self, key):
+        return key in self.contracts or key in self.config
 
     def keys(self):
         return self.contracts.keys() | self.config.keys()
@@ -62,17 +64,14 @@ class ContractConfig:
         return self.deployment_deps
 
     def deployment_args_values(self, context: DeploymentContext) -> list[Any]:
-        values = [context.get(c, c) for c in self.deployment_args]
+        values = [context[c] if c in context else c for c in self.deployment_args]  # noqa: SIM401
         return [v.contract if isinstance(v, ContractConfig) else v for v in values]
 
     def deployment_args_repr(self, context: DeploymentContext) -> list[Any]:
-        return [f"[{c}]" if c in context else c for c in self.deployment_args]
+        return [f"[blue]{escape(c)}[/blue]" if c in context else c for c in self.deployment_args]
 
     def deployment_options(self, context: DeploymentContext) -> dict[str, Any]:  # noqa: PLR6301
         return {"sender": context.owner} | context.gas_options()
-
-    # def config_dependency(self, contract: ContractConfig, context: DeploymentContext, dryrun: bool = False):
-    #     pass
 
     def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:  # noqa: ARG002
         return self.config_deps
@@ -94,33 +93,18 @@ class ContractConfig:
 
     def deploy(self, context: DeploymentContext):
         if self.contract is not None:
-            print(f"WARNING: Deployment will override contract *{self.key}* at {self.contract}")
+            rprint(f"[dark_orange bold]WARNING[/]: Deployment will override contract [blue bold]{self.key}[/] at {self.contract}")  # noqa: E501
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")  # noqa: TRY002
         print_args = self.deployment_args_repr(context)
         kwargs = self.deployment_options(context)
-        kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
-        print(f"## {self.key} <- {self.container_name}.deploy({','.join(str(a) for a in print_args)}, {kwargs_str})")
+        kwargs_str = ", ".join(f"{k}={v}" for k, v in kwargs.items())
+        rprint(f"Deploying [blue]{self.key}[/blue] <- {self.container_name}.deploy({', '.join(str(a) for a in print_args)}, {kwargs_str})")  # noqa: E501
+        deploy_args = self.container.constructor.encode_input(*self.deployment_args_values(context))
+        rprint(f"Deployment args for [blue]{self.key}[/]: [bright_black]{deploy_args.hex()}[/]")
         if not context.dryrun:
             self.contract = self.container.deploy(*self.deployment_args_values(context), **kwargs)
             self.abi_key = abi_key(self.contract.contract_type.dict()["abi"])
-
-
-class GenericContract(ContractConfig):
-    _address: str
-
-    def __init__(self, *, key: str, version: str | None = None, abi_key: str, address: str):
-        super().__init__(key, None, None, version=version, abi_key=abi_key)
-        self._address = address
-
-    def address(self):
-        return self._address
-
-    def deployable(self, contract: DeploymentContext) -> bool:  # noqa: PLR6301, ARG002
-        return False
-
-    def __repr__(self):
-        return f"GenericContract[key={self.key}, address={self._address}]"
 
 
 @dataclass
@@ -130,14 +114,15 @@ class MinimalProxy(ContractConfig):
 
     def deploy(self, context: DeploymentContext):
         if self.contract is not None:
-            print(f"WARNING: Deployment will override contract *{self.key}* at {self.contract}")
+            rprint(f"[dark_orange bold]WARNING[/dark_orange bold]: Deployment will override contract [blue bold]{self.key}[/blue bold] at {self.contract}")  # noqa: E501
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")  # noqa: TRY002
         impl_contract = context[self.impl].contract
         print_args = self.deployment_args_repr(context)
         kwargs = self.deployment_options(context)
         kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
-        print(f"## {self.key} <- {self.impl}.{self.factory_func}({','.join(str(a) for a in print_args)}, {kwargs_str})")
+        rprint(f"Deploying Proxy [blue]{self.key}[/blue] <- {self.impl}.{self.factory_func}({', '.join(str(a) for a in print_args)}, {kwargs_str})")  # noqa: E501
+
         if not context.dryrun:
             tx = impl_contract.invoke_transaction(self.factory_func, *self.deployment_args_values(context), **kwargs)
             self.contract = self.container.at(tx.return_value)
