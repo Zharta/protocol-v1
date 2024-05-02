@@ -2,20 +2,16 @@ import json
 import logging
 import os
 import warnings
-from itertools import groupby
-from operator import itemgetter
 from pathlib import Path
 from typing import Any
 
 from ape import accounts
 
+from . import contracts as contracts_module
 from .basetypes import (
-    NFT,
     ContractConfig,
     DeploymentContext,
     Environment,
-    GenericExternalContract,
-    InternalContract,
 )
 from .contracts import (
     CollateralVaultCoreV2Contract,
@@ -50,50 +46,89 @@ from .dependency import DependencyManager
 
 ENV = Environment[os.environ.get("ENV", "local")]
 
-# def load_contracts(env: Environment) -> list[ContractConfig]:
-#     config_file = f"{Path.cwd()}/configs/{env.name}/renting.json"
-#     with open(config_file, "r") as f:
-#         config = json.load(f)
-#     contracts = [
-#         contract_map[c["contract"]](
-#             key=f"{scope}.{name}", address=c.get("address"), abi_key=c.get("abi_key"), **c.get("properties", {})
-#         )
-#         for scope in ["common", "renting"]
-#         for name, c in config[scope].items()
-#     ]
 
-#     # always deploy everything in local
-#     if env == Environment.local:
-#         for contract in contracts:
-#             contract.contract = None
+def load_contracts(env: Environment) -> list[ContractConfig]:
+    config_file = Path.cwd() / "configs" / env.name / "pools.json"
+    with config_file.open(encoding="utf8") as f:
+        config = json.load(f)
 
-#     return contracts
+    contract_configs = {
+        f"{pool_id.lower()}.{key}": c for pool_id, pool in config["pools"].items() for key, c in pool["contracts"].values()
+    } | {f"common.{k}": v for k, v in config["common"].items()}
+
+    return [
+        contracts_module.__dict__[c["contract_def"]](
+            key=key, address=c.get("contract"), abi_key=c.get("abi_key"), **c.get("properties", {})
+        )
+        for key, c in contract_configs.items()
+    ]
 
 
-# def store_contracts(env: Environment, contracts: list[ContractConfig]):
-#     config_file = f"{Path.cwd()}/configs/{env.name}/renting.json"
-#     with open(config_file, "r") as f:
-#         config = json.load(f)
+def store_contracts(env: Environment, contracts: list[ContractConfig]):
+    config_file = Path.cwd() / "configs" / env.name / "pools.json"
+    with config_file.open(encoding="utf8") as f:
+        config = json.load(f)
 
-#     contracts_dict = {c.key: c for c in contracts}
-#     for scope in ["common", "renting"]:
-#         for name, c in config[scope].items():
-#             key = f"{scope}.{name}"
-#             if key in contracts_dict:
-#                 c["address"] = contracts_dict[key].address()
-#                 if contracts_dict[key].abi_key:
-#                     c["abi_key"] = contracts_dict[key].abi_key
-#                 if contracts_dict[key].version:
-#                     c["version"] = contracts_dict[key].version
-#             properties = c.get("properties", {})
-#             addresses = c.get("properties_addresses", {})
-#             for prop_key, prop_val in properties.items():
-#                 if prop_key.endswith("_key"):
-#                     addresses[prop_key[:-4]] = contracts_dict[prop_val].address()
-#             c["properties_addresses"] = addresses
+    contracts_dict = {c.key: c for c in contracts}
 
-#     with open(config_file, "w") as f:
-#         f.write(json.dumps(config, indent=4, sort_keys=True))
+    contract_configs = {
+        f"{pool_id.lower()}.{key}": c for pool_id, pool in config["pools"].items() for key, c in pool["contracts"].values()
+    } | {f"common.{k}": v for k, v in config["common"].items()}
+
+    for key, c in contract_configs.items():
+        if key in contracts_dict:
+            c["contract"] = contracts_dict[key].address()
+            if contracts_dict[key].abi_key:
+                c["abi_key"] = contracts_dict[key].abi_key
+            if contracts_dict[key].version:
+                c["version"] = contracts_dict[key].version
+        properties = c.get("properties", {})
+        addresses = c.get("properties_addresses", {})
+        for prop_key, prop_val in properties.items():
+            if prop_key.endswith("_key"):
+                addresses[prop_key[:-4]] = contracts_dict[prop_val].address()
+        c["properties_addresses"] = addresses
+
+    with config_file.open(mode="w", encoding="utf8") as f:
+        f.write(json.dumps(config, indent=4, sort_keys=True))
+
+
+def load_nft_contracts(env: Environment) -> list[ContractConfig]:
+    config_file = Path.cwd() / "configs" / env.name / "collections.json"
+    with config_file.open(encoding="utf8") as f:
+        config = json.load(f)
+
+    return [
+        contracts_module.__dict__[c.get("contract_def", "ERC721Contract")](
+            key=key,
+            address=c.get("contract_address"),
+        )
+        for key, c in config.items()
+    ]
+
+
+def store_nft_contracts(env: Environment, contracts: list[ContractConfig]):
+    config_file = Path.cwd() / "configs" / env.name / "collections.json"
+    with config_file.open(encoding="utf8") as f:
+        config = json.load(f)
+
+    contracts_dict = {c.key: c for c in contracts}
+
+    for key, c in config.items():
+        if key in contracts_dict:
+            c["contract_address"] = contracts_dict[key].address()
+
+    with config_file.open(mode="w", encoding="utf8") as f:
+        f.write(json.dumps(config, indent=2, sort_keys=True))
+
+
+def load_configs(env: Environment) -> dict:
+    config_file = Path.cwd() / "configs" / env.name / "pools.json"
+    with config_file.open(encoding="utf8") as f:
+        config = json.load(f)
+
+    return config.get("configs", {})
+
 
 if ENV == Environment.dev:
     POOLS = ["weth", "usdc", "eth-grails", "swimming", "deadpool", "eth-meta4"]
@@ -236,147 +271,147 @@ def contract_instances(env: Environment) -> dict:
     return {c.key(): c for c in contracts}
 
 
-def load_contracts(env: Environment) -> list[ContractConfig]:
-    contracts = contract_instances(env)
+# def load_contracts(env: Environment) -> list[ContractConfig]:
+#     contracts = contract_instances(env)
 
-    config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
-    with open(config_file, "r") as f:
-        config = json.load(f)
-    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(
-        config["other"].values()
-    )
-    addresses = {c["key"]: c["contract"] for c in contract_configs if c["contract"]}
+#     config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
+#     with open(config_file, "r") as f:
+#         config = json.load(f)
+#     contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(
+#         config["other"].values()
+#     )
+#     addresses = {c["key"]: c["contract"] for c in contract_configs if c["contract"]}
 
-    if env != Environment.local:
-        for k, address in addresses.items():
-            c = contracts[k]
-            c.contract = c.container.at(address)
+#     if env != Environment.local:
+#         for k, address in addresses.items():
+#             c = contracts[k]
+#             c.contract = c.container.at(address)
 
-    return list(contracts.values())
-
-
-def store_contracts(env: Environment, contracts: list[ContractConfig]):
-    config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
-    with open(config_file, "r") as f:
-        config = json.load(f)
-
-    contracts_dict = {c.key(): c for c in contracts}
-    contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(
-        config["other"].values()
-    )
-    for c in contract_configs:
-        k = c["key"]
-        if k in contracts_dict:
-            c["contract"] = contracts_dict[k].address()
-            c["contract_def"] = contracts_dict[k].container_name
-
-    with open(config_file, "w") as f:
-        f.write(json.dumps(config, indent=4, sort_keys=True))
+#     return list(contracts.values())
 
 
-def load_nft_contracts(env: Environment) -> list[NFT]:
-    config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
-    with open(config_file, "r") as f:
-        contracts = json.load(f)
+# def store_contracts(env: Environment, contracts: list[ContractConfig]):
+#     config_file = f"{Path.cwd()}/configs/{env.name}/pools.json"
+#     with open(config_file, "r") as f:
+#         config = json.load(f)
 
-    def load(contract: ContractConfig) -> ContractConfig:
-        address = contracts.get(contract.config_key(), {}).get("contract_address", None)
-        if address and env != Environment.local:
-            contract.contract = contract.container.at(address)
-        return contract
+#     contracts_dict = {c.key(): c for c in contracts}
+#     contract_configs = [c for pool_id, pool in config["pools"].items() for c in pool["contracts"].values()] + list(
+#         config["other"].values()
+#     )
+#     for c in contract_configs:
+#         k = c["key"]
+#         if k in contracts_dict:
+#             c["contract"] = contracts_dict[k].address()
+#             c["contract_def"] = contracts_dict[k].container_name
 
-    return [
-        load(c)
-        for c in [
-            NFT("anticyclone", None),
-            NFT("archetype", None),
-            NFT("autoglyphs", None),
-            NFT("azuki", None),
-            NFT("bakc", None),
-            NFT("bayc", None),
-            NFT("beanz", None),
-            NFT("chromie", None),
-            NFT("clonex", None),
-            NFT("cool", None),
-            NFT("degods", None),
-            NFT("doodles", None),
-            NFT("fidenza", None),
-            NFT("gazers", None),
-            NFT("gundead", None),
-            NFT("hm", None),
-            NFT("hvmtl", None),
-            NFT("invsble", None),
-            NFT("lilpudgys", None),
-            NFT("mayc", None),
-            NFT("meebits", None),
-            NFT("memoriesofqilin", None),
-            NFT("meridian", None),
-            NFT("miladymaker", None),
-            NFT("moonbirds", None),
-            NFT("oldquirkies", None),
-            NFT("opepen", None),
-            NFT("otherdeed", None),
-            NFT("otherdeedexpanded", None),
-            NFT("otherdeedkoda", None),
-            NFT("othersidekoda", None),
-            NFT("othersidekodamara", None),
-            NFT("othersidemara", None),
-            NFT("ppg", None),
-            CryptoPunksMockContract(None) if env != Environment.prod else NFT("punk", None),
-            NFT("quirkies", None),
-            NFT("rektguy", None),
-            NFT("renga", None),
-            NFT("ringers", None),
-            NFT("spaceriders", None),
-            NFT("thecaptainz", None),
-            NFT("thecurrency", None),
-            NFT("theharvest", None),
-            NFT("theeternalpump", None),
-            NFT("theplague", None),
-            NFT("thepotatoz", None),
-            NFT("vft", None),
-            NFT("wgame", None),
-            NFT("wgamefarmer", None),
-            NFT("wgameland", None),
-            NFT("windsofyawanawa", None),
-            NFT("wow", None),
-            NFT("wpunk", None),
-        ]
-    ]
+#     with open(config_file, "w") as f:
+#         f.write(json.dumps(config, indent=4, sort_keys=True))
 
 
-def store_nft_contracts(env: Environment, nfts: list[NFT]):
-    config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
-    with open(config_file, "r") as f:
-        file_data = json.load(f)
+# def load_nft_contracts(env: Environment) -> list[NFT]:
+#     config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
+#     with open(config_file, "r") as f:
+#         contracts = json.load(f)
 
-    for nft in nfts:
-        key = nft.config_key()
-        if key in file_data:
-            file_data[key]["contract_address"] = nft.address()
-        else:
-            file_data[key] = {"contract_address": nft.address()}
+#     def load(contract: ContractConfig) -> ContractConfig:
+#         address = contracts.get(contract.config_key(), {}).get("contract_address", None)
+#         if address and env != Environment.local:
+#             contract.contract = contract.container.at(address)
+#         return contract
 
-    with open(config_file, "w") as f:
-        f.write(json.dumps(file_data, indent=2, sort_keys=True))
+#     return [
+#         load(c)
+#         for c in [
+#             NFT("anticyclone", None),
+#             NFT("archetype", None),
+#             NFT("autoglyphs", None),
+#             NFT("azuki", None),
+#             NFT("bakc", None),
+#             NFT("bayc", None),
+#             NFT("beanz", None),
+#             NFT("chromie", None),
+#             NFT("clonex", None),
+#             NFT("cool", None),
+#             NFT("degods", None),
+#             NFT("doodles", None),
+#             NFT("fidenza", None),
+#             NFT("gazers", None),
+#             NFT("gundead", None),
+#             NFT("hm", None),
+#             NFT("hvmtl", None),
+#             NFT("invsble", None),
+#             NFT("lilpudgys", None),
+#             NFT("mayc", None),
+#             NFT("meebits", None),
+#             NFT("memoriesofqilin", None),
+#             NFT("meridian", None),
+#             NFT("miladymaker", None),
+#             NFT("moonbirds", None),
+#             NFT("oldquirkies", None),
+#             NFT("opepen", None),
+#             NFT("otherdeed", None),
+#             NFT("otherdeedexpanded", None),
+#             NFT("otherdeedkoda", None),
+#             NFT("othersidekoda", None),
+#             NFT("othersidekodamara", None),
+#             NFT("othersidemara", None),
+#             NFT("ppg", None),
+#             CryptoPunksMockContract(None) if env != Environment.prod else NFT("punk", None),
+#             NFT("quirkies", None),
+#             NFT("rektguy", None),
+#             NFT("renga", None),
+#             NFT("ringers", None),
+#             NFT("spaceriders", None),
+#             NFT("thecaptainz", None),
+#             NFT("thecurrency", None),
+#             NFT("theharvest", None),
+#             NFT("theeternalpump", None),
+#             NFT("theplague", None),
+#             NFT("thepotatoz", None),
+#             NFT("vft", None),
+#             NFT("wgame", None),
+#             NFT("wgamefarmer", None),
+#             NFT("wgameland", None),
+#             NFT("windsofyawanawa", None),
+#             NFT("wow", None),
+#             NFT("wpunk", None),
+#         ]
+#     ]
 
 
-def load_borrowable_amounts(env: Environment) -> dict:
-    config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
-    with open(config_file, "r") as f:
-        values = json.load(f)
+# def store_nft_contracts(env: Environment, nfts: list[NFT]):
+#     config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
+#     with open(config_file, "r") as f:
+#         file_data = json.load(f)
 
-    address = itemgetter("contract_address")
-    collection_key = itemgetter("collection_key")
-    limit_for_pool = lambda c, pool: c.get("conditions", {}).get(pool.upper(), {}).get("debt_limit", 0)
+#     for nft in nfts:
+#         key = nft.config_key()
+#         if key in file_data:
+#             file_data[key]["contract_address"] = nft.address()
+#         else:
+#             file_data[key] = {"contract_address": nft.address()}
 
-    collections = [v | {"collection_key": k} for k, v in values.items()]
-    amounts = dict()
-    for pool in POOLS:
-        limit = lambda c: limit_for_pool(c, pool)
-        max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
-        amounts |= {(pool, collection_key(c)): limit(c) for c in max_collection_per_contract}
-    return amounts
+#     with open(config_file, "w") as f:
+#         f.write(json.dumps(file_data, indent=2, sort_keys=True))
+
+
+# def load_borrowable_amounts(env: Environment) -> dict:
+#     config_file = f"{Path.cwd()}/configs/{env.name}/collections.json"
+#     with open(config_file, "r") as f:
+#         values = json.load(f)
+
+#     address = itemgetter("contract_address")
+#     collection_key = itemgetter("collection_key")
+#     limit_for_pool = lambda c, pool: c.get("conditions", {}).get(pool.upper(), {}).get("debt_limit", 0)
+
+#     collections = [v | {"collection_key": k} for k, v in values.items()]
+#     amounts = dict()
+#     for pool in POOLS:
+#         limit = lambda c: limit_for_pool(c, pool)
+#         max_collection_per_contract = [max(v, key=limit) for k, v in groupby(sorted(collections, key=address), address)]
+#         amounts |= {(pool, collection_key(c)): limit(c) for c in max_collection_per_contract}
+#     return amounts
 
 
 class DeploymentManager:
@@ -398,21 +433,31 @@ class DeploymentManager:
         contracts = load_contracts(self.env)
         nfts = load_nft_contracts(self.env)
         other = [
-            GenericExternalContract("nftxvaultfactory", "0xBE86f647b167567525cCAAfcd6f881F1Ee558216"),
-            GenericExternalContract("nftxmarketplacezap", "0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d"),
-            GenericExternalContract("sushirouter", "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"),
+            GenericContract(key="nftxvaultfactory", address="0xBE86f647b167567525cCAAfcd6f881F1Ee558216"),
+            GenericContract(key="nftxmarketplacezap", address="0x0fc584529a2AEfA997697FAfAcbA5831faC0c22d"),
+            GenericContract(key="sushirouter", address="0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F"),
         ]
-        return {c.key(): c for c in nfts + contracts + other}
+        all_contracts = contracts + nfts + other
+
+        # always deploy everything in local
+        if self.env == Environment.local:
+            for contract in all_contracts:
+                contract.contract = None
+
+        return {c.key(): c for c in all_contracts}
 
     def _get_configs(self) -> dict[str, Any]:
-        nft_borrowable_amounts = load_borrowable_amounts(self.env)
+        # nft_borrowable_amounts = load_borrowable_amounts(self.env)
+
+        return load_configs(self.env)
+
         max_penalty_fees = {
             "weth": 2 * 10**17,
             "usdc": 300 * 10**6,
             "usdc-sgdao": 300 * 10**6,
         }
         return {
-            "nft_borrowable_amounts": nft_borrowable_amounts,
+            # "nft_borrowable_amounts": nft_borrowable_amounts,
             "max_penalty_fees": max_penalty_fees,
             "genesis_owner": "0xd5312E8755B4E130b6CBF8edC3930757D6428De6" if self.env == Environment.prod else self.owner,
             # WETH
@@ -486,7 +531,7 @@ class DeploymentManager:
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contract.values() if c.nft]
-        contracts = [c for c in self.context.contract.values() if isinstance(c, InternalContract)]
+        contracts = [c for c in self.context.contract.values() if not c.nft]
         store_nft_contracts(self.env, nft_contracts)
         store_contracts(self.env, contracts)
 

@@ -1765,6 +1765,7 @@
       }
     },
     "contract_address": "0xFB87C36009603855163ABe3BbF512D3F58fd3819",
+    "contract_def": "CryptoPunks",
     "debt_limit": 850,
     "floor_multiple_cap": 1.1,
     "floor_price_providers": [

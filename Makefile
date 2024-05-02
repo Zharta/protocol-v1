@@ -15,13 +15,9 @@ $(VENV):
 
 install: ${VENV} requirements.txt
 	uv pip sync requirements.txt
-	# uv pip install -U pip
-	# ${VENV}/bin/ape plugins install --upgrade .
 
 install-dev: $(VENV) requirements-dev.txt
 	uv pip sync requirements-dev.txt
-	# uv pip install -U pip
-	# ${VENV}/bin/ape plugins install --upgrade .
 	$(VENV)/bin/pre-commit install
 
 requirements.txt: pyproject.toml overrides.txt
