@@ -4,7 +4,8 @@ import warnings
 
 import click
 from ape import convert
-from ape.cli import NetworkBoundCommand, network_option, ConnectedProviderCommand
+from ape.cli import ConnectedProviderCommand
+from rich import print
 
 from ._helpers.deployment import DeploymentManager, Environment
 
@@ -15,7 +16,7 @@ logger.setLevel(logging.WARNING)
 warnings.filterwarnings("ignore")
 
 
-def gas_cost(context):
+def gas_cost(context):  # noqa: ARG001
     return {"gas_price": convert("10 gwei", int)}
 
 
