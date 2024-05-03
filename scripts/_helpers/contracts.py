@@ -1,14 +1,11 @@
 from dataclasses import dataclass
-from functools import partial, partialmethod
-from rich import print
-from rich.markup import escape
-from typing import Any, Callable, Optional
+from functools import partial
 
 from ape import project
-from ape.contracts.base import ContractInstance
+from rich import print
+from rich.markup import escape
 
 from .basetypes import ContractConfig, DeploymentContext, MinimalProxy
-from .transactions import Transaction
 
 
 def with_pool(f, pool):
@@ -35,9 +32,10 @@ class GenericContract(ContractConfig):
 @dataclass
 class ERC721(ContractConfig):
     def __init__(self, *, key: str, abi_key: str, address: str | None = None):
-        super().__init__(key, None, project.ERC721, abi_key=abi_key, container_name="ERC721", nft=True)
+        super().__init__(key, None, project.ERC721, abi_key=abi_key, nft=True)
         if address:
             self.load_contract(address)
+
 
 @dataclass
 class CollateralVaultCoreV2(ContractConfig):
@@ -57,7 +55,6 @@ class CollateralVaultCoreV2(ContractConfig):
             project.CollateralVaultCoreV2,
             version=version,
             abi_key=abi_key,
-            container_name="CollateralVaultCoreV2",
             deployment_deps={delegation_registry_key},
             deployment_args=[delegation_registry_key],
             config_deps={collateral_vault_peripheral_key: self.set_cvperiph},
@@ -94,7 +91,6 @@ class CryptoPunksVaultCore(ContractConfig):
             project.CryptoPunksVaultCore,
             version=version,
             abi_key=abi_key,
-            container_name="CryptoPunksVaultCore",
             deployment_deps={nft_contract_key, delegation_registry_key},
             deployment_args=[nft_contract_key, delegation_registry_key],
             config_deps={collateral_vault_peripheral_key: self.set_cvperiph},
@@ -131,7 +127,6 @@ class CollateralVaultPeripheral(ContractConfig):
             project.CollateralVaultPeripheral,
             version=version,
             abi_key=abi_key,
-            container_name="CollateralVaultPeripheral",
             deployment_deps={collateral_vault_core_key},
             deployment_args=[collateral_vault_core_key],
             config_deps={
@@ -178,7 +173,6 @@ class LendingPoolCore(ContractConfig):
             project.LendingPoolCore,
             version=version,
             abi_key=abi_key,
-            container_name="LendingPoolCore",
             deployment_deps={token_key},
             deployment_args=[token_key],
             config_deps={lending_pool_peripheral_key: self.set_lpperiph},
@@ -209,7 +203,6 @@ class LendingPoolLock(ContractConfig):
             project.LendingPoolLock,
             version=version,
             abi_key=abi_key,
-            container_name="LendingPoolLock",
             deployment_deps={token_key},
             deployment_args=[token_key],
             config_deps={lending_pool_peripheral_key: self.set_lpperiph},
@@ -242,7 +235,6 @@ class ERC20(ContractConfig):
             project.WETH9Mock,
             version=version,
             abi_key=abi_key,
-            container_name="WETH9Mock",
             deployment_args=[name, symbol, decimals, int(supply)],
         )
         if address:
@@ -265,7 +257,6 @@ class CryptoPunks(ContractConfig):
             project.CryptoPunksMarketMock,
             version=version,
             abi_key=abi_key,
-            container_name="CryptoPunksMarketMock",
             nft=True,
         )
         if address:
@@ -288,7 +279,6 @@ class DelegationRegistry(ContractConfig):
             project.DelegationRegistryMock,
             version=version,
             abi_key=abi_key,
-            container_name="DelegationRegistryMock",
         )
         if address:
             self.load_contract(address)
@@ -320,7 +310,6 @@ class LendingPoolPeripheral(ContractConfig):
             project.LendingPoolPeripheral,
             version=version,
             abi_key=abi_key,
-            container_name="LendingPoolPeripheral",
             deployment_deps={lending_pool_core_key, lending_pool_lock_key, token_key},
             deployment_args=[
                 lending_pool_core_key,
@@ -342,7 +331,6 @@ class LendingPoolPeripheral(ContractConfig):
         self.liquidity_controls_key = liquidity_controls_key
         if address:
             self.load_contract(address)
-
 
     def set_loansperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLoansPeripheralAddress", self.loans_peripheral_key)
@@ -371,7 +359,6 @@ class LoansCore(ContractConfig):
             project.LoansCore,
             version=version,
             abi_key=abi_key,
-            container_name="LoansCore",
             config_deps={loans_peripheral_key: self.set_loansperiph},
         )
         self.loans_peripheral_key = loans_peripheral_key
@@ -406,9 +393,15 @@ class LoansPeripheral(ContractConfig):
             project.Loans,
             version=version,
             abi_key=abi_key,
-            container_name="Loans",
             deployment_deps={loans_core_key, lending_pool_peripheral_key, collateral_vault_peripheral_key, genesis_key},
-            deployment_args=[accrual_period, loans_core_key, lending_pool_peripheral_key, collateral_vault_peripheral_key, genesis_key, is_payable],
+            deployment_args=[
+                accrual_period,
+                loans_core_key,
+                lending_pool_peripheral_key,
+                collateral_vault_peripheral_key,
+                genesis_key,
+                is_payable
+            ],
             config_deps={
                 liquidations_peripheral_key: self.set_liquidationsperiph,
                 liquidity_controls_key: self.set_liquiditycontrols,
@@ -457,7 +450,6 @@ class LiquidationsCore(ContractConfig):
             project.LiquidationsCore,
             version=version,
             abi_key=abi_key,
-            container_name="LiquidationsCore",
             config_deps={liquidations_peripheral_key: self.set_liquidationsperiph},
         )
         self.liquidations_peripheral_key = liquidations_peripheral_key
@@ -502,9 +494,14 @@ class LiquidationsPeripheral(ContractConfig):
             project.LiquidationsPeripheral,
             version=version,
             abi_key=abi_key,
-            container_name="LiquidationsPeripheral",
             deployment_deps={liquidations_core_key, weth_contract_key},
-            deployment_args=[liquidations_core_key, grace_period_duration, lender_period_duration, auction_period_duration, weth_contract_key],
+            deployment_args=[
+                liquidations_core_key,
+                grace_period_duration,
+                lender_period_duration,
+                auction_period_duration,
+                weth_contract_key
+            ],
             config_deps={
                 collateral_vault_peripheral_key: self.set_cvperiph,
                 liquidations_core_key: self.set_liquidationscore,
@@ -536,7 +533,7 @@ class LiquidationsPeripheral(ContractConfig):
     def add_loanscore(self, context: DeploymentContext, *, loans_core_key, token_key):
         execute(context, self.key, "addLoansCoreAddress", token_key, loans_core_key)
 
-    def add_lpperiph(context: DeploymentContext, *, lending_pool_peripheral_key, token_key):
+    def add_lpperiph(self, context: DeploymentContext, *, lending_pool_peripheral_key, token_key):
         execute(context, self.key, "addLendingPoolPeripheralAddress", token_key, lending_pool_peripheral_key)
 
     def set_cvperiph(self, context: DeploymentContext):
@@ -562,8 +559,8 @@ class LiquidationsPeripheral(ContractConfig):
         if self.sushi_router_key:
             execute(context, self.key, "setSushiRouterAddress", self.sushi_router_key)
 
-
     def set_max_fee(self, context: DeploymentContext, *, token_key, max_fee_key):
+        # FIXME
         max_fee = int(context[max_fee_key])
         contract_instance = context[self.key].contract
         if not contract_instance:
@@ -603,7 +600,6 @@ class LiquidityControls(ContractConfig):
             project.LiquidityControls,
             version=version,
             abi_key=abi_key,
-            container_name="LiquidityControls",
             deployment_args=[
                 max_pool_share_enabled,
                 max_pool_share,
@@ -635,7 +631,6 @@ class Genesis(ContractConfig):
             project.GenesisPass,
             version=version,
             abi_key=abi_key,
-            container_name="GenesisPass",
             deployment_args=[genesis_owner],
         )
         if address:
@@ -660,7 +655,6 @@ class CollateralVaultOTCImpl(ContractConfig):
             project.CollateralVaultOTC,
             version=version,
             abi_key=abi_key,
-            container_name="CollateralVaultOTC",
             deployment_deps={punks_contract_key, delegation_registry_key},
             deployment_args=[punks_contract_key, delegation_registry_key],
         )
@@ -687,7 +681,6 @@ class CollateralVaultOTC(MinimalProxy):
             project.CollateralVaultOTC,
             version=version,
             abi_key=abi_key,
-            container_name="CollateralVaultOTC",
             impl=implementation_key,
             deployment_deps={implementation_key},
             config_deps={
@@ -707,7 +700,6 @@ class CollateralVaultOTC(MinimalProxy):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_key)
 
 
-
 @dataclass
 class LendingPoolEthOTCImpl(ContractConfig):
     def __init__(
@@ -725,7 +717,6 @@ class LendingPoolEthOTCImpl(ContractConfig):
             project.LendingPoolEthOTC,
             version=version,
             abi_key=abi_key,
-            container_name="LendingPoolEthOTC",
             deployment_deps={weth_token_key},
             deployment_args=[weth_token_key],
         )
@@ -750,7 +741,6 @@ class LendingPoolERC20OTCImpl(ContractConfig):
             project.LendingPoolERC20OTC,
             version=version,
             abi_key=abi_key,
-            container_name="LendingPoolERC20OTC",
             deployment_deps={token_key},
             deployment_args=[token_key],
         )
@@ -781,7 +771,6 @@ class LendingPoolOTC(MinimalProxy):
             project.LendingPoolEthOTC,
             version=version,
             abi_key=abi_key,
-            container_name="LendingPoolEthOTC",
             impl=implementation_key,
             deployment_deps={implementation_key},
             deployment_args=[protocol_wallet_fees, protocol_fees_share, lender],
@@ -818,7 +807,6 @@ class LiquidationsOTCImpl(ContractConfig):
             project.LiquidationsOTC,
             version=version,
             abi_key=abi_key,
-            container_name="LiquidationsOTC",
         )
         if address:
             self.load_contract(address)
@@ -846,7 +834,6 @@ class LiquidationsOTC(MinimalProxy):
             project.LiquidationsOTC,
             version=version,
             abi_key=abi_key,
-            container_name="LiquidationsOTC",
             impl=implementation_key,
             deployment_deps={implementation_key, loans_key, lending_pool_key, collateral_vault_key},
             deployment_args=[grace_period_duration, loans_key, lending_pool_key, collateral_vault_key],
@@ -880,7 +867,6 @@ class LoansOTCImpl(ContractConfig):
             project.LoansOTC,
             version=version,
             abi_key=abi_key,
-            container_name="LoansOTC",
         )
         if address:
             self.load_contract(address)
@@ -903,7 +889,6 @@ class LoansOTCPunksFixedImpl(ContractConfig):
             project.LoansOTC,
             version=version,
             abi_key=abi_key,
-            container_name="LoansOTCPunksFixed",
             deployment_deps={token_key},
             deployment_args=[token_key],
         )
@@ -934,7 +919,6 @@ class LoansOTC(MinimalProxy):
             project.LoansOTC,
             version=version,
             abi_key=abi_key,
-            container_name="LoansOTC",
             impl=implementation_key,
             deployment_deps={implementation_key, lending_pool_key, collateral_vault_key, genesis_key},
             deployment_args=[interest_accrual_period, lending_pool_key, collateral_vault_key, genesis_key, is_payable],
@@ -987,7 +971,6 @@ class LoansOTCPunksFixed(MinimalProxy):
             project.LoansOTCPunksFixed,
             version=version,
             abi_key=abi_key,
-            container_name="LoansOTCPunksFixed",
             impl=implementation_key,
             deployment_deps={implementation_key, lending_pool_key, collateral_vault_key, genesis_key},
             deployment_args=[interest_accrual_period, lending_pool_key, collateral_vault_key, genesis_key, is_payable],
@@ -1041,4 +1024,4 @@ def execute(context: DeploymentContext, contract: str, func: str, *args, options
         function = getattr(contract_instance, func)
         args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
         args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]
-        return function(*args_values, **({"sender": context.owner} | context.gas_options() | (options or {})))
+        function(*args_values, **({"sender": context.owner} | context.gas_options() | (options or {})))

@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 warnings.filterwarnings("ignore")
 
+
 def load_contracts(env: Environment) -> list[ContractConfig]:
     config_file = Path.cwd() / "configs" / env.name / "pools.json"
     with config_file.open(encoding="utf8") as f:
@@ -100,8 +101,8 @@ def load_configs(env: Environment) -> dict:
     return config.get("configs", {})
 
 
-
 class DeploymentManager:
+
     def __init__(self, env: Environment):
         self.env = env
         match env:
@@ -114,7 +115,6 @@ class DeploymentManager:
             case Environment.prod:
                 self.owner = accounts.load("prodacc")
         self.context = DeploymentContext(self._get_contracts(), self.env, self.owner, self._get_configs())
-
 
     def _get_contracts(self) -> dict[str, ContractConfig]:
         contracts = load_contracts(self.env)
@@ -130,7 +130,6 @@ class DeploymentManager:
 
     def _get_configs(self) -> dict[str, Any]:
         return load_configs(self.env)
-
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contracts.values() if c.nft]

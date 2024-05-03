@@ -1,3 +1,5 @@
+# ruff: noqa: PLR6301, ARG002
+
 import hashlib
 import json
 from collections.abc import Callable
@@ -48,7 +50,6 @@ class ContractConfig:
     key: str
     contract: ContractInstance | None
     container: ContractContainer | None
-    container_name: str | None = None
     deployment_deps: set[str] = field(default_factory=set)
     config_deps: dict[str, Callable] = field(default_factory=dict)
     deployment_args: list[Any] = field(default_factory=list)
@@ -57,10 +58,10 @@ class ContractConfig:
 
     nft: bool = False
 
-    def deployable(self, context: DeploymentContext) -> bool:  # noqa: PLR6301, ARG002
+    def deployable(self, context: DeploymentContext) -> bool:
         return True
 
-    def deployment_dependencies(self, context: DeploymentContext) -> set[str]:  # noqa: ARG002
+    def deployment_dependencies(self, context: DeploymentContext) -> set[str]:
         return self.deployment_deps
 
     def deployment_args_values(self, context: DeploymentContext) -> list[Any]:
@@ -70,23 +71,23 @@ class ContractConfig:
     def deployment_args_repr(self, context: DeploymentContext) -> list[Any]:
         return [f"[blue]{escape(c)}[/blue]" if c in context else c for c in self.deployment_args]
 
-    def deployment_options(self, context: DeploymentContext) -> dict[str, Any]:  # noqa: PLR6301
+    def deployment_options(self, context: DeploymentContext) -> dict[str, Any]:
         return {"sender": context.owner} | context.gas_options()
 
-    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:  # noqa: ARG002
+    def config_dependencies(self, context: DeploymentContext) -> dict[str, Callable]:
         return self.config_deps
 
     def address(self):
         return self.contract.address if self.contract else None
 
-    def config_key(self):
-        return self.key
+    def container_name(self):
+        return self.container.contract_type.name if self.container else None
 
     def __str__(self):
         return self.key
 
     def __repr__(self):
-        return f"Contract[key={self.key}, contract={self.contract}, container_name={self.container_name}]"
+        return f"Contract[key={self.key}, contract={self.contract}, container_name={self.container_name()}]"
 
     def load_contract(self, address: str):
         self.contract = self.container.at(address)
@@ -99,7 +100,7 @@ class ContractConfig:
         print_args = self.deployment_args_repr(context)
         kwargs = self.deployment_options(context)
         kwargs_str = ", ".join(f"{k}={v}" for k, v in kwargs.items())
-        rprint(f"Deploying [blue]{self.key}[/blue] <- {self.container_name}.deploy({', '.join(str(a) for a in print_args)}, {kwargs_str})")  # noqa: E501
+        rprint(f"Deploying [blue]{self.key}[/blue] <- {self.container_name()}.deploy({', '.join(str(a) for a in print_args)}, {kwargs_str})")  # noqa: E501
         deploy_args = self.container.constructor.encode_input(*self.deployment_args_values(context))
         rprint(f"Deployment args for [blue]{self.key}[/]: [bright_black]{deploy_args.hex()}[/]")
         if not context.dryrun:
