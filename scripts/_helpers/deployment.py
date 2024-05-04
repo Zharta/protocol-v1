@@ -98,7 +98,8 @@ def load_configs(env: Environment) -> dict:
     with config_file.open(encoding="utf8") as f:
         config = json.load(f)
 
-    return config.get("configs", {})
+    _configs = config.get("configs", {})
+    return {f"configs.{k}": v for k, v in _configs.items()}
 
 
 class DeploymentManager:
@@ -147,6 +148,9 @@ class DeploymentManager:
         for contract in contracts_to_deploy:
             if contract.deployable(self.context):
                 contract.deploy(self.context)
+
+        if save_state and not dryrun:
+            self._save_state()
 
         for dependency_tx in dependencies_tx:
             dependency_tx(self.context)

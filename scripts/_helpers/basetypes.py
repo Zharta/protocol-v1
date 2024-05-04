@@ -101,9 +101,11 @@ class ContractConfig:
         kwargs = self.deployment_options(context)
         kwargs_str = ", ".join(f"{k}={v}" for k, v in kwargs.items())
         rprint(f"Deploying [blue]{self.key}[/blue] <- {self.container_name()}.deploy({', '.join(str(a) for a in print_args)}, {kwargs_str})")  # noqa: E501
-        deploy_args = self.container.constructor.encode_input(*self.deployment_args_values(context))
-        rprint(f"Deployment args for [blue]{self.key}[/]: [bright_black]{deploy_args.hex()}[/]")
+
         if not context.dryrun:
+            deploy_args = self.container.constructor.encode_input(*self.deployment_args_values(context))
+            rprint(f"Deployment args for [blue]{self.key}[/]: [bright_black]{deploy_args.hex()}[/]")
+
             self.contract = self.container.deploy(*self.deployment_args_values(context), **kwargs)
             self.abi_key = abi_key(self.contract.contract_type.dict()["abi"])
 
