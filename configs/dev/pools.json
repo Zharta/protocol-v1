@@ -43,15 +43,15 @@
             "contract_def": "LoansOTCImpl"
         },
         "nftx_marketplace_zap": {
-            "contract": "0x000000000000000000000000000000000000dEaD",
+            "contract": "0x0000000000000000000000000000000000000000",
             "contract_def": "GenericContract"
         },
         "nftx_vault_factory": {
-            "contract": "0x000000000000000000000000000000000000dEaD",
+            "contract": "0x0000000000000000000000000000000000000000",
             "contract_def": "GenericContract"
         },
         "sushi_router": {
-            "contract": "0x000000000000000000000000000000000000dEaD",
+            "contract": "0x0000000000000000000000000000000000000000",
             "contract_def": "GenericContract"
         },
         "usdc": {
@@ -261,7 +261,7 @@
                         "lending_pool_peripheral_key": "eth-grails.lending_pool",
                         "liquidations_peripheral_key": "eth-grails.liquidations_peripheral",
                         "liquidity_controls_key": "eth-grails.liquidity_controls",
-                        "loans_core_key": "eth-grails.loans"
+                        "loans_core_key": "eth-grails.loans_core"
                     }
                 },
                 "loans_core": {
@@ -536,7 +536,7 @@
                         "lending_pool_peripheral_key": "usdc.lending_pool",
                         "liquidations_peripheral_key": "usdc.liquidations_peripheral",
                         "liquidity_controls_key": "usdc.liquidity_controls",
-                        "loans_core_key": "usdc.loans"
+                        "loans_core_key": "usdc.loans_core"
                     }
                 },
                 "loans_core": {
@@ -663,7 +663,7 @@
                         "lending_pool_peripheral_key": "weth.lending_pool",
                         "liquidations_peripheral_key": "weth.liquidations_peripheral",
                         "liquidity_controls_key": "weth.liquidity_controls",
-                        "loans_core_key": "weth.loans"
+                        "loans_core_key": "weth.loans_core"
                     }
                 },
                 "loans_core": {

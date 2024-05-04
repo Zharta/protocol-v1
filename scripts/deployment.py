@@ -29,7 +29,9 @@ def cli(network):
 
     changes = set()
     # changes |= {
-    #     "eth-grails.loans",
+    #     # "configs.max_penalty_fee_weth",
+    #     # "eth-grails.loans",
+    #     # "common.nftx_marketplace_zap",
     # }
 
     dm.deploy(changes, dryrun=True)

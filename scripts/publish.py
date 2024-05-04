@@ -13,12 +13,9 @@ from click.exceptions import BadParameter
 from vyper.cli.vyper_compile import compile_files
 
 env = os.environ.get("ENV", "dev")
-prefix = hashlib.sha256("zharta".encode()).hexdigest()[-5:]
-bucket_name = f"{prefix}-zharta-contracts-{env}"
 collections_table = f"collections-{env}"
 pools_table = f"pool-configs-{env}"
 abis_table = f"abis-{env}"
-s3 = boto3.resource("s3")
 dynamodb = boto3.resource("dynamodb")
 
 logging.basicConfig()
@@ -31,45 +28,51 @@ contract_def_to_path = {
     "CollateralVaultOTC": "CollateralVaultOTC",
     "CollateralVaultPeripheral": "CollateralVaultPeripheral",
     "CryptoPunksVaultCore": "CryptoPunksVaultCore",
+    "DelegationRegistry": "auxiliary/delegate/DelegationRegistryMock",
     "DelegationRegistryMock": "auxiliary/delegate/DelegationRegistryMock",
     "GenesisPass": "GenesisPass",
     "LendingPoolCore": "LendingPoolCore",
     "LendingPoolERC20OTC": "LendingPoolERC20OTC",
     "LendingPoolEthOTC": "LendingPoolEthOTC",
+    "LendingPoolOTC": "LendingPoolEthOTC",
     "LendingPoolLock": "LendingPoolLock",
     "LendingPoolPeripheral": "LendingPoolPeripheral",
     "LiquidationsCore": "LiquidationsCore",
     "LiquidationsOTC": "LiquidationsOTC",
     "LiquidationsPeripheral": "LiquidationsPeripheral",
     "LiquidityControls": "LiquidityControls",
+    "LoansPeripheral": "Loans",
     "Loans": "Loans",
     "LoansCore": "LoansCore",
     "LoansOTC": "LoansOTC",
     "LoansOTCPunksFixed": "LoansOTC",
     "WETH9Mock": "auxiliary/token/ERC20",
     "ERC721": "auxiliary/token/ERC721",
+    "ERC20": "auxiliary/token/ERC20",
+    "Genesis": "GenesisPass",
+}
+
+standard_to_otc_keys = {
+    "collateral_vault_core": "collateral_vault",
+    "collateral_vault_peripheral": "collateral_vault",
+    "cryptopunks_vault_core": "collateral_vault",
+    "lending_pool_core": "lending_pool",
+    "liquidations_core": "liquidations",
+    "liquidations_peripheral": "liquidations",
+    "loans_core": "loans"
 }
 
 
 def read_file(filename: Path):
     """Read file content."""
-    with open(filename, "r") as f:
+    with filename.open(encoding="utf8") as f:
         return f.read()
 
 
 def write_content_to_file(filename: Path, data: str):
     """Write content to file."""
-    with open(filename, "w") as f:
+    with filename.open(mode="w", encoding="utf8") as f:
         f.write(data)
-
-
-def write_content_to_s3(key: Path, data: str):
-    """Write content to S3."""
-    try:
-        kwargs = {"ContentType": "application/json"} if key.as_posix()[-5:] == ".json" else {}
-        s3.Bucket(bucket_name).put_object(Key=key.as_posix(), Body=data, **kwargs)
-    except ClientError as e:
-        logger.error(f"Error writing to S3: {e}")
 
 
 def write_collections_to_dynamodb(data: dict):
@@ -90,8 +93,8 @@ def write_collections_to_dynamodb(data: dict):
                 ExpressionAttributeValues=values,
             )
 
-    except ClientError as e:
-        logger.error(f"Error writing to collections table: {e}")
+    except ClientError:
+        logger.exception("Error writing to collections table")
 
 
 def write_pools_to_dynamodb(data: dict):
@@ -112,8 +115,8 @@ def write_pools_to_dynamodb(data: dict):
                 ExpressionAttributeValues=values,
             )
 
-    except ClientError as e:
-        logger.error(f"Error writing to pools table: {e}")
+    except ClientError:
+        logger.exception("Error writing to pools table")
 
 
 def write_abis_to_dynamodb(data: dict):
@@ -124,61 +127,101 @@ def write_abis_to_dynamodb(data: dict):
         for abi_key, abi in data.items():
             table.update_item(
                 Key={"abi_key": abi_key},
-                UpdateExpression=f"SET abi=:v",
+                UpdateExpression="SET abi=:v",
                 ExpressionAttributeValues={":v": abi},
             )
-    except ClientError as e:
-        logger.error(f"Error writing to abis table: {e}")
+    except ClientError:
+        logger.exception("Error writing to abis table")
 
 
 def dynamo_type(val):
     if isinstance(val, float):
         return Decimal(str(val))
-    elif isinstance(val, dict):
+    if isinstance(val, dict):
         return {dynamo_type(k): dynamo_type(v) for k, v in val.items()}
     return val
 
 
 def abi_key(abi: list) -> str:
     json_dump = json.dumps(abi, sort_keys=True)
-    hash = hashlib.sha1(json_dump.encode("utf8"))
-    return hash.hexdigest()
+    _hash = hashlib.sha1(json_dump.encode("utf8"))
+    return _hash.hexdigest()
+
+
+def normalized_pool_configs(pools, abis):
+    pools = copy.deepcopy(pools)
+    common = pools.get("common", {})
+
+    for pool_id, pool_config in pools["pools"].items():
+        contracts = pool_config["contracts"]
+
+        # fix missing standard keys in otc contracts
+        for standard_key, otc_key in standard_to_otc_keys.items():
+            if standard_key not in contracts and otc_key in contracts:
+                contracts[standard_key] = contracts[otc_key]
+
+        # fix missing token key when token contract is shared
+        if "token" not in contracts:
+            token_key = contracts["lending_pool"]["properties"]["token_key"]
+            namespace, key = token_key.split(".")
+            contracts["token"] = pools[namespace][key]
+
+        # fix possible missing keys
+        contracts["genesis"] = contracts.get("genesis", common.get("genesis"))
+        contracts["delegation_registry"] = contracts.get("delegation_registry", common.get("delegation_registry"))
+        contracts["liquidity_controls"] = contracts.get("liquidity_controls", {"contract": ""})
+
+        # add abi_key to contracts and remove unwanted fields
+        for contract_key, contract in contracts.items():
+            if not contract.get("contract"):
+                continue
+
+            contract_def = contract.get("contract_def")
+            if contract_def and contract_def in abis:
+                contract["abi_key"] = abi_key(abis[contract_def])
+            else:
+                logger.warning(f"no abi found for {pool_id=} {contract_key=} {contract_def=}")  # noqa: G004
+
+            contract.pop("abi", None)
+            contract.pop("properties", None)
+            contract.pop("alias", None)
+
+    # return just the pools section
+    return {"pools": pools["pools"]}
 
 
 @click.command()
 @click.option(
-    "--write-to-s3",
-    "write_to_s3",
+    "--write-to-cloud",
+    "write_to_cloud",
     type=bool,
-    help="Write files to S3. If value is False, files will be written to local directory "
+    default=True,
+    help="Write files to cloud. If value is False, files will be written to local directory "
     "specified by the output-directory parameter.",
 )
 @click.option(
     "--output-directory",
     "output_directory",
+    default="",
     help="Default output directory for files",
 )
-def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
-    """Build contract (abi and bytecode) files and write to S3 or local directory"""
+def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
+    """Build contract (abi and bytecode) files and write to cloud or local directory"""
 
     # vyper contracts base location
     project_path = Path.cwd() / "contracts"
+    output_directory = Path(output_directory)
+    if write_to_cloud and env == "local":
+        raise BadParameter("Cannot write to cloud in local environment")
 
     # get contract addresses config file
-    config_file = Path.cwd() / "configs" / env / "pools.json"
-    config = json.loads(read_file(config_file))
+    pools = json.loads(read_file(Path.cwd() / "configs" / env / "pools.json"))
+    nfts = json.loads(read_file(Path.cwd() / "configs" / env / "collections.json"))
 
-    nfts_file = Path.cwd() / "configs" / env / "collections.json"
-    nfts = json.loads(read_file(nfts_file))
-
-    if output_directory and not write_to_s3:
+    if not write_to_cloud:
         # Check if directory exists and if not create it
         Path(f"{output_directory}/abi").mkdir(parents=True, exist_ok=True)
         Path(f"{output_directory}/bytecode").mkdir(parents=True, exist_ok=True)
-    else:
-        output_directory = Path("")
-
-    config = {"pools": config["pools"]}
 
     logger.info("Compiling contract files")
     compiled_contracts = {
@@ -193,68 +236,31 @@ def build_contract_files(write_to_s3: bool = False, output_directory: str = ""):
     bytecodes = {k: v["bytecode"] for k, v in compiled_contracts.items()}
     abis_by_key = {abi_key(abi): abi for abi in abis.values()}
 
-    # add abis and abi_keys to pool contracts
-
-    for pool_id, pool_config in config["pools"].items():
-        for contract_key, contract in pool_config["contracts"].items():
-            if not contract.get("contract"):
-                continue
-
-            contract_def = contract.get("contract_def")
-            if contract_def and contract_def in abis:
-                abi = abis[contract_def]
-                contract["abi"] = abi
-                contract["abi_key"] = abi_key(abi)
-                # logger.info(f"abi for {pool_id=} {contract_key=} {contract_def=} {abi_key(abi)=}")
-            else:
-                logger.warning(f"no abi found for {pool_id=} {contract_key=} {contract_def=}")
-
     # write individual abi and bytecode files
+    if not write_to_cloud:
+        logger.info("Publishing abi and bytecode files")
+        for contract_def in contract_def_to_path:
+            abi_path = Path(output_directory) / "abi" / f"{contract_def}.json"
+            binary_path = Path(output_directory) / "bytecode" / f"{contract_def}.bin"
 
-    logger.info("Publishing abi and bytecode files")
-    for contract_def, contract_path in contract_def_to_path.items():
-        abi_path = Path(output_directory) / "abi" / f"{contract_def}.json"
-        binary_path = Path(output_directory) / "bytecode" / f"{contract_def}.bin"
-
-        if write_to_s3:
-            write_content_to_s3(abi_path, json.dumps(abis[contract_def]))
-            write_content_to_s3(binary_path, bytecodes[contract_def])
-
-        elif not write_to_s3 and output_directory:
             write_content_to_file(abi_path, json.dumps(abis[contract_def]))
             write_content_to_file(binary_path, bytecodes[contract_def])
-        else:
-            raise BadParameter("Invalid combination of parameters")
 
-    config_file = Path(output_directory) / "pools.json"
-    nfts_file = Path(output_directory) / "collections.json"
+    # add abis and abi_keys to pool contracts
+    pools = normalized_pool_configs(pools, abis)
 
     # write collections and pools files and push to dynamo tables
 
-    if write_to_s3:
-        logger.info("Publishing collections and pools to s3")
-        write_content_to_s3(config_file, json.dumps(config))
-        write_content_to_s3(Path("nfts.json"), json.dumps(nfts))
-        if env != "local":
-            config_without_abis = copy.deepcopy(config)
-            for _, pool_config in config_without_abis["pools"].items():
-                for _, contract in pool_config["contracts"].items():
-                    if "abi" in contract:
-                        del contract["abi"]
+    if write_to_cloud:
+        logger.info("Publishing collections and pools to dynamodb")
+        write_collections_to_dynamodb(nfts)
+        write_pools_to_dynamodb(pools)
 
-            logger.info("Publishing collections and pools to dynamodb")
-            write_collections_to_dynamodb(nfts)
-            write_pools_to_dynamodb(config_without_abis)
+        logger.info("Publishing abis to dynamodb")
+        write_abis_to_dynamodb(abis_by_key)
 
-            logger.info("Publishing abis to dynamodb")
-            write_abis_to_dynamodb(abis_by_key)
-
-    elif not write_to_s3 and output_directory:
-        write_content_to_file(config_file, json.dumps(config))
-        write_content_to_file(nfts_file, json.dumps(nfts))
+    else:
+        write_content_to_file(output_directory / "pools.json", json.dumps(pools, indent=2, sort_keys=True))
+        write_content_to_file(output_directory / "collections.json", json.dumps(nfts, indent=2, sort_keys=True))
 
     logger.info("Done")
-
-
-if __name__ == "__main__":
-    build_contract_files()
