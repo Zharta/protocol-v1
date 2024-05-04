@@ -1,42 +1,11 @@
 from dataclasses import dataclass
-from functools import partial, wraps
-from typing import Any
+from functools import partial
 
 from ape import project
 from rich import print
-from rich.markup import escape
 
 from .basetypes import ContractConfig, DeploymentContext, MinimalProxy
-
-
-ownership_cache = {}
-
-
-def check_owner(f):
-    @wraps(f)
-    def wrapper(self, context, *args, **kwargs):
-        ownership_cache.setdefault(self.key, is_deployer_owner(context, self.key))
-        if not ownership_cache[self.key]:
-            return lambda *_: None
-        return f(self, context, *args, **kwargs)
-    return wrapper
-
-
-def check_different(getter: str, value_property: Any):
-    def check_if_needed(f):
-        @wraps(f)
-        def wrapper(self, context, *args, **kwargs):
-            value = getattr(self, value_property)
-            expected_value = context[value] if value in context else value  # noqa: SIM401
-            if isinstance(expected_value, ContractConfig):
-                expected_value = expected_value.address()
-            if not is_config_needed(context, self.key, getter, expected_value):
-                return lambda *_: None
-            return f(self, context, *args, **kwargs)
-        return wrapper
-    return check_if_needed
-
-
+from .transactions import check_different, check_owner, execute, execute_read
 
 
 class GenericContract(ContractConfig):
@@ -91,13 +60,9 @@ class CollateralVaultCoreV2(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="collateralVaultPeripheralAddress", value_property="collateral_vault_peripheral_key")
     def set_cvperiph(self, context: DeploymentContext):
-        execute(
-            context,
-            self.key,
-            "setCollateralVaultPeripheralAddress",
-            self.collateral_vault_peripheral_key,
-        )
+        execute(context, self.key, "setCollateralVaultPeripheralAddress", self.collateral_vault_peripheral_key)
 
 
 @dataclass
@@ -128,6 +93,7 @@ class CryptoPunksVaultCore(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="collateralVaultPeripheralAddress", value_property="collateral_vault_peripheral_key")
     def set_cvperiph(self, context: DeploymentContext):
         execute(context, self.key, "setCollateralVaultPeripheralAddress", self.collateral_vault_peripheral_key)
 
@@ -175,6 +141,7 @@ class CollateralVaultPeripheral(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="liquidationsPeripheralAddress", value_property="liquidations_peripheral_key")
     def set_liquidationsperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_peripheral_key)
 
@@ -214,6 +181,7 @@ class LendingPoolCore(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="lendingPoolPeripheral", value_property="lending_pool_peripheral_key")
     def set_lpperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLendingPoolPeripheralAddress", self.lending_pool_peripheral_key)
 
@@ -245,6 +213,7 @@ class LendingPoolLock(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="lendingPoolPeripheral", value_property="lending_pool_peripheral_key")
     def set_lpperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLendingPoolPeripheralAddress", self.lending_pool_peripheral_key)
 
@@ -367,14 +336,17 @@ class LendingPoolPeripheral(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="loansContract", value_property="loans_peripheral_key")
     def set_loansperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLoansPeripheralAddress", self.loans_peripheral_key)
 
     @check_owner
+    @check_different(getter="liquidationsPeripheralContract", value_property="liquidations_peripheral_key")
     def set_liquidationsperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_peripheral_key)
 
     @check_owner
+    @check_different(getter="liquidityControlsContract", value_property="liquidity_controls_key")
     def set_liquiditycontrols(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidityControlsAddress", self.liquidity_controls_key)
 
@@ -403,6 +375,7 @@ class LoansCore(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="loansPeripheral", value_property="loans_peripheral_key")
     def set_loansperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLoansPeripheral", self.loans_peripheral_key)
 
@@ -455,10 +428,12 @@ class LoansPeripheral(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="liquidationsPeripheralContract", value_property="liquidations_peripheral_key")
     def set_liquidationsperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_peripheral_key)
 
     @check_owner
+    @check_different(getter="liquidityControlsContract", value_property="liquidity_controls_key")
     def set_liquiditycontrols(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidityControlsAddress", self.liquidity_controls_key)
 
@@ -497,6 +472,7 @@ class LiquidationsCore(ContractConfig):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="liquidationsPeripheralAddress", value_property="liquidations_peripheral_key")
     def set_liquidationsperiph(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_peripheral_key)
 
@@ -580,6 +556,7 @@ class LiquidationsPeripheral(ContractConfig):
         execute(context, self.key, "addLendingPoolPeripheralAddress", token_key, lending_pool_peripheral_key)
 
     @check_owner
+    @check_different(getter="collateralVaultPeripheralAddress", value_property="collateral_vault_peripheral_key")
     def set_cvperiph(self, context: DeploymentContext):
         execute(context, self.key, "setCollateralVaultPeripheralAddress", self.collateral_vault_peripheral_key)
 
@@ -589,20 +566,24 @@ class LiquidationsPeripheral(ContractConfig):
         execute(context, self.key, "setLiquidationsCoreAddress", self.liquidations_core_key)
 
     @check_owner
+    @check_different(getter="wrappedPunksAddress", value_property="wpunks_contract_key")
     def set_wpunks(self, context: DeploymentContext):
         execute(context, self.key, "setWrappedPunksAddress", self.wpunks_contract_key)
 
     @check_owner
+    @check_different(getter="nftxVaultFactoryAddress", value_property="nftx_vault_factory_key")
     def set_nftxvaultfactory(self, context: DeploymentContext):
         if self.nftx_vault_factory_key:
             execute(context, self.key, "setNFTXVaultFactoryAddress", self.nftx_vault_factory_key)
 
     @check_owner
+    @check_different(getter="nftxMarketplaceZapAddress", value_property="nftx_marketplace_zap_key")
     def set_nftxmarketplacezap(self, context: DeploymentContext):
         if self.nftx_marketplace_zap_key:
             execute(context, self.key, "setNFTXMarketplaceZapAddress", self.nftx_marketplace_zap_key)
 
     @check_owner
+    @check_different(getter="sushiRouterAddress", value_property="sushi_router_key")
     def set_sushirouter(self, context: DeploymentContext):
         if self.sushi_router_key:
             execute(context, self.key, "setSushiRouterAddress", self.sushi_router_key)
@@ -613,17 +594,17 @@ class LiquidationsPeripheral(ContractConfig):
         max_fee = int(context[max_fee_key])
         contract_instance = context[self.key].contract
         if not contract_instance:
-            print(f"[{pool}] Skipping setMaxPenaltyFee for undeployed {self.key}")
+            print(f"Skipping setMaxPenaltyFee for undeployed {self.key}")
             return
         erc20_contract_address = context[token_key].address()
         args = [erc20_contract_address, max_fee]
 
         current_value = execute_read(context, self.key, "maxPenaltyFee", erc20_contract_address)
         if current_value != max_fee:
-            print(f"[{pool}] Changing maxPenaltyFee for {self.key}, from {current_value} to {max_fee}")
+            print(f"Changing maxPenaltyFee for {self.key}, from {current_value} to {max_fee}")
             execute(context, self.key, "setMaxPenaltyFee", token_key, max_fee)
         else:
-            print(f"[{pool}] Skip setMaxPenaltyFee for {self.key}, current value is already {max_fee}")
+            print(f"Skip setMaxPenaltyFee for {self.key}, current value is already {max_fee}")
 
 
 @dataclass
@@ -743,10 +724,12 @@ class CollateralVaultOTC(MinimalProxy):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="loansAddress", value_property="loans_key")
     def set_loans(self, context: DeploymentContext):
         execute(context, self.key, "setLoansAddress", self.loans_key)
 
     @check_owner
+    @check_different(getter="liquidationsPeripheralAddress", value_property="liquidations_key")
     def set_liquidations(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_key)
 
@@ -836,10 +819,12 @@ class LendingPoolOTC(MinimalProxy):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="loansContract", value_property="loans_key")
     def set_loans(self, context: DeploymentContext):
         execute(context, self.key, "setLoansPeripheralAddress", self.loans_key)
 
     @check_owner
+    @check_different(getter="liquidationsPeripheralContract", value_property="liquidations_key")
     def set_liquidations(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_key)
 
@@ -898,7 +883,8 @@ class LiquidationsOTC(MinimalProxy):
     @check_owner
     def set_max_penalty_fee(self, context: DeploymentContext):
         if self.max_penalty_fee:
-            execute(context, self.key, "setMaxPenaltyFee", self.max_penalty_fee)
+            erc20_contract_address = execute_read(context, self.lending_pool_key, "erc20TokenContract")
+            execute(context, self.key, "setMaxPenaltyFee", erc20_contract_address, self.max_penalty_fee)
 
     def deploy(self, context: DeploymentContext):
         super().deploy(context)
@@ -989,6 +975,7 @@ class LoansOTC(MinimalProxy):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="liquidationsContract", value_property="liquidations_key")
     def set_liquidations(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_key)
 
@@ -1042,6 +1029,7 @@ class LoansOTCPunksFixed(MinimalProxy):
             self.load_contract(address)
 
     @check_owner
+    @check_different(getter="liquidationsContract", value_property="liquidations_key")
     def set_liquidations(self, context: DeploymentContext):
         execute(context, self.key, "setLiquidationsPeripheralAddress", self.liquidations_key)
 
@@ -1054,48 +1042,3 @@ class LoansOTCPunksFixed(MinimalProxy):
     @check_different(getter="collateralVaultContract", value_property="collateral_vault_key")
     def set_collateral_vault(self, context: DeploymentContext):
         execute(context, self.key, "setCollateralVaultPeripheralAddress", self.collateral_vault_key)
-
-
-def is_deployer_owner(context: DeploymentContext, contract: str) -> bool:
-    if not context[contract].address:
-        return True
-    owner = execute_read(context, contract, "owner")
-    if owner != context.owner:
-        print(f"[dark_orange bold]WARNING[/] Contract [blue]{escape(contract)}[/] owner is {owner}, expected {context.owner}")
-        return False
-    return True
-
-
-def is_config_needed(context: DeploymentContext, contract: str, func: str, new_value: Any) -> bool:
-    print(f"Checking if config is needed for [blue]{escape(contract)}[/] {func} expected value {new_value}")
-    if context.dryrun:
-        return True
-    current_value = execute_read(context, contract, func)
-    if current_value == new_value:
-        print(f"Contract [blue]{escape(contract)}[/] {func} is already {new_value}, skipping update")
-        return False
-    return True
-
-
-def execute_read(context: DeploymentContext, contract: str, func: str, *args, options=None):
-    contract_instance = context.contracts[contract].contract
-    args_repr = [f"[blue]{escape(c)}[/blue]" if c in context else c for c in args]
-    print(f"Calling [blue]{escape(contract)}[/blue].{func}({', '.join(args_repr)})", end=" ")
-
-    args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
-    args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]
-
-    result = contract_instance.call_view_method(func, *args_values, **(options or {}))
-    print(f"= {result}")
-    return result
-
-
-def execute(context: DeploymentContext, contract: str, func: str, *args, options=None):
-    contract_instance = context.contracts[contract].contract
-    args_repr = [f"[blue]{escape(c)}[/blue]" if c in context else c for c in args]
-    print(f"Executing [blue]{escape(contract)}[/blue].{func}({', '.join(args_repr)})")
-    if not context.dryrun:
-        function = getattr(contract_instance, func)
-        args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
-        args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]
-        function(*args_values, **({"sender": context.owner} | context.gas_options() | (options or {})))

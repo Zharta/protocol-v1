@@ -1,85 +1,81 @@
-import types
-from dataclasses import dataclass
-from functools import partial
-from typing import Optional
+from functools import wraps
+from typing import Any
 
-from .basetypes import DeploymentContext, Environment
+from rich import print
+from rich.markup import escape
 
-
-@dataclass
-class Transaction:
-    @staticmethod
-    def loansotcperiph_set_liquiditycontrols(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
-        execute(
-            context, context[pool, "loans"], "setLiquidityControlsAddress", context[pool, "liquidity_controls"], dryrun=dryrun
-        )
-
-    @staticmethod
-    def liquidationscore_add_loanscore(context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None):
-        execute(
-            context,
-            context[pool, "liquidations_core"],
-            "addLoansCoreAddress",
-            context[pool, "token"],
-            context[pool, "loans_core"],
-            dryrun=dryrun,
-        )
-
-    @staticmethod
-    def liquiditycontrols_change_collectionborrowableamounts(
-        context: DeploymentContext, dryrun: bool = False, pool: Optional[str] = None
-    ):
-        # TODO remove this?
-        return
-        nft_borrowable_amounts = context["nft_borrowable_amounts"]
-        contract = context[pool, "liquidity_controls"]
-        contract_instance = context[contract].contract
-        if not contract_instance:
-            print(f"[{pool}] Skipping changeMaxCollectionBorrowableAmount for undeployed {contract}")
-            return
-        for (amount_pool, nft), value_eth in nft_borrowable_amounts.items():
-            if amount_pool != pool:
-                continue
-
-            erc20_contract = context[pool, "token"]
-            erc20_contract_instance = context[erc20_contract].contract
-            decimals = erc20_contract_instance.decimals() if erc20_contract_instance else 18
-            value_with_decimals = int(value_eth * 10**decimals)
-
-            address = context[nft].address()
-            args = [True, address, value_with_decimals]
-            kwargs = {"sender": context.owner} | context.gas_options()
-            if not address:
-                print(f"[{pool}] Skipping changeMaxCollectionBorrowableAmount for undeployed {nft}")
-                continue
-            current_value = contract_instance.maxCollectionBorrowableAmount(address)
-            if current_value != value_with_decimals:
-                print(
-                    f"[{pool}] Changing MaxCollectionBorrowableAmount for {nft}, from {current_value/10**decimals} to {value_with_decimals/10**decimals} eth"
-                )
-                print(f"## {contract}.changeMaxCollectionBorrowableAmount({','.join(str(a) for a in args)}")
-                if not dryrun:
-                    contract_instance.changeMaxCollectionBorrowableAmount(*args, **kwargs)
-            else:
-                print(
-                    f"[{pool}] Skip changeMaxCollectionBorrowableAmount for {nft}, current value is already {value_with_decimals/10**decimals} eth"
-                )
+from .basetypes import ContractConfig, DeploymentContext
 
 
-def execute_read(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):
-    contract_instance = context.contract[contract].contract
-    print(f"## {contract}.{func}({','.join(args)})")
-    if not dryrun:
+def check_owner(f):
+    @wraps(f)
+    def wrapper(self, context, *args, **kwargs):
+        if not hasattr(self, "__is_deployer_owner"):
+            self.__is_deployer_owner = is_deployer_owner(context, self.key)
+        # if not self.__is_deployer_owner:
+        #     return lambda *_: None
+        return f(self, context, *args, **kwargs)
+    return wrapper
+
+
+def check_different(getter: str, value_property: Any):
+    def check_if_needed(f):
+        @wraps(f)
+        def wrapper(self, context, *args, **kwargs):
+            value = getattr(self, value_property)
+            expected_value = context[value] if value in context else value  # noqa: SIM401
+            if isinstance(expected_value, ContractConfig):
+                expected_value = expected_value.address()
+            if not is_config_needed(context, self.key, getter, expected_value):
+                return lambda *_: None
+            return f(self, context, *args, **kwargs)
+        return wrapper
+    return check_if_needed
+
+
+def is_deployer_owner(context: DeploymentContext, contract: str) -> bool:
+    if not context[contract].address():
+        return True
+    owner = execute_read(context, contract, "owner")
+    if owner != context.owner:
+        print(f"[dark_orange bold]WARNING[/] Contract [blue]{escape(contract)}[/] owner is {owner}, expected {context.owner}")
+        return False
+    return True
+
+
+def is_config_needed(context: DeploymentContext, contract: str, func: str, new_value: Any) -> bool:
+    # print(f"Checking if config is needed for [blue]{escape(contract)}[/] {func} expected value {new_value}")
+    if context.dryrun:
+        return True
+    current_value = execute_read(context, contract, func)
+    if current_value == new_value:
+        print(f"Contract [blue]{escape(contract)}[/] {func} is already {new_value}, skipping update")
+        return False
+    return True
+
+
+def execute_read(context: DeploymentContext, contract: str, func: str, *args, options=None):
+    contract_instance = context.contracts[contract].contract
+    args_repr = [f"[blue]{escape(c)}[/blue]" if c in context else c for c in args]
+    print(f"Calling [blue]{escape(contract)}[/blue].{func}({', '.join(args_repr)})", end=" ")
+
+    args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
+    args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]
+
+    result = contract_instance.call_view_method(func, *args_values, **(options or {}))
+    print(f"= {result}")
+    return result
+
+
+def execute(context: DeploymentContext, contract: str, func: str, *args, options=None):
+    contract_instance = context.contracts[contract].contract
+    args_repr = [f"[blue]{escape(c)}[/blue]" if c in context else str(c) for c in args]
+    print(f"Executing [blue]{escape(contract)}[/blue].{func}({', '.join(args_repr)})")
+    if not context.dryrun:
         function = getattr(contract_instance, func)
-        deploy_args = [context[a].address() for a in args]
-        return function(*deploy_args, **({"sender": context.owner} | (options or {})))
-
-
-def execute(context: DeploymentContext, contract: str, func: str, *args, dryrun: bool = False, options=None):
-    contract_instance = context.contract[contract].contract
-    print(f"## {contract}.{func}({','.join(args)})", {"from": context.owner} | context.gas_options() | (options or {}))
-    if not dryrun:
-        function = getattr(contract_instance, func)
-        deploy_args = [context[a].address() for a in args]
-        print(f"{function=} {deploy_args=}")
-        return function(*deploy_args, **({"sender": context.owner} | context.gas_options() | (options or {})))
+        args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
+        args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]
+        try:
+            function(*args_values, **({"sender": context.owner} | context.gas_options() | (options or {})))
+        except Exception as e:
+            print(f"[bold red]Error executing {contract}.{func} with arguments {args_values}: {e}")
