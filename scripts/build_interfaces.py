@@ -1,4 +1,5 @@
-import json
+# ruff: noqa: T201, RUF013
+
 from pathlib import Path
 
 import click
@@ -57,7 +58,7 @@ def is_struct(node):
     return node["ast_type"] == "StructDef"
 
 
-def get_arg_type(node: dict):
+def get_arg_type(node: dict):  # noqa: PLR0911
     match node["ast_type"]:
         case "Name":
             return node["id"]
@@ -122,7 +123,7 @@ def get_function(node: dict):
     decorators_code = [f"@{d}" for d in decorators]
     arg_list = (node.get("args") or {}).get("args")
     args = [(a["arg"], get_arg_type(a.get("annotation"))) for a in arg_list]
-    args_code = [f"{name}: {type}" if type else name for (name, type) in args]
+    args_code = [f"{name}: {typ}" if typ else name for (name, typ) in args]
     return_node = node.get("returns")
     return_type = get_arg_type(return_node) if return_node else None
     return_code = f" -> {return_type}" if return_type else ""
@@ -144,7 +145,7 @@ def get_public_var(node: dict):
             annotation = elements[-1]
 
     decorators_code = ["@view", "@external"]
-    args_code = [f"{name}: {type}" for (name, type) in args]
+    args_code = [f"{name}: {typ}" for (name, typ) in args]
     return_code = f" -> {return_type}"
 
     function_code = [f"def {name}({', '.join(args_code)}){return_code}:", "    pass"]
@@ -170,7 +171,7 @@ def generate_interface(input_file: Path, output_file: Path):
     structs = get_structs(ast)
     events = get_events(ast)
     functions = get_functions(ast)
-    gen_code = "\n\n".join([structs, events, functions])
+    gen_code = "\n\n".join([structs, events, functions])  # noqa: FLY002
 
     with output_file.open("w") as f:
         f.write(gen_code)
@@ -179,7 +180,7 @@ def generate_interface(input_file: Path, output_file: Path):
 @click.command()
 @click.argument("filenames", nargs=-1, type=click.Path(path_type=Path, exists=True))
 @click.option("-o", "--output-dir", type=click.Path(path_type=Path, exists=True), default="interfaces")
-def generate_interfaces(filenames: list, output_dir: str):
+def main(filenames: list, output_dir: str):
     for f in filenames:
         opath = output_dir / f"I{f.name}"
         print(f"Generating {f} -> {opath}")
@@ -187,4 +188,4 @@ def generate_interfaces(filenames: list, output_dir: str):
 
 
 if __name__ == "__main__":
-    generate_interfaces()
+    main()
