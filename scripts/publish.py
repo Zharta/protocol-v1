@@ -59,7 +59,7 @@ standard_to_otc_keys = {
     "lending_pool_core": "lending_pool",
     "liquidations_core": "liquidations",
     "liquidations_peripheral": "liquidations",
-    "loans_core": "loans"
+    "loans_core": "loans",
 }
 
 

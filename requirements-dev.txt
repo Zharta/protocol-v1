@@ -413,7 +413,7 @@ sqlalchemy==2.0.29
     # via eth-ape
 stack-data==0.6.3
     # via ipython
-titanoboa==0.1.9
+titanoboa==0.1.10b1
 toolz==0.12.1
     # via cytoolz
 tqdm==4.66.2

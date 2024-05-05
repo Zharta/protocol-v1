@@ -321,7 +321,7 @@ class LendingPoolPeripheral(ContractConfig):
                 protocol_wallet_fees,
                 protocol_fees_share,
                 max_capital_efficiency,
-                whitelisted
+                whitelisted,
             ],
             config_deps={
                 loans_peripheral_key: self.set_loansperiph,
@@ -411,7 +411,7 @@ class LoansPeripheral(ContractConfig):
                 lending_pool_peripheral_key,
                 collateral_vault_peripheral_key,
                 genesis_key,
-                is_payable
+                is_payable,
             ],
             config_deps={
                 liquidations_peripheral_key: self.set_liquidationsperiph,
@@ -517,7 +517,7 @@ class LiquidationsPeripheral(ContractConfig):
                 grace_period_duration,
                 lender_period_duration,
                 auction_period_duration,
-                weth_contract_key
+                weth_contract_key,
             ],
             config_deps={
                 collateral_vault_peripheral_key: self.set_cvperiph,
@@ -530,10 +530,12 @@ class LiquidationsPeripheral(ContractConfig):
             | {
                 loans_core: partial(self.add_loanscore, token_key=token, loans_core_key=loans_core)
                 for token, loans_core in zip(_tokens_keys, _loans_core_keys)
-            } | {
+            }
+            | {
                 lpp: partial(self.add_lpperiph, token_key=token, lending_pool_peripheral_key=lpp)
                 for token, lpp in zip(_tokens_keys, _lending_pool_peripheral_keys)
-            } | {
+            }
+            | {
                 max_fee_key: partial(self.set_max_fee, token_key=token, max_fee_key=max_fee_key)
                 for token, max_fee_key in zip(_tokens_keys, _max_penalty_fee_keys)
             },
@@ -590,16 +592,13 @@ class LiquidationsPeripheral(ContractConfig):
 
     @check_owner
     def set_max_fee(self, context: DeploymentContext, *, token_key, max_fee_key):
-        # FIXME
         max_fee = int(context[max_fee_key])
-        contract_instance = context[self.key].contract
-        if not contract_instance:
-            print(f"Skipping setMaxPenaltyFee for undeployed {self.key}")
-            return
-        erc20_contract_address = context[token_key].address()
-        args = [erc20_contract_address, max_fee]
 
-        current_value = execute_read(context, self.key, "maxPenaltyFee", erc20_contract_address)
+        if context.dryrun:
+            execute(context, self.key, "setMaxPenaltyFee", token_key, max_fee)
+            return
+
+        current_value = execute_read(context, self.key, "maxPenaltyFee", context[token_key].address())
         if current_value != max_fee:
             print(f"Changing maxPenaltyFee for {self.key}, from {current_value} to {max_fee}")
             execute(context, self.key, "setMaxPenaltyFee", token_key, max_fee)
@@ -637,7 +636,7 @@ class LiquidityControls(ContractConfig):
                 lock_period_duration,
                 max_loans_pool_share_enabled,
                 max_loans_pool_share,
-                max_collection_borrowable_amount_enabled
+                max_collection_borrowable_amount_enabled,
             ],
         )
         if address:
@@ -790,7 +789,7 @@ class LendingPoolOTC(MinimalProxy):
         key: str,
         version: str | None = None,
         implementation_key: str,
-        token_key: str,
+        token_key: str,  # noqa: ARG002
         protocol_wallet_fees: int,
         protocol_fees_share: int,
         lender: str,
