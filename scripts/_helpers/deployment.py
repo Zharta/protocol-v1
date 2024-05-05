@@ -103,7 +103,6 @@ def load_configs(env: Environment) -> dict:
 
 
 class DeploymentManager:
-
     def __init__(self, env: Environment):
         self.env = env
         match env:

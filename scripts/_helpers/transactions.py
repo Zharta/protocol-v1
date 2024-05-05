@@ -12,9 +12,8 @@ def check_owner(f):
     def wrapper(self, context, *args, **kwargs):
         if not hasattr(self, "__is_deployer_owner"):
             self.__is_deployer_owner = is_deployer_owner(context, self.key)
-        # if not self.__is_deployer_owner:
-        #     return lambda *_: None
         return f(self, context, *args, **kwargs)
+
     return wrapper
 
 
@@ -29,7 +28,9 @@ def check_different(getter: str, value_property: Any):
             if not is_config_needed(context, self.key, getter, expected_value):
                 return lambda *_: None
             return f(self, context, *args, **kwargs)
+
         return wrapper
+
     return check_if_needed
 
 
@@ -44,7 +45,6 @@ def is_deployer_owner(context: DeploymentContext, contract: str) -> bool:
 
 
 def is_config_needed(context: DeploymentContext, contract: str, func: str, new_value: Any) -> bool:
-    # print(f"Checking if config is needed for [blue]{escape(contract)}[/] {func} expected value {new_value}")
     if context.dryrun:
         return True
     current_value = execute_read(context, contract, func)
@@ -68,10 +68,10 @@ def execute_read(context: DeploymentContext, contract: str, func: str, *args, op
 
 
 def execute(context: DeploymentContext, contract: str, func: str, *args, options=None):
-    contract_instance = context.contracts[contract].contract
     args_repr = [f"[blue]{escape(c)}[/blue]" if c in context else str(c) for c in args]
     print(f"Executing [blue]{escape(contract)}[/blue].{func}({', '.join(args_repr)})")
     if not context.dryrun:
+        contract_instance = context.contracts[contract].contract
         function = getattr(contract_instance, func)
         args_values = [context[c] if c in context else c for c in args]  # noqa: SIM401
         args_values = [v.address() if isinstance(v, ContractConfig) else v for v in args_values]

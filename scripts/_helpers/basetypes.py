@@ -94,13 +94,17 @@ class ContractConfig:
 
     def deploy(self, context: DeploymentContext):
         if self.contract is not None:
-            rprint(f"[dark_orange bold]WARNING[/]: Deployment will override contract [blue bold]{self.key}[/] at {self.contract}")  # noqa: E501
+            rprint(
+                f"[dark_orange bold]WARNING[/]: Deployment will override contract [blue bold]{self.key}[/] at {self.contract}"
+            )  # noqa: E501
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")  # noqa: TRY002
         print_args = self.deployment_args_repr(context)
         kwargs = self.deployment_options(context)
         kwargs_str = ", ".join(f"{k}={v}" for k, v in kwargs.items())
-        rprint(f"Deploying [blue]{self.key}[/blue] <- {self.container_name()}.deploy({', '.join(str(a) for a in print_args)}, {kwargs_str})")  # noqa: E501
+        rprint(
+            f"Deploying [blue]{self.key}[/blue] <- {self.container_name()}.deploy({', '.join(str(a) for a in print_args)}, {kwargs_str})"
+        )  # noqa: E501
 
         if not context.dryrun:
             deploy_args = self.container.constructor.encode_input(*self.deployment_args_values(context))
@@ -117,14 +121,18 @@ class MinimalProxy(ContractConfig):
 
     def deploy(self, context: DeploymentContext):
         if self.contract is not None:
-            rprint(f"[dark_orange bold]WARNING[/dark_orange bold]: Deployment will override contract [blue bold]{self.key}[/blue bold] at {self.contract}")  # noqa: E501
+            rprint(
+                f"[dark_orange bold]WARNING[/dark_orange bold]: Deployment will override contract [blue bold]{self.key}[/blue bold] at {self.contract}"
+            )  # noqa: E501
         if not self.deployable(context):
             raise Exception(f"Cant deploy contract {self} in current context")  # noqa: TRY002
         impl_contract = context[self.impl].contract
         print_args = self.deployment_args_repr(context)
         kwargs = self.deployment_options(context)
         kwargs_str = ",".join(f"{k}={v}" for k, v in kwargs.items())
-        rprint(f"Deploying Proxy [blue]{self.key}[/blue] <- {self.impl}.{self.factory_func}({', '.join(str(a) for a in print_args)}, {kwargs_str})")  # noqa: E501
+        rprint(
+            f"Deploying Proxy [blue]{self.key}[/blue] <- {self.impl}.{self.factory_func}({', '.join(str(a) for a in print_args)}, {kwargs_str})"
+        )  # noqa: E501
 
         if not context.dryrun:
             tx = impl_contract.invoke_transaction(self.factory_func, *self.deployment_args_values(context), **kwargs)

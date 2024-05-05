@@ -150,7 +150,7 @@ def create_signature_fixture(test_collaterals, loans_otc_contract, owner_account
         verifier=loans_otc_contract,
         domain_name="Zharta",
         domain_version="1",
-        chain_id=boa.env.chain.chain_id,
+        chain_id=boa.env.evm.chain.chain_id,
     ):
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)"

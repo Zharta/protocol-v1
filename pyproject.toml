@@ -14,7 +14,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "titanoboa==0.1.9",
+    "titanoboa==0.1.10b1",
     "boto3",
     "click",
     "coverage",

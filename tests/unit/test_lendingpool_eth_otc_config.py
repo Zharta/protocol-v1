@@ -110,46 +110,21 @@ def test_deprecate(lendingpool_otc_proxy):
     assert event.erc20TokenContract == ERC20_ADDRESS
 
 
-def test_deprecate_blockers(lendingpool_otc, lendingpool_otc_proxy):
-    account1 = boa.env.generate_address()
-    account2 = boa.env.generate_address()
-    boa.env.set_balance(account1, 10)
+def test_deprecate_blockers(lendingpool_otc, lendingpool_otc_proxy, weth9_contract):
+    boa.env.set_balance(LENDER, 10)
 
-    inject_code_allowed = """
-        @view
-        @internal
-        def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-            return True
-    """
-
-    inject_code_wrap = """
-        @internal
-        def _wrap(_amount: uint256):
-            pass
-    """
-
-    lendingpool_otc.inject_function(dedent(inject_code_allowed), force=True)
-    lendingpool_otc.inject_function(dedent(inject_code_wrap), force=True)
-
-    with boa.reverts():
-        lendingpool_otc.deposit(1, sender=account1)
-
-    with boa.reverts():
-        lendingpool_otc.depositEth(value=1, sender=account1)
-
-    with boa.reverts():
-        lendingpool_otc.sendFunds(account2, 1, sender=account1)
+    weth9_contract.deploy("ERC20", "ERC20", 18, 10**20, override_address=ERC20_ADDRESS)
 
     lendingpool_otc_proxy.deprecate(sender=lendingpool_otc_proxy.owner())
 
-    with boa.reverts():
-        lendingpool_otc_proxy.deposit(1, sender=account1)
+    assert lendingpool_otc_proxy.isPoolDeprecated()
+    assert lendingpool_otc_proxy.erc20TokenContract() == ERC20_ADDRESS
 
-    with boa.reverts():
-        lendingpool_otc_proxy.depositEth(value=1, sender=account1)
+    with boa.reverts("pool is deprecated, withdraw"):
+        lendingpool_otc_proxy.depositEth(value=10, sender=LENDER)
 
-    with boa.reverts():
-        lendingpool_otc_proxy.sendFunds(account2, 1, sender=account1)
+    with boa.reverts("pool is deprecated"):
+        lendingpool_otc_proxy.sendFundsEth(LENDER, 1, sender=LENDER)
 
 
 def test_change_status(lendingpool_otc_proxy):

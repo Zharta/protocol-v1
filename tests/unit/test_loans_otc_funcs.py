@@ -194,7 +194,7 @@ def create_signature_fixture(test_collaterals, loans, owner_account, borrower):
         verifier=loans,
         domain_name="Zharta",
         domain_version="1",
-        chain_id=boa.env.chain.chain_id,
+        chain_id=boa.env.evm.chain.chain_id,
     ):
         print(
             f"_create_signature {collaterals=} {delegations=} {amount=} {interest=} {maturity=} {deadline=} {nonce=} {genesis_token=} {borrower=} {signer=} {verifier=} {chain_id=}"
