@@ -110,11 +110,11 @@ def test_add_liquidation(
     event = get_last_event(liquidations_otc_contract, name="LiquidationAdded")
 
     liquidation = Liquidation(*liquidations_otc_contract.getLiquidation(erc721_contract, 0))
-    loan = loans_core_contract.getLoan(borrower, loan_id)
+    _, _amount, _interest, _maturity, _start_time, *_ = loans_core_contract.getLoan(borrower, loan_id)
 
-    interest_amount = int(Decimal(loan[1]) * Decimal(loan[2] * Decimal(loan[3] - loan[4])) / Decimal(25920000000))
+    interest_amount = _amount * _interest // 10000
 
-    apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
+    apr = LOAN_INTEREST * 365 * 24 * 60 * 60 // (_maturity - _start_time)
 
     liquidation_id_abi_encoded = eth_abi.encode(
         ["address", "uint256", "uint256"], [erc721_contract.address, 0, liquidation.startTime]
