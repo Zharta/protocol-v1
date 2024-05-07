@@ -152,27 +152,6 @@ def test_set_collateral_vault_address_same_address(liquidations_peripheral, cont
         liquidations_peripheral.setCollateralVaultPeripheralAddress(collateral_vault_peripheral, sender=contract_owner)
 
 
-def test_set_collateral_vault_address(liquidations_peripheral, contract_owner):
-    collateral_vault_peripheral = boa.env.generate_address()
-    liquidations_peripheral.setCollateralVaultPeripheralAddress(collateral_vault_peripheral, sender=contract_owner)
-    event = get_last_event(liquidations_peripheral, name="CollateralVaultPeripheralAddressSet")
-
-    assert liquidations_peripheral.collateralVaultPeripheralAddress() == collateral_vault_peripheral
-
-    assert event.currentValue == ZERO_ADDRESS
-    assert event.newValue == collateral_vault_peripheral
-
-
-def test_set_collateral_vault_address_same_address(liquidations_peripheral, contract_owner):
-    collateral_vault_peripheral = boa.env.generate_address()
-    liquidations_peripheral.setCollateralVaultPeripheralAddress(collateral_vault_peripheral, sender=contract_owner)
-
-    assert liquidations_peripheral.collateralVaultPeripheralAddress() == collateral_vault_peripheral
-
-    with boa.reverts("new value is the same"):
-        liquidations_peripheral.setCollateralVaultPeripheralAddress(collateral_vault_peripheral, sender=contract_owner)
-
-
 def test_initial_state(liquidations_peripheral, liquidations_core, contract_owner):
     # Check if the constructor of the contract is set up properly
     assert liquidations_peripheral.owner() == contract_owner

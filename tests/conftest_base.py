@@ -1,4 +1,5 @@
 from functools import cached_property
+from itertools import starmap
 
 import boa
 import pytest
@@ -7,20 +8,18 @@ from boa.contracts.vyper.event import Event, RawEvent
 from boa.contracts.vyper.vyper_contract import VyperContract
 from web3 import Web3
 
-# boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")
-# boa.env.enable_gas_profiling()
-# boa.reset_env()
+# boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")  # noqa: ERA001
 
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
-def get_last_event(contract: VyperContract, name: str = None):
+def get_last_event(contract: VyperContract, name: str | None = None):
     matching_events = [e for e in contract.get_logs() if isinstance(e, Event) and (name is None or name == e.event_type.name)]
     return EventWrapper(matching_events[-1])
 
 
-def get_events(contract: VyperContract, name: str = None):
+def get_events(contract: VyperContract, name: str | None = None):
     return [
         EventWrapper(e) for e in contract.get_logs() if isinstance(e, Event) and (name is None or name == e.event_type.name)
     ]
@@ -32,11 +31,9 @@ class EventWrapper:
         self.event_name = event.event_type.name
 
     def __getattr__(self, name):
-        print(f"getattr {self=} {name=}")
         if name in self.args_dict:
             return self.args_dict[name]
-        else:
-            raise AttributeError(f"No attr {name} in {self.event_name}. Event data is {self.event}")
+        raise AttributeError(f"No attr {name} in {self.event_name}. Event data is {self.event}")
 
     @cached_property
     def args_dict(self):
@@ -49,12 +46,11 @@ class EventWrapper:
 
         return {k: self._format_value(v, self.event.event_type.arguments[k]) for k, v in _args}
 
-    def _format_value(self, v, _type):
+    def _format_value(self, v, _type):  # noqa: PLR6301
         print(f"_format_value {v=} {_type=} {type(v).__name__=} {type(_type)=}")
         if isinstance(_type, vyper.semantics.types.primitives.AddressT):
             return Web3.to_checksum_address(v)
-        # elif isinstance(_type, vyper.semantics.types.value.bytes_fixed.Bytes32Definition):
-        elif isinstance(_type, vyper.semantics.types.primitives.BytesT):
+        if isinstance(_type, vyper.semantics.types.primitives.BytesT):
             return f"0x{v.hex()}"
         return v
 
@@ -66,15 +62,15 @@ def checksummed(obj, vyper_type=None):
     print(f"checksummed {obj=} {vyper_type=} {type(obj).__name__=} {type(vyper_type)=}")
 
     if isinstance(vyper_type, vyper.codegen.types.types.DArrayType):
-        return list(checksummed(x, vyper_type.subtype) for x in obj)
+        return [checksummed(x, vyper_type.subtype) for x in obj]
 
-    elif isinstance(vyper_type, vyper.codegen.types.types.StructType):
-        return tuple(checksummed(*arg) for arg in zip(obj, vyper_type.tuple_members()))
+    if isinstance(vyper_type, vyper.codegen.types.types.StructType):
+        return tuple(starmap(checksummed, zip(obj, vyper_type.tuple_members())))
 
-    elif isinstance(vyper_type, vyper.codegen.types.types.BaseType):
+    if isinstance(vyper_type, vyper.codegen.types.types.BaseType):
         if vyper_type.typ == "address":
             return Web3.toChecksumAddress(obj)
-        elif vyper_type.typ == "bytes32":
+        if vyper_type.typ == "bytes32":
             return f"0x{obj.hex()}"
 
     return obj

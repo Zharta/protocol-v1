@@ -23,17 +23,17 @@ def lending_pool_lock(lendingpool_lock_contract, contract_owner):
 
 
 def test_set_investor_lock_wrong_sender(lending_pool_lock, investor):
-    lockPeriodEnd = int(dt.now().timestamp()) + LOCK_PERIOD_DURATION
+    loack_period_end = int(dt.now().timestamp()) + LOCK_PERIOD_DURATION
     with boa.reverts("msg.sender is not LP peripheral"):
-        lending_pool_lock.setInvestorLock(investor, 10**18, lockPeriodEnd, sender=investor)
+        lending_pool_lock.setInvestorLock(investor, 10**18, loack_period_end, sender=investor)
 
 
 def test_set_investor_lock(lending_pool_lock, investor):
     lending_pool_peripheral = lending_pool_lock.lendingPoolPeripheral()
-    lockPeriodEnd = int(dt.now().timestamp()) + LOCK_PERIOD_DURATION
-    lockPeriodAmount = 10**18
-    lending_pool_lock.setInvestorLock(investor, lockPeriodAmount, lockPeriodEnd, sender=lending_pool_peripheral)
+    loack_period_end = int(dt.now().timestamp()) + LOCK_PERIOD_DURATION
+    lock_period_amount = 10**18
+    lending_pool_lock.setInvestorLock(investor, lock_period_amount, loack_period_end, sender=lending_pool_peripheral)
 
     lock = lending_pool_lock.investorLocks(investor)
-    assert lock[0] == lockPeriodEnd
-    assert lock[1] == lockPeriodAmount
+    assert lock[0] == loack_period_end
+    assert lock[1] == lock_period_amount

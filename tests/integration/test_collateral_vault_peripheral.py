@@ -298,7 +298,7 @@ def test_transfer_collateral_from_liquidation(
     assert event._to == borrower
 
 
-def test_transfer_collateral_from_liquidation(
+def test_transfer_punk_from_liquidation(
     collateral_vault_peripheral_contract,
     cryptopunks_vault_core_contract,
     loans_peripheral_contract,

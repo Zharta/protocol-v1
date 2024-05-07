@@ -1,3 +1,5 @@
+# ruff: noqa: T201
+
 import os
 
 import web3
@@ -35,7 +37,7 @@ def claim_ownership(dm, wallet):
         print(f"Signed contract {i + 1} out of {len(contracts)}")
 
 
-def ape_init_extras(network):
+def ape_init_extras():
     dm = DeploymentManager(ENV)
 
     globals()["dm"] = dm

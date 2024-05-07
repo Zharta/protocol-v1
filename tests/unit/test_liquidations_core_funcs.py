@@ -195,7 +195,6 @@ def test_remove_liquidation(liquidations_core, contract_owner, borrower):
 
     liquidations_core.removeLiquidation(erc721, 0, sender=liquidations_peripheral)
 
-    # liquidation = checksummed(liquidations_core.getLiquidation(erc721, 0))
     liquidation = liquidations_core.getLiquidation(erc721, 0)
     assert liquidation[1] == ZERO_ADDRESS
     assert liquidation[3] == 0

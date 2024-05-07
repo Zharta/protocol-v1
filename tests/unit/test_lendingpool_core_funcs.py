@@ -63,7 +63,7 @@ def test_deposit(lending_pool_core, erc20, investor, contract_owner):
     assert investor_funds[1] == deposit_amount
     assert investor_funds[2] == 0
     assert investor_funds[3] == deposit_amount
-    assert investor_funds[4] == True
+    assert investor_funds[4] is True
 
     assert lending_pool_core.fundsAvailable() == deposit_amount
     assert lending_pool_core.activeLenders() == 1
@@ -78,7 +78,6 @@ def test_deposit_twice(lending_pool_core, erc20, investor, contract_owner):
     deposit_amount_one = Web3.to_wei(1, "ether")
     deposit_amount_two = Web3.to_wei(0.5, "ether")
 
-    # erc20.mint(contract_owner, deposit_amount_one + deposit_amount_two, sender=contract_owner)
     erc20.transfer(lending_pool_peripheral, deposit_amount_one + deposit_amount_two, sender=contract_owner)
     erc20.approve(lending_pool_core, deposit_amount_one + deposit_amount_two, sender=lending_pool_peripheral)
 
@@ -146,7 +145,6 @@ def test_withdraw_with_losses(lending_pool_core, erc20, borrower, investor, cont
     lending_pool_core.deposit(investor, investor, deposit_amount, sender=lending_pool_peripheral)
     lending_pool_core.sendFunds(borrower, invested_amount, sender=lending_pool_peripheral)
 
-    # erc20.mint(borrower, recovered_amount, sender=contract_owner)
     erc20.approve(lending_pool_core, recovered_amount, sender=borrower)
     lending_pool_core.receiveFunds(borrower, recovered_amount, 0, invested_amount, sender=lending_pool_peripheral)
     with boa.reverts("_amount more than withdrawable"):
@@ -165,7 +163,6 @@ def test_withdraw(lending_pool_core, erc20, investor, contract_owner):
 
     initial_balance = user_balance(erc20, investor)
 
-    # erc20.mint(contract_owner, deposit_amount, sender=contract_owner)
     erc20.transfer(lending_pool_peripheral, deposit_amount, sender=contract_owner)
     erc20.approve(lending_pool_core, deposit_amount, sender=lending_pool_peripheral)
 
@@ -194,7 +191,6 @@ def test_deposit_withdraw_deposit(lending_pool_core, erc20, investor, contract_o
     lending_pool_core.setLendingPoolPeripheralAddress(lending_pool_peripheral, sender=contract_owner)
     initial_balance = user_balance(erc20, investor)
 
-    # erc20.mint(contract_owner, Web3.to_wei(2, "ether"), sender=contract_owner)
     erc20.transfer(investor, Web3.to_wei(2, "ether"), sender=contract_owner)
     assert user_balance(erc20, investor) == initial_balance + Web3.to_wei(2, "ether")
 
@@ -213,7 +209,7 @@ def test_deposit_withdraw_deposit(lending_pool_core, erc20, investor, contract_o
     assert investor_funds[0] == 0
     assert investor_funds[1] == Web3.to_wei(1, "ether")
     assert investor_funds[2] == Web3.to_wei(1, "ether")
-    assert investor_funds[4] == False
+    assert investor_funds[4] is False
 
     assert lending_pool_core.activeLenders() == 0
     assert lending_pool_core.knownLenders(investor)
@@ -230,7 +226,7 @@ def test_deposit_withdraw_deposit(lending_pool_core, erc20, investor, contract_o
     assert investor_funds2[1] == Web3.to_wei(2, "ether")
     assert investor_funds2[2] == Web3.to_wei(1, "ether")
     assert investor_funds2[3] == Web3.to_wei(1, "ether")
-    assert investor_funds2[4] == True
+    assert investor_funds2[4] is True
 
     assert lending_pool_core.fundsAvailable() == Web3.to_wei(1, "ether")
     assert lending_pool_core.activeLenders() == 1
@@ -309,7 +305,6 @@ def test_transfer_protocol_fees(lending_pool_core, erc20, contract_owner, borrow
     lending_pool_peripheral = lending_pool_core.lendingPoolPeripheral()
     amount = Web3.to_wei(1, "ether")
 
-    # erc20.mint(contract_owner, amount, sender=contract_owner)
     erc20.transfer(borrower, amount, sender=contract_owner)
     erc20.approve(lending_pool_core, amount, sender=borrower)
 
@@ -375,7 +370,6 @@ def test_receive_funds_with_losses(lending_pool_core, erc20, investor, borrower,
     protocol_fees_share = 100
     pool_rewards_amount = rewards_amount * (10000 - protocol_fees_share) // 10000
 
-    # erc20.mint(borrower, rewards_amount, sender=contract_owner)
     erc20.approve(lending_pool_core.address, recovered_amount, sender=borrower)
 
     initial_balance = user_balance(erc20, lending_pool_core.address)

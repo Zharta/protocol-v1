@@ -24,7 +24,7 @@ class StatefulGenesisPass(RuleBasedStateMachine):
     @initialize()
     def setup(self):
         self.distributor = self.genesis.ownerOf(1)
-        self.tokens = {id: self.distributor for id in range(1, self.genesis.totalSupply() + 1)}
+        self.tokens = dict.fromkeys(range(1, self.genesis.totalSupply() + 1), self.distributor)
         print(f"{self.owner=} {self.distributor=}")
 
     @rule(token_id=token_id_st, distributor=account_st, receiver=account_st)

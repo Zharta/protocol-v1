@@ -277,7 +277,7 @@ def test_transfer_collateral_from_liquidation(
     assert event._to == borrower
 
 
-def test_transfer_collateral_from_liquidation(
+def test_transfer_punk_from_liquidation(
     collateral_vault_otc, loans_peripheral, liquidations, cryptopunks, erc20_token, borrower, contract_owner
 ):
     cryptopunks.mint(borrower, 0, sender=contract_owner)

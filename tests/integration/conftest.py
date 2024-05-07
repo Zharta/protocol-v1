@@ -26,6 +26,12 @@ MAX_LOANS_POOL_SHARE = 1500  # parts per 10000, e.g. 2.5% is 250 parts per 10000
 LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
+@pytest.fixture(scope="session", autouse=True)
+def boa_env():
+    boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")
+    return boa
+
+
 @pytest.fixture(scope="session")
 def erc20_contract_def():
     return boa.load_partial("tests/stubs/ERC20.vy")
@@ -187,7 +193,7 @@ def not_contract_owner(not_owner_account):
     return not_owner_account.address
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module")  # noqa: FURB118
 def investor(accounts):
     return accounts[1]
 
@@ -449,10 +455,7 @@ def usdc_liquidity_controls_contract(liquidity_controls_contract_def):
 
 @pytest.fixture(scope="module")
 def test_collaterals(erc721_contract):
-    result = []
-    for k in range(5):
-        result.append((erc721_contract.address, k, LOAN_AMOUNT // 5))
-    return result
+    return [(erc721_contract.address, k, LOAN_AMOUNT // 5) for k in range(5)]
 
 
 @pytest.fixture(scope="module")
