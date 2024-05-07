@@ -1237,6 +1237,7 @@ def test_set_default_loan_not_started(loans_peripheral_contract, contract_owner,
 
 
 def test_set_default_loan(
+    contracts_config,
     loans_peripheral_contract,
     create_signature,
     loans_core_contract,
@@ -1296,10 +1297,9 @@ def test_set_default_loan(
         liquidation = liquidations_core_contract.getLiquidation(collateral[0], collateral[1])
         liquidation = Liquidation(*liquidation)
 
-        interest_amount = int(
-            Decimal(collateral[2]) * Decimal(loan.interest * Decimal(loan.maturity - loan.startTime)) / Decimal(25920000000)
-        )
-        apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
+        interest_amount = collateral[2] * loan.interest // 10000
+
+        apr = LOAN_INTEREST * 365 * 24 * 60 * 60 // (loan.maturity - loan.startTime)
 
         assert liquidation.collateralAddress == collateral[0]
         assert liquidation.tokenId == collateral[1]

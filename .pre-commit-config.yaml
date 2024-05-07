@@ -27,7 +27,7 @@ repos:
 
       - id: ruff-check
         name: ruff-check
-        entry: ruff check .
+        entry: ruff check scripts tests
         require_serial: true
         language: system
         types: [python]

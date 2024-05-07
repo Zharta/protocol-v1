@@ -368,6 +368,7 @@ def test_set_collateral_vault_address_zero_address(liquidations_peripheral_contr
 
 
 def test_add_liquidation(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -395,11 +396,10 @@ def test_add_liquidation(
     event = get_last_event(liquidations_peripheral_contract, name="LiquidationAdded")
 
     liquidation = liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-    loan = loans_core_contract.getLoan(borrower, loan_id)
+    _, _amount, _interest, _maturity, _start_time, *_ = loans_core_contract.getLoan(borrower, loan_id)
 
-    interest_amount = int(Decimal(loan[1]) * Decimal(loan[2] * Decimal(loan[3] - loan[4])) / Decimal(25920000000))
-
-    apr = int(Decimal(LOAN_INTEREST) * Decimal(12))
+    interest_amount = _amount * _interest // 10000
+    apr = LOAN_INTEREST * 365 * 24 * 60 * 60 // (_maturity - _start_time)
 
     liquidation_id_abi_encoded = eth_abi.encode(
         ["address", "uint256", "uint256"], [erc721_contract.address, 0, liquidation[3]]
@@ -436,6 +436,7 @@ def test_add_liquidation(
 
 
 def test_add_liquidation_with_max_fee(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -464,10 +465,8 @@ def test_add_liquidation_with_max_fee(
     liquidations_peripheral_contract.addLiquidation(borrower, loan_id, erc20_contract.address)
     event = get_last_event(liquidations_peripheral_contract, name="LiquidationAdded")
 
-    liquidations_peripheral_contract.getLiquidation(erc721_contract, 0)
-    loan = loans_core_contract.getLoan(borrower, loan_id)
-
-    interest_amount = int(Decimal(loan[1]) * Decimal(loan[2] * Decimal(loan[3] - loan[4])) / Decimal(25920000000))
+    _, _amount, _interest, _maturity, _start_time, *_ = loans_core_contract.getLoan(borrower, loan_id)
+    interest_amount = _amount * _interest // 10000
 
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
@@ -524,9 +523,9 @@ def test_add_liquidation_with_max_fee_usdc(
     liquidations_peripheral_contract.addLiquidation(borrower, loan_id, usdc_contract)
     event = get_last_event(liquidations_peripheral_contract, name="LiquidationAdded")
 
-    loan = usdc_loans_core_contract.getLoan(borrower, loan_id)
+    _, _amount, _interest, _maturity, _start_time, *_ = usdc_loans_core_contract.getLoan(borrower, loan_id)
+    interest_amount = _amount * _interest // 10000
 
-    interest_amount = int(Decimal(loan[1]) * Decimal(loan[2] * Decimal(loan[3] - loan[4])) / Decimal(25920000000))
     auto_liq_price_eth = liquidations_peripheral_contract.eval(
         f"self._getAutoLiquidationPrice({hashmasks_contract.address}, 0)"
     )
@@ -789,6 +788,7 @@ def test_pay_loan_liquidations_grace_period(
 
 
 def test_buy_nft_lender_period_grace_period(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -826,6 +826,7 @@ def test_buy_nft_lender_period_grace_period(
 
 
 def test_buy_nft_lender_period_past_period(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -864,6 +865,7 @@ def test_buy_nft_lender_period_past_period(
 
 
 def test_buy_nft_lender_period_not_lender(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -903,6 +905,7 @@ def test_buy_nft_lender_period_not_lender(
 
 
 def test_buy_nft_lender_period(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -937,13 +940,14 @@ def test_buy_nft_lender_period(
     boa.env.time_travel(seconds=GRACE_PERIOD_DURATION + 1)
 
     liquidation_id = liquidations_peripheral_contract.getLiquidation(erc721_contract.address, 0)[0]
-    loan = loans_core_contract.getLoan(borrower, loan_id)
-
-    interest_amount = int(Decimal(loan[1]) * Decimal(loan[2] * Decimal(loan[3] - loan[4])) / Decimal(25920000000))
+    _, _amount, _interest, _maturity, _start_time, *_ = loans_core_contract.getLoan(borrower, loan_id)
+    interest_amount = _amount * _interest // 10000
 
     liquidation_price = int(
         Decimal(LOAN_AMOUNT) + Decimal(interest_amount) + int(min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether")))
     )
+
+    liquidation_price = LOAN_AMOUNT + interest_amount + int(min(0.025 * LOAN_AMOUNT, Web3.to_wei(0.2, "ether")))
 
     liquidations_peripheral_contract.buyNFTLenderPeriod(
         erc721_contract.address, 0, sender=contract_owner, value=liquidation_price
@@ -1255,6 +1259,7 @@ def test_admin_liquidation_fail_on_collateral_in_liquidation(
 
 
 def test_cryptopunks_nftx_buy(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -1323,6 +1328,7 @@ def test_cryptopunks_nftx_buy(
 
 
 def test_hashmasks_nftx_buy(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
@@ -1395,6 +1401,7 @@ def test_hashmasks_nftx_buy(
 
 
 def test_hashmasks_nftx_buy_usdc(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     usdc_loans_peripheral_contract,
@@ -1480,6 +1487,7 @@ def test_hashmasks_nftx_buy_usdc(
 
 
 def test_wpunks_nftx_buy(
+    contracts_config,
     liquidations_peripheral_contract,
     liquidations_core_contract,
     loans_peripheral_contract,
