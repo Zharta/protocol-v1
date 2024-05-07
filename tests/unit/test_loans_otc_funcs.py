@@ -133,7 +133,7 @@ def collateral_vault(empty_contract):
     @external
     def setCollateralDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _value: bool):
         pass
-     """)
+     """)  # noqa: E501
     )
 
 
@@ -176,11 +176,13 @@ def test_collaterals(erc721):
 
 @pytest.fixture(name="create_signature", scope="module")
 def create_signature_fixture(test_collaterals, loans, owner_account, borrower):
-    # Can't use eth_account.messages.encode_structured_data (as of version 0.5.9) because dynamic arrays are not correctly hashed:
+    # Can't use eth_account.messages.encode_structured_data (as of version 0.5.9) because dynamic arrays are not correctly hashed:  # noqa: E501
     # https://github.com/ethereum/eth-account/blob/v0.5.9/eth_account/_utils/structured_data/hashing.py#L236
-    # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be used when brownie allows eth-account==0.7.0
+    # Probably fixed (https://github.com/ethereum/eth-account/commit/e6c3136bd30d2ec4738c2ca32329d2d119539f1a) so it can be
+    # used when brownie allows eth-account==0.7.0
 
     def _create_signature(
+        *,
         collaterals=test_collaterals,
         delegations=False,
         amount=LOAN_AMOUNT,
@@ -197,10 +199,11 @@ def create_signature_fixture(test_collaterals, loans, owner_account, borrower):
         chain_id=boa.env.evm.chain.chain_id,
     ):
         print(
-            f"_create_signature {collaterals=} {delegations=} {amount=} {interest=} {maturity=} {deadline=} {nonce=} {genesis_token=} {borrower=} {signer=} {verifier=} {chain_id=}"
+            f"_create_signature {collaterals=} {delegations=} {amount=} {interest=} {maturity=} {deadline=} {nonce=} "
+            f"{genesis_token=} {borrower=} {signer=} {verifier=} {chain_id=}"
         )
         domain_type_def = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)"
+        reserve_type_def = "ReserveMessageContent(address borrower,uint256 amount,uint256 interest,uint256 maturity,Collateral[] collaterals,bool delegations,uint256 deadline,uint256 nonce,uint256 genesisToken)"  # noqa: E501
         collateral_type_def = "Collateral(address contractAddress,uint256 tokenId,uint256 amount)"
 
         domain_type_hash = keccak(text=domain_type_def)
@@ -471,11 +474,11 @@ def test_create_loan(
     assert loan_details.maturity == MATURITY
     assert len(loan_details.collaterals) == 5
     assert loan_details.collaterals == test_collaterals
-    assert loan_details.started == True
-    assert loan_details.invalidated == False
-    assert loan_details.paid == False
-    assert loan_details.defaulted == False
-    assert loan_details.canceled == False
+    assert loan_details.started is True
+    assert loan_details.invalidated is False
+    assert loan_details.paid is False
+    assert loan_details.defaulted is False
+    assert loan_details.canceled is False
 
     assert event.wallet == borrower
     assert event.loanId == 0
@@ -515,9 +518,9 @@ def test_create_loan_wrong_signature(
         ("domain_version", "2"),
         ("chain_id", 42),
     ]
-    for k, v in signature_inconsistencies:
-        print(f"creating signature with {k} = {v}")
-        (v, r, s) = create_signature(**{k: v})
+    for k, _v in signature_inconsistencies:
+        print(f"creating signature with {k} = {_v}")
+        (v, r, s) = create_signature(**{k: _v})
         with boa.reverts():
             loans.reserveEth(
                 LOAN_AMOUNT,
@@ -613,7 +616,7 @@ def test_pay_loan_defaulted(
     loan = LoanInfo(*loan)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
-    # erc20.mint(borrower, amount_paid, sender=contract_owner)
+
     erc20.approve(lending_pool, amount_paid, sender=borrower)
 
     boa.env.time_travel(seconds=15)
@@ -680,8 +683,6 @@ def test_pay_loan_insufficient_allowance(
     erc721.setApprovalForAll(collateral_vault, True, sender=borrower)
 
     amount_paid = int(LOAN_AMOUNT * Decimal(f"{(10000 + LOAN_INTEREST) / 10000}"))
-
-    # erc20.mint(borrower, amount_paid - LOAN_AMOUNT, sender=contract_owner)
 
     (v, r, s) = create_signature()
 

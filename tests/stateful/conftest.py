@@ -23,8 +23,6 @@ def not_owner_account():
 
 @pytest.fixture(scope="session", autouse=True)
 def contract_owner(accounts, owner_account):
-    # boa.env.eoa = accounts[0]  # avoid all the pranks in test setups
-    # return accounts[0]
     boa.env.eoa = owner_account.address
     boa.env.set_balance(owner_account.address, 10**21)
     return owner_account.address
@@ -35,7 +33,7 @@ def not_contract_owner(not_owner_account):
     return not_owner_account.address
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session")  # noqa: FURB118
 def investor(accounts):
     return accounts[1]
 

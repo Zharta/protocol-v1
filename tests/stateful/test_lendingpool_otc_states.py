@@ -54,7 +54,7 @@ def erc20_pool(lendingpool_erc20_otc_contract, erc20_token):
         return proxy
 
 
-class StateMachine(RuleBasedStateMachine):
+class StateMachine(RuleBasedStateMachine):  # noqa: PLR0904
     weth_pool = None
     erc20_pool = None
     erc20_token = None
@@ -295,7 +295,6 @@ def test_lendingpool_otc_states(weth_pool, erc20_pool, erc20_token):
     StateMachine.TestCase.settings = settings(
         max_examples=1000,
         stateful_step_count=10,
-        # verbosity = Verbosity.verbose,
         phases=tuple(Phase)[: Phase.shrink],
         deadline=None,
     )

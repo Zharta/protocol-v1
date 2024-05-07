@@ -55,7 +55,21 @@ target-version = "py311"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"tests/*.py" = ["ARG001", "F401", "PLC1901", "PLR0917", "PT022", "PTH", "RUF029", "T201"]
+"tests/*.py" = [
+    "ARG001",
+    "F401",
+    "FBT003",
+    "N815",
+    "PLC1901",
+    "PLR0917",
+    "PT004",
+    "PT022",
+    "PTH",
+    "RUF029",
+    "SLF001",
+    "T201",
+    "TID252",
+]
 
 [tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
