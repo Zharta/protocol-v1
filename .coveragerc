@@ -1,4 +1,10 @@
 [run]
 plugins = boa.coverage
+relative_files=True
 omit =
     contracts/auxiliary/*
+    None
+
+[paths]
+source =
+    "contracts"
