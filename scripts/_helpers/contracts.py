@@ -918,7 +918,6 @@ class LoansOTCPunksFixedImpl(ContractConfig):
         *,
         key: str,
         version: str | None = None,
-        token_key: str,
         abi_key: str,
         address: str | None = None,
     ):
@@ -928,8 +927,6 @@ class LoansOTCPunksFixedImpl(ContractConfig):
             project.LoansOTC,
             version=version,
             abi_key=abi_key,
-            deployment_deps={token_key},
-            deployment_args=[token_key],
         )
         if address:
             self.load_contract(address)
