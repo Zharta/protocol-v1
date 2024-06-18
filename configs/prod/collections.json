@@ -1684,7 +1684,7 @@
   },
   "otherdeedexpanded": {
     "appraisal_method": "floor_price",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "WETH": {
         "debt_limit": 50.0,
@@ -1829,7 +1829,7 @@
   },
   "othersidekoda": {
     "appraisal_method": "floor_price",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 100000.0,
@@ -1882,7 +1882,7 @@
   },
   "othersidemara": {
     "appraisal_method": "floor_price",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {},
     "contract_address": "0x3Bdca51226202Fc2a64211Aa35A8d95D61C6ca99",
     "debt_limit": 0,
