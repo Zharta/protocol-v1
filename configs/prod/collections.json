@@ -520,7 +520,7 @@
   },
   "clonex": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -587,7 +587,7 @@
   },
   "cool": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -721,7 +721,7 @@
   },
   "doodles": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -1103,7 +1103,7 @@
   },
   "hvmtl": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -1231,7 +1231,7 @@
   },
   "lilpudgys": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -1365,7 +1365,7 @@
   },
   "meebits": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -1573,7 +1573,7 @@
   },
   "moonbirds": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -1640,7 +1640,7 @@
   },
   "mutanthounds": {
     "appraisal_method": "floor_price",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {},
     "contract_address": "0x354634c4621cDfb7a25E6486cCA1E019777D841B",
     "debt_limit": 0,
@@ -1701,7 +1701,7 @@
   },
   "opepen": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "WETH": {
         "debt_limit": 0.0,
@@ -1727,7 +1727,7 @@
   },
   "otherdeed": {
     "appraisal_method": "otherdeeds",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -1865,7 +1865,7 @@
   },
   "otherdeedkoda": {
     "appraisal_method": "otherdeeds",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 100000.0,
@@ -2233,7 +2233,7 @@
   },
   "rektguy": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -2431,7 +2431,7 @@
   },
   "spaceriders": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "WETH": {
         "debt_limit": 2.5,
@@ -2492,7 +2492,7 @@
   },
   "thecaptainz": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -2657,7 +2657,7 @@
   },
   "theplague": {
     "appraisal_method": "floor_price",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "WETH": {
         "debt_limit": 2.5,
@@ -2718,7 +2718,7 @@
   },
   "thepotatoz": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -2785,7 +2785,7 @@
   },
   "vft": {
     "appraisal_method": "standard",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 0.0,
@@ -3134,7 +3134,7 @@
   },
   "wpunk": {
     "appraisal_method": "punks",
-    "check_flagging": true,
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 100000.0,
