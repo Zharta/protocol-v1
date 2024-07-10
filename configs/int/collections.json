@@ -3,6 +3,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
@@ -34,6 +40,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
@@ -65,6 +77,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 150.0,
         "tier_pricing": {},
@@ -99,6 +117,12 @@
     "appraisal_method": "standard",
     "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
@@ -160,6 +184,12 @@
     "appraisal_method": "standard",
     "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 150.0,
         "floor_multiple_cap": 1.0,
@@ -277,7 +307,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x0388993EAD076B0e98C86063370F28F92486F397",
@@ -404,6 +434,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 150.0,
         "floor_multiple_cap": 1.0,
@@ -465,6 +501,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
@@ -526,6 +568,12 @@
     "appraisal_method": "floor_price",
     "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -587,6 +635,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -771,6 +825,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -923,6 +983,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -1001,7 +1067,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x6d53e3969428D982Fc0Cb7bD76082D25a0e9B9c6",
@@ -1045,6 +1111,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
@@ -1106,6 +1178,12 @@
     "appraisal_method": "standard",
     "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
@@ -1133,6 +1211,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 100.0,
         "floor_multiple_cap": 1.0,
@@ -1194,6 +1278,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
@@ -1225,6 +1315,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
@@ -1256,6 +1352,12 @@
     "appraisal_method": "standard",
     "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -1317,6 +1419,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -1406,7 +1514,7 @@
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {},
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x39a2E74e303E55c556135C299b6C3dDD61b142c7",
@@ -1428,6 +1536,12 @@
     "appraisal_method": "floor_price",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -1493,6 +1607,12 @@
     "appraisal_method": "floor_price",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -1554,6 +1674,12 @@
     "appraisal_method": "otherdeeds",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -1651,7 +1777,20 @@
   "othersidekodamara": {
     "appraisal_method": "floor_price",
     "check_flagging": false,
-    "conditions": {},
+    "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
     "contract_address": "0x2aa71E846e006a39d135414Ad2fE6fA7eC7928e5",
     "debt_limit": 0,
     "floor_multiple_cap": 0.0,
@@ -1847,7 +1986,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xDa89D540512Dc59dD824e3f8CC89c1EB10cbf057",
@@ -1891,6 +2030,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -1952,6 +2097,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 40.0,
         "floor_multiple_cap": 1.0,
@@ -1969,7 +2120,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xfe84ff1A00aD31Ea727C277294174610B5b49a8b",
@@ -2013,6 +2164,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -2118,6 +2275,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -2183,7 +2346,7 @@
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {},
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x6B5F5F124FE871a33EE03E0975499CA36e1446e9",
@@ -2213,7 +2376,7 @@
       "WETH": {
         "floor_multiple_cap": 1.0,
         "tier_pricing": {},
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xa7414D74867Ee8BF770b24423c43De6cD06CD748",
@@ -2240,6 +2403,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
@@ -2312,6 +2481,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 20.0,
         "floor_multiple_cap": 1.0,
@@ -2373,6 +2548,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 10.0,
         "floor_multiple_cap": 1.0,
@@ -2451,7 +2632,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xB2A55966026085CdfB33F518765f9488D770174E",
@@ -2512,7 +2693,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x90E88f5F08CB4BA08FDC91379e4cdb97E540F37D",
@@ -2573,7 +2754,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x4c59ab2e0F8B875b2Af9b7Cebb2822DBDB791bDf",
@@ -2617,6 +2798,12 @@
     "appraisal_method": "standard",
     "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 800000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
@@ -2660,7 +2847,7 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xC3D3e2A4cC6DaFc0a95749F31e96732948e44428",
