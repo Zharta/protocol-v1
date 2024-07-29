@@ -157,7 +157,6 @@
     "name": "[Internal] Azuki",
     "opensea_slug": "azuki",
     "opensea_url": "https://opensea.io/collection/azuki",
-    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
