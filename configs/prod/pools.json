@@ -156,7 +156,8 @@
                     }
                 },
                 "liquidations_peripheral": {
-                    "contract": "0x9Cf98d3cf0d05b2B57ec2D0894affB9AFB9aeD23",
+                    "abi_key": "db36a4aa70b6335a2a6eae4a6ad5a4b200eec46c",
+                    "contract": "0xcE18187E335379466821c43c92004285F52Da7f2",
                     "contract_def": "LiquidationsPeripheral",
                     "properties": {
                         "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
