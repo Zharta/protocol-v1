@@ -413,3 +413,9 @@ def tokenByIndex(_index: uint256) -> uint256:
 @external
 def tokenOfOwnerByIndex(_owner: address, _index: uint256) -> uint256:
     return self.wallet[_owner][_index]
+
+@external
+def set_minter(_minter: address):
+    assert msg.sender == self.minter, "not minter"
+    assert _minter != ZERO_ADDRESS, "zero address"
+    self.minter = _minter
