@@ -2351,6 +2351,25 @@
     "tiers": [],
     "underwriting_slug": "the-eternal-pump-art-blocks-playground"
   },
+  "thegrailed": {
+    "appraisal_method": "standard",
+    "check_flagging": false,
+    "conditions": {},
+    "contract_address": "0xF8e145803736E436814F6e6309C91A766CFB5de5",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://img.reservoir.tools/images/v2/mainnet/iP3aWzfOlBvWQx7ZVDDwFZajkAUc5SWvTVabagJ1zmuxcSq1eYmPNCtDols9WDEc0KqIgRjmT%2B0oH6uiL%2Bf2gYna6UncUNJsvua7rGk63wBmA9ND38PmCBLhTIBEWQoWsCH%2BQQrScvn3qU4CUOY%2Byhg9gsyhPQLhJLlF7jo6KVAQ%2Bu38iOEwsQvESWEgzbJ4cCaYBbanB0IRc00JO9nB5g%3D%3D",
+    "looksrare_url": "https://looksrare.org/collections/0x2358693f4FaEC9D658bB97Fc9cd8885F62105dc1",
+    "mapped_address": "0x2358693f4FaEC9D658bB97Fc9cd8885F62105dc1",
+    "name": "[Internal] 10KTF - The Grailed",
+    "opensea_slug": "thegrailed",
+    "opensea_url": "https://opensea.io/collection/thegrailed",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": ""
+  },
   "theharvest": {
     "appraisal_method": "standard",
     "check_flagging": true,
