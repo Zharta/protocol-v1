@@ -2817,7 +2817,7 @@
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {},
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
