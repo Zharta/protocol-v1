@@ -65,23 +65,27 @@
             "abi_key": "3ced391ada177c778bc1391a870a030298462b5b",
             "contract": "0xa72aC03c2f446ab8a648651735c7dB9dCE5809Ab",
             "contract_def": "ERC20",
+            "image_url": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
             "properties": {
                 "decimals": 6,
-                "name": "USDC",
+                "name": "USD Coin",
                 "supply": "1000000000000000000",
                 "symbol": "USDC"
-            }
+            },
+            "token_symbol_key": "USDC"
         },
         "weth": {
             "abi_key": "3ced391ada177c778bc1391a870a030298462b5b",
             "contract": "0xE33b26CA786cC720DD11289D36bAE3Af051839fb",
             "contract_def": "ERC20",
+            "image_url": "https://assets.coingecko.com/coins/images/2518/small/weth.png",
             "properties": {
                 "decimals": 18,
-                "name": "WETH",
+                "name": "Wrapped Ether",
                 "supply": "1000000000000000000000000",
                 "symbol": "WETH"
-            }
+            },
+            "token_symbol_key": "WETH"
         }
     },
     "configs": {

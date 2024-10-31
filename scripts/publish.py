@@ -16,6 +16,7 @@ env = os.environ.get("ENV", "dev")
 collections_table = f"collections-{env}"
 pools_table = f"pool-configs-{env}"
 abis_table = f"abis-{env}"
+tokens_table = f"token-symbols-{env}"
 dynamodb = boto3.resource("dynamodb")
 
 logging.basicConfig()
@@ -134,6 +135,35 @@ def write_abis_to_dynamodb(data: dict):
         logger.exception("Error writing to abis table")
 
 
+def write_tokens_to_dynamodb(data: dict):
+    """Write tokens to dynamodb token symbols table"""
+    try:
+        table = dynamodb.Table(tokens_table)
+        tokens = [v for v in data.values() if "token_symbol_key" in v]
+
+        for token in tokens:
+            token_data = {
+                "name": token["properties"]["name"],
+                "address": token["contract"],
+                "image_url": token["image_url"],
+                "decimals": token["properties"]["decimals"],
+            }
+            indexed_attrs = list(enumerate(token_data.items()))
+            update_expr = ", ".join(f"#k{i}=:v{i}" for i, (k, v) in indexed_attrs)
+            attrs = {f"#k{i}": k for i, (k, v) in indexed_attrs}
+            values = {f":v{i}": v for i, (k, v) in indexed_attrs}
+
+            table.update_item(
+                Key={"symbol": token["token_symbol_key"]},
+                UpdateExpression=f"SET {update_expr}",
+                ExpressionAttributeNames=attrs,
+                ExpressionAttributeValues=values,
+            )
+
+    except ClientError:
+        logger.exception("Error writing to tokens table")
+
+
 def dynamo_type(val):
     if isinstance(val, float):
         return Decimal(str(val))
@@ -217,6 +247,7 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
     # get contract addresses config file
     pools = json.loads(read_file(Path.cwd() / "configs" / env / "pools.json"))
     nfts = json.loads(read_file(Path.cwd() / "configs" / env / "collections.json"))
+    common = pools.get("common", {})
 
     if not write_to_cloud:
         # Check if directory exists and if not create it
@@ -252,9 +283,14 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
     # write collections and pools files and push to dynamo tables
 
     if write_to_cloud:
-        logger.info("Publishing collections and pools to dynamodb")
+        logger.info("Publishing collections to dynamodb")
         write_collections_to_dynamodb(nfts)
+
+        logger.info("Publishing pools to dynamodb")
         write_pools_to_dynamodb(pools)
+
+        logger.info("Publishing tokens to dynamodb")
+        write_tokens_to_dynamodb(common)
 
         logger.info("Publishing abis to dynamodb")
         write_abis_to_dynamodb(abis_by_key)
