@@ -61,22 +61,26 @@
         "usdc": {
             "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "contract_def": "ERC20",
+            "image_url": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
             "properties": {
                 "decimals": 6,
-                "name": "USDC",
+                "name": "USD Coin",
                 "supply": "1000000000000000000",
                 "symbol": "USDC"
-            }
+            },
+            "token_symbol_key": "USDC"
         },
         "weth": {
             "contract": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
             "contract_def": "ERC20",
+            "image_url": "https://assets.coingecko.com/coins/images/2518/small/weth.png",
             "properties": {
                 "decimals": 18,
-                "name": "WETH",
+                "name": "Wrapped Ether",
                 "supply": "1000000000000000000000000",
                 "symbol": "WETH"
-            }
+            },
+            "token_symbol_key": "WETH"
         }
     },
     "configs": {
