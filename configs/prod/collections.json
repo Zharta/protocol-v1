@@ -526,7 +526,7 @@
         "debt_limit": 0.0,
         "floor_multiple_cap": 1.0,
         "tier_pricing": {},
-        "whitelisted": true
+        "whitelisted": false
       },
       "WETH": {
         "debt_limit": 40.0,
@@ -545,7 +545,7 @@
             "ltv": 0.4
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
     "contract_address": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B",
