@@ -33,6 +33,12 @@
                 "token_key": "common.usdc"
             }
         },
+        "liquidations_otc_fixed_impl": {
+            "abi_key": "506f9e51c1936a640635a3c893b70612314d8c7e",
+            "contract": "0x4C852de88054942285A56A7D59De7216e5E3C9ED",
+            "contract_def": "LiquidationsOTCImpl",
+            "properties": {}
+        },
         "liquidations_otc_impl": {
             "contract": "0x06beccD91EB221011a43Ac0511C84871ad8Ad0bd",
             "contract_def": "LiquidationsOTCImpl",
@@ -296,7 +302,7 @@
                         "lender": "0xf1a9676B03Dd3B2066214D2aD8B4B59ED6642C53",
                         "liquidations_key": "eth-keyrock.liquidations",
                         "loans_key": "eth-keyrock.loans",
-                        "protocol_fees_share": 2500,
+                        "protocol_fees_share": 500,
                         "protocol_wallet_fees": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6",
                         "token_key": "common.weth"
                     }
@@ -457,6 +463,68 @@
             "otc": false,
             "otc_contracts": false,
             "pool_name": "USDC",
+            "token_decimals": 6,
+            "token_symbol": "USDC",
+            "underwriting_slug": "stables",
+            "use_native_token": false
+        },
+        "USDC-KEYROCK": {
+            "contracts": {
+                "collateral_vault": {
+                    "abi_key": "06f527b8cce34c3809e108290a980a12c9e38428",
+                    "contract": "0x8909798b1cbB50F3e079A46663aFa264EA27256F",
+                    "contract_def": "CollateralVaultOTC",
+                    "properties": {
+                        "implementation_key": "common.collateral_vault_otc_impl",
+                        "liquidations_key": "usdc-keyrock.liquidations",
+                        "loans_key": "usdc-keyrock.loans"
+                    }
+                },
+                "lending_pool": {
+                    "abi_key": "0d21fecbeaaca5a9dd8f92a23576d260420f8168",
+                    "contract": "0xD8b62Db7a2B0b0d73989f3B0f5f6d136599eb377",
+                    "contract_def": "LendingPoolOTC",
+                    "properties": {
+                        "implementation_key": "common.lending_pool_usdc_otc_impl",
+                        "lender": "0xf1a9676B03Dd3B2066214D2aD8B4B59ED6642C53",
+                        "liquidations_key": "usdc-keyrock.liquidations",
+                        "loans_key": "usdc-keyrock.loans",
+                        "protocol_fees_share": 500,
+                        "protocol_wallet_fees": "0x07d96cC26566BFCA358C61fBe7be3Ca771Da7EA6",
+                        "token_key": "common.usdc"
+                    }
+                },
+                "liquidations": {
+                    "abi_key": "506f9e51c1936a640635a3c893b70612314d8c7e",
+                    "contract": "0xC71652b3c33aDe0Fe868fa04c51334dFAec9b3E7",
+                    "contract_def": "LiquidationsOTC",
+                    "properties": {
+                        "collateral_vault_key": "usdc-keyrock.collateral_vault",
+                        "implementation_key": "common.liquidations_otc_fixed_impl",
+                        "lending_pool_key": "usdc-keyrock.lending_pool",
+                        "loans_key": "usdc-keyrock.loans",
+                        "max_penalty_fee": "0"
+                    }
+                },
+                "loans": {
+                    "abi_key": "2a39846503ce9838fa50d87553e7eb35cc04e6aa",
+                    "contract": "0x1dC72a03eA79a53AF90613e408038Feb2a6386A9",
+                    "contract_def": "LoansOTC",
+                    "properties": {
+                        "collateral_vault_key": "usdc-keyrock.collateral_vault",
+                        "genesis_key": "common.genesis",
+                        "implementation_key": "common.loans_otc_punksfixed_impl",
+                        "is_payable": false,
+                        "lending_pool_key": "usdc-keyrock.lending_pool",
+                        "liquidations_key": "usdc-keyrock.liquidations"
+                    }
+                }
+            },
+            "genesis_enabled": false,
+            "legacy_ids": [],
+            "otc": true,
+            "otc_contracts": true,
+            "pool_name": "Keyrock USDC",
             "token_decimals": 6,
             "token_symbol": "USDC",
             "underwriting_slug": "stables",
