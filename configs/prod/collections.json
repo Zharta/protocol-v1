@@ -2621,8 +2621,7 @@
   "thegrailed": {
     "appraisal_method": "standard",
     "check_flagging": false,
-    "conditions": {
-    },
+    "conditions": {},
     "contract_address": "0x2358693f4FaEC9D658bB97Fc9cd8885F62105dc1",
     "debt_limit": 0,
     "floor_multiple_cap": 0.0,
