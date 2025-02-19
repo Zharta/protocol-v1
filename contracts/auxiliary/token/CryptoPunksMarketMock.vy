@@ -345,3 +345,9 @@ def walletOf(_wallet: address) -> DynArray[uint256, 2**16]:
 @external
 def ownerOf(punkIndex: uint256) -> address:
     return self.punkIndexToAddress[punkIndex]
+
+@external
+def set_minter(_minter: address):
+    assert msg.sender == self.owner, "not minter"
+    assert _minter != ZERO_ADDRESS, "zero address"
+    self.owner = _minter
