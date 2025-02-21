@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title LoansOTC
@@ -8,9 +8,8 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC165 as IERC165
-from vyper.interfaces import ERC721 as IERC721
-from vyper.interfaces import ERC20 as IERC20
+from ethereum.ercs import IERC721
+from ethereum.ercs import IERC20
 
 interface ICollateralVault:
     def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _erc20TokenContract: address, _createDelegation: bool): nonpayable
@@ -230,7 +229,7 @@ reserve_sig_domain_separator: bytes32
 MINIMUM_INTEREST_PERIOD: constant(uint256) = 604800  # 7 days
 
 
-@external
+@deploy
 def __init__():
     self.owner = msg.sender
     self.isAcceptingLoans = False
@@ -256,7 +255,7 @@ def initialize(
     self.admin = _owner
     self.interestAccrualPeriod = _interestAccrualPeriod
     self.lendingPoolContract = ILendingPool(_lendingPoolContract)
-    self.erc20TokenContract = ILendingPool(_lendingPoolContract).erc20TokenContract()
+    self.erc20TokenContract = staticcall ILendingPool(_lendingPoolContract).erc20TokenContract()
     self.collateralVaultContract = ICollateralVault(_collateralVaultContract)
     self.genesisContract = IERC721(_genesisContract)
     self.isAcceptingLoans = True
@@ -283,7 +282,7 @@ def create_proxy(
 ) -> address:
     proxy: address = create_minimal_proxy_to(self)
 
-    ISelf(proxy).initialize(
+    extcall ISelf(proxy).initialize(
         msg.sender,
         _interestAccrualPeriod,
         _lendingPoolContract,
@@ -315,8 +314,8 @@ def _is_loan_created(_borrower: address, _loanId: uint256) -> bool:
 
 @internal
 def _are_collaterals_owned(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
-    for collateral in _collaterals:
-        if IERC721(collateral.contractAddress).ownerOf(collateral.tokenId) != _borrower:
+    for collateral: Collateral in _collaterals:
+        if staticcall IERC721(collateral.contractAddress).ownerOf(collateral.tokenId) != _borrower:
             return False
     return True
 
@@ -379,8 +378,8 @@ def _update_defaulted_loan(_borrower: address, _loanId: uint256):
 @view
 @internal
 def _are_collaterals_approved(_borrower: address, _collaterals: DynArray[Collateral, 100]) -> bool:
-    for collateral in _collaterals:
-        if not self.collateralVaultContract.isCollateralApprovedForVault(
+    for collateral: Collateral in _collaterals:
+        if not staticcall self.collateralVaultContract.isCollateralApprovedForVault(
             _borrower,
             collateral.contractAddress,
             collateral.tokenId
@@ -393,7 +392,7 @@ def _are_collaterals_approved(_borrower: address, _collaterals: DynArray[Collate
 @internal
 def _collaterals_amounts(_collaterals: DynArray[Collateral, 100]) -> uint256:
     sumAmount: uint256 = 0
-    for collateral in _collaterals:
+    for collateral: Collateral in _collaterals:
         sumAmount += collateral.amount
 
     return sumAmount
@@ -409,7 +408,7 @@ def _loan_payable_amount(
     _timePassed: uint256,
     _interestAccrualPeriod: uint256
 ) -> uint256:
-    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (max(_timePassed + _interestAccrualPeriod, MINIMUM_INTEREST_PERIOD))) / (10000 * _maxLoanDuration)
+    return (_amount - _paidAmount) * (10000 * _maxLoanDuration + _interest * (max(_timePassed + _interestAccrualPeriod, MINIMUM_INTEREST_PERIOD))) // (10000 * _maxLoanDuration)
 
 
 @pure
@@ -437,7 +436,7 @@ def _recover_reserve_signer(
         @notice recovers the sender address of the signed reserve function call
     """
     collaterals_data_hash: DynArray[bytes32, 100] = []
-    for c in _collaterals:
+    for c: Collateral in _collaterals:
         collaterals_data_hash.append(keccak256(_abi_encode(COLLATERAL_TYPE_HASH, c.contractAddress, c.tokenId, c.amount)))
 
     data_hash: bytes32 = keccak256(_abi_encode(
@@ -478,7 +477,7 @@ def _reserve(
     assert block.timestamp < _maturity, "maturity is in the past"
     assert block.timestamp <= _deadline, "deadline has passed"
     assert self._collaterals_amounts(_collaterals) == _amount, "amount in collats != than amount"
-    assert self.lendingPoolContract.maxFundsInvestable() >= _amount, "insufficient liquidity"
+    assert (staticcall self.lendingPoolContract.maxFundsInvestable()) >= _amount, "insufficient liquidity"
 
     assert not self._is_loan_created(msg.sender, _nonce), "loan already created"
     if _nonce > 0:
@@ -487,13 +486,13 @@ def _reserve(
     signer: address = self._recover_reserve_signer(msg.sender, _amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
     assert signer == self.admin, "invalid message signature"
 
-    assert _genesisToken == 0 or self.genesisContract.ownerOf(_genesisToken) == msg.sender, "genesisToken not owned"
+    assert _genesisToken == 0 or (staticcall self.genesisContract.ownerOf(_genesisToken)) == msg.sender, "genesisToken not owned"
 
     newLoanId: uint256 = self._add_loan(msg.sender, _amount, _interest, _maturity, _collaterals)
 
-    for collateral in _collaterals:
+    for collateral: Collateral in _collaterals:
 
-        self.collateralVaultContract.storeCollateral(
+        extcall self.collateralVaultContract.storeCollateral(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId,
@@ -506,7 +505,7 @@ def _reserve(
         msg.sender,
         newLoanId,
         self.erc20TokenContract,
-        _interest * 365 * 86400 / (_maturity - block.timestamp),
+        _interest * 365 * 86400 // (_maturity - block.timestamp),
         _amount,
         _maturity - block.timestamp,
         _collaterals,
@@ -677,7 +676,7 @@ def setLendingPoolPeripheralAddress(_address: address):
     )
 
     self.lendingPoolContract = ILendingPool(_address)
-    self.erc20TokenContract = ILendingPool(_address).erc20TokenContract()
+    self.erc20TokenContract = staticcall ILendingPool(_address).erc20TokenContract()
 
 
 @external
@@ -741,7 +740,7 @@ def deprecate():
 @view
 @external
 def erc20TokenSymbol() -> String[100]:
-    return IERC20Symbol(self.erc20TokenContract).symbol()
+    return staticcall IERC20Symbol(self.erc20TokenContract).symbol()
 
 
 @view
@@ -805,7 +804,7 @@ def reserve(
 
     newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
-    self.lendingPoolContract.sendFunds(msg.sender, _amount)
+    extcall self.lendingPoolContract.sendFunds(msg.sender, _amount)
 
     return newLoanId
 
@@ -842,7 +841,7 @@ def reserveEth(
 
     newLoanId: uint256 = self._reserve(_amount, _interest, _maturity, _collaterals, _delegations, _deadline, _nonce, _genesisToken, _v, _r, _s)
 
-    self.lendingPoolContract.sendFundsEth(msg.sender, _amount)
+    extcall self.lendingPoolContract.sendFundsEth(msg.sender, _amount)
 
     return newLoanId
 
@@ -892,11 +891,11 @@ def pay(_loanId: uint256):
         excessAmount = receivedAmount - paymentAmount
         log PaymentReceived(msg.sender, msg.sender, receivedAmount)
     else:
-        assert IERC20(erc20TokenContract).balanceOf(msg.sender) >= paymentAmount, "insufficient balance"
-        assert IERC20(erc20TokenContract).allowance(
+        assert (staticcall IERC20(erc20TokenContract).balanceOf(msg.sender)) >= paymentAmount, "insufficient balance"
+        assert (staticcall IERC20(erc20TokenContract).allowance(
                 msg.sender,
                 self.lendingPoolContract.address
-        ) >= paymentAmount, "insufficient allowance"
+        )) >= paymentAmount, "insufficient allowance"
 
     paidInterestAmount: uint256 = paymentAmount - loan.amount
 
@@ -904,13 +903,13 @@ def pay(_loanId: uint256):
     self._update_paid_loan(msg.sender, _loanId)
 
     if receivedAmount > 0:
-        self.lendingPoolContract.receiveFundsEth(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
+        extcall self.lendingPoolContract.receiveFundsEth(msg.sender, loan.amount, paidInterestAmount, value=paymentAmount)
         log PaymentSent(self.lendingPoolContract.address, self.lendingPoolContract.address, paymentAmount)
     else:
-        self.lendingPoolContract.receiveFunds(msg.sender, loan.amount, paidInterestAmount)
+        extcall self.lendingPoolContract.receiveFunds(msg.sender, loan.amount, paidInterestAmount)
 
-    for collateral in loan.collaterals:
-        self.collateralVaultContract.transferCollateralFromLoan(
+    for collateral: Collateral in loan.collaterals:
+        extcall self.collateralVaultContract.transferCollateralFromLoan(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId,
@@ -956,7 +955,7 @@ def settleDefault(_borrower: address, _loanId: uint256):
 
     self._update_defaulted_loan(_borrower, _loanId)
 
-    self.liquidationsContract.addLiquidation(
+    extcall self.liquidationsContract.addLiquidation(
         _borrower,
         _loanId,
         self.erc20TokenContract
@@ -987,9 +986,9 @@ def setDelegation(_loanId: uint256, _collateralAddress: address, _tokenId: uint2
     assert block.timestamp <= loan.maturity, "loan maturity reached"
     assert not loan.paid, "loan already paid"
 
-    for collateral in loan.collaterals:
+    for collateral: Collateral in loan.collaterals:
         if collateral.contractAddress ==_collateralAddress and collateral.tokenId == _tokenId:
-            self.collateralVaultContract.setCollateralDelegation(
+            extcall self.collateralVaultContract.setCollateralDelegation(
                 msg.sender,
                 _collateralAddress,
                 _tokenId,

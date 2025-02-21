@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title CollateralVaultPeripheral
@@ -9,8 +9,8 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC165 as IERC165
-from vyper.interfaces import ERC721 as IERC721
+from ethereum.ercs import IERC165
+from ethereum.ercs import IERC721
 
 interface ILegacyVault:
     def setCollateralVaultPeripheralAddress(_address: address): nonpayable
@@ -131,16 +131,16 @@ def vaultAddress(_collateralAddress: address, _tokenId: uint256) -> address:
 @view
 @external
 def isCollateralInVault(_collateralAddress: address, _tokenId: uint256) -> bool:
-    return IVault(self._getVaultAddress(_collateralAddress, _tokenId)).ownsCollateral(_collateralAddress, _tokenId)
+    return staticcall IVault(self._getVaultAddress(_collateralAddress, _tokenId)).ownsCollateral(_collateralAddress, _tokenId)
 
 @view
 @external
 def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool:
-    return IVault(self._getVaultAddress(_collateralAddress, _tokenId)).isCollateralApprovedForVault(_borrower, _collateralAddress, _tokenId)
+    return staticcall IVault(self._getVaultAddress(_collateralAddress, _tokenId)).isCollateralApprovedForVault(_borrower, _collateralAddress, _tokenId)
 
 
 ##### EXTERNAL METHODS - WRITE #####
-@external
+@deploy
 def __init__(_collerateralVaultCoreAddress: address):
     assert _collerateralVaultCoreAddress != empty(address), "core address is the zero address"
 
@@ -278,13 +278,13 @@ def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uin
 
     vault : address = self._getVaultAddress(_collateralAddress, _tokenId)
 
-    assert IVault(vault).collateralOwner(_collateralAddress, _tokenId) == _wallet, "collateral not owned by wallet"
-    assert IVault(vault).isCollateralApprovedForVault(_wallet, _collateralAddress, _tokenId), "transfer is not approved"
+    assert staticcall IVault(vault).collateralOwner(_collateralAddress, _tokenId) == _wallet, "collateral not owned by wallet"
+    assert staticcall IVault(vault).isCollateralApprovedForVault(_wallet, _collateralAddress, _tokenId), "transfer is not approved"
 
     delegate: address = empty(address)
     if _createDelegation:
         delegate = _wallet
-    IVault(vault).storeCollateral(_wallet, _collateralAddress, _tokenId, delegate)
+    extcall IVault(vault).storeCollateral(_wallet, _collateralAddress, _tokenId, delegate)
 
     log CollateralStored(
         _collateralAddress,
@@ -314,7 +314,7 @@ def transferCollateralFromLoan(_wallet: address, _collateralAddress: address, _t
     assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "mapping not found"
     assert msg.sender == self.loansPeripheralAddresses[_erc20TokenContract], "msg.sender is not authorised"
 
-    IVault(self._getVaultAddress(_collateralAddress, _tokenId)).transferCollateral(_wallet, _collateralAddress, _tokenId, _wallet)
+    extcall IVault(self._getVaultAddress(_collateralAddress, _tokenId)).transferCollateral(_wallet, _collateralAddress, _tokenId, _wallet)
 
     log CollateralFromLoanTransferred(
         _collateralAddress,
@@ -340,7 +340,7 @@ def transferCollateralFromLiquidation(_wallet: address, _collateralAddress: addr
     assert _wallet != empty(address), "address is the zero addr"
     assert _collateralAddress != empty(address), "collat addr is the zero addr"
 
-    IVault(self._getVaultAddress(_collateralAddress, _tokenId)).transferCollateral(_wallet, _collateralAddress, _tokenId, _wallet)
+    extcall IVault(self._getVaultAddress(_collateralAddress, _tokenId)).transferCollateral(_wallet, _collateralAddress, _tokenId, _wallet)
 
     log CollateralFromLiquidationTransferred(
         _collateralAddress,
@@ -368,7 +368,7 @@ def setCollateralDelegation(_wallet: address, _collateralAddress: address, _toke
     assert self.loansPeripheralAddresses[_erc20TokenContract] != empty(address), "mapping not found"
     assert msg.sender == self.loansPeripheralAddresses[_erc20TokenContract], "msg.sender is not authorised"
 
-    IVault(self._getVaultAddress(_collateralAddress, _tokenId)).setDelegation(_wallet, _collateralAddress, _tokenId, _value)
+    extcall IVault(self._getVaultAddress(_collateralAddress, _tokenId)).setDelegation(_wallet, _collateralAddress, _tokenId, _value)
 
 
 @view
@@ -382,4 +382,4 @@ def collateralSupportsDelegation(_collateralAddress: address, _tokenId: uint256,
     @param _erc20TokenContract The token address by which the loans contract is indexed
     """
 
-    return IVault(self._getVaultAddress(_collateralAddress, _tokenId)).ownsCollateral(_collateralAddress, _tokenId)
+    return staticcall IVault(self._getVaultAddress(_collateralAddress, _tokenId)).ownsCollateral(_collateralAddress, _tokenId)

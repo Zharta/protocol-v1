@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 
 # Interfaces
@@ -156,7 +156,7 @@ def _addLoan(_borrower: address, _loan: Loan) -> bool:
 
 ##### EXTERNAL METHODS #####
 
-@external
+@deploy
 def __init__():
     self.owner = msg.sender
 
@@ -175,8 +175,8 @@ def proposeOwner(_address: address):
         _address,
         self.owner,
         _address,
-        ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
+        staticcall ILendingPoolPeripheral(
+            staticcall ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -190,8 +190,8 @@ def claimOwnership():
         self.proposedOwner,
         self.owner,
         self.proposedOwner,
-        ILendingPoolPeripheral(
-            ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
+        staticcall ILendingPoolPeripheral(
+            staticcall ILoansPeripheral(self.loansPeripheral).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -206,13 +206,13 @@ def setLoansPeripheral(_address: address):
     assert _address != self.loansPeripheral, "new loans addr is the same"
 
     log LoansPeripheralAddressSet(
-        ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolPeripheralContract()
+        staticcall ILendingPoolPeripheral(
+            staticcall ILoansPeripheral(_address).lendingPoolPeripheralContract()
         ).erc20TokenContract(),
         self.loansPeripheral,
         _address,
-        ILendingPoolPeripheral(
-            ILoansPeripheral(_address).lendingPoolPeripheralContract()
+        staticcall ILendingPoolPeripheral(
+            staticcall ILoansPeripheral(_address).lendingPoolPeripheralContract()
         ).erc20TokenContract()
     )
 
@@ -446,7 +446,7 @@ def updateLoanStarted(_borrower: address, _loanId: uint256):
 
     self.borrowedAmount[_borrower] += self.loans[_borrower][_loanId].amount
 
-    for collateral in self.loans[_borrower][_loanId].collaterals:
+    for collateral: Collateral in self.loans[_borrower][_loanId].collaterals:
         self.collectionsBorrowedAmount[collateral.contractAddress] += collateral.amount
 
 
@@ -468,7 +468,7 @@ def updatePaidLoan(_borrower: address, _loanId: uint256):
 
     self.ongoingLoans[_borrower] -= 1
 
-    for collateral in self.loans[_borrower][_loanId].collaterals:
+    for collateral: Collateral in self.loans[_borrower][_loanId].collaterals:
         self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
 
 
@@ -482,7 +482,7 @@ def updateDefaultedLoan(_borrower: address, _loanId: uint256):
 
     self.ongoingLoans[_borrower] -= 1
 
-    for collateral in self.loans[_borrower][_loanId].collaterals:
+    for collateral: Collateral in self.loans[_borrower][_loanId].collaterals:
         self.collectionsBorrowedAmount[collateral.contractAddress] -= collateral.amount
 
 
