@@ -1,5 +1,5 @@
 
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title CollateralVaultOTC
@@ -13,8 +13,8 @@
 # Interfaces
 
 
-from vyper.interfaces import ERC165 as IERC165
-from vyper.interfaces import ERC721 as IERC721
+from ethereum.ercs import IERC165
+from ethereum.ercs import IERC721
 
 interface CryptoPunksMarket:
     def transferPunk(to: address, punkIndex: uint256): nonpayable
@@ -116,7 +116,7 @@ event OperatorApproved:
 # Global variables
 
 
-vaultName: constant(String[3]) = "otc"
+vaultName: public(constant(String[3])) = "otc"
 
 owner: public(address)
 proposedOwner: public(address)
@@ -132,7 +132,7 @@ delegationRegistry: public(immutable(IDelegationRegistry))
 ##### INTERNAL METHODS - VIEW #####
 
 
-@pure
+@view
 @internal
 def _is_punk(_collateralAddress: address) -> bool:
     return _collateralAddress == cryptoPunksMarketAddress.address
@@ -141,25 +141,25 @@ def _is_punk(_collateralAddress: address) -> bool:
 @view
 @internal
 def _is_erc721(_collateralAddress: address) -> bool:
-    return IERC165(_collateralAddress).supportsInterface(0x80ac58cd)
+    return staticcall IERC165(_collateralAddress).supportsInterface(0x80ac58cd)
 
 
 @view
 @internal
 def _punk_owner(_collateralAddress: address, _tokenId: uint256) -> address:
-    return CryptoPunksMarket(_collateralAddress).punkIndexToAddress(_tokenId)
+    return staticcall CryptoPunksMarket(_collateralAddress).punkIndexToAddress(_tokenId)
 
 
 @view
 @internal
 def _erc721_owner(_collateralAddress: address, _tokenId: uint256) -> address:
-    return IERC721(_collateralAddress).ownerOf(_tokenId)
+    return staticcall IERC721(_collateralAddress).ownerOf(_tokenId)
 
 
 @view
 @internal
 def _is_punk_approved_for_vault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool:
-    offer: Offer = cryptoPunksMarketAddress.punksOfferedForSale(_tokenId)
+    offer: Offer = staticcall cryptoPunksMarketAddress.punksOfferedForSale(_tokenId)
     return (
         offer.isForSale and
         offer.punkIndex == _tokenId and
@@ -171,7 +171,7 @@ def _is_punk_approved_for_vault(_borrower: address, _collateralAddress: address,
 @view
 @internal
 def _is_erc721_approved_for_vault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool:
-    return IERC721(_collateralAddress).isApprovedForAll(_borrower, self) or IERC721(_collateralAddress).getApproved(_tokenId) == self
+    return staticcall IERC721(_collateralAddress).isApprovedForAll(_borrower, self) or staticcall IERC721(_collateralAddress).getApproved(_tokenId) == self
 
 
 @view
@@ -192,12 +192,12 @@ def _vault_owns_collateral(_collateralAddress: address, _tokenId: uint256) -> bo
 
 @internal
 def _setDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _value: bool):
-    delegationRegistry.delegateForToken(_wallet, _collateralAddress, _tokenId, _value)
+    extcall delegationRegistry.delegateForToken(_wallet, _collateralAddress, _tokenId, _value)
 
 
 @internal
 def _store_punk(_wallet: address, _collateralAddress: address, _tokenId: uint256):
-    offer: Offer = CryptoPunksMarket(_collateralAddress).punksOfferedForSale(_tokenId)
+    offer: Offer = staticcall CryptoPunksMarket(_collateralAddress).punksOfferedForSale(_tokenId)
 
     assert offer.isForSale, "collateral not for sale"
     assert offer.punkIndex == _tokenId, "collateral with wrong punkIndex"
@@ -205,24 +205,24 @@ def _store_punk(_wallet: address, _collateralAddress: address, _tokenId: uint256
     assert offer.minValue == 0, "collateral offer is not zero"
     assert offer.onlySellTo == empty(address) or offer.onlySellTo == self, "collateral buying not authorized"
 
-    CryptoPunksMarket(_collateralAddress).buyPunk(_tokenId)
+    extcall CryptoPunksMarket(_collateralAddress).buyPunk(_tokenId)
 
 
 @internal
 def _store_erc721(_wallet: address, _collateralAddress: address, _tokenId: uint256):
-    IERC721(_collateralAddress).safeTransferFrom(_wallet, self, _tokenId, b"")
+    extcall IERC721(_collateralAddress).safeTransferFrom(_wallet, self, _tokenId, b"")
 
 
 @internal
 def _transfer_punk(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     assert self._punk_owner(_collateralAddress, _tokenId) == self, "collateral not owned by vault"
-    CryptoPunksMarket(_collateralAddress).transferPunk(_wallet, _tokenId)
+    extcall CryptoPunksMarket(_collateralAddress).transferPunk(_wallet, _tokenId)
 
 
 @internal
 def _transfer_erc721(_wallet: address, _collateralAddress: address, _tokenId: uint256):
     assert self._erc721_owner(_collateralAddress, _tokenId) == self, "collateral not owned by vault"
-    IERC721(_collateralAddress).safeTransferFrom(self, _wallet, _tokenId, b"")
+    extcall IERC721(_collateralAddress).safeTransferFrom(self, _wallet, _tokenId, b"")
 
 
 @internal
@@ -265,14 +265,9 @@ def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address
         raise "address not supported by vault"
 
 
-@view
-@external
-def vaultName() -> String[3]:
-    return vaultName
-
 ##### EXTERNAL METHODS - WRITE #####
 
-@external
+@deploy
 def __init__(_cryptoPunksMarketAddress: address, _delegationRegistryAddress: address):
     self.owner = msg.sender
     cryptoPunksMarketAddress = CryptoPunksMarket(_cryptoPunksMarketAddress)
@@ -289,7 +284,7 @@ def initialize(_owner: address):
 @external
 def create_proxy() -> address:
     proxy: address = create_minimal_proxy_to(self)
-    ISelf(proxy).initialize(msg.sender)
+    extcall ISelf(proxy).initialize(msg.sender)
     log ProxyCreated(proxy, msg.sender)
     return proxy
 

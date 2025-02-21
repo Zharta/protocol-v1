@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title LiquidityControls
@@ -90,13 +90,13 @@ def withinPoolShareLimit(_lender: address, _amount: uint256, _lpPeripheralContra
 
     fundsInvestable: uint256 = _fundsInvestable
     if _fundsInvestable == 0:
-        fundsInvestable = ILendingPoolPeripheral(_lpPeripheralContractAddress).theoreticalMaxFundsInvestableAfterDeposit(_amount)
+        fundsInvestable = staticcall ILendingPoolPeripheral(_lpPeripheralContractAddress).theoreticalMaxFundsInvestableAfterDeposit(_amount)
         if fundsInvestable == 0:
             return False
 
-    lenderDepositedAmount: uint256 = ILendingPoolCore(_lpCoreContractAddress).currentAmountDeposited(_lender)
+    lenderDepositedAmount: uint256 = staticcall ILendingPoolCore(_lpCoreContractAddress).currentAmountDeposited(_lender)
 
-    return (lenderDepositedAmount + _amount) * 10000 / fundsInvestable <= self.maxPoolShare
+    return (lenderDepositedAmount + _amount) * 10000 // fundsInvestable <= self.maxPoolShare
 
 
 @view
@@ -105,10 +105,10 @@ def withinLoansPoolShareLimit(_borrower: address, _amount: uint256, _loansCoreCo
     if not self.maxLoansPoolShareEnabled:
         return True
 
-    borrowedAmount: uint256 = ILoansCore(_loansCoreContractAddress).borrowedAmount(_borrower)
-    fundsInvestable: uint256 = ILendingPoolPeripheral(_lpPeripheralContractAddress).theoreticalMaxFundsInvestable()
+    borrowedAmount: uint256 = staticcall ILoansCore(_loansCoreContractAddress).borrowedAmount(_borrower)
+    fundsInvestable: uint256 = staticcall ILendingPoolPeripheral(_lpPeripheralContractAddress).theoreticalMaxFundsInvestable()
 
-    return (borrowedAmount + _amount) * 10000 / fundsInvestable <= self.maxLoansPoolShare
+    return (borrowedAmount + _amount) * 10000 // fundsInvestable <= self.maxLoansPoolShare
 
 
 @view
@@ -117,7 +117,7 @@ def outOfLockPeriod(_lender: address, _remainingAmount: uint256, _lpLockContract
     if not self.lockPeriodEnabled:
         return True
 
-    investorLock : InvestorLock = ILendingPoolLock(_lpLockContractAddress).investorLocks(_lender)
+    investorLock : InvestorLock = staticcall ILendingPoolLock(_lpLockContractAddress).investorLocks(_lender)
     return investorLock.lockPeriodEnd <= block.timestamp or _remainingAmount >= investorLock.lockPeriodAmount
 
 
@@ -130,14 +130,14 @@ def withinCollectionShareLimit(_amount: uint256, _collectionAddress: address, _l
     if self.maxCollectionBorrowableAmount[_collectionAddress] == 0:
         return True
 
-    collectionBorrowedAmount: uint256 = ILoansCore(_loansCoreContractAddress).collectionsBorrowedAmount(_collectionAddress)
+    collectionBorrowedAmount: uint256 = staticcall ILoansCore(_loansCoreContractAddress).collectionsBorrowedAmount(_collectionAddress)
 
     return collectionBorrowedAmount + _amount <= self.maxCollectionBorrowableAmount[_collectionAddress]
 
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
-@external
+@deploy
 def __init__(
     _maxPoolShareEnabled: bool,
     _maxPoolShare: uint256,

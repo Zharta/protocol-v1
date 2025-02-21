@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title LendingPoolPeripheral
@@ -9,7 +9,7 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC20 as IERC20
+from ethereum.ercs import IERC20
 
 interface ILendingPoolCore:
     def funds(arg0: address) -> InvestorFunds: view
@@ -205,7 +205,7 @@ whitelistedAddresses: public(HashMap[address, bool])
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20(erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = staticcall IERC20(erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
@@ -215,14 +215,14 @@ def _poolHasFundsToInvest(_fundsAvailable: uint256, _fundsInvested: uint256, _ca
     if _fundsAvailable + _fundsInvested == 0:
         return False
 
-    return _fundsInvested * 10000 / (_fundsAvailable + _fundsInvested) < _capitalEfficienty
+    return _fundsInvested * 10000 // (_fundsAvailable + _fundsInvested) < _capitalEfficienty
 
 
 @view
 @internal
 def _poolHasFundsToInvestAfterDeposit(_amount: uint256) -> bool:
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() + _amount
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+    fundsAvailable: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() + _amount
+    fundsInvested: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
 
     return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
 
@@ -230,8 +230,8 @@ def _poolHasFundsToInvestAfterDeposit(_amount: uint256) -> bool:
 @view
 @internal
 def _poolHasFundsToInvestAfterPayment(_amount: uint256, _rewards: uint256) -> bool:
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() + _amount + _rewards
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested() - _amount
+    fundsAvailable: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() + _amount + _rewards
+    fundsInvested: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested() - _amount
 
     return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
 
@@ -239,8 +239,8 @@ def _poolHasFundsToInvestAfterPayment(_amount: uint256, _rewards: uint256) -> bo
 @view
 @internal
 def _poolHasFundsToInvestAfterWithdraw(_amount: uint256) -> bool:
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+    fundsAvailable: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
+    fundsInvested: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
 
     return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
 
@@ -248,8 +248,8 @@ def _poolHasFundsToInvestAfterWithdraw(_amount: uint256) -> bool:
 @view
 @internal
 def _poolHasFundsToInvestAfterInvestment(_amount: uint256) -> bool:
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested() + _amount
+    fundsAvailable: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() - _amount
+    fundsInvested: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested() + _amount
 
     return self._poolHasFundsToInvest(fundsAvailable, fundsInvested, self.maxCapitalEfficienty)
 
@@ -257,10 +257,10 @@ def _poolHasFundsToInvestAfterInvestment(_amount: uint256) -> bool:
 @view
 @internal
 def _maxFundsInvestable() -> uint256:
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+    fundsAvailable: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
+    fundsInvested: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
 
-    fundsBuffer: uint256 = (fundsAvailable + fundsInvested) * (10000 - self.maxCapitalEfficienty) / 10000
+    fundsBuffer: uint256 = (fundsAvailable + fundsInvested) * (10000 - self.maxCapitalEfficienty) // 10000
 
     if fundsBuffer > fundsAvailable:
         return 0
@@ -271,27 +271,27 @@ def _maxFundsInvestable() -> uint256:
 @view
 @internal
 def _theoreticalMaxFundsInvestable(_amount: uint256) -> uint256:
-    fundsAvailable: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
-    fundsInvested: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
+    fundsAvailable: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable()
+    fundsInvested: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsInvested()
 
-    return (fundsAvailable + fundsInvested + _amount) * self.maxCapitalEfficienty / 10000
+    return (fundsAvailable + fundsInvested + _amount) * self.maxCapitalEfficienty // 10000
 
 
 @view
 @internal
 def _computeLockPeriodEnd(_lender: address) -> uint256:
-    lockPeriodEnd: uint256 = ILendingPoolLock(self.lendingPoolLockContract).investorLocks(_lender).lockPeriodEnd
+    lockPeriodEnd: uint256 = (staticcall ILendingPoolLock(self.lendingPoolLockContract).investorLocks(_lender)).lockPeriodEnd
     if lockPeriodEnd <= block.timestamp:
-        lockPeriodEnd = block.timestamp + ILiquidityControls(self.liquidityControlsContract).lockPeriodDuration()
+        lockPeriodEnd = block.timestamp + staticcall ILiquidityControls(self.liquidityControlsContract).lockPeriodDuration()
     return lockPeriodEnd
 
 
 @view
 @internal
 def _computeLockPeriod(_lender: address, _amount: uint256) -> (uint256, uint256):
-    investorLock: InvestorLock = ILendingPoolLock(self.lendingPoolLockContract).investorLocks(msg.sender)
+    investorLock: InvestorLock = staticcall ILendingPoolLock(self.lendingPoolLockContract).investorLocks(msg.sender)
     if investorLock.lockPeriodEnd <= block.timestamp:
-        return block.timestamp + ILiquidityControls(self.liquidityControlsContract).lockPeriodDuration(), _amount
+        return block.timestamp + staticcall ILiquidityControls(self.liquidityControlsContract).lockPeriodDuration(), _amount
     else:
         return investorLock.lockPeriodEnd, investorLock.lockPeriodAmount + _amount
 
@@ -304,7 +304,7 @@ def _deposit(_amount: uint256, _payer: address):
     assert self.isPoolActive, "pool is not active right now"
     assert _amount > 0, "_amount has to be higher than 0"
 
-    assert ILiquidityControls(self.liquidityControlsContract).withinPoolShareLimit(
+    assert staticcall ILiquidityControls(self.liquidityControlsContract).withinPoolShareLimit(
         msg.sender,
         _amount,
         self,
@@ -328,10 +328,10 @@ def _deposit(_amount: uint256, _payer: address):
     lockPeriodAmount: uint256 = 0
     lockPeriodEnd, lockPeriodAmount = self._computeLockPeriod(msg.sender, _amount)
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _payer, _amount):
+    if not extcall ILendingPoolCore(self.lendingPoolCoreContract).deposit(msg.sender, _payer, _amount):
         raise "error creating deposit"
 
-    ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, lockPeriodAmount, lockPeriodEnd)
+    extcall ILendingPoolLock(self.lendingPoolLockContract).setInvestorLock(msg.sender, lockPeriodAmount, lockPeriodEnd)
 
     log Deposit(msg.sender, msg.sender, _amount, erc20TokenContract)
 
@@ -340,10 +340,10 @@ def _deposit(_amount: uint256, _payer: address):
 def _withdraw(_amount: uint256, _receiver: address):
     assert _amount > 0, "_amount has to be higher than 0"
 
-    withdrawableAmount: uint256 = ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender)
+    withdrawableAmount: uint256 = staticcall ILendingPoolCore(self.lendingPoolCoreContract).computeWithdrawableAmount(msg.sender)
     assert withdrawableAmount >= _amount, "_amount more than withdrawable"
-    assert ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "withdraw within lock period"
-    assert ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
+    assert staticcall ILiquidityControls(self.liquidityControlsContract).outOfLockPeriod(msg.sender, withdrawableAmount - _amount, self.lendingPoolLockContract), "withdraw within lock period"
+    assert staticcall ILendingPoolCore(self.lendingPoolCoreContract).fundsAvailable() >= _amount, "available funds less than amount"
 
     if self.isPoolInvesting and not self._poolHasFundsToInvestAfterWithdraw(_amount):
         self.isPoolInvesting = False
@@ -354,7 +354,7 @@ def _withdraw(_amount: uint256, _receiver: address):
             erc20TokenContract
         )
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _receiver, _amount):
+    if not extcall ILendingPoolCore(self.lendingPoolCoreContract).withdraw(msg.sender, _receiver, _amount):
         raise "error withdrawing funds"
 
     log Withdrawal(msg.sender, msg.sender, _amount, erc20TokenContract)
@@ -379,7 +379,7 @@ def _sendFunds(_to: address, _receiver: address, _amount: uint256):
             erc20TokenContract
         )
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_receiver, _amount):
+    if not extcall ILendingPoolCore(self.lendingPoolCoreContract).sendFunds(_receiver, _amount):
         raise "error sending funds in LPCore"
 
     log FundsTransfer(_to, _to, _amount, erc20TokenContract)
@@ -391,7 +391,7 @@ def _receiveFunds(_borrower: address, _payer: address, _amount: uint256, _reward
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
 
-    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare // 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
     self._transferReceivedFunds(_borrower, _payer, _amount, rewardsPool, rewardsProtocol, _amount, "loan")
@@ -416,11 +416,11 @@ def _transferReceivedFunds(
             erc20TokenContract
         )
 
-    if not ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_payer, _amount, _rewardsPool, _investedAmount):
+    if not extcall ILendingPoolCore(self.lendingPoolCoreContract).receiveFunds(_payer, _amount, _rewardsPool, _investedAmount):
         raise "error receiving funds in LPCore"
 
     if _rewardsProtocol > 0:
-        if not ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_payer, self.protocolWallet, _rewardsProtocol):
+        if not extcall ILendingPoolCore(self.lendingPoolCoreContract).transferProtocolFees(_payer, self.protocolWallet, _rewardsProtocol):
             raise "error transferring protocol fees"
 
     log FundsReceipt(
@@ -452,7 +452,7 @@ def _receiveFundsFromLiquidation(
     rewardsProtocol: uint256 = 0
     rewardsPool: uint256 = 0
     if _distributeToProtocol:
-        rewardsProtocol = _rewardsAmount * self.protocolFeesShare / 10000
+        rewardsProtocol = _rewardsAmount * self.protocolFeesShare // 10000
         rewardsPool = _rewardsAmount - rewardsProtocol
     else:
         rewardsPool = _rewardsAmount
@@ -462,16 +462,16 @@ def _receiveFundsFromLiquidation(
 
 @internal
 def _unwrap_and_send(_to: address, _amount: uint256):
-    IWETH(erc20TokenContract).withdraw(_amount)
+    extcall IWETH(erc20TokenContract).withdraw(_amount)
     send(_to, _amount)
     log PaymentSent(_to, _to, _amount)
 
 
 @internal
 def _wrap_and_approve(_to: address, _amount: uint256):
-    IWETH(erc20TokenContract).deposit(value=_amount)
+    extcall IWETH(erc20TokenContract).deposit(value=_amount)
     log PaymentSent(erc20TokenContract, erc20TokenContract, _amount)
-    IERC20(erc20TokenContract).approve(_to, _amount)
+    extcall IERC20(erc20TokenContract).approve(_to, _amount)
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -497,15 +497,15 @@ def theoreticalMaxFundsInvestableAfterDeposit(_amount: uint256) -> uint256:
 @view
 @external
 def lenderFunds(_lender: address) -> InvestorFunds:
-    return ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender)
+    return staticcall ILendingPoolCore(self.lendingPoolCoreContract).funds(_lender)
 
 @view
 @external
 def lockedAmount(_lender: address) -> uint256:
-    if not ILiquidityControls(self.liquidityControlsContract).lockPeriodEnabled():
+    if not staticcall ILiquidityControls(self.liquidityControlsContract).lockPeriodEnabled():
         return 0
 
-    lockPeriod: InvestorLock = ILendingPoolLock(self.lendingPoolLockContract).investorLocks(_lender)
+    lockPeriod: InvestorLock = staticcall ILendingPoolLock(self.lendingPoolLockContract).investorLocks(_lender)
     if lockPeriod.lockPeriodEnd < block.timestamp:
         return 0
     return lockPeriod.lockPeriodAmount
@@ -513,7 +513,7 @@ def lockedAmount(_lender: address) -> uint256:
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
-@external
+@deploy
 def __init__(
     _lendingPoolCoreContract: address,
     _lendingPoolLockContract: address,

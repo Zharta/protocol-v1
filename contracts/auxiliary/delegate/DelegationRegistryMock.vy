@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 # Structs
 
@@ -179,7 +179,7 @@ def _checkDelegateForToken(delegate: address, vault: address , contract: address
 def _getDelegatesForLevel(vault: address , delegationType: DelegationType, contract: address , tokenId: uint256) -> DynArray[address, 2**10]:
     delegatesForLevel: DynArray[address, 2**10] = []
     _len: uint256 = len(self.delegations[vault][self.vaultVersion[vault]])
-    for i in range(2**10):
+    for i: uint256 in range(2**10):
         if i < _len:
             delegationHash: bytes32 = self.delegations[vault][self.vaultVersion[vault]][i]
             delegationInfo: DelegationInfo = self.delegationInfo[delegationHash]
@@ -248,7 +248,7 @@ def checkDelegateForToken(delegate: address, vault: address , contract: address 
 def getDelegationsByDelegate(delegate: address) -> DynArray[DelegationInfo, 2**10]:
     _delegations: DynArray[DelegationInfo, 2**10] = []
     _len: uint256 = len(self.delegationHashes[delegate])
-    for i in range(2**10):
+    for i: uint256 in range(2**10):
         if i < _len:
             delegationHash: bytes32 = self.delegationHashes[delegate][i]
             delegationInfo: DelegationInfo = self.delegationInfo[delegationHash]
@@ -268,7 +268,7 @@ def getDelegationsByDelegate(delegate: address) -> DynArray[DelegationInfo, 2**1
 
 # External write functions
 
-@external
+@deploy
 def __init__():
     pass
 
