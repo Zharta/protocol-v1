@@ -1,8 +1,8 @@
 {
     "common": {
         "collateral_vault_otc_impl": {
-            "abi_key": "06f527b8cce34c3809e108290a980a12c9e38428",
-            "contract": "0xBB41Eb7A00C0A8382D94A37fA30BB323421B7784",
+            "abi_key": "e53d9be4e14fa772fd77da9d8db2c100097b4079",
+            "contract": "0x8df49d044F5fb9d9cD831d3826feA70705077864",
             "contract_def": "CollateralVaultOTCImpl",
             "properties": {
                 "delegation_registry_key": "common.delegation_registry",
@@ -10,43 +10,43 @@
             }
         },
         "delegation_registry": {
-            "abi_key": "e262df7db546d8ff1773e8784b9293af73c19259",
-            "contract": "0xc5f608bfe3dB9194E2e38E77506C6656c530990f",
+            "abi_key": "070bd93c1f308555eb2c7756554c7bf9070d94a9",
+            "contract": "0xE48c6ba9cFCe97f4d0EC146C40E601c0Eed59b7E",
             "contract_def": "DelegationRegistry"
         },
         "genesis": {
-            "abi_key": "d132acd51eacebb6d0f37695a835d675114e82bd",
-            "contract": "0x759cC32390d59Fb66c214cE184CD8F153b4f8DB8",
+            "abi_key": "7c133ff546cdd0a83d7bf44635a5fb786da506e2",
+            "contract": "0xF2EC587db2932013dd8ee6eDa85d9e6f50448dce",
             "contract_def": "Genesis",
             "properties": {
                 "genesis_owner": "0x66aB6D9362d4F35596279692F0251Db635165871"
             }
         },
         "lending_pool_eth_otc_impl": {
-            "abi_key": "0d21fecbeaaca5a9dd8f92a23576d260420f8168",
-            "contract": "0xB734B673D9aaa3d19b10edfFa61F18663e848fD9",
+            "abi_key": "2aef14c8467b45f10da3b53ea5e16703fa8edb1f",
+            "contract": "0xE7432434FF866319FbF8C633e49fE596a4294AC3",
             "contract_def": "LendingPoolEthOTCImpl",
             "properties": {
                 "weth_token_key": "common.weth"
             }
         },
         "lending_pool_usdc_otc_impl": {
-            "abi_key": "e0cd0beab4bb6d30738e1a7918bbb75ac52f3225",
-            "contract": "0x5e3CEC8D417E9c8335d53D94902e4ee681dFBDA3",
+            "abi_key": "af16bcd4cc48aa6101c2cbd3f306a9a5f3a350d2",
+            "contract": "0xaaCbd0BAd0B1e36107b76A4535ff94aA958f45F8",
             "contract_def": "LendingPoolERC20OTCImpl",
             "properties": {
                 "token_key": "common.usdc"
             }
         },
         "liquidations_otc_impl": {
-            "abi_key": "506f9e51c1936a640635a3c893b70612314d8c7e",
-            "contract": "0x2347C310257cCD8BdE9e16CC108cb73F21336C60",
+            "abi_key": "51d562504a023a491471316a65c9990146560fb0",
+            "contract": "0xAaf0562b265f2123e1627C634bbB685000a3455B",
             "contract_def": "LiquidationsOTCImpl",
             "properties": {}
         },
         "loans_otc_impl": {
-            "abi_key": "2a39846503ce9838fa50d87553e7eb35cc04e6aa",
-            "contract": "0x05f76364BC7875D44B12691D24351B03a5860A86",
+            "abi_key": "f9524286f640000507800a4d7929908ace8d8261",
+            "contract": "0xe72634e6928A0629156AF14765258AC938668B30",
             "contract_def": "LoansOTCImpl"
         },
         "nftx_marketplace_zap": {
@@ -62,8 +62,8 @@
             "contract_def": "GenericContract"
         },
         "usdc": {
-            "abi_key": "3ced391ada177c778bc1391a870a030298462b5b",
-            "contract": "0x5Ae300612EF2E53B3317Eb07cD0a8822F20AE479",
+            "abi_key": "f2d91b2ed1efecbe476dfcd1be3e26d24d2e5b2b",
+            "contract": "0x77BE703d950f6B84c679a2AB519f736174E63883",
             "contract_def": "ERC20",
             "image_url": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
             "properties": {
@@ -75,8 +75,8 @@
             "token_symbol_key": "USDC"
         },
         "weth": {
-            "abi_key": "3ced391ada177c778bc1391a870a030298462b5b",
-            "contract": "0x5DB39b8865Db3f58549C315B63F73CE57A3d78d2",
+            "abi_key": "f2d91b2ed1efecbe476dfcd1be3e26d24d2e5b2b",
+            "contract": "0xEba85304439c77C74Fb471D302fba836ab3248b4",
             "contract_def": "ERC20",
             "image_url": "https://assets.coingecko.com/coins/images/2518/small/weth.png",
             "properties": {
@@ -97,13 +97,13 @@
         "DEADPOOL": {
             "contracts": {
                 "collateral_vault": {
-                    "abi_key": "06f527b8cce34c3809e108290a980a12c9e38428",
+                    "abi_key": "e53d9be4e14fa772fd77da9d8db2c100097b4079",
                     "alias": [
                         "deadpool.collateral_vault_core",
                         "deadpool.collateral_vault_peripheral",
                         "deadpool.cryptopunks_vault_core"
                     ],
-                    "contract": "0x1183c39a1f88E96179EDE55429c7dBC83AA2f3AA",
+                    "contract": "0x8D32BbfE4f4614AB451E72C4769a3ff928Cfbc42",
                     "contract_def": "CollateralVaultOTC",
                     "properties": {
                         "implementation_key": "common.collateral_vault_otc_impl",
@@ -112,11 +112,11 @@
                     }
                 },
                 "lending_pool": {
-                    "abi_key": "0d21fecbeaaca5a9dd8f92a23576d260420f8168",
+                    "abi_key": "2aef14c8467b45f10da3b53ea5e16703fa8edb1f",
                     "alias": [
                         "deadpool.lending_pool_core"
                     ],
-                    "contract": "0xe8fbc1Af97317b768d45E95B32160C6683d8Edcf",
+                    "contract": "0x9829D5D9526916a074824E812863d858CB96C60a",
                     "contract_def": "LendingPoolOTC",
                     "properties": {
                         "implementation_key": "common.lending_pool_usdc_otc_impl",
@@ -129,12 +129,12 @@
                     }
                 },
                 "liquidations": {
-                    "abi_key": "506f9e51c1936a640635a3c893b70612314d8c7e",
+                    "abi_key": "51d562504a023a491471316a65c9990146560fb0",
                     "alias": [
                         "deadpool.liquidations_core",
                         "deadpool.liquidations_peripheral"
                     ],
-                    "contract": "0xAB2B8e1F2C4C828722Ea72D9c6F3C6239bB547a1",
+                    "contract": "0x0c6b7745c2DeaC2257ADF2f17bD99370c946250D",
                     "contract_def": "LiquidationsOTC",
                     "properties": {
                         "collateral_vault_key": "deadpool.collateral_vault",
@@ -145,11 +145,11 @@
                     }
                 },
                 "loans": {
-                    "abi_key": "2a39846503ce9838fa50d87553e7eb35cc04e6aa",
+                    "abi_key": "f9524286f640000507800a4d7929908ace8d8261",
                     "alias": [
                         "deadpool.loans_core"
                     ],
-                    "contract": "0x16dfa3994aF964bb3e48c829b96acC6702c180F6",
+                    "contract": "0x4070F7daEc2049C0464F3B9c06D50f235a602056",
                     "contract_def": "LoansOTC",
                     "properties": {
                         "collateral_vault_key": "deadpool.collateral_vault",
@@ -175,8 +175,8 @@
         "ETH-GRAILS": {
             "contracts": {
                 "collateral_vault_core": {
-                    "abi_key": "17d06519fabd998767d2b8481d6063d3e133f8a0",
-                    "contract": "0xC07927a4D78baeF9A5053574422aa48E62E985DD",
+                    "abi_key": "aabf6a1d055017e71aceab0dbdabcc79072d3af2",
+                    "contract": "0x66b00B4F56aE8eE5dF9fD5a0E7F8a1ae5101EfbB",
                     "contract_def": "CollateralVaultCoreV2",
                     "properties": {
                         "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
@@ -184,8 +184,8 @@
                     }
                 },
                 "collateral_vault_peripheral": {
-                    "abi_key": "a43a0fb8d7090304d1d465efe3bd31f3d8c0275f",
-                    "contract": "0x3495B2609795AddC5fA325eEeE901F1c2759847F",
+                    "abi_key": "16ad6b95667b6de3257de9faec589efb7ff12913",
+                    "contract": "0x17b0Eabc2352525dD757D4f8896ce05Ae3Ca4C7a",
                     "contract_def": "CollateralVaultPeripheral",
                     "properties": {
                         "collateral_vault_core_key": "eth-grails.collateral_vault_core",
@@ -197,8 +197,8 @@
                     }
                 },
                 "cryptopunks_vault_core": {
-                    "abi_key": "0e3d5da2f7433739c577fba59b666acb192a24bf",
-                    "contract": "0x50F517fa3835D6722429e987dc1D9aB1a80F6c8c",
+                    "abi_key": "92606448288dd0ebe4f0c09fd78f28790b8cbb81",
+                    "contract": "0x287D603AF7B61411dE267872c9f5810c59A393d0",
                     "contract_def": "CryptoPunksVaultCore",
                     "properties": {
                         "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
@@ -207,8 +207,8 @@
                     }
                 },
                 "lending_pool": {
-                    "abi_key": "fc226ca895618a51329a433652653711adbeaa78",
-                    "contract": "0x49cf83a846EDd01575Fcea786C24336955E42f67",
+                    "abi_key": "a2056ee4566bf5389324c0b5d856f443d91722bc",
+                    "contract": "0x0b4b72022cC05503e61fd2Bcb0E01D0Eb670E8f4",
                     "contract_def": "LendingPoolPeripheral",
                     "properties": {
                         "lending_pool_core_key": "eth-grails.lending_pool_core",
@@ -224,8 +224,8 @@
                     }
                 },
                 "lending_pool_core": {
-                    "abi_key": "637b449ee3b6b413d5c58496f23ba94c50313a72",
-                    "contract": "0xacd25dE5C3d0fDB119016f24f4896B306bc4ca7a",
+                    "abi_key": "a063f79e2d7fd8b63e9e0a19a0ee8a4a479aa1e1",
+                    "contract": "0xC5df0001154Be0ae8e7df0C23e5A631A3F7Fe4e8",
                     "contract_def": "LendingPoolCore",
                     "properties": {
                         "lending_pool_peripheral_key": "eth-grails.lending_pool",
@@ -233,8 +233,8 @@
                     }
                 },
                 "lending_pool_lock": {
-                    "abi_key": "a42be020cfba2c818471b5d6e990e1c5caece23c",
-                    "contract": "0x5d244273a8aF07DFf944A5F7dB301FE8873E3908",
+                    "abi_key": "9a67026123f6dd8eee950a0d3eefa05066cc319b",
+                    "contract": "0x00BE7896b27567a6b5B75070a01051206daCD386",
                     "contract_def": "LendingPoolLock",
                     "properties": {
                         "lending_pool_peripheral_key": "eth-grails.lending_pool",
@@ -242,16 +242,16 @@
                     }
                 },
                 "liquidations_core": {
-                    "abi_key": "0bf72e47d097e76bf06ff7472ded18f011ef8b14",
-                    "contract": "0xAc786fdB7e79F72F92E17e2Ed3Aa03972fffAC9F",
+                    "abi_key": "b44656dc9df6bf80b638bc99a6127176bc9e5edb",
+                    "contract": "0x5702213079D74f202849Fa80E34dC1958DcD6EC6",
                     "contract_def": "LiquidationsCore",
                     "properties": {
                         "liquidations_peripheral_key": "eth-grails.liquidations_peripheral"
                     }
                 },
                 "liquidations_peripheral": {
-                    "abi_key": "db36a4aa70b6335a2a6eae4a6ad5a4b200eec46c",
-                    "contract": "0xEC118AbC2347533b08402ab85E9eb45F43cd0146",
+                    "abi_key": "012107ac5541ba4f99de0feb011fa7c591ba9c8d",
+                    "contract": "0x6dF19284F31DeebA767C1873C98d0026Fa613ccF",
                     "contract_def": "LiquidationsPeripheral",
                     "properties": {
                         "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
@@ -268,8 +268,8 @@
                     }
                 },
                 "liquidity_controls": {
-                    "abi_key": "24100351d79327597693c02ef1281695562b65fb",
-                    "contract": "0x17e2c178cDef0d990E4b33930Cb50FB5f0ca2564",
+                    "abi_key": "9a18261af12705e7724fcc464befa8d9525da279",
+                    "contract": "0x2A2bbCcf1e0EDe2d24ED910C217b6aCA5e2B6Acb",
                     "contract_def": "LiquidityControls",
                     "properties": {
                         "lock_period_enabled": false,
@@ -278,8 +278,8 @@
                     }
                 },
                 "loans": {
-                    "abi_key": "d195267487323f8ab9e7e58723cdde9b5cba1ec1",
-                    "contract": "0xbfDf0798BC6307988A554835e351C93Ad63eCb77",
+                    "abi_key": "cb38b4b43aa48767d843d917bb48b83f53e7f703",
+                    "contract": "0x54b8c62b3f0daE2DcAfCF09764cf6db899D8ACfb",
                     "contract_def": "LoansPeripheral",
                     "properties": {
                         "collateral_vault_peripheral_key": "eth-grails.collateral_vault_peripheral",
@@ -292,8 +292,8 @@
                     }
                 },
                 "loans_core": {
-                    "abi_key": "08603e1b2ec1e8d1596e53dbda1ad7d85d83b23f",
-                    "contract": "0x4CC160c865CB8dcd420c9Eb4dBcfd2F99317D286",
+                    "abi_key": "05d8ef820bd8cb1a2c16b2b3b3b719c2fc14d3d0",
+                    "contract": "0x3e6FF8a84193E3B1Ea006B5Ef935F3713F125f5E",
                     "contract_def": "LoansCore",
                     "properties": {
                         "loans_peripheral_key": "eth-grails.loans"
@@ -315,13 +315,13 @@
         "ETH-META4": {
             "contracts": {
                 "collateral_vault": {
-                    "abi_key": "06f527b8cce34c3809e108290a980a12c9e38428",
+                    "abi_key": "e53d9be4e14fa772fd77da9d8db2c100097b4079",
                     "alias": [
                         "eth-meta4.collateral_vault_core",
                         "eth-meta4.collateral_vault_peripheral",
                         "eth-meta4.cryptopunks_vault_core"
                     ],
-                    "contract": "0x730F359a2877AA2115A68869cB3b76A4cC5a73fe",
+                    "contract": "0x4aF2b91BFa7f0B0030ceF0eE954c9ded91b9F15D",
                     "contract_def": "CollateralVaultOTC",
                     "properties": {
                         "implementation_key": "common.collateral_vault_otc_impl",
@@ -330,11 +330,11 @@
                     }
                 },
                 "lending_pool": {
-                    "abi_key": "0d21fecbeaaca5a9dd8f92a23576d260420f8168",
+                    "abi_key": "2aef14c8467b45f10da3b53ea5e16703fa8edb1f",
                     "alias": [
                         "eth-meta4.lending_pool_core"
                     ],
-                    "contract": "0xA101c43c57071969094815dEB6774e27401f51D4",
+                    "contract": "0xBB702202358eC235f788e8993c62475e4Ece098F",
                     "contract_def": "LendingPoolOTC",
                     "properties": {
                         "implementation_key": "common.lending_pool_eth_otc_impl",
@@ -347,12 +347,12 @@
                     }
                 },
                 "liquidations": {
-                    "abi_key": "506f9e51c1936a640635a3c893b70612314d8c7e",
+                    "abi_key": "51d562504a023a491471316a65c9990146560fb0",
                     "alias": [
                         "eth-meta4.liquidations_core",
                         "eth-meta4.liquidations_peripheral"
                     ],
-                    "contract": "0x7B107AfB0c654B6622ff1944850D67D1f3093a6D",
+                    "contract": "0x476F69cD6797a6333a759D886B0Eb11d46Bd384b",
                     "contract_def": "LiquidationsOTC",
                     "properties": {
                         "collateral_vault_key": "eth-meta4.collateral_vault",
@@ -363,11 +363,11 @@
                     }
                 },
                 "loans": {
-                    "abi_key": "2a39846503ce9838fa50d87553e7eb35cc04e6aa",
+                    "abi_key": "f9524286f640000507800a4d7929908ace8d8261",
                     "alias": [
                         "eth-meta4.loans_core"
                     ],
-                    "contract": "0xa53C28748b3e1cFE08a792B9112A59E306C7bdcb",
+                    "contract": "0x0Ab95bDa5f0F6627BBC9b12807DfEF91B92b3144",
                     "contract_def": "LoansOTC",
                     "properties": {
                         "collateral_vault_key": "eth-meta4.collateral_vault",
@@ -392,13 +392,13 @@
         "SWIMMING": {
             "contracts": {
                 "collateral_vault": {
-                    "abi_key": "06f527b8cce34c3809e108290a980a12c9e38428",
+                    "abi_key": "e53d9be4e14fa772fd77da9d8db2c100097b4079",
                     "alias": [
                         "swimming.collateral_vault_core",
                         "swimming.collateral_vault_peripheral",
                         "swimming.cryptopunks_vault_core"
                     ],
-                    "contract": "0x87ba46dd24E5eea31d7964c1e50116cD18670128",
+                    "contract": "0x2f78A2Fc82248a9a62635346F9E6aAF421fcB9E2",
                     "contract_def": "CollateralVaultOTC",
                     "properties": {
                         "implementation_key": "common.collateral_vault_otc_impl",
@@ -407,11 +407,11 @@
                     }
                 },
                 "lending_pool": {
-                    "abi_key": "0d21fecbeaaca5a9dd8f92a23576d260420f8168",
+                    "abi_key": "2aef14c8467b45f10da3b53ea5e16703fa8edb1f",
                     "alias": [
                         "swimming.lending_pool_core"
                     ],
-                    "contract": "0xc2E9Baa460E941fBA1658eF41be2b8F50c4f8B8E",
+                    "contract": "0x71d6e06c2500D57008C568fD978351Fd0d0c46af",
                     "contract_def": "LendingPoolOTC",
                     "properties": {
                         "implementation_key": "common.lending_pool_eth_otc_impl",
@@ -424,12 +424,12 @@
                     }
                 },
                 "liquidations": {
-                    "abi_key": "506f9e51c1936a640635a3c893b70612314d8c7e",
+                    "abi_key": "51d562504a023a491471316a65c9990146560fb0",
                     "alias": [
                         "swimming.liquidations_core",
                         "swimming.liquidations_peripheral"
                     ],
-                    "contract": "0x48Cb67C05E87807552d26Bb0E196a36c06512E53",
+                    "contract": "0x8243B85F2205e7EaC0614f9929459b90D3b4bAd0",
                     "contract_def": "LiquidationsOTC",
                     "properties": {
                         "collateral_vault_key": "swimming.collateral_vault",
@@ -440,11 +440,11 @@
                     }
                 },
                 "loans": {
-                    "abi_key": "2a39846503ce9838fa50d87553e7eb35cc04e6aa",
+                    "abi_key": "f9524286f640000507800a4d7929908ace8d8261",
                     "alias": [
                         "swimming.loans_core"
                     ],
-                    "contract": "0x872536b32ea0d78a21F7123d91b959936f6CbB70",
+                    "contract": "0x30Aa62A7eB0ba30e038Ba05054725227002f3b35",
                     "contract_def": "LoansOTC",
                     "properties": {
                         "collateral_vault_key": "swimming.collateral_vault",
@@ -469,8 +469,8 @@
         "USDC": {
             "contracts": {
                 "collateral_vault_core": {
-                    "abi_key": "17d06519fabd998767d2b8481d6063d3e133f8a0",
-                    "contract": "0x15485FDaC69393ECf720FFB373f1e999eDB2d14c",
+                    "abi_key": "aabf6a1d055017e71aceab0dbdabcc79072d3af2",
+                    "contract": "0x9C06d23E0C10520741239BD388b85494f39656c6",
                     "contract_def": "CollateralVaultCoreV2",
                     "properties": {
                         "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
@@ -478,8 +478,8 @@
                     }
                 },
                 "collateral_vault_peripheral": {
-                    "abi_key": "a43a0fb8d7090304d1d465efe3bd31f3d8c0275f",
-                    "contract": "0x2E9D9EB106C0E52E457E44BA6D19927aaAFc2635",
+                    "abi_key": "16ad6b95667b6de3257de9faec589efb7ff12913",
+                    "contract": "0x44DACd4B237400dF7b9Ac799Be9654c8e6854354",
                     "contract_def": "CollateralVaultPeripheral",
                     "properties": {
                         "collateral_vault_core_key": "usdc.collateral_vault_core",
@@ -491,8 +491,8 @@
                     }
                 },
                 "cryptopunks_vault_core": {
-                    "abi_key": "0e3d5da2f7433739c577fba59b666acb192a24bf",
-                    "contract": "0x237Ee74308dB72F6150f52c2ac755B53300a1fC3",
+                    "abi_key": "92606448288dd0ebe4f0c09fd78f28790b8cbb81",
+                    "contract": "0xF3497BE25F5F33Ad9097CeD7F83D30Ac6E7c9257",
                     "contract_def": "CryptoPunksVaultCore",
                     "properties": {
                         "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
@@ -501,8 +501,8 @@
                     }
                 },
                 "lending_pool": {
-                    "abi_key": "fc226ca895618a51329a433652653711adbeaa78",
-                    "contract": "0xA78BB98Ef29b4F82458413B6B92f2051BD1fd24d",
+                    "abi_key": "a2056ee4566bf5389324c0b5d856f443d91722bc",
+                    "contract": "0xC228829ceb3a1E9d60B54768c86F0057b605E96b",
                     "contract_def": "LendingPoolPeripheral",
                     "properties": {
                         "lending_pool_core_key": "usdc.lending_pool_core",
@@ -518,8 +518,8 @@
                     }
                 },
                 "lending_pool_core": {
-                    "abi_key": "637b449ee3b6b413d5c58496f23ba94c50313a72",
-                    "contract": "0xC3B56a95966bC3c05aA9fA0ee4Bf8a899afd8851",
+                    "abi_key": "a063f79e2d7fd8b63e9e0a19a0ee8a4a479aa1e1",
+                    "contract": "0xED2958E37FC889E420BFf06DB58ce4a507D50F7D",
                     "contract_def": "LendingPoolCore",
                     "properties": {
                         "lending_pool_peripheral_key": "usdc.lending_pool",
@@ -527,8 +527,8 @@
                     }
                 },
                 "lending_pool_lock": {
-                    "abi_key": "a42be020cfba2c818471b5d6e990e1c5caece23c",
-                    "contract": "0xd37cbdAD18BF6f821E42935c8Bae0e35aa9CA7c6",
+                    "abi_key": "9a67026123f6dd8eee950a0d3eefa05066cc319b",
+                    "contract": "0x80dFBeaA048245B64519c8C502d7e62769292ab8",
                     "contract_def": "LendingPoolLock",
                     "properties": {
                         "lending_pool_peripheral_key": "usdc.lending_pool",
@@ -536,16 +536,16 @@
                     }
                 },
                 "liquidations_core": {
-                    "abi_key": "0bf72e47d097e76bf06ff7472ded18f011ef8b14",
-                    "contract": "0xcCa93aF54060793ED3A7E6bd3Bb312CfC6C27e3A",
+                    "abi_key": "b44656dc9df6bf80b638bc99a6127176bc9e5edb",
+                    "contract": "0x7f4E92FA740F136456F71766b4F097aF96222633",
                     "contract_def": "LiquidationsCore",
                     "properties": {
                         "liquidations_peripheral_key": "usdc.liquidations_peripheral"
                     }
                 },
                 "liquidations_peripheral": {
-                    "abi_key": "db36a4aa70b6335a2a6eae4a6ad5a4b200eec46c",
-                    "contract": "0x31420eF2Def717e333F7298380b7CBa399f7C17B",
+                    "abi_key": "012107ac5541ba4f99de0feb011fa7c591ba9c8d",
+                    "contract": "0xC17B072d55002e25bDcf2a3b50C01608Cb277372",
                     "contract_def": "LiquidationsPeripheral",
                     "properties": {
                         "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
@@ -562,8 +562,8 @@
                     }
                 },
                 "liquidity_controls": {
-                    "abi_key": "24100351d79327597693c02ef1281695562b65fb",
-                    "contract": "0x68A9d1Da3eAA8767E41c9EDe1FB0141B0d0F8993",
+                    "abi_key": "9a18261af12705e7724fcc464befa8d9525da279",
+                    "contract": "0x9f23B12bCb8842bCAEa5fFc3bb5223225aeEC352",
                     "contract_def": "LiquidityControls",
                     "properties": {
                         "lock_period_enabled": false,
@@ -572,8 +572,8 @@
                     }
                 },
                 "loans": {
-                    "abi_key": "d195267487323f8ab9e7e58723cdde9b5cba1ec1",
-                    "contract": "0xcba23E647A90878e3B621532bf802EcC4F7A8768",
+                    "abi_key": "cb38b4b43aa48767d843d917bb48b83f53e7f703",
+                    "contract": "0xb513971a6Fd5A3347885ED1177da1EdfB798A0d7",
                     "contract_def": "LoansPeripheral",
                     "properties": {
                         "collateral_vault_peripheral_key": "usdc.collateral_vault_peripheral",
@@ -586,8 +586,8 @@
                     }
                 },
                 "loans_core": {
-                    "abi_key": "08603e1b2ec1e8d1596e53dbda1ad7d85d83b23f",
-                    "contract": "0x5D9361eC8eFca73bF0ba8001AFdE482F225F822B",
+                    "abi_key": "05d8ef820bd8cb1a2c16b2b3b3b719c2fc14d3d0",
+                    "contract": "0x0A47346816f39e34bED271075d4e42Ee611E652b",
                     "contract_def": "LoansCore",
                     "properties": {
                         "loans_peripheral_key": "usdc.loans"
@@ -607,8 +607,8 @@
         "WETH": {
             "contracts": {
                 "collateral_vault_core": {
-                    "abi_key": "17d06519fabd998767d2b8481d6063d3e133f8a0",
-                    "contract": "0x2d97C617C69b2e597A39d0930B1ABe20967E7FF9",
+                    "abi_key": "aabf6a1d055017e71aceab0dbdabcc79072d3af2",
+                    "contract": "0xbBC904EAB8F0Dbc043035ad4ABb045d5f36A17F4",
                     "contract_def": "CollateralVaultCoreV2",
                     "properties": {
                         "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
@@ -616,8 +616,8 @@
                     }
                 },
                 "collateral_vault_peripheral": {
-                    "abi_key": "a43a0fb8d7090304d1d465efe3bd31f3d8c0275f",
-                    "contract": "0x3f04064ECa5a7B7Cce4984662E38Fcf51FE50d01",
+                    "abi_key": "16ad6b95667b6de3257de9faec589efb7ff12913",
+                    "contract": "0xeAFf32219A6a004dFc8Dd19724CA1b9d789F6fd1",
                     "contract_def": "CollateralVaultPeripheral",
                     "properties": {
                         "collateral_vault_core_key": "weth.collateral_vault_core",
@@ -629,8 +629,8 @@
                     }
                 },
                 "cryptopunks_vault_core": {
-                    "abi_key": "0e3d5da2f7433739c577fba59b666acb192a24bf",
-                    "contract": "0xfae867E5af6bad2F6319b608778bdEa3844DC551",
+                    "abi_key": "92606448288dd0ebe4f0c09fd78f28790b8cbb81",
+                    "contract": "0xedf60d8B70C7B7197Fb174Da69De8E2BF34abCfE",
                     "contract_def": "CryptoPunksVaultCore",
                     "properties": {
                         "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
@@ -639,8 +639,8 @@
                     }
                 },
                 "lending_pool": {
-                    "abi_key": "fc226ca895618a51329a433652653711adbeaa78",
-                    "contract": "0x2217699536d237571D0C93960B3b14B6651C469A",
+                    "abi_key": "a2056ee4566bf5389324c0b5d856f443d91722bc",
+                    "contract": "0x12d37A8136A23868f32015fA4D70B1402efB35f2",
                     "contract_def": "LendingPoolPeripheral",
                     "properties": {
                         "lending_pool_core_key": "weth.lending_pool_core",
@@ -656,8 +656,8 @@
                     }
                 },
                 "lending_pool_core": {
-                    "abi_key": "637b449ee3b6b413d5c58496f23ba94c50313a72",
-                    "contract": "0x375c7c356f262df415caF206c7Dc79c07Ee01cA6",
+                    "abi_key": "a063f79e2d7fd8b63e9e0a19a0ee8a4a479aa1e1",
+                    "contract": "0x1089cAb5bf44Ff1695Ff4a7B9b3e2845d61C94b4",
                     "contract_def": "LendingPoolCore",
                     "properties": {
                         "lending_pool_peripheral_key": "weth.lending_pool",
@@ -665,8 +665,8 @@
                     }
                 },
                 "lending_pool_lock": {
-                    "abi_key": "a42be020cfba2c818471b5d6e990e1c5caece23c",
-                    "contract": "0x1dcF8304801e213914eE124a6FEE4AC215656955",
+                    "abi_key": "9a67026123f6dd8eee950a0d3eefa05066cc319b",
+                    "contract": "0x4F02BA7d9A45459D2B5E7AfBEA39bf7919f31fFD",
                     "contract_def": "LendingPoolLock",
                     "properties": {
                         "lending_pool_peripheral_key": "weth.lending_pool",
@@ -674,16 +674,16 @@
                     }
                 },
                 "liquidations_core": {
-                    "abi_key": "0bf72e47d097e76bf06ff7472ded18f011ef8b14",
-                    "contract": "0x613d4E83D9203B919BF2253e882618dda9E6f453",
+                    "abi_key": "b44656dc9df6bf80b638bc99a6127176bc9e5edb",
+                    "contract": "0x38af854635c31F0FA6d8f49671D1363009180FBd",
                     "contract_def": "LiquidationsCore",
                     "properties": {
                         "liquidations_peripheral_key": "weth.liquidations_peripheral"
                     }
                 },
                 "liquidations_peripheral": {
-                    "abi_key": "db36a4aa70b6335a2a6eae4a6ad5a4b200eec46c",
-                    "contract": "0x2A6863F94712AF9e76aCB1F9E10518752F3c5224",
+                    "abi_key": "012107ac5541ba4f99de0feb011fa7c591ba9c8d",
+                    "contract": "0xc911D8FAb89dDbf4D950038e8897c63eA4b66d15",
                     "contract_def": "LiquidationsPeripheral",
                     "properties": {
                         "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
@@ -700,8 +700,8 @@
                     }
                 },
                 "liquidity_controls": {
-                    "abi_key": "24100351d79327597693c02ef1281695562b65fb",
-                    "contract": "0x764c7A4A7c6e7Bc79e50b7bBcac6a8D6c171d640",
+                    "abi_key": "9a18261af12705e7724fcc464befa8d9525da279",
+                    "contract": "0xd96F181c77e34F6eA53a78F49c3a7f4107527784",
                     "contract_def": "LiquidityControls",
                     "properties": {
                         "lock_period_enabled": false,
@@ -710,8 +710,8 @@
                     }
                 },
                 "loans": {
-                    "abi_key": "d195267487323f8ab9e7e58723cdde9b5cba1ec1",
-                    "contract": "0x3D9eBefD63c680b548E27B273BE6E26900B419Df",
+                    "abi_key": "cb38b4b43aa48767d843d917bb48b83f53e7f703",
+                    "contract": "0x7c8fE06bACe4d6B653CDA4322E49742A53aEE965",
                     "contract_def": "LoansPeripheral",
                     "properties": {
                         "collateral_vault_peripheral_key": "weth.collateral_vault_peripheral",
@@ -724,8 +724,8 @@
                     }
                 },
                 "loans_core": {
-                    "abi_key": "08603e1b2ec1e8d1596e53dbda1ad7d85d83b23f",
-                    "contract": "0xeC7C7528f579e6de112129f1252bE43975822861",
+                    "abi_key": "05d8ef820bd8cb1a2c16b2b3b3b719c2fc14d3d0",
+                    "contract": "0x119572a63f107970C3Fa816E9Ead4A6b9bab0FC6",
                     "contract_def": "LoansCore",
                     "properties": {
                         "loans_peripheral_key": "weth.loans"
