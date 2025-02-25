@@ -1,7 +1,128 @@
 {
+  "anticyclone": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xc5858A5eBc6059f587DC3deED4D29f3784bc6Cc8",
+    "criteria": {
+      "max_id": 305000000,
+      "min_id": 304000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/A5QPbhrbiDiUsmLw5fc6p9uWc8rDFspy16_yCLlJHDVWGVnvPUeEtWG4FvrE1kIgdzjHpoRV0ZEX-5qhIy6qqChc-be0ALrtMRpMXg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Anticyclone by William Mapan",
+    "opensea_slug": "anticyclone-by-william-mapan",
+    "opensea_url": "https://opensea.io/collection/anticyclone-by-william-mapan",
+    "simulation_token_id": 304000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "anticyclone-by-william-mapan"
+  },
+  "archetype": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xA1A8Fbf854324BbA07f71456A599BD631Ff0FbFa",
+    "criteria": {
+      "max_id": 24000000,
+      "min_id": 23000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/lkRT5zSN8yjYwgv0G0TLoCosJq59Xn29upEo7hDLFENZYsUOFA8cCvnMmBNqr_MH9p7aQz0eKmL84_RZ5hBf1gva55_1W_hu_K6sCg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Archetype by Kjetil Golid",
+    "opensea_slug": "archetype-by-kjetil-golid",
+    "opensea_url": "https://opensea.io/collection/archetype-by-kjetil-golid",
+    "simulation_token_id": 23000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "archetype-art-blocks-curated"
+  },
+  "autoglyphs": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 150.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xF46131D46a6E5cC44431EeCee9826dF5Cf776d8c",
+    "debt_limit": 250,
+    "floor_multiple_cap": 1.0,
+    "floor_price_providers": [
+      "opensea",
+      "nftgo",
+      "alchemy"
+    ],
+    "image_url": "https://i.seadn.io/gae/BX7cWHwWFzo6FVh-Ql_qzFbXtADQgLLlpLOl3l9tS6hUPlgtGHgHn_E1FxiHXmzNlvig00ZEAk9uZU-tMPT2Fg",
+    "looksrare_url": "https://looksrare.org/collections/0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782",
+    "mapped_address": "0xd4e4078ca3495DE5B1d4dB434BEbc5a986197782",
+    "name": "[Internal] Autoglyphs",
+    "opensea_slug": "autoglyphs",
+    "opensea_url": "https://opensea.io/collection/autoglyphs",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [
+      "7d",
+      "30d",
+      "90d"
+    ],
+    "underwriting_slug": "autoglyphs",
+    "whitelisted": true
+  },
   "azuki": {
     "appraisal_method": "standard",
+    "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
@@ -22,7 +143,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xC07927a4D78baeF9A5053574422aa48E62E985DD",
+    "contract_address": "0x279a7c37C4e38A532D66409FdBC32b6eD6860F81",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -36,7 +157,6 @@
     "name": "[Internal] Azuki",
     "opensea_slug": "azuki",
     "opensea_url": "https://opensea.io/collection/azuki",
-    "simulation_token_id": 1,
     "tier_pricing": {
       "30d": {
         "apr": 0.2,
@@ -56,11 +176,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "azuki",
     "whitelisted": true
   },
   "bakc": {
     "appraisal_method": "standard",
+    "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 150.0,
         "floor_multiple_cap": 1.0,
@@ -81,7 +209,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5D9361eC8eFca73bF0ba8001AFdE482F225F822B",
+    "contract_address": "0xB3D27771772506088F4Dcc4f2a3e414b0f4725bA",
     "debt_limit": 150,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -115,70 +243,33 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "bored-ape-kennel-club",
     "whitelisted": true
   },
   "bayc": {
     "appraisal_method": "standard",
+    "check_flagging": false,
     "conditions": {
       "SWIMMING": {
         "debt_limit": 500.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.675
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.725
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.575
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "USDC": {
         "debt_limit": 800000.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.4
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.3
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "WETH": {
         "debt_limit": 500.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.675
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.725
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.575
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x237Ee74308dB72F6150f52c2ac755B53300a1fC3",
+    "contract_address": "0xbF197B7579bA723C5BDF467c5C71359e26CD8ffA",
     "debt_limit": 700,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -193,29 +284,18 @@
     "opensea_slug": "boredapeyachtclub",
     "opensea_url": "https://opensea.io/collection/boredapeyachtclub",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.175,
-        "ltv": 0.675
-      },
-      "7d": {
-        "apr": 0.35,
-        "ltv": 0.725
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.575
-      }
-    },
+    "tier_pricing": {},
     "tiers": [
       "7d",
       "30d",
       "90d"
     ],
+    "underwriting_slug": "bored-ape-yacht-club",
     "whitelisted": true
   },
   "beanz": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 50.0,
@@ -234,10 +314,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0x81eE90A3D89f91fb8A27dbd3a9eB179c4E53A325",
+    "contract_address": "0x23Cc6de8c1ecc1082ceACB1Ea89D776e01FA8530",
     "debt_limit": 50,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -271,10 +351,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "beanz-official",
     "whitelisted": true
   },
   "chromie": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "USDC": {
         "debt_limit": 250000.0,
@@ -315,7 +397,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5Ae300612EF2E53B3317Eb07cD0a8822F20AE479",
+    "contract_address": "0x88958cdAd38E6EE7E5fbdfBA67DC432Fb9d3DA1a",
     "criteria": {
       "max_id": 1000000,
       "min_id": 0,
@@ -352,11 +434,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-chromie",
     "whitelisted": true
   },
   "clonex": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 150.0,
         "floor_multiple_cap": 1.0,
@@ -377,7 +467,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xB734B673D9aaa3d19b10edfFa61F18663e848fD9",
+    "contract_address": "0xC87F935448238F5BEEeAf9C34e39C5Cf525986d4",
     "debt_limit": 150,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -411,11 +501,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "clone-x",
     "whitelisted": true
   },
   "cool": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
@@ -436,7 +534,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5BdE528eF1c4bECceA53975D39bE00dA848df157",
+    "contract_address": "0x5744Bd54EB914E821831129c75eA47d1D058a209",
     "debt_limit": 15,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -470,11 +568,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "cool-cats",
     "whitelisted": true
   },
   "degods": {
     "appraisal_method": "floor_price",
+    "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -495,7 +601,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xfae867E5af6bad2F6319b608778bdEa3844DC551",
+    "contract_address": "0xD2be3F356B8D8a2D762A4b14a4c1A848388360cE",
     "debt_limit": 50,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -529,11 +635,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "degods",
     "whitelisted": true
   },
   "doodles": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -554,7 +668,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x49cf83a846EDd01575Fcea786C24336955E42f67",
+    "contract_address": "0x8bAa6098F23B100876694d2C11c22C92Ee99fBc0",
     "debt_limit": 125,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -588,11 +702,32 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "doodles",
     "whitelisted": true
   },
   "fidenza": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "DEADPOOL": {
+        "debt_limit": 250000.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {
+          "30d": {
+            "apr": 0.15,
+            "ltv": 0.4
+          },
+          "7d": {
+            "apr": 0.35,
+            "ltv": 0.45
+          },
+          "90d": {
+            "apr": 0.125,
+            "ltv": 0.3
+          }
+        },
+        "whitelisted": true
+      },
       "ETH-GRAILS": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 3.0,
@@ -610,27 +745,7 @@
             "ltv": 1.0
           }
         },
-        "token_whitelist": "fidenzas-squigglespool",
-        "whitelisted": true
-      },
-      "ETH-SQUIGGLEDAO": {
-        "debt_limit": 125.0,
-        "floor_multiple_cap": 3.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.25,
-            "ltv": 1.0
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 1.0
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 1.0
-          }
-        },
-        "token_whitelist": "fidenzas-squigglespool",
+        "token_whitelist": "fidenzas-grailspool",
         "whitelisted": true
       },
       "USDC": {
@@ -672,7 +787,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x2347C310257cCD8BdE9e16CC108cb73F21336C60",
+    "contract_address": "0x9BC18817c971fFeF1c005EB7038cfc0399D26DA6",
     "criteria": {
       "max_id": 79000000,
       "min_id": 78000000,
@@ -709,11 +824,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-fidenza",
     "whitelisted": true
   },
   "gazers": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -734,7 +857,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5DB39b8865Db3f58549C315B63F73CE57A3d78d2",
+    "contract_address": "0xC134f3f32d67369102F9c8a9E013a7f93836A18F",
     "criteria": {
       "max_id": 216000000,
       "min_id": 215000000,
@@ -771,32 +894,14 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-gazers",
     "whitelisted": true
   },
   "gundead": {
     "appraisal_method": "standard",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": false
-      }
-    },
-    "contract_address": "0xC3B56a95966bC3c05aA9fA0ee4Bf8a899afd8851",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0x6ab1b35ddA2512F86C2CA19d54Af80367E09F9a9",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -811,51 +916,18 @@
     "opensea_slug": "genuine-undead",
     "opensea_url": "https://opensea.io/collection/genuine-undead",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
-      },
-      "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
-      }
-    },
     "tiers": [
       "7d",
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "underwriting_slug": ""
   },
   "hm": {
     "appraisal_method": "standard",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": false
-      }
-    },
-    "contract_address": "0xAc786fdB7e79F72F92E17e2Ed3Aa03972fffAC9F",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0x3d2F90B250eFaa8fF0CFb81Dbff1F8f4A81a8B80",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -870,30 +942,23 @@
     "opensea_slug": "hashmasks",
     "opensea_url": "https://opensea.io/collection/hashmasks",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
-      },
-      "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
-      }
-    },
     "tiers": [
       "7d",
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "underwriting_slug": ""
   },
   "hvmtl": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -914,7 +979,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xeea13cb5c7429aBB9bc84cefa93b8073d7fd2480",
+    "contract_address": "0x594091f34a430001Dd9793cb1B88C7a80C2A4DaA",
     "debt_limit": 25.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -922,10 +987,10 @@
       "nftgo",
       "alchemy"
     ],
-    "image_url": "https://i.seadn.io/gae/a_frplnavZA9g4vN3SexO5rrtaBX_cBTaJYcgrPtwQIqPhzgzUendQxiwUdr51CGPE2QyPEa1DHnkW1wLrHAv5DgfC3BP-CWpFq6BA",
+    "image_url": "https://i.seadn.io/gcs/files/82a7f92df6d60e41327b69cdafea8831.jpg?auto=format&dpr=1&w=1920",
     "looksrare_url": "https://looksrare.org/collections/0x4b15a9c28034dC83db40CD810001427d3BD7163D",
     "mapped_address": "0x4b15a9c28034dC83db40CD810001427d3BD7163D",
-    "name": "HV-MTL",
+    "name": "[Internal] HV-MTL",
     "opensea_slug": "hv-mtl",
     "opensea_url": "https://opensea.io/collection/hv-mtl",
     "simulation_token_id": 1,
@@ -948,10 +1013,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "the-hvmtl-heavy-metal",
     "whitelisted": true
   },
   "invsble": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 10.0,
@@ -970,10 +1037,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0x31420eF2Def717e333F7298380b7CBa399f7C17B",
+    "contract_address": "0xA03a7dF2c31AeD96EC11Ec087803aB0232F02F7A",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1007,11 +1074,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "invisible-friends",
     "whitelisted": true
   },
   "lilpudgys": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 15.0,
         "floor_multiple_cap": 1.0,
@@ -1032,7 +1107,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x4CC160c865CB8dcd420c9Eb4dBcfd2F99317D286",
+    "contract_address": "0x8c917c4DC134053d54BC40Bbae6fa4434b0f5E7c",
     "debt_limit": 15,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1066,32 +1141,27 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "lil-pudgys",
     "whitelisted": true
   },
   "mayc": {
     "appraisal_method": "standard",
+    "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 250.0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
-          },
-          "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x50F517fa3835D6722429e987dc1D9aB1a80F6c8c",
+    "contract_address": "0xde0c9936Fd6bF61615e8440d1e747F5591EC25fB",
     "debt_limit": 250,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1106,30 +1176,25 @@
     "opensea_slug": "mutant-ape-yacht-club",
     "opensea_url": "https://opensea.io/collection/mutant-ape-yacht-club",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.2,
-        "ltv": 0.6
-      },
-      "7d": {
-        "apr": 0.4,
-        "ltv": 0.65
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
-      }
-    },
+    "tier_pricing": {},
     "tiers": [
       "7d",
       "30d",
       "90d"
     ],
+    "underwriting_slug": "mutant-ape-yacht-club",
     "whitelisted": true
   },
   "meebits": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 100.0,
         "floor_multiple_cap": 1.0,
@@ -1150,7 +1215,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x3495B2609795AddC5fA325eEeE901F1c2759847F",
+    "contract_address": "0xBf21cEb0cb60eaC4CCA8B7d3574d75a20ae355ac",
     "debt_limit": 100,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1184,11 +1249,93 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "meebits",
     "whitelisted": true
+  },
+  "memoriesofqilin": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0x4F4b89deeF305309EAF110DFFAFb4861Cda4CF2d",
+    "criteria": {
+      "max_id": 283000000,
+      "min_id": 282000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/0KmTGvcQRxI0g-1B3qV3RzpqpqHkfW43fH1fGMPWXPdT3CKuMJMYSWAgxNnwNQ_bqJMB8WIx4NuMN8T_qu4JFFfcf_UHInGoHDfp?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Memories of Qilin by Emily Xie",
+    "opensea_slug": "memories-of-qilin-by-emily-xie",
+    "opensea_url": "https://opensea.io/collection/memories-of-qilin-by-emily-xie",
+    "simulation_token_id": 282000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "memories-of-qilin-art-blocks-curated"
+  },
+  "meridian": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xE73782b97E680d1d7Ed311DDB10bB4bF445F8Ace",
+    "criteria": {
+      "max_id": 164000000,
+      "min_id": 163000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/o5Tt1FbaINxqvS47-r3weuCEaTKGbc5yZJS0yXtDyBDwVeyYVWr7angBivb3iGXKc_1Q-a-DBwxu_VMynRnPbJHVnkt4u1pbBTDz?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] Meridian by Matt DesLauriers",
+    "opensea_slug": "meridian-by-matt-deslauriers",
+    "opensea_url": "https://opensea.io/collection/meridian-by-matt-deslauriers",
+    "simulation_token_id": 163000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "meridian-art-blocks-playground"
   },
   "miladymaker": {
     "appraisal_method": "standard",
+    "check_flagging": false,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -1209,7 +1356,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x5b051c7aAFA8Bb34C1B199b83D3F40D2E2979367",
+    "contract_address": "0x078be30D55224Ff1450a07856a19abED6B2773DB",
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1220,7 +1367,7 @@
     "image_url": "https://i.seadn.io/gae/a_frplnavZA9g4vN3SexO5rrtaBX_cBTaJYcgrPtwQIqPhzgzUendQxiwUdr51CGPE2QyPEa1DHnkW1wLrHAv5DgfC3BP-CWpFq6BA",
     "looksrare_url": "https://looksrare.org/collections/0x5Af0D9827E0c53E4799BB226655A1de152A425a5",
     "mapped_address": "0x5Af0D9827E0c53E4799BB226655A1de152A425a5",
-    "name": "Milady Maker",
+    "name": "[Internal] Milady Maker",
     "opensea_slug": "milady",
     "opensea_url": "https://opensea.io/collection/milady",
     "simulation_token_id": 1,
@@ -1243,11 +1390,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "milady-maker",
     "whitelisted": true
   },
   "moonbirds": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 125.0,
         "floor_multiple_cap": 1.0,
@@ -1268,7 +1423,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x0E435107E9e057F1cea11EE0104317DE914f917e",
+    "contract_address": "0xef285B5adF19b1162D06056BCc237fd2c0b976fF",
     "debt_limit": 125,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1302,14 +1457,69 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "moonbirds",
+    "whitelisted": true
+  },
+  "mutanthounds": {
+    "appraisal_method": "floor_price",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0x72Aec65d1596c70708f3F72167E895853A92864A",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://pbs.twimg.com/profile_images/1575877987815211008/LvoQKNXx_400x400.png",
+    "looksrare_url": "https://looksrare.org/collections/0x354634c4621cDfb7a25E6486cCA1E019777D841B",
+    "mapped_address": "0x354634c4621cDfb7a25E6486cCA1E019777D841B",
+    "name": "[Internal] Mutant Hounds",
+    "opensea_slug": "mutant-hounds",
+    "opensea_url": "https://opensea.io/collection/mutant-hounds",
+    "simulation_token_id": 20,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "",
     "whitelisted": true
   },
   "oldquirkies": {
-    "contract_address": "0xEC118AbC2347533b08402ab85E9eb45F43cd0146"
+    "check_flagging": true,
+    "contract_address": "0x7B162d639B090eFadcEC63BE690459c5E6b283F7"
+  },
+  "opepen": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": false
+      }
+    },
+    "contract_address": "0x9a6d043a86f8f44cC8528F278552642cFdD598Ca",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gcs/files/b1c9ed2e584b4f6e418bf1ca15311844.jpg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x6339e5E072086621540D0362C4e3Cea0d643E114",
+    "mapped_address": "0x6339e5E072086621540D0362C4e3Cea0d643E114",
+    "name": "[Internal] Opepen Edition",
+    "opensea_slug": "opepen-edition",
+    "opensea_url": "https://opensea.io/collection/opepen-edition",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "opepen-edition"
   },
   "otherdeed": {
     "appraisal_method": "otherdeeds",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -1330,7 +1540,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xcCa93aF54060793ED3A7E6bd3Bb312CfC6C27e3A",
+    "contract_address": "0x9CFf49446a4D4d22E81472f761F620343dDcb985",
     "criteria": {
       "set_name": "kodas",
       "type": "token_not_in_set"
@@ -1368,11 +1578,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "otherdeed-for-otherside",
     "whitelisted": true
   },
   "otherdeedexpanded": {
     "appraisal_method": "floor_price",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -1393,7 +1611,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xBB41Eb7A00C0A8382D94A37fA30BB323421B7784",
+    "contract_address": "0xd4B9ab54853277Fa8902033925558D43e327A460",
     "debt_limit": 25,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1401,7 +1619,7 @@
       "nftgo",
       "alchemy"
     ],
-    "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
+    "image_url": "https://i.seadn.io/gcs/files/9583ab4792a83cd81d5075b59514a34a.png?auto=format&dpr=1&w=3840",
     "looksrare_url": "https://looksrare.org/collections/0x790B2cF29Ed4F310bf7641f013C65D4560d28371",
     "mapped_address": "0x790B2cF29Ed4F310bf7641f013C65D4560d28371",
     "name": "[Internal] Otherdeed Expanded",
@@ -1427,11 +1645,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "otherdeed-expanded",
     "whitelisted": true
   },
   "otherdeedkoda": {
     "appraisal_method": "otherdeeds",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -1452,7 +1678,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xc5f608bfe3dB9194E2e38E77506C6656c530990f",
+    "contract_address": "0xe824DF9984670aca07fA84Fc75c357767aCaf21D",
     "criteria": {
       "set_name": "kodas",
       "type": "token_in_set"
@@ -1490,58 +1716,30 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "otherside-koda",
     "whitelisted": true
   },
   "othersidekoda": {
     "appraisal_method": "floor_price",
+    "check_flagging": true,
     "conditions": {
       "USDC": {
-        "debt_limit": 250000.0,
+        "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.175,
-            "ltv": 0.4
-          },
-          "7d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.3
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       },
       "WETH": {
-        "debt_limit": 50.0,
+        "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
-          },
-          "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
-          }
-        },
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x1dcF8304801e213914eE124a6FEE4AC215656955",
-    "debt_limit": 50,
-    "floor_multiple_cap": 1.0,
-    "floor_price_providers": [
-      "opensea",
-      "nftgo",
-      "alchemy"
-    ],
+    "contract_address": "0xbA60db00d0984d67c670F9e8989F7262Bf63CD53",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
     "image_url": "https://i.seadn.io/gae/yIm-M5-BpSDdTEIJRt5D6xphizhIdozXjqSITgK4phWq7MmAU3qE7Nw7POGCiPGyhtJ3ZFP8iJ29TFl-RLcGBWX5qI4-ZcnCPcsY4zI",
     "looksrare_url": "https://looksrare.org/collections/0xE012Baf811CF9c05c408e879C399960D1f305903",
     "mapped_address": "0xE012Baf811CF9c05c408e879C399960D1f305903",
@@ -1549,51 +1747,82 @@
     "opensea_slug": "otherside-koda",
     "opensea_url": "https://opensea.io/collection/otherside-koda",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.2,
-        "ltv": 0.6
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "otherside-koda",
+    "whitelisted": true
+  },
+  "othersidekodamara": {
+    "appraisal_method": "floor_price",
+    "check_flagging": false,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
       },
-      "7d": {
-        "apr": 0.4,
-        "ltv": 0.65
-      },
-      "90d": {
-        "apr": 0.15,
-        "ltv": 0.45
+      "WETH": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
       }
     },
-    "tiers": [
-      "7d",
-      "30d",
-      "90d"
-    ],
+    "contract_address": "0xB8458064928a81391bC24B317336aE470Ce3053b",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/s/raw/files/cef557b2b7bbd40dc5e11e2cd9e08eb8.png?auto=format&dpr=1&w=3840",
+    "looksrare_url": "https://looksrare.org/collections/0x56e6F1BFFde5DCcd9A183585cE31f2902FC52707",
+    "mapped_address": "0x56e6F1BFFde5DCcd9A183585cE31f2902FC52707",
+    "name": "[Internal] Otherside Kodamara",
+    "opensea_slug": "kodamara",
+    "opensea_url": "https://opensea.io/collection/kodamara",
+    "simulation_token_id": 54249,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "",
+    "whitelisted": false
+  },
+  "othersidemara": {
+    "appraisal_method": "floor_price",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0x916c6e9211bCEc8d6279D8EebdE43b7261bbb1F4",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/s/raw/files/310edfcfa8f4f4503ac78b87376a0ac1.png?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x3Bdca51226202Fc2a64211Aa35A8d95D61C6ca99",
+    "mapped_address": "0x3Bdca51226202Fc2a64211Aa35A8d95D61C6ca99",
+    "name": "[Internal] Otherside Mara",
+    "opensea_slug": "otherside-mara",
+    "opensea_url": "https://opensea.io/collection/otherside-mara",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "",
     "whitelisted": true
   },
   "ppg": {
     "appraisal_method": "standard",
+    "check_flagging": false,
     "conditions": {
-      "WETH": {
-        "debt_limit": 125.0,
+      "USDC": {
+        "debt_limit": 0,
         "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.2,
-            "ltv": 0.6
-          },
-          "7d": {
-            "apr": 0.4,
-            "ltv": 0.65
-          },
-          "90d": {
-            "apr": 0.15,
-            "ltv": 0.45
-          }
-        },
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x15485FDaC69393ECf720FFB373f1e999eDB2d14c",
+    "contract_address": "0x54B8c1262891bDa9c3C415c8d8Fb5782905A0023",
     "debt_limit": 125,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1627,10 +1856,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "pudgy-penguins",
     "whitelisted": true
   },
   "punk": {
     "appraisal_method": "punks",
+    "check_flagging": false,
     "conditions": {
       "USDC": {
         "debt_limit": 800000.0,
@@ -1671,7 +1902,8 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x53Fc1ED64F2552b8583C2Acf83d24Ed66F8FBa66",
+    "contract_address": "0xd9705E8F5b47c4189266c789759Cb19b84281492",
+    "contract_def": "CryptoPunks",
     "debt_limit": 850,
     "floor_multiple_cap": 1.1,
     "floor_price_providers": [
@@ -1703,10 +1935,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "cryptopunks",
     "whitelisted": true
   },
   "quirkies": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 2.5,
@@ -1725,10 +1959,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0xC647CaD7165308D6B87F06b2912aD295f924CEb9",
+    "contract_address": "0xc32bcD3E9ae0A4873ddEaCc3E1CDE873e1661ECa",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1762,11 +1996,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "quirkies-originals",
     "whitelisted": true
   },
   "rektguy": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -1787,7 +2029,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0xacd25dE5C3d0fDB119016f24f4896B306bc4ca7a",
+    "contract_address": "0x912851EAf451Cd6FD80DC4675DBC879fC8ed0Cf6",
     "debt_limit": 75,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1821,10 +2063,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "rektguy",
     "whitelisted": true
   },
   "renga": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 40.0,
@@ -1843,10 +2087,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0x17e2c178cDef0d990E4b33930Cb50FB5f0ca2564",
+    "contract_address": "0x937e2a585E9a6DEC0ADcB207216207d037a1DF99",
     "debt_limit": 40,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1880,11 +2124,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "renga",
     "whitelisted": true
   },
   "ringers": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 25.0,
         "floor_multiple_cap": 1.0,
@@ -1905,7 +2157,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x2E9D9EB106C0E52E457E44BA6D19927aaAFc2635",
+    "contract_address": "0xC864F6c44b41bf4Ac07B956d927D4E34d31DB220",
     "criteria": {
       "max_id": 14000000,
       "min_id": 13000000,
@@ -1942,32 +2194,14 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "art-blocks-ringers",
     "whitelisted": true
   },
   "spaceriders": {
     "appraisal_method": "standard",
-    "conditions": {
-      "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 1.0,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
-        "whitelisted": true
-      }
-    },
-    "contract_address": "0x2217699536d237571D0C93960B3b14B6651C469A",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0x5daF5dE7E602E0b100C710445918798891DEbe5a",
     "debt_limit": 2.5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -1982,30 +2216,23 @@
     "opensea_slug": "spaceridersnft",
     "opensea_url": "https://opensea.io/collection/spaceridersnft",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
-      },
-      "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
-      }
-    },
     "tiers": [
       "7d",
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "underwriting_slug": ""
   },
   "thecaptainz": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 50.0,
         "floor_multiple_cap": 1.0,
@@ -2026,7 +2253,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x16D98BABC68db06985D4025FC6b848FFB26f0EFf",
+    "contract_address": "0x8a3FdFC3430B0CB546B9657E3aabBD6428E9D4d1",
     "debt_limit": 50.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2037,7 +2264,7 @@
     "image_url": "https://i.seadn.io/gcs/files/6df4d75778066bce740050615bc84e21.png",
     "looksrare_url": "https://looksrare.org/collections/0x769272677faB02575E84945F03Eca517ACc544Cc",
     "mapped_address": "0x769272677faB02575E84945F03Eca517ACc544Cc",
-    "name": "The Captainz",
+    "name": "[Internal] The Captainz",
     "opensea_slug": "thecaptainz",
     "opensea_url": "https://opensea.io/collection/thecaptainz",
     "simulation_token_id": 1,
@@ -2060,32 +2287,131 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "the-captainz",
     "whitelisted": true
   },
-  "theplague": {
-    "appraisal_method": "floor_price",
+  "thecurrency": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
-        "debt_limit": 2.5,
-        "floor_multiple_cap": 0.8,
-        "tier_pricing": {
-          "30d": {
-            "apr": 0.35,
-            "ltv": 0.45
-          },
-          "7d": {
-            "apr": 0.7,
-            "ltv": 0.5
-          },
-          "90d": {
-            "apr": 0.25,
-            "ltv": 0.35
-          }
-        },
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": false
+      }
+    },
+    "contract_address": "0x926b711A8a97a1832374868821340b790D0E86f1",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gcs/files/2bf9bf9e1c30a066fde9408f641d5910.png?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
+    "mapped_address": "0xaaDc2D4261199ce24A4B0a57370c4FCf43BB60aa",
+    "name": "[Internal] Damien Hirst - The Currency",
+    "opensea_slug": "thecurrency",
+    "opensea_url": "https://opensea.io/collection/thecurrency",
+    "simulation_token_id": 50,
+    "tiers": [],
+    "underwriting_slug": "damien-hirst-the-currency"
+  },
+  "theeternalpump": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "ETH-META4": {
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "token_whitelist": "theeternalpump-meta4pool",
+        "whitelisted": true
+      },
+      "WETH": {
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": false
+      }
+    },
+    "contract_address": "0x29Bd2bdD3C2B762f18b835D50910F283d730E822",
+    "criteria": {
+      "max_id": 23000000,
+      "min_id": 22000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gae/-c-EE-lEGIg2JwgvE_8wkGvkYiiHTF6njT4oLMg0-3BrnyrlAN3skQ4zSEGI3YDLqAB4ynfZQXXAVdrHT8TWVa8l0psXz-dIqNEwBA?auto=format&dpr=1&w=3840",
+    "looksrare_url": "https://looksrare.org/collections/0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "mapped_address": "0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+    "name": "[Internal] The Eternal Pump",
+    "opensea_slug": "the-eternal-pump-by-dmitri-cherniak",
+    "opensea_url": "https://opensea.io/collection/the-eternal-pump-by-dmitri-cherniak",
+    "simulation_token_id": 22000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "the-eternal-pump-art-blocks-playground"
+  },
+  "thegrailed": {
+    "appraisal_method": "standard",
+    "check_flagging": false,
+    "conditions": {},
+    "contract_address": "0xC4162685e3BF0C5bbd8dA433f346a945bCE402FC",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://img.reservoir.tools/images/v2/mainnet/iP3aWzfOlBvWQx7ZVDDwFZajkAUc5SWvTVabagJ1zmuxcSq1eYmPNCtDols9WDEc0KqIgRjmT%2B0oH6uiL%2Bf2gYna6UncUNJsvua7rGk63wBmA9ND38PmCBLhTIBEWQoWsCH%2BQQrScvn3qU4CUOY%2Byhg9gsyhPQLhJLlF7jo6KVAQ%2Bu38iOEwsQvESWEgzbJ4cCaYBbanB0IRc00JO9nB5g%3D%3D",
+    "looksrare_url": "https://looksrare.org/collections/0x2358693f4FaEC9D658bB97Fc9cd8885F62105dc1",
+    "mapped_address": "0x2358693f4FaEC9D658bB97Fc9cd8885F62105dc1",
+    "name": "[Internal] 10KTF - The Grailed",
+    "opensea_slug": "thegrailed",
+    "opensea_url": "https://opensea.io/collection/thegrailed",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": ""
+  },
+  "theharvest": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
         "whitelisted": true
       }
     },
-    "contract_address": "0x5e3CEC8D417E9c8335d53D94902e4ee681dFBDA3",
+    "contract_address": "0x06e4Ba089dc708f28E9C5Eea2210345fE85c70c6",
+    "criteria": {
+      "max_id": 408000000,
+      "min_id": 407000000,
+      "type": "range"
+    },
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gcs/files/e66607aa87a89005b573e509f8fa1ab0.png?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x99a9B7c1116f9ceEB1652de04d5969CcE509B069",
+    "mapped_address": "0x99a9B7c1116f9ceEB1652de04d5969CcE509B069",
+    "name": "[Internal] The Harvest by Per Kristian Stoveland",
+    "opensea_slug": "the-harvest-by-per-kristian-stoveland",
+    "opensea_url": "https://opensea.io/collection/the-harvest-by-per-kristian-stoveland",
+    "simulation_token_id": 407000001,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "the-harvest-by-per-kristian-stoveland"
+  },
+  "theplague": {
+    "appraisal_method": "floor_price",
+    "check_flagging": true,
+    "conditions": {},
+    "contract_address": "0xa71bd0BdCB468DbBab496861cCF20e4037558c0f",
     "debt_limit": 2.5,
     "floor_multiple_cap": 0.8,
     "floor_price_providers": [
@@ -2100,30 +2426,23 @@
     "opensea_slug": "the-plague",
     "opensea_url": "https://opensea.io/collection/the-plague",
     "simulation_token_id": 1,
-    "tier_pricing": {
-      "30d": {
-        "apr": 0.35,
-        "ltv": 0.45
-      },
-      "7d": {
-        "apr": 0.7,
-        "ltv": 0.5
-      },
-      "90d": {
-        "apr": 0.25,
-        "ltv": 0.35
-      }
-    },
     "tiers": [
       "7d",
       "30d",
       "90d"
     ],
-    "whitelisted": true
+    "underwriting_slug": ""
   },
   "thepotatoz": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 20.0,
         "floor_multiple_cap": 1.0,
@@ -2144,7 +2463,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x42E93ff627e146E09DccB32EEe593213BBd33f9f",
+    "contract_address": "0x11F619B352aF7BC0DB77710B4D709C5C1aFD59aa",
     "debt_limit": 20.0,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2155,7 +2474,7 @@
     "image_url": "https://i.seadn.io/gcs/files/129b97582f0071212ee7cf440644fc28.gif",
     "looksrare_url": "https://looksrare.org/collections/0x39ee2c7b3cb80254225884ca001F57118C8f21B6",
     "mapped_address": "0x39ee2c7b3cb80254225884ca001F57118C8f21B6",
-    "name": "The Potatoz",
+    "name": "[Internal] The Potatoz",
     "opensea_slug": "thepotatoz",
     "opensea_url": "https://opensea.io/collection/thepotatoz",
     "simulation_token_id": 1,
@@ -2178,11 +2497,19 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "the-potatoz",
     "whitelisted": true
   },
   "vft": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
       "WETH": {
         "debt_limit": 10.0,
         "floor_multiple_cap": 1.0,
@@ -2203,7 +2530,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x6313a418fabBF349D71Aa34eb9FD0066f0e578cA",
+    "contract_address": "0x36446fc1b323cc4D42c545ccC7044d6af5016C75",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2237,10 +2564,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "veefriends",
     "whitelisted": true
   },
   "wgame": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 10.0,
@@ -2259,10 +2588,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0x375c7c356f262df415caF206c7Dc79c07Ee01cA6",
+    "contract_address": "0x4559Fe6f1266EABC37d0e5224836efC925D12cE3",
     "debt_limit": 10,
     "floor_multiple_cap": 7.5,
     "floor_price_providers": [
@@ -2296,10 +2625,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "wolf-game",
     "whitelisted": true
   },
   "wgamefarmer": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 5.0,
@@ -2318,10 +2649,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0x05f76364BC7875D44B12691D24351B03a5860A86",
+    "contract_address": "0x16C37daa3D5C789AF3606dBD87BB118e3b54D0d9",
     "debt_limit": 10,
     "floor_multiple_cap": 5,
     "floor_price_providers": [
@@ -2355,10 +2686,12 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "wolf-game-farmer",
     "whitelisted": true
   },
   "wgameland": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 5.0,
@@ -2377,10 +2710,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0x68A9d1Da3eAA8767E41c9EDe1FB0141B0d0F8993",
+    "contract_address": "0x6f13734ee1dcC2089a8C05FA134161970BA91870",
     "debt_limit": 5,
     "floor_multiple_cap": 5,
     "floor_price_providers": [
@@ -2414,10 +2747,44 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "wolf-game-genesis-land",
     "whitelisted": true
+  },
+  "windsofyawanawa": {
+    "appraisal_method": "standard",
+    "check_flagging": true,
+    "conditions": {
+      "USDC": {
+        "debt_limit": 0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      },
+      "WETH": {
+        "debt_limit": 0.0,
+        "floor_multiple_cap": 1.0,
+        "tier_pricing": {},
+        "whitelisted": true
+      }
+    },
+    "contract_address": "0xFA0B83Addd9FE31f3fD9f6bDD0c81E72d02172cc",
+    "debt_limit": 0,
+    "floor_multiple_cap": 0.0,
+    "floor_price_providers": [],
+    "image_url": "https://i.seadn.io/gcs/files/98795786ed318c580e8438874c21603f.jpg?auto=format&dpr=1&w=1920",
+    "looksrare_url": "https://looksrare.org/collections/0x7a63d17F5a59BCA04B6702F461b1f1A1c59b100B",
+    "mapped_address": "0x7a63d17F5a59BCA04B6702F461b1f1A1c59b100B",
+    "name": "[Internal] Winds of Yawanawa by Yawanawa and Refik Anadol",
+    "opensea_slug": "winds-of-yawanawa",
+    "opensea_url": "https://opensea.io/collection/winds-of-yawanawa",
+    "simulation_token_id": 1,
+    "tier_pricing": {},
+    "tiers": [],
+    "underwriting_slug": "winds-of-yawanawa"
   },
   "wow": {
     "appraisal_method": "standard",
+    "check_flagging": true,
     "conditions": {
       "WETH": {
         "debt_limit": 10.0,
@@ -2436,10 +2803,10 @@
             "ltv": 0.35
           }
         },
-        "whitelisted": true
+        "whitelisted": false
       }
     },
-    "contract_address": "0x5d244273a8aF07DFf944A5F7dB301FE8873E3908",
+    "contract_address": "0x7B382F53D0c8E32460639bE1609809C5239A633E",
     "debt_limit": 5,
     "floor_multiple_cap": 1.0,
     "floor_price_providers": [
@@ -2473,11 +2840,13 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "world-of-women",
     "whitelisted": true
   },
   "wpunk": {
     "appraisal_key": "punk",
     "appraisal_method": "punks",
+    "check_flagging": true,
     "conditions": {
       "USDC": {
         "debt_limit": 800000.0,
@@ -2518,7 +2887,7 @@
         "whitelisted": true
       }
     },
-    "contract_address": "0x764c7A4A7c6e7Bc79e50b7bBcac6a8D6c171d640",
+    "contract_address": "0x2655287EAc5508178c1fF084c71644aAfe83f6c4",
     "debt_limit": 850,
     "floor_multiple_cap": 1.1,
     "floor_price_providers": [
@@ -2550,6 +2919,7 @@
       "30d",
       "90d"
     ],
+    "underwriting_slug": "cryptopunks",
     "whitelisted": true
   }
 }

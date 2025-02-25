@@ -1,12 +1,12 @@
-# @version 0.3.10
+# @version 0.4.0
 
 ## Interfaces
 
-from vyper.interfaces import ERC165
-from vyper.interfaces import ERC721
+from ethereum.ercs import IERC165
+from ethereum.ercs import IERC721
 
-implements: ERC721
-implements: ERC165
+implements: IERC721
+implements: IERC165
 
 interface ERC721Receiver:
     def onERC721Received(_operator: address, _from: address, _tokenId: uint256, _data: Bytes[1024]) -> bytes4: view
@@ -87,7 +87,7 @@ symbol: public(immutable(String[3]))
 
 ## Constructor
 
-@external
+@deploy
 def __init__(_initialMintWallet: address):
     self.owner = msg.sender
 
@@ -95,7 +95,7 @@ def __init__(_initialMintWallet: address):
     name = "Zharta Genesis Pass"
     symbol = "ZGP"
 
-    for i in range(1, totalSupply+1):
+    for i: uint256 in range(1, totalSupply+1):
         self.tokenOwner[i] = _initialMintWallet
         self._addTokenToEnumeration(_initialMintWallet, i)
     self.walletSupply[_initialMintWallet] = totalSupply
@@ -165,7 +165,7 @@ def _transferFrom(_from: address, _to: address, _tokenId: uint256):
 
 ## External View Functions
 
-@pure
+@view
 @external
 def supportsInterface(interfaceID: bytes4) -> bool:
 
@@ -272,6 +272,7 @@ def tokenOfOwnerByIndex(_owner: address, _index: uint256) -> uint256:
 ## External Write Functions
 
 @external
+@payable
 def transferFrom(_from: address, _to: address, _tokenId: uint256):
 
     """
@@ -288,6 +289,7 @@ def transferFrom(_from: address, _to: address, _tokenId: uint256):
 
 
 @external
+@payable
 def safeTransferFrom(_from: address, _to: address, _tokenId: uint256, data: Bytes[1024]=b""):
 
     """
@@ -304,11 +306,12 @@ def safeTransferFrom(_from: address, _to: address, _tokenId: uint256, data: Byte
 
     self._transferFrom(_from, _to, _tokenId)
     if _to.is_contract:
-        returnValue: bytes4 = ERC721Receiver(_to).onERC721Received(msg.sender, _from, _tokenId, data)
+        returnValue: bytes4 = staticcall ERC721Receiver(_to).onERC721Received(msg.sender, _from, _tokenId, data)
         assert returnValue == method_id("onERC721Received(address,address,uint256,bytes)", output_type=bytes4), "transfer to non-ERC721Receiver"
 
 
 @external
+@payable
 def approve(_approved: address, _tokenId: uint256):
 
     """

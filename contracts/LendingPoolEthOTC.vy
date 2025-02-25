@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title LendingPoolEthOTC
@@ -8,7 +8,7 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC20 as IERC20
+from ethereum.ercs import IERC20
 
 interface IWETH:
     def deposit(): payable
@@ -164,7 +164,7 @@ collateralClaimsValue: public(uint256)
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20(erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = staticcall IERC20(erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
@@ -237,7 +237,7 @@ def _accountForSentFunds(_to: address, _receiver: address, _amount: uint256):
     assert _to != empty(address), "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
     assert _amount <= self.fundsAvailable, "insufficient liquidity"
-    assert IERC20(erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
+    assert staticcall IERC20(erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
     self.fundsAvailable -= _amount
     self.fundsInvested += _amount
@@ -253,7 +253,7 @@ def _receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256)
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     assert self.fundsInvested >= _amount, "amount higher than invested"
 
-    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare // 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
     self._accountForReceivedFunds(_borrower, _amount, rewardsPool, rewardsProtocol, "loan")
@@ -275,7 +275,7 @@ def _accountForReceivedFunds(
 
     if _rewardsProtocol > 0:
         assert self.protocolWallet != empty(address), "protocolWallet is zero addr"
-        if not IERC20(erc20TokenContract).transfer(self.protocolWallet, _rewardsProtocol):
+        if not extcall IERC20(erc20TokenContract).transfer(self.protocolWallet, _rewardsProtocol):
             raise "error transferring protocol fees"
 
     log FundsReceipt(
@@ -304,7 +304,7 @@ def _receiveFundsFromLiquidation(
     rewardsProtocol: uint256 = 0
     rewardsPool: uint256 = 0
     if _distributeToProtocol:
-        rewardsProtocol = _rewardsAmount * self.protocolFeesShare / 10000
+        rewardsProtocol = _rewardsAmount * self.protocolFeesShare // 10000
         rewardsPool = _rewardsAmount - rewardsProtocol
     else:
         rewardsPool = _rewardsAmount
@@ -314,14 +314,14 @@ def _receiveFundsFromLiquidation(
 
 @internal
 def _unwrap_and_send(_to: address, _amount: uint256):
-    IWETH(erc20TokenContract).withdraw(_amount)
+    extcall IWETH(erc20TokenContract).withdraw(_amount)
     send(_to, _amount)
     log PaymentSent(_to, _to, _amount)
 
 
 @internal
 def _wrap(_amount: uint256):
-    IWETH(erc20TokenContract).deposit(value=_amount)
+    extcall IWETH(erc20TokenContract).deposit(value=_amount)
     log PaymentSent(erc20TokenContract, erc20TokenContract, _amount)
 
 
@@ -408,7 +408,7 @@ def totalAmountWithdrawn(_lender: address) -> uint256:
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
-@external
+@deploy
 def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "address is the zero address"
 
@@ -435,7 +435,7 @@ def initialize(_owner: address, _lender: address, _protocolWallet: address, _pro
 @external
 def create_proxy(_protocolWallet: address, _protocolFeesShare: uint256, _lender: address) -> address:
     proxy: address = create_minimal_proxy_to(self)
-    ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare)
+    extcall ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare)
     log ProxyCreated(proxy, msg.sender, _lender, _protocolWallet, _protocolFeesShare)
     return proxy
 

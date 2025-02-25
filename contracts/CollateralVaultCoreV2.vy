@@ -1,10 +1,10 @@
-# @version 0.3.10
+# @version 0.4.0
 
 
 # Interfaces
 
-from vyper.interfaces import ERC165 as IERC165
-from vyper.interfaces import ERC721 as IERC721
+from ethereum.ercs import IERC165
+from ethereum.ercs import IERC721
 
 interface IDelegationRegistry:
     def delegateForToken(delegate: address, contract_: address, tokenId: uint256, value_: bool): nonpayable
@@ -33,7 +33,7 @@ event CollateralVaultPeripheralAddressSet:
 
 # Global variables
 
-vaultName: constant(String[30]) = "erc721"
+vaultName: public(constant(String[30])) = "erc721"
 
 owner: public(address)
 proposedOwner: public(address)
@@ -46,20 +46,16 @@ delegationRegistry: public(IDelegationRegistry)
 
 @internal
 def _setDelegation(_wallet: address, _collateralAddress: address, _tokenId: uint256, _value: bool):
-    self.delegationRegistry.delegateForToken(_wallet, _collateralAddress, _tokenId, _value)
+    extcall self.delegationRegistry.delegateForToken(_wallet, _collateralAddress, _tokenId, _value)
 
 @view
 @internal
 def _collateralOwner(_collateralAddress: address, _tokenId: uint256) -> address:
-    assert IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
-    return IERC721(_collateralAddress).ownerOf(_tokenId)
+    assert staticcall IERC165(_collateralAddress).supportsInterface(0x80ac58cd), "collat addr is not a ERC721"
+    return staticcall IERC721(_collateralAddress).ownerOf(_tokenId)
 
 ##### EXTERNAL METHODS - VIEW #####
 
-@view
-@external
-def vaultName() -> String[30]:
-    return vaultName
 
 @view
 @external
@@ -81,11 +77,11 @@ def ownsCollateral(_collateralAddress: address, _tokenId: uint256) -> bool:
 @view
 @external
 def isCollateralApprovedForVault(_borrower: address, _collateralAddress: address, _tokenId: uint256) -> bool:
-    return IERC721(_collateralAddress).isApprovedForAll(_borrower, self) or IERC721(_collateralAddress).getApproved(_tokenId) == self
+    return staticcall IERC721(_collateralAddress).isApprovedForAll(_borrower, self) or staticcall IERC721(_collateralAddress).getApproved(_tokenId) == self
 
 
 ##### EXTERNAL METHODS - WRITE #####
-@external
+@deploy
 def __init__(_delegationRegistryAddress: address):
     self.owner = msg.sender
     self.delegationRegistry = IDelegationRegistry(_delegationRegistryAddress)
@@ -141,7 +137,7 @@ def setCollateralVaultPeripheralAddress(_address: address):
 def storeCollateral(_wallet: address, _collateralAddress: address, _tokenId: uint256, _delegateWallet: address):
     assert msg.sender == self.collateralVaultPeripheralAddress, "msg.sender is not authorised"
 
-    IERC721(_collateralAddress).safeTransferFrom(_wallet, self, _tokenId, b"")
+    extcall IERC721(_collateralAddress).safeTransferFrom(_wallet, self, _tokenId, b"")
     if _delegateWallet != empty(address):
         self._setDelegation(_delegateWallet, _collateralAddress, _tokenId, True)
 
@@ -152,7 +148,7 @@ def transferCollateral(_wallet: address, _collateralAddress: address, _tokenId: 
     assert _delegateWallet != empty(address), "delegate is zero addr"
     assert self._collateralOwner(_collateralAddress, _tokenId) == self, "collateral not owned by vault"
 
-    IERC721(_collateralAddress).safeTransferFrom(self, _wallet, _tokenId, b"")
+    extcall IERC721(_collateralAddress).safeTransferFrom(self, _wallet, _tokenId, b"")
     self._setDelegation(_delegateWallet, _collateralAddress, _tokenId, False)
 
 

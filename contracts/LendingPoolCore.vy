@@ -1,9 +1,9 @@
-# @version 0.3.10
+# @version 0.4.0
 
 
 # Interfaces
 
-from vyper.interfaces import ERC20 as IERC20
+from ethereum.ercs import IERC20
 
 
 # Structs
@@ -72,7 +72,7 @@ migrationDone: public(bool)
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20(self.erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = staticcall IERC20(self.erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
@@ -81,7 +81,7 @@ def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bo
 def _computeShares(_amount: uint256) -> uint256:
     if self.totalSharesBasisPoints == 0:
         return _amount
-    return self.totalSharesBasisPoints * _amount / (self.fundsAvailable + self.fundsInvested)
+    return self.totalSharesBasisPoints * _amount // (self.fundsAvailable + self.fundsInvested)
 
 
 @view
@@ -89,7 +89,7 @@ def _computeShares(_amount: uint256) -> uint256:
 def _computeWithdrawableAmount(_lender: address) -> uint256:
     if self.totalSharesBasisPoints == 0:
         return 0
-    return (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints / self.totalSharesBasisPoints
+    return (self.fundsAvailable + self.fundsInvested) * self.funds[_lender].sharesBasisPoints // self.totalSharesBasisPoints
 
 
 ##### EXTERNAL METHODS - VIEW #####
@@ -144,7 +144,7 @@ def activeForRewards(_lender: address) -> bool:
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
-@external
+@deploy
 def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "The address is the zero address"
     self.owner = msg.sender
@@ -183,12 +183,12 @@ def migrate(_from: address):
     assert _from != empty(address), "_address is the zero address"
     assert _from.is_contract, "LPCore is not a contract"
 
-    self.activeLenders = ILendingPoolCore(_from).activeLenders()
-    self.fundsAvailable = ILendingPoolCore(_from).fundsAvailable()
-    self.fundsInvested = ILendingPoolCore(_from).fundsInvested()
-    self.totalFundsInvested = ILendingPoolCore(_from).totalFundsInvested()
-    self.totalRewards = ILendingPoolCore(_from).totalRewards()
-    self.totalSharesBasisPoints = ILendingPoolCore(_from).totalSharesBasisPoints()
+    self.activeLenders = staticcall ILendingPoolCore(_from).activeLenders()
+    self.fundsAvailable = staticcall ILendingPoolCore(_from).fundsAvailable()
+    self.fundsInvested = staticcall ILendingPoolCore(_from).fundsInvested()
+    self.totalFundsInvested = staticcall ILendingPoolCore(_from).totalFundsInvested()
+    self.totalRewards = staticcall ILendingPoolCore(_from).totalRewards()
+    self.totalSharesBasisPoints = staticcall ILendingPoolCore(_from).totalSharesBasisPoints()
 
     self.migrationDone = True
 
@@ -282,7 +282,7 @@ def deposit(_lender: address, _payer: address, _amount: uint256) -> bool:
     self.fundsAvailable += _amount
     self.totalSharesBasisPoints += sharesAmount
 
-    return IERC20(self.erc20TokenContract).transferFrom(_payer, self, _amount)
+    return extcall IERC20(self.erc20TokenContract).transferFrom(_payer, self, _amount)
 
 
 @external
@@ -315,7 +315,7 @@ def withdraw(_lender: address, _wallet: address, _amount: uint256) -> bool:
 
     self.fundsAvailable -= _amount
 
-    return IERC20(self.erc20TokenContract).transfer(_wallet, _amount)
+    return extcall IERC20(self.erc20TokenContract).transfer(_wallet, _amount)
 
 
 @external
@@ -325,13 +325,13 @@ def sendFunds(_to: address, _amount: uint256) -> bool:
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _to != empty(address), "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
-    assert IERC20(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
+    assert staticcall IERC20(self.erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
     self.fundsAvailable -= _amount
     self.fundsInvested += _amount
     self.totalFundsInvested += _amount
 
-    return IERC20(self.erc20TokenContract).transfer(_to, _amount)
+    return extcall IERC20(self.erc20TokenContract).transfer(_to, _amount)
 
 
 @external
@@ -341,13 +341,13 @@ def receiveFunds(_borrower: address, _amount: uint256, _rewardsAmount: uint256, 
     assert msg.sender == self.lendingPoolPeripheral, "msg.sender is not LP peripheral"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount + _rewardsAmount > 0, "Amount has to be higher than 0"
-    assert IERC20(self.erc20TokenContract).allowance(_borrower, self) >= _amount, "insufficient value received"
+    assert staticcall IERC20(self.erc20TokenContract).allowance(_borrower, self) >= _amount, "insufficient value received"
 
     self.fundsAvailable += _amount + _rewardsAmount
     self.fundsInvested -= _investedAmount
     self.totalRewards += _rewardsAmount
 
-    return IERC20(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount)
+    return extcall IERC20(self.erc20TokenContract).transferFrom(_borrower, self, _amount + _rewardsAmount)
 
 
 @external
@@ -358,6 +358,6 @@ def transferProtocolFees(_borrower: address, _protocolWallet: address, _amount: 
     assert _protocolWallet != empty(address), "_protocolWallet is the zero address"
     assert _borrower != empty(address), "_borrower is the zero address"
     assert _amount > 0, "_amount should be higher than 0"
-    assert IERC20(self.erc20TokenContract).allowance(_borrower, self) >= _amount, "insufficient value received"
+    assert staticcall IERC20(self.erc20TokenContract).allowance(_borrower, self) >= _amount, "insufficient value received"
 
-    return IERC20(self.erc20TokenContract).transferFrom(_borrower, _protocolWallet, _amount)
+    return extcall IERC20(self.erc20TokenContract).transferFrom(_borrower, _protocolWallet, _amount)

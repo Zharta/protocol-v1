@@ -5,10 +5,12 @@ classifiers = ["Private :: Do Not Upload"]
 version = "0"
 dependencies = [
     "eth-ape",
-    "vyper==0.3.10",
+    "vyper==0.4.0",
     "ape-vyper",
     "ape-foundry",
     "ape-alchemy",
+    "ape-arbitrum",
+    "ape-base",
 ]
 
 

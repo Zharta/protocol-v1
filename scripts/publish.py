@@ -13,6 +13,7 @@ from click.exceptions import BadParameter
 from vyper.cli.vyper_compile import compile_files
 
 env = os.environ.get("ENV", "dev")
+chain = os.environ.get("CHAIN", "nochain")
 collections_table = f"collections-{env}"
 pools_table = f"pool-configs-{env}"
 abis_table = f"abis-{env}"
@@ -245,8 +246,8 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
         raise BadParameter("Cannot write to cloud in local environment")
 
     # get contract addresses config file
-    pools = json.loads(read_file(Path.cwd() / "configs" / env / "pools.json"))
-    nfts = json.loads(read_file(Path.cwd() / "configs" / env / "collections.json"))
+    pools = json.loads(read_file(Path.cwd() / "configs" / env / chain / "pools.json"))
+    nfts = json.loads(read_file(Path.cwd() / "configs" / env / chain / "collections.json"))
     common = pools.get("common", {})
 
     if not write_to_cloud:
@@ -258,9 +259,7 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
     compiled_contracts = {
         contract_def: compiled
         for contract_def, path in contract_def_to_path.items()
-        for compiled in compile_files(
-            [project_path / f"{path}.vy"], output_formats=["abi_python", "bytecode"], root_folder="."
-        ).values()
+        for compiled in compile_files([project_path / f"{path}.vy"], output_formats=["abi_python", "bytecode"]).values()
     }
 
     abis = {k: v["abi"] for k, v in compiled_contracts.items()}
@@ -279,6 +278,14 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
 
     # add abis and abi_keys to pool contracts
     pools = normalized_pool_configs(pools, abis)
+
+    # set chain for collections, pools and tokens
+    for data in nfts.values():
+        data["chain"] = chain
+    for data in pools["pools"].values():
+        data["chain"] = chain
+    for data in common.values():
+        data["chain"] = chain
 
     # write collections and pools files and push to dynamo tables
 

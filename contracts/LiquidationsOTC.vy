@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title LiquidationsOTC
@@ -8,9 +8,6 @@
 
 
 # Interfaces
-
-from vyper.interfaces import ERC20 as IERC20
-from vyper.interfaces import ERC721 as IERC721
 
 interface ILoans:
     def getLoan(_borrower: address, _loanId: uint256) -> Loan: view
@@ -252,7 +249,7 @@ def _getLiquidation(_collateralAddress: address, _tokenId: uint256) -> Liquidati
 @pure
 @internal
 def _penaltyFee(_principal: uint256, _max_penalty_fee: uint256) -> uint256:
-    return min(250 * _principal / 10000, _max_penalty_fee) if _max_penalty_fee > 0 else (250 * _principal / 10000)
+    return min(250 * _principal // 10000, _max_penalty_fee) if _max_penalty_fee > 0 else (250 * _principal // 10000)
 
 
 @pure
@@ -264,12 +261,12 @@ def _computeNFTPrice(principal: uint256, interestAmount: uint256, _max_penalty_f
 @pure
 @internal
 def _computeLoanAPR(loanInterest: uint256, loanMaturity: uint256, loanStartTime: uint256) -> uint256:
-    return loanInterest * 31536000 / (loanMaturity - loanStartTime) # 31536000 = 365 days * 24 hours * 60 minutes * 60 seconds
+    return loanInterest * 31536000 // (loanMaturity - loanStartTime) # 31536000 = 365 days * 24 hours * 60 minutes * 60 seconds
 
 @pure
 @internal
 def _computeLoanInterestAmount(principal: uint256, interest: uint256) -> uint256:
-    return principal * interest / 10000
+    return principal * interest // 10000
 
 
 
@@ -386,7 +383,7 @@ def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: u
 
 
 ##### EXTERNAL METHODS - WRITE #####
-@external
+@deploy
 def __init__():
     self.owner = msg.sender
 
@@ -418,7 +415,7 @@ def create_proxy(
     _collateralVaultContract: address
 ) -> address:
     proxy: address = create_minimal_proxy_to(self)
-    ISelf(proxy).initialize(msg.sender, _gracePeriodDuration, _loansContract, _lendingPoolContract, _collateralVaultContract)
+    extcall ISelf(proxy).initialize(msg.sender, _gracePeriodDuration, _loansContract, _lendingPoolContract, _collateralVaultContract)
     log ProxyCreated(proxy, msg.sender, _gracePeriodDuration, _loansContract, _lendingPoolContract, _collateralVaultContract)
     return proxy
 
@@ -485,14 +482,14 @@ def setMaxPenaltyFee(_erc20TokenContract: address, _fee: uint256):
 @external
 def addLiquidation(_borrower: address, _loanId: uint256, _erc20TokenContract: address):
 
-    borrowerLoan: Loan = self.loansContract.getLoan(_borrower, _loanId)
+    borrowerLoan: Loan = staticcall self.loansContract.getLoan(_borrower, _loanId)
     assert borrowerLoan.defaulted, "loan is not defaulted"
     assert not self._isLoanLiquidated(_borrower, self.loansContract.address, _loanId), "loan already liquidated"
 
     # APR from loan duration (maturity)
     loanAPR: uint256 = self._computeLoanAPR(borrowerLoan.interest, borrowerLoan.maturity, borrowerLoan.startTime)
 
-    for collateral in borrowerLoan.collaterals:
+    for collateral: Collateral in borrowerLoan.collaterals:
         assert self._getLiquidation(collateral.contractAddress, collateral.tokenId).startTime == 0, "liquidation already exists"
 
         principal: uint256 = collateral.amount
@@ -542,14 +539,14 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
     receivedAmount: uint256 = msg.value
     ethPayment: bool = receivedAmount > 0
 
-    loan: Loan = self.loansContract.getLoan(msg.sender, _loanId)
+    loan: Loan = staticcall self.loansContract.getLoan(msg.sender, _loanId)
     assert loan.defaulted, "loan is not defaulted"
 
     if ethPayment:
         log PaymentReceived(msg.sender, msg.sender, receivedAmount)
     paidAmount: uint256 = 0
 
-    for collateral in loan.collaterals:
+    for collateral: Collateral in loan.collaterals:
         liquidation: Liquidation = self._getLiquidation(collateral.contractAddress, collateral.tokenId)
 
         assert block.timestamp <= liquidation.gracePeriodMaturity, "liquidation out of grace period"
@@ -572,7 +569,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
         _lendingPoolPeripheral : address = self.lendingPoolContract.address
 
         if ethPayment:
-            self.lendingPoolContract.receiveFundsFromLiquidationEth(
+            extcall self.lendingPoolContract.receiveFundsFromLiquidationEth(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -584,7 +581,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             paidAmount += liquidation.gracePeriodPrice
 
         else:
-            self.lendingPoolContract.receiveFundsFromLiquidation(
+            extcall self.lendingPoolContract.receiveFundsFromLiquidation(
                 liquidation.borrower,
                 liquidation.principal,
                 liquidation.gracePeriodPrice - liquidation.principal,
@@ -593,7 +590,7 @@ def payLoanLiquidationsGracePeriod(_loanId: uint256, _erc20TokenContract: addres
             )
 
 
-        self.collateralVaultContract.transferCollateralFromLiquidation(
+        extcall self.collateralVaultContract.transferCollateralFromLiquidation(
             msg.sender,
             collateral.contractAddress,
             collateral.tokenId
@@ -625,7 +622,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
     assert block.timestamp > liquidation.gracePeriodMaturity, "liquidation in grace period"
 
     assert self.lendingPoolContract.address != empty(address), "lendingPool not configured"
-    assert self.lendingPoolContract.lenderFunds(msg.sender).currentAmountDeposited > 0, "msg.sender is not a lender"
+    assert (staticcall self.lendingPoolContract.lenderFunds(msg.sender)).currentAmountDeposited > 0, "msg.sender is not a lender"
 
 
     self._removeLiquidation(_collateralAddress, _tokenId)
@@ -642,7 +639,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         liquidation.borrower
     )
 
-    self.collateralVaultContract.transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
+    extcall self.collateralVaultContract.transferCollateralFromLiquidation(msg.sender, _collateralAddress, _tokenId)
 
     log NFTClaimed(
         liquidation.erc20TokenContract,
@@ -658,7 +655,7 @@ def claim(_collateralAddress: address, _tokenId: uint256):
         "OTC_CLAIM"
     )
 
-    self.lendingPoolContract.receiveCollateralFromLiquidation(
+    extcall self.lendingPoolContract.receiveCollateralFromLiquidation(
         liquidation.borrower,
         liquidation.principal,
         "OTC_CLAIM"

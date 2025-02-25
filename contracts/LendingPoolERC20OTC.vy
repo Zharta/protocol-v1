@@ -1,4 +1,4 @@
-# @version 0.3.10
+# @version 0.4.0
 
 """
 @title LendingPoolERC20OTC
@@ -8,7 +8,7 @@
 
 # Interfaces
 
-from vyper.interfaces import ERC20 as IERC20
+from ethereum.ercs import IERC20
 
 interface ISelf:
     def initialize(_owner: address, _lender: address, _protocolWallet: address, _protocolFeesShare: uint256): nonpayable
@@ -148,7 +148,7 @@ collateralClaimsValue: public(uint256)
 @view
 @internal
 def _fundsAreAllowed(_owner: address, _spender: address, _amount: uint256) -> bool:
-    amountAllowed: uint256 = IERC20(erc20TokenContract).allowance(_owner, _spender)
+    amountAllowed: uint256 = staticcall IERC20(erc20TokenContract).allowance(_owner, _spender)
     return _amount <= amountAllowed
 
 
@@ -195,7 +195,7 @@ def _deposit(_amount: uint256, _payer: address):
 
     if _payer != self:
         assert self._fundsAreAllowed(_payer, self, _amount), "Not enough funds allowed"
-        if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount):
+        if not extcall IERC20(erc20TokenContract).transferFrom(_payer, self, _amount):
             raise "error creating deposit"
 
     self.poolFunds.totalAmountDeposited += _amount
@@ -227,7 +227,7 @@ def _accountForSentFunds(_to: address, _receiver: address, _amount: uint256):
     assert _to != empty(address), "_to is the zero address"
     assert _amount > 0, "_amount has to be higher than 0"
     assert _amount <= self.fundsAvailable, "insufficient liquidity"
-    assert IERC20(erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
+    assert staticcall IERC20(erc20TokenContract).balanceOf(self) >= _amount, "Insufficient balance"
 
     self.fundsAvailable -= _amount
     self.fundsInvested += _amount
@@ -243,7 +243,7 @@ def _receiveFunds(_borrower: address, _payer: address, _amount: uint256, _reward
     assert _amount + _rewardsAmount > 0, "amount should be higher than 0"
     assert self.fundsInvested >= _amount, "amount higher than invested"
 
-    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare / 10000
+    rewardsProtocol: uint256 = _rewardsAmount * self.protocolFeesShare // 10000
     rewardsPool: uint256 = _rewardsAmount - rewardsProtocol
 
     if _payer == self:
@@ -263,19 +263,19 @@ def _transferReceivedFunds(
 ):
 
     assert _payer != empty(address), "_borrower is the zero address"
-    assert IERC20(erc20TokenContract).allowance(_payer, self) >= _amount + _rewardsPool + _rewardsProtocol, "insufficient value received"
+    assert staticcall IERC20(erc20TokenContract).allowance(_payer, self) >= _amount + _rewardsPool + _rewardsProtocol, "insufficient value received"
 
     self.fundsAvailable += _amount + _rewardsPool
     self.fundsInvested -= _amount
     self.totalRewards += _rewardsPool
     self.poolFunds.currentAmountDeposited += _rewardsPool
 
-    if not IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
+    if not extcall IERC20(erc20TokenContract).transferFrom(_payer, self, _amount + _rewardsPool):
         raise "error receiving funds in LPOTC"
 
     if _rewardsProtocol > 0:
         assert self.protocolWallet != empty(address), "protocolWallet is zero addr"
-        if not IERC20(erc20TokenContract).transferFrom(_payer, self.protocolWallet, _rewardsProtocol):
+        if not extcall IERC20(erc20TokenContract).transferFrom(_payer, self.protocolWallet, _rewardsProtocol):
             raise "error transferring protocol fees"
 
     log FundsReceipt(
@@ -306,7 +306,7 @@ def _accountForReceivedFunds(
 
     if _rewardsProtocol > 0:
         assert self.protocolWallet != empty(address), "protocolWallet is zero addr"
-        if not IERC20(erc20TokenContract).transfer(self.protocolWallet, _rewardsProtocol):
+        if not extcall IERC20(erc20TokenContract).transfer(self.protocolWallet, _rewardsProtocol):
             raise "error transferring protocol fees"
 
     log FundsReceipt(
@@ -336,7 +336,7 @@ def _receiveFundsFromLiquidation(
     rewardsProtocol: uint256 = 0
     rewardsPool: uint256 = 0
     if _distributeToProtocol:
-        rewardsProtocol = _rewardsAmount * self.protocolFeesShare / 10000
+        rewardsProtocol = _rewardsAmount * self.protocolFeesShare // 10000
         rewardsPool = _rewardsAmount - rewardsProtocol
     else:
         rewardsPool = _rewardsAmount
@@ -432,7 +432,7 @@ def totalAmountWithdrawn(_lender: address) -> uint256:
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
-@external
+@deploy
 def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "address is the zero address"
 
@@ -459,7 +459,7 @@ def initialize(_owner: address, _lender: address, _protocolWallet: address, _pro
 @external
 def create_proxy(_protocolWallet: address, _protocolFeesShare: uint256, _lender: address) -> address:
     proxy: address = create_minimal_proxy_to(self)
-    ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare)
+    extcall ISelf(proxy).initialize(msg.sender, _lender, _protocolWallet, _protocolFeesShare)
     log ProxyCreated(proxy, msg.sender, _lender, _protocolWallet, _protocolFeesShare)
     return proxy
 
@@ -613,7 +613,7 @@ def withdraw(_amount: uint256):
     """
     self._withdraw_accounting(_amount)
 
-    if not IERC20(erc20TokenContract).transfer(msg.sender, _amount):
+    if not extcall IERC20(erc20TokenContract).transfer(msg.sender, _amount):
         raise "error withdrawing funds"
 
     log Withdrawal(msg.sender, msg.sender, _amount, erc20TokenContract)
@@ -635,7 +635,7 @@ def sendFunds(_to: address, _amount: uint256):
 
     self._accountForSentFunds(_to, _to, _amount)
 
-    if not IERC20(erc20TokenContract).transfer(_to, _amount):
+    if not extcall IERC20(erc20TokenContract).transfer(_to, _amount):
         raise "error sending funds in LPOTC"
 
 

@@ -8,6 +8,7 @@ from ape import convert
 from scripts.deployment import DeploymentManager, Environment
 
 ENV = Environment[os.environ.get("ENV", "local")]
+CHAIN = os.environ.get("CHAIN", "nochain")
 
 
 def inject_poa(w3):
@@ -38,7 +39,7 @@ def claim_ownership(dm, wallet):
 
 
 def ape_init_extras():
-    dm = DeploymentManager(ENV)
+    dm = DeploymentManager(ENV, CHAIN)
 
     globals()["dm"] = dm
     globals()["owner"] = dm.owner

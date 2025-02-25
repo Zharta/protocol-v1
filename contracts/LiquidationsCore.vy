@@ -1,9 +1,9 @@
-# @version 0.3.10
+# @version 0.4.0
 
 
 # Interfaces
 
-from vyper.interfaces import ERC721 as IERC721
+from ethereum.ercs import IERC721
 
 interface ILoansCore:
     def getLoanDefaulted(_borrower: address, _loanId: uint256) -> bool: view
@@ -141,7 +141,7 @@ def isLoanLiquidated(_borrower: address, _loansCoreContract: address, _loanId: u
 
 
 ##### EXTERNAL METHODS - WRITE #####
-@external
+@deploy
 def __init__():
     self.owner = msg.sender
 

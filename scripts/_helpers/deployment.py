@@ -23,8 +23,8 @@ logger.setLevel(logging.WARNING)
 warnings.filterwarnings("ignore")
 
 
-def load_contracts(env: Environment) -> list[ContractConfig]:
-    config_file = Path.cwd() / "configs" / env.name / "pools.json"
+def load_contracts(env: Environment, chain: str) -> list[ContractConfig]:
+    config_file = Path.cwd() / "configs" / env.name / chain / "pools.json"
     with config_file.open(encoding="utf8") as f:
         config = json.load(f)
 
@@ -40,8 +40,8 @@ def load_contracts(env: Environment) -> list[ContractConfig]:
     ]
 
 
-def store_contracts(env: Environment, contracts: list[ContractConfig]):
-    config_file = Path.cwd() / "configs" / env.name / "pools.json"
+def store_contracts(env: Environment, chain: str, contracts: list[ContractConfig]):
+    config_file = Path.cwd() / "configs" / env.name / chain / "pools.json"
     with config_file.open(encoding="utf8") as f:
         config = json.load(f)
 
@@ -63,8 +63,8 @@ def store_contracts(env: Environment, contracts: list[ContractConfig]):
         f.write(json.dumps(config, indent=4, sort_keys=True))
 
 
-def load_nft_contracts(env: Environment) -> list[ContractConfig]:
-    config_file = Path.cwd() / "configs" / env.name / "collections.json"
+def load_nft_contracts(env: Environment, chain: str) -> list[ContractConfig]:
+    config_file = Path.cwd() / "configs" / env.name / chain / "collections.json"
     with config_file.open(encoding="utf8") as f:
         config = json.load(f)
 
@@ -78,8 +78,8 @@ def load_nft_contracts(env: Environment) -> list[ContractConfig]:
     ]
 
 
-def store_nft_contracts(env: Environment, contracts: list[ContractConfig]):
-    config_file = Path.cwd() / "configs" / env.name / "collections.json"
+def store_nft_contracts(env: Environment, chain: str, contracts: list[ContractConfig]):
+    config_file = Path.cwd() / "configs" / env.name / chain / "collections.json"
     with config_file.open(encoding="utf8") as f:
         config = json.load(f)
 
@@ -93,8 +93,8 @@ def store_nft_contracts(env: Environment, contracts: list[ContractConfig]):
         f.write(json.dumps(config, indent=2, sort_keys=True))
 
 
-def load_configs(env: Environment) -> dict:
-    config_file = Path.cwd() / "configs" / env.name / "pools.json"
+def load_configs(env: Environment, chain: str) -> dict:
+    config_file = Path.cwd() / "configs" / env.name / chain / "pools.json"
     with config_file.open(encoding="utf8") as f:
         config = json.load(f)
 
@@ -103,8 +103,9 @@ def load_configs(env: Environment) -> dict:
 
 
 class DeploymentManager:
-    def __init__(self, env: Environment):
+    def __init__(self, env: Environment, chain: str):
         self.env = env
+        self.chain = chain
         match env:
             case Environment.local:
                 self.owner = accounts[0]
@@ -114,11 +115,11 @@ class DeploymentManager:
                 self.owner = accounts.load("intacc")
             case Environment.prod:
                 self.owner = accounts.load("prodacc")
-        self.context = DeploymentContext(self._get_contracts(), self.env, self.owner, self._get_configs())
+        self.context = DeploymentContext(self._get_contracts(), self.env, self.chain, self.owner, self._get_configs())
 
     def _get_contracts(self) -> dict[str, ContractConfig]:
-        contracts = load_contracts(self.env)
-        nfts = load_nft_contracts(self.env)
+        contracts = load_contracts(self.env, self.chain)
+        nfts = load_nft_contracts(self.env, self.chain)
         all_contracts = contracts + nfts
 
         # always deploy everything in local
@@ -129,13 +130,13 @@ class DeploymentManager:
         return {c.key: c for c in all_contracts}
 
     def _get_configs(self) -> dict[str, Any]:
-        return load_configs(self.env)
+        return load_configs(self.env, self.chain)
 
     def _save_state(self):
         nft_contracts = [c for c in self.context.contracts.values() if c.nft]
         contracts = [c for c in self.context.contracts.values() if not c.nft]
-        store_nft_contracts(self.env, nft_contracts)
-        store_contracts(self.env, contracts)
+        store_nft_contracts(self.env, self.chain, nft_contracts)
+        store_contracts(self.env, self.chain, contracts)
 
     def deploy(self, changes: set[str], *, dryrun=False, save_state=True):
         self.owner.set_autosign(True)

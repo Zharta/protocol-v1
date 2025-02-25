@@ -6,18 +6,25 @@ aiosignal==1.3.1
     # via aiohttp
 annotated-types==0.6.0
     # via pydantic
-ape-alchemy==0.7.2
-ape-foundry==0.7.4
-ape-vyper==0.7.1
+ape-alchemy==0.8.7
+    # via protocol-v1 (pyproject.toml)
+ape-arbitrum==0.8.3
+    # via protocol-v1 (pyproject.toml)
+ape-base==0.8.1
+    # via protocol-v1 (pyproject.toml)
+ape-foundry==0.8.7
+    # via protocol-v1 (pyproject.toml)
+ape-optimism==0.8.3
+    # via ape-base
+ape-vyper==0.8.9
+    # via protocol-v1 (pyproject.toml)
 asttokens==2.4.1
     # via
+    #   eth-ape
     #   stack-data
     #   vyper
 attrs==23.2.0
-    # via
-    #   aiohttp
-    #   jsonschema
-    #   referencing
+    # via aiohttp
 base58==1.0.3
     # via
     #   py-cid
@@ -30,31 +37,25 @@ cached-property==1.5.2
     #   py-evm
 cbor2==5.6.3
     # via vyper
+cchecksum==0.0.4
+    # via eth-ape
 certifi==2024.2.2
     # via requests
-cffi==1.16.0
-    # via
-    #   cryptography
-    #   pynacl
 charset-normalizer==3.3.2
     # via requests
-ckzg==1.0.1
+ckzg==2.0.1
     # via
     #   eth-account
     #   py-evm
 click==8.1.7
     # via eth-ape
-cryptography==42.0.5
-    # via pyjwt
 cytoolz==0.12.3
     # via eth-utils
 dataclassy==0.11.1
     # via eip712
 decorator==5.1.1
     # via ipython
-deprecated==1.2.14
-    # via pygithub
-eip712==0.2.7
+eip712==0.2.10
     # via eth-ape
 eth-abi==5.1.0
     # via
@@ -62,25 +63,28 @@ eth-abi==5.1.0
     #   eth-account
     #   eth-ape
     #   eth-tester
+    #   ethpm-types
     #   web3
-eth-account==0.11.2
+eth-account==0.13.5
     # via
     #   eip712
     #   eth-ape
     #   eth-tester
     #   web3
-eth-ape==0.7.18
+eth-ape==0.8.27
     # via
+    #   protocol-v1 (pyproject.toml)
     #   ape-alchemy
+    #   ape-arbitrum
+    #   ape-base
     #   ape-foundry
+    #   ape-optimism
     #   ape-vyper
 eth-bloom==3.0.1
     # via py-evm
 eth-hash==0.7.0
     # via
-    #   eip712
     #   eth-bloom
-    #   eth-pydantic-types
     #   eth-tester
     #   eth-utils
     #   trie
@@ -93,19 +97,21 @@ eth-keys==0.5.1
     #   eth-keyfile
     #   eth-tester
     #   py-evm
-eth-pydantic-types==0.1.0
+eth-pydantic-types==0.1.3
     # via
     #   ape-alchemy
+    #   ape-arbitrum
     #   ape-foundry
     #   eth-ape
     #   ethpm-types
     #   evm-trace
-eth-rlp==1.0.1
+eth-rlp==2.2.0
     # via eth-account
-eth-tester==0.11.0b2
+eth-tester==0.12.1b1
     # via web3
-eth-typing==3.5.2
+eth-typing==5.1.0
     # via
+    #   cchecksum
     #   eip712
     #   eth-abi
     #   eth-ape
@@ -115,8 +121,9 @@ eth-typing==3.5.2
     #   py-ecc
     #   py-evm
     #   web3
-eth-utils==2.3.1
+eth-utils==5.2.0
     # via
+    #   cchecksum
     #   eip712
     #   eth-abi
     #   eth-account
@@ -133,30 +140,36 @@ eth-utils==2.3.1
     #   rlp
     #   trie
     #   web3
-ethpm-types==0.6.11
+ethpm-types==0.6.24
     # via
     #   ape-alchemy
+    #   ape-arbitrum
+    #   ape-base
     #   ape-foundry
+    #   ape-optimism
     #   ape-vyper
     #   eth-ape
-evm-trace==0.1.5
+evm-trace==0.2.4
     # via
     #   ape-alchemy
     #   ape-foundry
     #   eth-ape
-evmchains==0.0.7
-    # via eth-ape
+evmchains==0.1.3
+    # via
+    #   ape-alchemy
+    #   eth-ape
 executing==2.0.1
     # via stack-data
 frozenlist==1.4.1
     # via
     #   aiohttp
     #   aiosignal
-hexbytes==0.3.1
+hexbytes==1.3.0
     # via
     #   ape-foundry
     #   eip712
     #   eth-account
+    #   eth-ape
     #   eth-pydantic-types
     #   eth-rlp
     #   trie
@@ -175,16 +188,10 @@ ipython==8.24.0
     # via eth-ape
 jedi==0.19.1
     # via ipython
-jsonschema==4.22.0
-    # via web3
-jsonschema-specifications==2023.12.1
-    # via jsonschema
 lazyasd==0.1.4
     # via eth-ape
 lru-dict==1.2.0
-    # via
-    #   py-evm
-    #   web3
+    # via py-evm
 markdown-it-py==3.0.0
     # via rich
 matplotlib-inline==0.1.7
@@ -204,14 +211,16 @@ multidict==6.0.5
     #   aiohttp
     #   yarl
 numpy==1.26.4
-    # via pandas
+    # via
+    #   eth-ape
+    #   pandas
 packaging==23.2
     # via
     #   eth-ape
     #   pytest
     #   vvm
     #   vyper
-pandas==1.5.3
+pandas==2.2.3
     # via eth-ape
 parsimonious==0.10.0
     # via eth-abi
@@ -225,8 +234,6 @@ pluggy==1.5.0
     #   pytest
 prompt-toolkit==3.0.43
     # via ipython
-protobuf==5.26.1
-    # via web3
 ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.2
@@ -239,7 +246,7 @@ py-evm==0.10.1b1
     # via
     #   eth-tester
     #   evm-trace
-py-geth==4.4.0
+py-geth==5.2.1
     # via
     #   eth-ape
     #   web3
@@ -249,36 +256,31 @@ py-multicodec==0.2.1
     # via py-cid
 py-multihash==0.2.3
     # via py-cid
-pycparser==2.22
-    # via cffi
 pycryptodome==3.20.0
     # via
     #   eth-hash
     #   eth-keyfile
     #   vyper
-pydantic==2.7.1
+pydantic==2.10.6
     # via
+    #   eth-account
     #   eth-ape
     #   eth-pydantic-types
     #   ethpm-types
     #   evm-trace
     #   evmchains
+    #   py-geth
     #   pydantic-settings
-pydantic-core==2.18.2
+    #   web3
+pydantic-core==2.27.2
     # via pydantic
-pydantic-settings==2.2.1
-    # via eth-ape
-pygithub==1.59.1
+pydantic-settings==2.7.1
     # via eth-ape
 pygments==2.17.2
     # via
     #   ipython
     #   rich
-pyjwt==2.8.0
-    # via pygithub
-pynacl==1.5.0
-    # via pygithub
-pytest==7.4.4
+pytest==8.3.4
     # via eth-ape
 python-baseconv==1.2.2
     # via py-multibase
@@ -294,18 +296,14 @@ pyunormalize==15.1.0
     # via web3
 pyyaml==6.0.1
     # via eth-ape
-referencing==0.35.1
-    # via
-    #   jsonschema
-    #   jsonschema-specifications
 regex==2024.4.28
     # via parsimonious
-requests==2.31.0
+requests==2.32.3
     # via
     #   ape-alchemy
     #   eth-ape
     #   ethpm-types
-    #   pygithub
+    #   py-geth
     #   vvm
     #   web3
 rich==13.7.1
@@ -317,10 +315,6 @@ rlp==4.0.1
     #   eth-tester
     #   py-evm
     #   trie
-rpds-py==0.18.0
-    # via
-    #   jsonschema
-    #   referencing
 safe-pysha3==1.0.4
     # via eth-hash
 semantic-version==2.10.0
@@ -355,34 +349,42 @@ trie==3.0.1
     # via
     #   eth-ape
     #   py-evm
-typing-extensions==4.11.0
+types-requests==2.32.0.20241016
+    # via
+    #   py-geth
+    #   web3
+typing-extensions==4.12.2
     # via
     #   eth-pydantic-types
-    #   eth-rlp
     #   eth-typing
-    #   ethpm-types
     #   ipython
+    #   py-geth
     #   pydantic
     #   pydantic-core
     #   sqlalchemy
     #   web3
+tzdata==2025.1
+    # via pandas
 urllib3==2.2.1
     # via
     #   eth-ape
     #   requests
+    #   types-requests
 varint==1.0.2
     # via
     #   py-multicodec
     #   py-multihash
 vvm==0.2.0
     # via ape-vyper
-vyper==0.3.10
-    # via ape-vyper
+vyper==0.4.0
+    # via
+    #   protocol-v1 (pyproject.toml)
+    #   ape-vyper
 watchdog==3.0.0
     # via eth-ape
 wcwidth==0.2.13
     # via prompt-toolkit
-web3==6.18.0
+web3==7.8.0
     # via
     #   ape-alchemy
     #   ape-foundry
@@ -391,8 +393,6 @@ websockets==12.0
     # via web3
 wheel==0.43.0
     # via vyper
-wrapt==1.16.0
-    # via deprecated
 yarl==1.9.4
     # via
     #   aiohttp

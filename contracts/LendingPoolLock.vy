@@ -1,9 +1,7 @@
-# @version 0.3.10
+# @version 0.4.0
 
 
 # Interfaces
-
-from vyper.interfaces import ERC20 as IERC20
 
 interface ILegacyLendingPoolCore:
     def lockPeriodEnd(_lender: address) -> uint256: view
@@ -69,7 +67,7 @@ migrationDone: bool
 
 ##### EXTERNAL METHODS - NON-VIEW #####
 
-@external
+@deploy
 def __init__(_erc20TokenContract: address):
     assert _erc20TokenContract != empty(address), "The address is the zero address"
     self.owner = msg.sender
@@ -83,8 +81,8 @@ def migrate(_lendingPoolCoreAddress: address, _lenders: DynArray[address, 100]):
     assert msg.sender == self.owner, "msg.sender is not the owner"
     assert _lendingPoolCoreAddress != empty(address), "_address is the zero address"
     assert _lendingPoolCoreAddress.is_contract, "LPCore is not a contract"
-    for lender in _lenders:
-        investorFunds: LegacyInvestorFunds = ILegacyLendingPoolCore(_lendingPoolCoreAddress).funds(lender)
+    for lender: address in _lenders:
+        investorFunds: LegacyInvestorFunds = staticcall ILegacyLendingPoolCore(_lendingPoolCoreAddress).funds(lender)
         self.investorLocks[lender] = InvestorLock({
             lockPeriodEnd: investorFunds.lockPeriodEnd,
             lockPeriodAmount: investorFunds.currentAmountDeposited

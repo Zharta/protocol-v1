@@ -1,0 +1,62 @@
+{
+  "gobsonape": {
+    "check_flagging": false,
+    "conditions": {},
+    "contract_address": "0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87",
+    "debt_limits": {},
+    "image_url": "https://img.reservoir.tools/images/v2/apechain/DncmTLTvq%2BRfs1SNWS7xb3W80HdqFd%2BoYMeOUwTra2ye%2BUwz1y9U8W5XFAoxDsUlPLNNkWoEVMZnAoBlOkC5LxSYrDbzN2R1xVehQq1ycL4jotn%2BiPevssh1VLyJdy7P",
+    "looksrare_url": "",
+    "mapped_address": "0xbebaa24108d6a03c7331464270b95278bbbe6ff7",
+    "name": "[zApeChain] Gobs On Ape",
+    "opensea_slug": "gobsnft",
+    "opensea_url": "https://opensea.io/collection/gobsnft",
+    "simulation_token_id": 1,
+    "tiers": [],
+    "underwriting_slug": ""
+  },
+  "gsonape": {
+    "check_flagging": false,
+    "conditions": {},
+    "contract_address": "0x602C71e4DAC47a042Ee7f46E0aee17F94A3bA0B6",
+    "debt_limits": {},
+    "image_url": "https://img.reservoir.tools/images/v2/apechain/ajjEJwOmVw1KWK2WSUR6lYj2SmnLfs8Sc2mF5pOnfO8uAuubZUK2gjjAlH32XWFd6wwPbQwLENuCbWcMahnvUc%2FWHLj2DsG5gDoeiaYvH5Ws2PUhfJ3oxywT8tCdZ5tYX%2ByqQ8pDhYEYB3n3LZ0oSg%3D%3D",
+    "looksrare_url": "",
+    "mapped_address": "0xb3443b6bd585ba4118cae2bedb61c7ec4a8281df",
+    "name": "[zApeChain] Gs on Ape",
+    "opensea_slug": "gs-on-ape",
+    "opensea_url": "https://opensea.io/collection/gs-on-ape",
+    "simulation_token_id": 1,
+    "tiers": [],
+    "underwriting_slug": ""
+  },
+  "monkees": {
+    "check_flagging": false,
+    "conditions": {},
+    "contract_address": "0x6951b5Bd815043E3F842c1b026b0Fa888Cc2DD85",
+    "debt_limits": {},
+    "image_url": "https://img.reservoir.tools/images/v2/apechain/i9YO%2F4yHXUdJsWcTqhqvf5oZLZVUq5xeS6gXFvUDeu05bnJVJsqKjrhD88RRU7ZjyIiBJg1JKFxAupZ3B0vn6pvNEt2KldEcoTcw9aQHHGTlKAMwoXzYzgDWs06TmBg5",
+    "looksrare_url": "",
+    "mapped_address": "0x3f09FC57194809e5a02fACc90dD7021a51819C0D",
+    "name": "[zApeChain] MONKEES",
+    "opensea_slug": "monkees",
+    "opensea_url": "https://opensea.io/collection/monkees",
+    "simulation_token_id": 1,
+    "tiers": [],
+    "underwriting_slug": ""
+  },
+  "tokengators": {
+    "check_flagging": false,
+    "conditions": {},
+    "contract_address": "0xE7eD6747FaC5360f88a2EFC03E00d25789F69291",
+    "debt_limits": {},
+    "image_url": "https://img.reservoir.tools/images/v2/apechain/hc%2BnPcLmWxs%2FDW99DlBQ42k40ZoyYV5jCIms5qHjwvvskoBAK0PGrHpanXmkUZeHE7XuPkoh%2FLC7KJRSwZGQUNlzKrK7VlWnSLjNHtZVe%2FqXVcUve5nHALCw4N%2BrCqvuEClungXwRzmjUHm6IPs0RVG06MQEt%2FiNngMZQJ0M10ufHZgLfezQKCLNYdSmck7mZTHec0f8Dwldwx69vCe5lg%3D%3D",
+    "looksrare_url": "",
+    "mapped_address": "0xd33edec311f8769c71f132a77f0c0796c22af1c5",
+    "name": "[zApeChain] TokenGators",
+    "opensea_slug": "tokengators-ape",
+    "opensea_url": "https://opensea.io/collection/tokengators-ape",
+    "simulation_token_id": 1,
+    "tiers": [],
+    "underwriting_slug": ""
+  }
+}
