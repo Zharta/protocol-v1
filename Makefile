@@ -74,7 +74,7 @@ format:
 %-zapechain: export CHAIN=zapechain
 %-sepolia: export CHAIN=sepolia
 %-curtis: export CHAIN=curtis
-%-ethereum: export CHAIN=mainnet
+%-ethereum: export CHAIN=ethereum
 %-apechain: export CHAIN=apechain
 
 %-local: export NETWORK=ethereum:local:foundry
