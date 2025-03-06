@@ -100,3 +100,7 @@ deploy-local deploy-zethereum deploy-zapechain deploy-sepolia deploy-curtis depl
 
 publish-zethereum publish-zapechain publish-sepolia publish-curtis publish-ethereum publish-apechain:
 	${VENV}/bin/ape run publish
+
+get-metadata-zethereum get-metadata-zapechain get-metadata-sepolia get-metadata-curtis get-metadata-ethereum get-metadata-apechain:
+	${VENV}/bin/ape run get_collections
+	${VENV}/bin/ape run get_tokens
