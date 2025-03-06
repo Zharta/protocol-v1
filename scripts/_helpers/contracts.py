@@ -245,6 +245,22 @@ class ERC20(ContractConfig):
 
 
 @dataclass
+class ERC20External(ContractConfig):
+    def __init__(
+        self,
+        *,
+        key: str,
+        address: str | None = None,
+    ):
+        super().__init__(key, None, project.WETH9Mock, token=True)
+        if address:
+            self.load_contract(address)
+
+    def deployable(self, context: DeploymentContext) -> bool:  # noqa: PLR6301, ARG002
+        return False
+
+
+@dataclass
 class CryptoPunks(ContractConfig):
     def __init__(
         self,

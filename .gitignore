@@ -12,3 +12,6 @@ reports/
 node_modules/
 .vscode
 .cache
+
+configs/**/collections.json
+configs/**/tokens.json
