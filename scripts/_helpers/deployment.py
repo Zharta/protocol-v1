@@ -78,19 +78,15 @@ def load_nft_contracts(env: Environment, chain: str) -> list[ContractConfig]:
     ]
 
 
-def store_nft_contracts(env: Environment, chain: str, contracts: list[ContractConfig]):
-    config_file = Path.cwd() / "configs" / env.name / chain / "collections.json"
+def load_tokens(env: Environment, chain: str) -> list[ContractConfig]:
+    config_file = Path.cwd() / "configs" / env.name / chain / "tokens.json"
     with config_file.open(encoding="utf8") as f:
         config = json.load(f)
 
-    contracts_dict = {c.key: c for c in contracts}
-
-    for key, c in config.items():
-        if key in contracts_dict:
-            c["contract_address"] = contracts_dict[key].address()
-
-    with config_file.open(mode="w", encoding="utf8") as f:
-        f.write(json.dumps(config, indent=2, sort_keys=True))
+    return [
+        contracts_module.__dict__[c.get("contract_def", "ERC20External")](key=f"common.{name}", address=c.get("address"))
+        for name, c in config.items()
+    ]
 
 
 def load_configs(env: Environment, chain: str) -> dict:
@@ -120,7 +116,8 @@ class DeploymentManager:
     def _get_contracts(self) -> dict[str, ContractConfig]:
         contracts = load_contracts(self.env, self.chain)
         nfts = load_nft_contracts(self.env, self.chain)
-        all_contracts = contracts + nfts
+        tokens = load_tokens(self.env, self.chain)
+        all_contracts = contracts + nfts + tokens
 
         # always deploy everything in local
         if self.env == Environment.local:
@@ -133,9 +130,7 @@ class DeploymentManager:
         return load_configs(self.env, self.chain)
 
     def _save_state(self):
-        nft_contracts = [c for c in self.context.contracts.values() if c.nft]
-        contracts = [c for c in self.context.contracts.values() if not c.nft]
-        store_nft_contracts(self.env, self.chain, nft_contracts)
+        contracts = [c for c in self.context.contracts.values() if not c.nft and not c.token]
         store_contracts(self.env, self.chain, contracts)
 
     def deploy(self, changes: set[str], *, dryrun=False, save_state=True):

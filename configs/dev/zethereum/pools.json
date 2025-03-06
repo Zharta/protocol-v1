@@ -60,32 +60,6 @@
         "sushi_router": {
             "contract": "",
             "contract_def": "GenericContract"
-        },
-        "usdc": {
-            "abi_key": "f2d91b2ed1efecbe476dfcd1be3e26d24d2e5b2b",
-            "contract": "0x77BE703d950f6B84c679a2AB519f736174E63883",
-            "contract_def": "ERC20",
-            "image_url": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
-            "properties": {
-                "decimals": 6,
-                "name": "USD Coin",
-                "supply": "1000000000000000000",
-                "symbol": "USDC"
-            },
-            "token_symbol_key": "USDC"
-        },
-        "weth": {
-            "abi_key": "f2d91b2ed1efecbe476dfcd1be3e26d24d2e5b2b",
-            "contract": "0xEba85304439c77C74Fb471D302fba836ab3248b4",
-            "contract_def": "ERC20",
-            "image_url": "https://assets.coingecko.com/coins/images/2518/small/weth.png",
-            "properties": {
-                "decimals": 18,
-                "name": "Wrapped Ether",
-                "supply": "1000000000000000000000000",
-                "symbol": "WETH"
-            },
-            "token_symbol_key": "WETH"
         }
     },
     "configs": {
