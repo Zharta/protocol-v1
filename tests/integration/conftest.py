@@ -27,23 +27,8 @@ LOCK_PERIOD_DURATION = 7 * 24 * 60 * 60
 
 
 @pytest.fixture(scope="session", autouse=True)
-def boa_env():
+def cache_setup():
     boa.interpret.set_cache_dir(cache_dir=".cache/titanoboa")
-    return boa
-
-
-@pytest.fixture(scope="session", autouse=True)
-def boa_rawevent_patch():
-    import boa.contracts.vyper.event  # noqa: PLC0415
-    import boa.contracts.vyper.vyper_contract  # noqa: PLC0415
-
-    class RawEvent:
-        def __init__(self, event_data):
-            self.event_data = event_data
-
-    boa.contracts.vyper.event.RawEvent = RawEvent
-    boa.contracts.vyper.vyper_contract.RawEvent = RawEvent
-    return boa
 
 
 @pytest.fixture(scope="session")
@@ -157,12 +142,8 @@ def liquidity_controls_contract_def():
 
 
 @pytest.fixture(scope="module", autouse=True)
-def forked_env():
-    old_env = boa.env
+def forked_env(cache_setup):
     new_env = Env()
-    new_env._cached_call_profiles = old_env._cached_call_profiles
-    new_env._cached_line_profiles = old_env._cached_line_profiles
-    new_env._profiled_contracts = old_env._profiled_contracts
 
     with boa.swap_env(new_env):
         fork_uri = os.environ["BOA_FORK_RPC_URL"]
@@ -171,10 +152,6 @@ def forked_env():
         blkid = 19820759
         boa.env.fork(fork_uri, block_identifier=blkid, **kw)
         yield
-
-        old_env._cached_call_profiles = new_env._cached_call_profiles
-        old_env._cached_line_profiles = new_env._cached_line_profiles
-        old_env._profiled_contracts = new_env._profiled_contracts
 
 
 @pytest.fixture(scope="module")
@@ -207,8 +184,8 @@ def not_contract_owner(not_owner_account):
     return not_owner_account.address
 
 
-@pytest.fixture(scope="module")  # noqa: FURB118
-def investor(accounts):
+@pytest.fixture(scope="module")
+def investor(accounts):  # noqa: FURB118
     return accounts[1]
 
 
@@ -485,6 +462,7 @@ def cryptopunk_collaterals(cryptopunks_market_contract, borrower):
 
 @pytest.fixture(scope="module")
 def contracts_config(
+    forked_env,
     collateral_vault_core_contract,
     collateral_vault_peripheral_contract,
     contract_owner,

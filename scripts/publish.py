@@ -194,7 +194,6 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
 
     # get contract addresses config file
     pools = json.loads(read_file(Path.cwd() / "configs" / env / chain / "pools.json"))
-    nfts = json.loads(read_file(Path.cwd() / "configs" / env / chain / "collections.json"))
     common = pools.get("common", {})
 
     if not write_to_cloud:
@@ -227,8 +226,6 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
     pools = normalized_pool_configs(pools, abis)
 
     # set chain for collections, pools and tokens
-    for data in nfts.values():
-        data["chain"] = chain
     for data in pools["pools"].values():
         data["chain"] = chain
     for data in common.values():
