@@ -101,7 +101,7 @@ def test_store_collateral(
 
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
-    assert event._from == borrower
+    assert event.fromIndexed == borrower
 
 
 def test_store_cryptopunk_collateral(
@@ -125,7 +125,7 @@ def test_store_cryptopunk_collateral(
 
     assert event.collateralAddress == cryptopunks_market_contract.address
     assert event.tokenId == 0
-    assert event._from == borrower
+    assert event.fromIndexed == borrower
 
     cryptopunks_market_contract.transferPunk(borrower, 0, sender=cryptopunks_vault_core_contract.address)
 
@@ -195,7 +195,7 @@ def test_transfer_collateral_from_loan(
 
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
-    assert event._to == borrower
+    assert event.toIndexed == borrower
 
 
 def test_transfer_cryptopunk_collateral_from_loan(
@@ -225,7 +225,7 @@ def test_transfer_cryptopunk_collateral_from_loan(
 
     assert event.collateralAddress == cryptopunks_market_contract.address
     assert event.tokenId == 0
-    assert event._to == borrower
+    assert event.toIndexed == borrower
 
 
 def test_transfer_collateral_from_liquidation_wrong_sender(collateral_vault_peripheral_contract):
@@ -295,7 +295,7 @@ def test_transfer_collateral_from_liquidation(
 
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
-    assert event._to == borrower
+    assert event.toIndexed == borrower
 
 
 def test_transfer_punk_from_liquidation(
@@ -326,4 +326,4 @@ def test_transfer_punk_from_liquidation(
 
     assert event.collateralAddress == cryptopunks_market_contract.address
     assert event.tokenId == 0
-    assert event._to == borrower
+    assert event.toIndexed == borrower

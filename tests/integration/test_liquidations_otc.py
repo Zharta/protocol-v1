@@ -121,7 +121,7 @@ def test_add_liquidation(
     )
     liquidation_id = Web3.solidity_keccak(["bytes32"], [liquidation_id_abi_encoded]).hex()
 
-    assert liquidation.lid.hex() == liquidation_id[2:]
+    assert liquidation.lid.hex() == liquidation_id
     assert liquidation.gracePeriodMaturity == liquidation.startTime + GRACE_PERIOD_DURATION
     assert liquidation.principal == LOAN_AMOUNT
     assert liquidation.interestAmount == interest_amount
@@ -131,7 +131,7 @@ def test_add_liquidation(
     assert liquidation.loansCoreContract == loans_core_contract.address
     assert liquidation.erc20TokenContract == erc20_contract.address
 
-    assert event.liquidationId.hex() == liquidation_id[2:]
+    assert event.liquidationId.hex() == liquidation_id
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
     assert event.erc20TokenContract == erc20_contract.address

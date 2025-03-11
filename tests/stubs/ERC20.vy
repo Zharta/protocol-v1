@@ -1,3 +1,5 @@
+# @version 0.4.1
+
 # Structs
 
 # Events
@@ -77,11 +79,11 @@ def withdraw(amount: uint256):
 # @external
 # def mint(_to: address, _value: uint256):
 #     pass
-# 
+#
 # @external
 # def burn(_value: uint256):
 #     pass
-# 
+#
 # @external
 # def burnFrom(_to: address, _value: uint256):
 #     pass
