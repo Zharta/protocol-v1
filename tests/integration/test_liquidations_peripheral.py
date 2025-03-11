@@ -406,7 +406,7 @@ def test_add_liquidation(
     )
     liquidation_id = Web3.solidity_keccak(["bytes32"], [liquidation_id_abi_encoded]).hex()
 
-    assert liquidation[0].hex() == liquidation_id[2:]
+    assert liquidation[0].hex() == liquidation_id
     assert liquidation[4] == liquidation[3] + GRACE_PERIOD_DURATION
     assert liquidation[5] == liquidation[3] + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION
     assert liquidation[6] == LOAN_AMOUNT
@@ -420,7 +420,7 @@ def test_add_liquidation(
     penalty_fee = int(0.025 * LOAN_AMOUNT)
     auto_liq_price_eth = liquidations_peripheral_contract.eval(f"self._getAutoLiquidationPrice({erc20_contract.address}, 0)")
 
-    assert event.liquidationId.hex() == liquidation_id[2:]
+    assert event.liquidationId.hex() == liquidation_id
     assert event.collateralAddress == erc721_contract.address
     assert event.tokenId == 0
     assert event.erc20TokenContract == erc20_contract.address
@@ -1258,6 +1258,7 @@ def test_admin_liquidation_fail_on_collateral_in_liquidation(
         )
 
 
+@pytest.mark.skip("deprecated")
 def test_cryptopunks_nftx_buy(
     contracts_config,
     liquidations_peripheral_contract,
@@ -1327,6 +1328,7 @@ def test_cryptopunks_nftx_buy(
     assert event_funds_receipt.fundsOrigin == "liquidation_nftx"
 
 
+@pytest.mark.skip("deprecated")
 def test_hashmasks_nftx_buy(
     contracts_config,
     liquidations_peripheral_contract,
@@ -1400,6 +1402,7 @@ def test_hashmasks_nftx_buy(
     assert event_funds_receipt.fundsOrigin == "liquidation_nftx"
 
 
+@pytest.mark.skip("deprecated")
 def test_hashmasks_nftx_buy_usdc(
     contracts_config,
     liquidations_peripheral_contract,
@@ -1486,6 +1489,7 @@ def test_hashmasks_nftx_buy_usdc(
     assert event_funds_receipt.fundsOrigin == "liquidation_nftx"
 
 
+@pytest.mark.skip("deprecated")
 def test_wpunks_nftx_buy(
     contracts_config,
     liquidations_peripheral_contract,

@@ -75,7 +75,7 @@ def test_add_liquidation(liquidations_core, contract_owner, borrower):
     liquidation_id = Web3.solidity_keccak(["bytes32"], [liquidation_id_abi_encoded]).hex()
 
     liquidation = liquidations_core.getLiquidation(erc721, 0)
-    assert liquidation[0].hex() == liquidation_id[2:]
+    assert liquidation[0].hex() == liquidation_id
     assert liquidation[3] == start_time
     assert liquidation[4] == start_time + GRACE_PERIOD_DURATION
     assert liquidation[5] == start_time + GRACE_PERIOD_DURATION + LENDER_PERIOD_DURATION

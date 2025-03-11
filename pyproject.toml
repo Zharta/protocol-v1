@@ -5,18 +5,20 @@ classifiers = ["Private :: Do Not Upload"]
 version = "0"
 dependencies = [
     "eth-ape",
-    "vyper==0.4.0",
+    "vyper==0.4.1",
     "ape-vyper",
     "ape-foundry",
     "ape-alchemy",
     "ape-arbitrum",
     "ape-base",
+    "web3",
 ]
 
 
 [project.optional-dependencies]
 dev = [
-    "titanoboa==0.1.10b1",
+    # "titanoboa==0.2.5",
+    "titanoboa @ git+https://github.com/vyperlang/titanoboa.git@c06e23a68df73d669738f30faa4aeb051012423b",
     "boto3",
     "click",
     "coverage",
@@ -59,6 +61,7 @@ target-version = "py311"
 "__init__.py" = ["F401"]
 "tests/*.py" = [
     "ARG001",
+    "ERA001",
     "F401",
     "FBT003",
     "N815",
@@ -68,20 +71,26 @@ target-version = "py311"
     "PT022",
     "PTH",
     "RUF029",
+    "RUF032",
+    "RUF052",
+    "RUF058",
     "SLF001",
     "T201",
     "TID252",
 ]
 "scripts/*.py" = [
     "A001",
+    "A004",
+    "DOC",
+    "ERA001",
     "ERA001",
     "FURB101",
     "FURB103",
-    "ERA001",
     "PLW1514",
     "PTH123",
+    "RUF052",
     "T201",
-    "UP015"
+    "UP015",
 ]
 
 

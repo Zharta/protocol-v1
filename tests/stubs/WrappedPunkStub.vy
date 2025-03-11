@@ -1,5 +1,7 @@
+# @version 0.4.1
+
 """
-Stub for [WrappedPunk](https://etherscan.io/address/0xb7f7f6c52f2e2fdb1963eab30438024864c313f6#code) 
+Stub for [WrappedPunk](https://etherscan.io/address/0xb7f7f6c52f2e2fdb1963eab30438024864c313f6#code)
 To use in mainnet fork. It's a stub since boa doesn't load interfaces.
 """
 

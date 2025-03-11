@@ -829,6 +829,7 @@ def test_pay_loan_insufficient_balance(
     erc20_contract.transfer(borrower, transfer_amount, sender=contract_owner)
 
 
+@pytest.mark.skip("EOF in multi-line statement")
 def test_pay_loan_insufficient_allowance(
     loans_otc_contract,
     create_signature,

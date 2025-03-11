@@ -1,5 +1,7 @@
+# @version 0.4.1
+
 """
-Stub for [CryptoPunksMarket](https://etherscan.io/token/0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb#code) 
+Stub for [CryptoPunksMarket](https://etherscan.io/token/0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb#code)
 To use in mainnet fork. It's a stub since boa doesn't load interfaces.
 """
 

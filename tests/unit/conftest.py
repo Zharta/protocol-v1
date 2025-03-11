@@ -41,8 +41,8 @@ def not_contract_owner(not_owner_account):
     return not_owner_account.address
 
 
-@pytest.fixture(scope="session")  # noqa: FURB118
-def investor(accounts):
+@pytest.fixture(scope="session")
+def investor(accounts):  # noqa: FURB118
     return accounts[1]
 
 
