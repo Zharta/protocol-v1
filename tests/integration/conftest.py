@@ -147,10 +147,8 @@ def forked_env(cache_setup):
 
     with boa.swap_env(new_env):
         fork_uri = os.environ["BOA_FORK_RPC_URL"]
-        disable_cache = os.environ.get("BOA_FORK_NO_CACHE")
-        kw = {"cache_file": None} if disable_cache else {}
         blkid = 19820759
-        boa.env.fork(fork_uri, block_identifier=blkid, **kw)
+        boa.env.fork(fork_uri, block_identifier=blkid)
         yield
 
 
