@@ -196,6 +196,15 @@ def cli(*, write_to_cloud: bool = False, output_directory: str = ""):
     pools = json.loads(read_file(Path.cwd() / "configs" / env / chain / "pools.json"))
     common = pools.get("common", {})
 
+    tokens = json.loads(read_file(Path.cwd() / "configs" / env / chain / "tokens.json"))
+    for key, token in tokens.items():
+        common[key] = {
+            "abi_key": token["abi_key"],
+            "contract": token["address"],
+            "token_symbol_key": token["symbol"],
+            "image_url": token["image_url"],
+        }
+
     if not write_to_cloud:
         # Check if directory exists and if not create it
         Path(f"{output_directory}/abi").mkdir(parents=True, exist_ok=True)
