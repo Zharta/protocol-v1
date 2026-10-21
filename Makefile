@@ -10,7 +10,7 @@ PATH := ${VENV}/bin:${PATH}
 vpath %.vy ./contracts
 
 $(VENV):
-	if ! command -v uv > /dev/null; then python -m pip install -U uv; fi
+	python -m pip install "pip>=26.2.2" "uv>=0.13.4"
 	uv venv $(VENV)
 
 install: ${VENV} requirements.txt
@@ -21,10 +21,10 @@ install-dev: $(VENV) requirements-dev.txt
 	$(VENV)/bin/pre-commit install
 
 requirements.txt: pyproject.toml overrides.txt
-	uv pip compile --override overrides.txt -o requirements.txt pyproject.toml
+	uv pip compile --python-version 3.11 --override overrides.txt -o requirements.txt pyproject.toml
 
 requirements-dev.txt: pyproject.toml overrides.txt
-	uv pip compile --override  overrides.txt -o requirements-dev.txt --extra dev pyproject.toml
+	uv pip compile --python-version 3.11 --override overrides.txt -o requirements-dev.txt --extra dev pyproject.toml
 
 test: ${VENV}
 	${VENV}/bin/pytest tests/unit --durations=0
